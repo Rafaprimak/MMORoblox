@@ -1,4 +1,6 @@
 -- Biblioteca de objetos do cenário (blocados, mas com variação de forma, cor e tamanho).
+local CollectionService = game:GetService("CollectionService")
+
 local Props = {}
 
 local M = Enum.Material
@@ -71,6 +73,12 @@ function Props.scaleModel(model, pivot, factor)
 	model.WorldPivot = pivot
 	model:ScaleTo(factor)
 	return model
+end
+
+-- Peça que só acende à noite (o cliente liga a luz e o neon quando escurece)
+function Props.nightLight(lampPart)
+	CollectionService:AddTag(lampPart, "NightLight")
+	return lampPart
 end
 
 function Props.light(parentPart, color, range, brightness, shadows)
@@ -362,6 +370,7 @@ function Props.lamp(parent, ground)
 	part(model, { Name = "Braco", Size = Vector3.new(0.3, 0.3, 1.6), CFrame = ground * CFrame.new(0, 7.8, -0.7), Color = Color3.fromRGB(40, 40, 45), Material = M.Metal })
 	local lamp = part(model, { Name = "Lampiao", Size = Vector3.new(0.9, 1.1, 0.9), CFrame = ground * CFrame.new(0, 7.2, -1.4), Color = Color3.fromRGB(255, 220, 150), Material = M.Neon, CanCollide = false })
 	Props.light(lamp, Color3.fromRGB(255, 200, 140), 22, 1.4)
+	Props.nightLight(lamp)
 	model.Parent = parent
 	return model
 end

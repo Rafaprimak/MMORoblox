@@ -79,6 +79,7 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Poções | **Z** vida, **X** mana, **V** vigor | Toque na barra |
 | Montar / desmontar | **H** | Botão 🐴 |
 | Inventário / Personagem / Missões / Mapa / Baús | **I / C / J / M / B** | Botões à esquerda |
+| Configurações (volume, sensibilidade, números de dano...) | **P** | Botão ⚙ |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
 
 O botão direito do mouse fica livre para girar a câmera.
@@ -93,7 +94,7 @@ O botão direito do mouse fica livre para girar a câmera.
 
 ### Modo teste (só no Studio)
 
-À esquerda da tela aparecem os botões **+5.000 XP**, **+5.000 Ouro**, **+Materiais** e **+Perícias**, para testar sem precisar farmar. Eles não funcionam num jogo publicado.
+À esquerda da tela aparecem os botões **+5.000 XP**, **+5.000 Ouro**, **+Materiais**, **+Perícias** e **Pular dia/noite**, para testar sem precisar farmar nem esperar a noite. Eles não funcionam num jogo publicado.
 
 ---
 
@@ -108,6 +109,9 @@ O botão direito do mouse fica livre para girar a câmera.
 - **Missões:** 15 da história e 10 secundárias (caçar, coletar, entregar, explorar, ativar pedras, forjar, encantar, montar, aparar, esquivar no tempo certo...), mais 3 contratos diários sorteados de uma lista.
 - **Inimigos:** slimes, lobos, javalis (investida), caranguejos, goblins e arqueiros, aranhas, esqueletos e magos, golems (pancada em área), versões **Elite** e o chefe **Rei Goblin**.
 - **Viagem:** pedras de teletransporte (pelo mapa), cavalo e corrida.
+- **Dia e noite:** 14 min de dia e 6 de noite. À noite os inimigos batem mais forte e aparecem mais Elites, mas XP, ouro e equipamentos rendem mais.
+- **Tutorial:** dicas no topo da tela nos primeiros níveis (dá para pular ou recomeçar nas Configurações).
+- **Visual:** rastro da arma por raridade (Lendário+ solta faíscas), faíscas de impacto por elemento e aura do rank (D em diante).
 
 ---
 

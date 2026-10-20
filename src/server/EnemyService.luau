@@ -32,6 +32,15 @@ local function flat(v)
 	return Vector3.new(v.X, 0, v.Z)
 end
 
+local function isNight()
+	return workspace:GetAttribute("Night") == true
+end
+
+-- multiplicador de dano do inimigo (Elite e noite)
+local function damageMult(rec)
+	return rec.damageMult * (if isNight() then Config.NightEnemyDamage else 1)
+end
+
 local function yawTowards(direction)
 	return math.atan2(-direction.X, -direction.Z)
 end
@@ -73,7 +82,7 @@ function EnemyService.spawn(camp, enemyId, options)
 		return nil
 	end
 	local canBeElite = not def.boss and def.behavior ~= "dummy" and not options.summoned
-	local elite = canBeElite and math.random() < Enemies.EliteChance
+	local elite = canBeElite and math.random() < Enemies.EliteChance * (if isNight() then Config.NightEliteMultiplier else 1)
 	local height = EnemyModels.height(def, elite)
 	local radius = def.radius * (if elite then 1.35 else 1)
 	local hp = math.floor(def.hp * (if elite then 3 else 1))
@@ -264,7 +273,7 @@ function EnemyService.damage(rec, amount, player, info)
 		end
 	end
 	rec.root:SetAttribute("Hp", math.max(0, math.floor(rec.hp)))
-	Remotes.Fx:FireAllClients("hit", rec.root, amount, info.crit == true, player, info.color, tag)
+	Remotes.Fx:FireAllClients("hit", rec.root, amount, info.crit == true, player, info.color, tag, info.element or (if info.dot then "dot" else nil))
 	if info.posture and info.posture > 0 and rec.hp > 0 then
 		EnemyService.addPosture(rec, info.posture, player)
 	end
@@ -568,7 +577,7 @@ local function updateEnemy(rec, now, targets)
 			local reach = def.attackRange + rec.radius + 2
 			local center = rec.pos + lookOf(rec) * (rec.radius + 1)
 			if target and distance <= reach + 1 then
-				strikePlayers(rec, center, math.max(def.attackRange * 0.7, 3), def.damage * rec.damageMult)
+				strikePlayers(rec, center, math.max(def.attackRange * 0.7, 3), def.damage * damageMult(rec))
 			end
 		end
 		return
@@ -590,7 +599,7 @@ local function updateEnemy(rec, now, targets)
 		for _, candidate in targets do
 			if not rec.chargeHit[candidate.player] and flat(candidate.root.Position - rec.pos).Magnitude < rec.radius + 3 then
 				rec.chargeHit[candidate.player] = true
-				PlayerService.damagePlayer(candidate.player, def.charge.damage * rec.damageMult, rec.pos, { source = rec, unblockable = true })
+				PlayerService.damagePlayer(candidate.player, def.charge.damage * damageMult(rec), rec.pos, { source = rec, unblockable = true })
 			end
 		end
 		if now >= rec.stateUntil then
@@ -606,7 +615,7 @@ local function updateEnemy(rec, now, targets)
 			rec.stateUntil = now + 0.6
 			setAction(rec, "slam")
 			Remotes.Fx:FireAllClients("explosion", rec.pos, def.slam.radius, "earth")
-			strikePlayers(rec, rec.pos, def.slam.radius, def.slam.damage * rec.damageMult, true)
+			strikePlayers(rec, rec.pos, def.slam.radius, def.slam.damage * damageMult(rec), true)
 		end
 		return
 	end
@@ -678,7 +687,7 @@ local function updateEnemy(rec, now, targets)
 						speed = def.projectile.speed,
 						range = def.attackRange + 15,
 						radius = 1.3,
-						damage = def.projectile.damage * rec.damageMult,
+						damage = def.projectile.damage * damageMult(rec),
 						aoe = def.projectile.aoe,
 						style = def.projectile.style,
 					})

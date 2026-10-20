@@ -31,6 +31,7 @@ Controller.onNoStamina = function() end
 Controller.onAttack = function(_duration) end -- HUD mostra a barra de ritmo
 Controller.onFumble = function() end -- clicou cedo demais
 Controller.onCharge = function(_active) end -- HUD mostra a barra de carga
+Controller.onEvent = function(_name) end -- "dodge", "block", "sprint" (usado pelo tutorial)
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
@@ -158,6 +159,9 @@ local function setSprint(on)
 	end
 	sprintHeld = on
 	State.action("sprint", on)
+	if on then
+		Controller.onEvent("sprint")
+	end
 end
 
 local function weaponStyle()
@@ -179,6 +183,7 @@ local function setBlock(on)
 		end
 		blocking = true
 		Animator.hold(character, "block")
+		Controller.onEvent("block")
 	else
 		blocking = false
 		if character then
@@ -328,6 +333,7 @@ local function dodge()
 	end
 	Controller.dash(direction, Config.DodgeSpeed, Config.DodgeDuration)
 	Animator.play(character, "dodge", Config.DodgeDuration + 0.1)
+	Controller.onEvent("dodge")
 	Sounds.play("swing", 0.7, 0.3)
 	State.action("dodge")
 end

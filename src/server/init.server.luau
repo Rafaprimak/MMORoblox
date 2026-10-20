@@ -26,6 +26,7 @@ local ShopService = require(script.ShopService)
 local QuestService = require(script.QuestService)
 local TravelService = require(script.TravelService)
 local NPCService = require(script.NPCService)
+local DayNightService = require(script.DayNightService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -68,10 +69,12 @@ end
 
 EnemyService.OnKilled = function(rec, contributors)
 	local def = rec.def
+	local night = DayNightService.isNight()
+	local rewardMult = if night then 1 + Config.NightRewardBonus else 1
 	for player in contributors do
-		local xp = math.floor(def.xp * (if rec.elite then 3 else 1))
+		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult)
 		PlayerService.addXP(player, xp)
-		local gold = math.random(def.gold[1], def.gold[2]) * (if rec.elite then 3 else 1)
+		local gold = math.floor(math.random(def.gold[1], def.gold[2]) * (if rec.elite then 3 else 1) * rewardMult)
 		if gold > 0 then
 			PlayerService.addGold(player, gold)
 			Remotes.Fx:FireClient(player, "gold", EnemyService.centerOf(rec) + Vector3.new(0, rec.height / 2, 0), gold)
@@ -88,7 +91,7 @@ EnemyService.OnKilled = function(rec, contributors)
 		LootService.rollMaterials(player, def.drops, if rec.elite then 2 else 1)
 		local rolls = (def.equipDrops or 1) + (if rec.elite then 1 else 0)
 		for _ = 1, rolls do
-			if math.random() <= def.dropChance * (if rec.elite then 3 else 1) then
+			if math.random() <= def.dropChance * (if rec.elite then 3 else 1) * (if night then 1 + Config.NightDropBonus else 1) then
 				local minRarity = math.max(def.minRarity or 1, if rec.elite then 2 else 1)
 				local item = Items.rollDrop(def.pool, rec.level, "weight", minRarity)
 				LootService.spawnDrop(player, item, rec.pos)
@@ -137,6 +140,8 @@ local function devGift(player, kind)
 		for id in Items.Consumables do
 			PlayerService.addConsumable(player, id, 5, true)
 		end
+	elseif kind == "night" then
+		DayNightService.skip()
 	elseif kind == "skills" then
 		for _, id in { "mineracao", "herbalismo", "lenhador", "ferraria", "alquimia", "encantamento" } do
 			SkillService.addXP(player, id, 3000)
@@ -193,6 +198,10 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return TravelService.travel(player, a)
 	elseif action == "buyMount" then
 		return TravelService.buyMount(player)
+	elseif action == "settings" then
+		return PlayerService.saveSettings(player, a)
+	elseif action == "tutorial" then
+		return PlayerService.tutorial(player, a)
 	elseif action == "dev" and RunService:IsStudio() then
 		return devGift(player, a)
 	end
@@ -281,6 +290,7 @@ end
 safely("NPCs", NPCService.spawn, built.board)
 safely("Recursos", ResourceService.init)
 safely("Projéteis", ProjectileService.start)
+safely("Dia e noite", DayNightService.start)
 safely("Inimigos", EnemyService.start)
 safely("Viagem", TravelService.init, built.horse)
 

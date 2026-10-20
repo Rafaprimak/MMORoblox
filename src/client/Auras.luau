@@ -1,0 +1,92 @@
+-- Aura de rank em volta de cada jogador (desenhada no cliente, a partir do atributo "Level").
+-- Rank E não tem aura; do D ao S ela fica mais densa e brilhante, na cor do rank.
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
+
+local Auras = {}
+
+-- por posição do rank em Config.Ranks
+local RATE = { 0, 2, 5, 9, 14, 22 }
+
+local function rankIndex(level)
+	local index = 1
+	for i, rank in Config.Ranks do
+		if level >= rank.minLevel then
+			index = i
+		end
+	end
+	return index
+end
+
+local function refresh(player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+	local index = rankIndex(player:GetAttribute("Level") or 1)
+	local rank = Config.Ranks[index]
+	local emitter = root:FindFirstChild("AuraRank")
+	local light = root:FindFirstChild("LuzRank")
+	if (RATE[index] or 0) <= 0 then
+		if emitter then
+			emitter:Destroy()
+		end
+		if light then
+			light:Destroy()
+		end
+		return
+	end
+	if not emitter then
+		emitter = Instance.new("ParticleEmitter")
+		emitter.Name = "AuraRank"
+		emitter.LightEmission = 1
+		emitter.LightInfluence = 0
+		emitter.Lifetime = NumberRange.new(1, 1.8)
+		emitter.Speed = NumberRange.new(0.4, 1.2)
+		emitter.Acceleration = Vector3.new(0, 3.5, 0)
+		emitter.SpreadAngle = Vector2.new(25, 25)
+		emitter.EmissionDirection = Enum.NormalId.Top
+		emitter.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.2, 0.35), NumberSequenceKeypoint.new(1, 1) })
+		emitter.Parent = root
+	end
+	emitter.Color = ColorSequence.new(rank.color, rank.color:Lerp(Color3.new(1, 1, 1), 0.5))
+	emitter.Size = NumberSequence.new(0.18 + index * 0.04, 0)
+	emitter.Rate = RATE[index]
+	-- A e S: brilho em volta do corpo
+	if index >= 5 then
+		if not light then
+			light = Instance.new("PointLight")
+			light.Name = "LuzRank"
+			light.Parent = root
+		end
+		light.Color = rank.color
+		light.Range = 8 + (index - 5) * 4
+		light.Brightness = 0.8
+	elseif light then
+		light:Destroy()
+	end
+end
+
+local function watch(player)
+	player.CharacterAdded:Connect(function(character)
+		character:WaitForChild("HumanoidRootPart", 10)
+		refresh(player)
+	end)
+	player:GetAttributeChangedSignal("Level"):Connect(function()
+		refresh(player)
+	end)
+	refresh(player)
+end
+
+function Auras.init()
+	for _, player in Players:GetPlayers() do
+		watch(player)
+	end
+	Players.PlayerAdded:Connect(watch)
+end
+
+return Auras

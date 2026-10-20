@@ -195,6 +195,10 @@ local function setTrail(character, enabled)
 	if trail then
 		trail.Enabled = enabled
 	end
+	local sparks = handle and handle:FindFirstChild("FaiscasGolpe", true)
+	if sparks then
+		sparks.Enabled = enabled
+	end
 end
 
 function Animator.play(character, poseName, duration, withTrail)

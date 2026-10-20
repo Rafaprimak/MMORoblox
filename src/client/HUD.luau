@@ -15,6 +15,7 @@ local NPCs = require(Shared.NPCs)
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
 local EnemyRenderer = require(script.Parent.EnemyRenderer)
+local Sky = require(script.Parent.Sky)
 
 local HUD = {}
 
@@ -112,6 +113,9 @@ function HUD.init(screen, callbacks)
 	local tracker = UI.new("Frame", { Name = "Missoes", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 150), Size = UDim2.fromOffset(300, 40), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.3, Parent = screen }, { UI.corner(12), UI.stroke(UI.Colors.Stroke, 1.5, 0.4), UI.padding(10), UI.list(3) })
 	refs.tracker = tracker
 
+	-- ===== relógio do dia =====
+	refs.clock = UI.label({ Text = "", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -14, 0, 122), Size = UDim2.fromOffset(300, 22), TextXAlignment = Enum.TextXAlignment.Right, Font = Enum.Font.GothamBlack, Parent = screen }, { UI.textStroke(1.5) })
+
 	-- ===== nome da região e barra de chefe =====
 	refs.region = UI.label({ Text = "", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 14), Size = UDim2.fromOffset(500, 34), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = Color3.fromRGB(255, 240, 200), TextTransparency = 1, Parent = screen })
 	refs.regionStroke = UI.textStroke(2)
@@ -123,7 +127,7 @@ function HUD.init(screen, callbacks)
 	refs.bossFrame, refs.bossFill, refs.bossText = bossFrame, bossFill, bossText
 
 	-- ===== botões do menu =====
-	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 20), Size = UDim2.fromOffset(150, 330), BackgroundTransparency = 1, Parent = screen }, { UI.list(6) })
+	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 20), Size = UDim2.fromOffset(150, 400), BackgroundTransparency = 1, Parent = screen }, { UI.list(6) })
 	local entries = {
 		{ "🎒 Inventário", "I", callbacks.onInventory },
 		{ "🧙 Personagem", "C", callbacks.onCharacter },
@@ -133,14 +137,15 @@ function HUD.init(screen, callbacks)
 		{ "🐴 Montar", "H", function()
 			State.action("mount")
 		end },
+		{ "⚙ Configurações", "P", callbacks.onSettings },
 	}
 	for i, entry in entries do
 		local button = UI.button({ Text = entry[1] .. "  [" .. entry[2] .. "]", Size = UDim2.fromOffset(150, 34), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
 		button.MouseButton1Click:Connect(entry[3])
 	end
-	refs.devPanel = UI.new("Frame", { Size = UDim2.fromOffset(150, 120), BackgroundTransparency = 1, LayoutOrder = 10, Visible = false, Parent = menu }, { UI.list(3) })
+	refs.devPanel = UI.new("Frame", { Size = UDim2.fromOffset(150, 150), BackgroundTransparency = 1, LayoutOrder = 10, Visible = false, Parent = menu }, { UI.list(3) })
 	UI.label({ Text = "🧪 TESTE (só Studio)", Size = UDim2.fromOffset(150, 14), TextColor3 = UI.Colors.SubText, LayoutOrder = 0, Parent = refs.devPanel }, { UI.textStroke(1) })
-	for i, entry in { { "+5.000 XP", "xp" }, { "+5.000 Ouro", "gold" }, { "+Materiais", "materials" }, { "+Perícias", "skills" } } do
+	for i, entry in { { "+5.000 XP", "xp" }, { "+5.000 Ouro", "gold" }, { "+Materiais", "materials" }, { "+Perícias", "skills" }, { "Pular dia/noite", "night" } } do
 		local button = UI.button({ Text = entry[1], Size = UDim2.fromOffset(150, 24), LayoutOrder = i, BackgroundColor3 = UI.Colors.Dark, Parent = refs.devPanel })
 		button.MouseButton1Click:Connect(function()
 			State.request("dev", entry[2])
@@ -214,6 +219,9 @@ function HUD.init(screen, callbacks)
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if root and now > regionCheck then
 			regionCheck = now + 0.5
+			local night = Sky.isNight()
+			refs.clock.Text = Sky.label() .. (if night then "  •  noite: inimigos mais fortes" else "")
+			refs.clock.TextColor3 = if night then Color3.fromRGB(170, 180, 255) else Color3.fromRGB(255, 235, 170)
 			local name = World.regionName(root.Position.X, root.Position.Z)
 			if name ~= lastRegion then
 				lastRegion = name

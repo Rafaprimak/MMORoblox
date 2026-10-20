@@ -13,6 +13,7 @@ local Skills = require(Shared.Skills)
 
 local UI = require(script.Parent.UI)
 local Sounds = require(script.Parent.Sounds)
+local Prefs = require(script.Parent.Prefs)
 local EnemyRenderer = require(script.Parent.EnemyRenderer)
 
 local Fx = {}
@@ -75,6 +76,9 @@ local function getRoot()
 end
 
 function Fx.shake(duration, strength)
+	if not Prefs.get("shake") then
+		return
+	end
 	local now = os.clock()
 	if now > shakeUntil then
 		shakeStrength = strength
@@ -117,28 +121,41 @@ function Fx.floatingText(position, text, color, height, duration)
 	Debris:AddItem(anchor, duration + 0.1)
 end
 
--- Golpe em inimigo: pisca branco para todos; número só para quem bateu
-function Fx.hit(root, amount, crit, attacker, color, tag)
+-- Faíscas do impacto por elemento (todos veem). Definido depois de "burst" e "ring".
+local impactAt = nil
+
+-- Golpe em inimigo: pisca branco e faíscas para todos; número só para quem bateu
+function Fx.hit(root, amount, crit, attacker, color, tag, element)
 	if typeof(root) ~= "Instance" then
 		return
 	end
 	EnemyRenderer.flash(root)
+	if impactAt and element ~= "dot" then
+		impactAt(root.Position, element, crit)
+	end
 	if attacker ~= player then
 		return
 	end
 	local position = EnemyRenderer.topPosition(root)
+	local numbers = Prefs.get("damageNumbers")
 	if tag == "counter" then
-		Fx.floatingText(position + Vector3.new(0, 2, 0), "CONTRA-ATAQUE", Color3.fromRGB(120, 220, 255), 24, 0.8)
+		if numbers then
+			Fx.floatingText(position + Vector3.new(0, 2, 0), "CONTRA-ATAQUE", Color3.fromRGB(120, 220, 255), 24, 0.8)
+		end
 		color = color or Color3.fromRGB(120, 220, 255)
 	elseif tag == "staggered" then
 		color = color or Color3.fromRGB(255, 160, 50)
 	end
 	if crit then
-		Fx.floatingText(position, UI.formatNumber(amount) .. "!", color or Color3.fromRGB(255, 210, 40), 48, 0.9)
+		if numbers then
+			Fx.floatingText(position, UI.formatNumber(amount) .. "!", color or Color3.fromRGB(255, 210, 40), 48, 0.9)
+		end
 		Sounds.play("crit", 1 + math.random() * 0.2, 0.4)
 		Fx.shake(0.12, 0.35)
 	else
-		Fx.floatingText(position, UI.formatNumber(amount), color or Color3.new(1, 1, 1), 32, 0.7)
+		if numbers then
+			Fx.floatingText(position, UI.formatNumber(amount), color or Color3.new(1, 1, 1), 32, 0.7)
+		end
 		Sounds.play("swing", 1.4 + math.random() * 0.3, 0.12)
 	end
 end
@@ -185,6 +202,33 @@ local function burst(position, color, count, speed, size)
 end
 Fx.burst = burst
 
+-- elemento → cor, quantidade e tamanho das faíscas
+local IMPACTS = {
+	fire = { color = Color3.fromRGB(255, 130, 40), count = 7, size = 0.5, flash = true },
+	ice = { color = Color3.fromRGB(160, 230, 255), count = 6, size = 0.7, ring = true },
+	arcane = { color = Color3.fromRGB(190, 120, 255), count = 5, size = 0.45, ring = true },
+	shadow = { color = Color3.fromRGB(110, 50, 170), count = 6, size = 0.5 },
+	blood = { color = Color3.fromRGB(200, 30, 50), count = 5, size = 0.4 },
+	earth = { color = Color3.fromRGB(170, 130, 90), count = 7, size = 0.6 },
+	roar = { color = Color3.fromRGB(255, 200, 60), count = 5, size = 0.45 },
+	slash = { color = Color3.fromRGB(240, 240, 255), count = 4, size = 0.35 },
+}
+local PHYSICAL = { color = Color3.fromRGB(255, 245, 220), count = 3, size = 0.3 }
+
+impactAt = function(position, element, crit)
+	local info = IMPACTS[element] or PHYSICAL
+	local count = info.count + (if crit then 4 else 0)
+	burst(position, info.color, count, if crit then 26 else 18, info.size)
+	if info.flash or crit then
+		local flash = effectPart({ Shape = Enum.PartType.Ball, Size = Vector3.one, CFrame = CFrame.new(position), Color = info.color, Material = Enum.Material.Neon, Transparency = 0.2 })
+		TweenService:Create(flash, TweenInfo.new(0.18), { Size = Vector3.one * (if crit then 4.5 else 3), Transparency = 1 }):Play()
+		Debris:AddItem(flash, 0.22)
+	end
+	if info.ring then
+		ring(position - Vector3.new(0, 1.5, 0), 4, info.color, 0.3, 0.25)
+	end
+end
+
 -- ===================== COMBATE DINÂMICO =====================
 
 local function characterRoot(target)
@@ -194,6 +238,9 @@ end
 
 -- "Soco" no campo de visão (sensação de impacto)
 local function fovPunch(amount, duration)
+	if not Prefs.get("shake") then
+		return
+	end
 	local camera = workspace.CurrentCamera
 	local base = 70
 	camera.FieldOfView = base - amount
@@ -354,7 +401,7 @@ function Fx.explosion(position, radius, style)
 		Fx.shake(0.25, math.clamp(radius / 20, 0.15, 0.7))
 	end
 	if style == "earth" or style == "fire" then
-		Sounds.play("crit", 0.6, 0.35)
+		Sounds.play("explosion", 1 + math.random() * 0.2, 0.35)
 	end
 end
 

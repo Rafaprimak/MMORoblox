@@ -39,6 +39,8 @@ function DataService.defaultData()
 		discovered = {},
 		mount = false,
 		stats = { kills = 0, chests = 0, bestRarity = 1, crafted = 0 },
+		settings = table.clone(Config.DefaultSettings),
+		tutorial = { done = {}, skipped = false },
 	}
 end
 

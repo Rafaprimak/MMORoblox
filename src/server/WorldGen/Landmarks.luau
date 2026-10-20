@@ -184,6 +184,7 @@ local function mine(parent)
 	part(model, { Name = "Viga", Size = Vector3.new(8.5, 0.9, 0.9), CFrame = cf * CFrame.new(0, 8, 0), Color = C.Wood, Material = M.Wood })
 	local lantern = part(model, { Name = "Lanterna", Size = Vector3.new(0.8, 1, 0.8), CFrame = cf * CFrame.new(3.6, 6.5, 0.7), Color = Color3.fromRGB(255, 210, 140), Material = M.Neon })
 	Props.light(lantern, Color3.fromRGB(255, 200, 130), 18, 1.6)
+	Props.nightLight(lantern)
 	-- trilhos e carrinho
 	for i = 0, 5 do
 		part(model, { Name = "Dormente", Size = Vector3.new(4, 0.3, 0.7), CFrame = cf * CFrame.new(0, 0.2, 2 + i * 2), Color = C.DarkWood, Material = M.Wood })
@@ -230,6 +231,7 @@ local function lighthouse(parent)
 	Props.column(model, cf * CFrame.new(0, 30, 0), 1, 8, Color3.fromRGB(40, 40, 45), M.Metal)
 	local lamp = Props.column(model, cf * CFrame.new(0, 31, 0), 4, 5, Color3.fromRGB(255, 240, 160), M.Neon, { Transparency = 0.2 })
 	Props.light(lamp, Color3.fromRGB(255, 240, 160), 60, 3)
+	Props.nightLight(lamp)
 	Props.column(model, cf * CFrame.new(0, 35, 0), 1.5, 6, Color3.fromRGB(200, 50, 50), M.Slate)
 	model.Parent = parent
 	Props.scaleModel(model, cf, K)

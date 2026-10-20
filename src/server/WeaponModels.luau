@@ -40,7 +40,15 @@ end
 
 -- Constrói o modelo com o cabo na origem e a lâmina subindo em +Y.
 -- Retorna model, handle, tipEnd (Y da ponta), bladeStart (Y onde começa o rastro)
-local function build(weaponType, rarity)
+-- cor do fim do rastro por encantamento de elemento
+local ELEMENT_TRAIL = {
+	flamejante = Color3.fromRGB(255, 110, 30),
+	vampirico = Color3.fromRGB(190, 20, 40),
+	veloz = Color3.fromRGB(150, 230, 255),
+	critico = Color3.fromRGB(255, 240, 140),
+}
+
+local function build(weaponType, rarity, element)
 	local model = Instance.new("Model")
 	model.Name = "Arma"
 	local accent = rarity.color
@@ -137,16 +145,48 @@ local function build(weaponType, rarity)
 	a1.Name = "TrailEnd"
 	a1.Position = Vector3.new(0, tip, 0)
 	a1.Parent = handle
+	-- quanto mais rara, mais longo, brilhante e colorido; encantamento de elemento tinge o fim do rastro
+	local order = rarity.order
+	local main = rarity.color:Lerp(Color3.new(1, 1, 1), if order <= 2 then 0.45 else 0.15)
+	local tail = ELEMENT_TRAIL[element or ""] or rarity.color
 	local trail = Instance.new("Trail")
 	trail.Name = "Rastro"
 	trail.Attachment0 = a0
 	trail.Attachment1 = a1
-	trail.Color = ColorSequence.new(rarity.color:Lerp(Color3.new(1, 1, 1), 0.4))
-	trail.Transparency = NumberSequence.new(0.2, 1)
-	trail.Lifetime = 0.18
-	trail.LightEmission = 0.6
+	if rarity.rainbow then
+		trail.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 80, 80)),
+			ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 230, 80)),
+			ColorSequenceKeypoint.new(0.66, Color3.fromRGB(80, 220, 255)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 90, 255)),
+		})
+	else
+		trail.Color = ColorSequence.new(main, tail)
+	end
+	trail.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, if order >= 4 then 0.05 else 0.3),
+		NumberSequenceKeypoint.new(1, 1),
+	})
+	trail.WidthScale = NumberSequence.new(1, if order >= 5 then 0.6 else 0.2)
+	trail.Lifetime = 0.14 + order * 0.025
+	trail.LightEmission = math.min(0.3 + order * 0.12, 1)
+	trail.FaceCamera = true
 	trail.Enabled = false
 	trail.Parent = handle
+	-- Lendário ou melhor: faíscas na ponta durante o golpe
+	if order >= 5 then
+		local sparks = Instance.new("ParticleEmitter")
+		sparks.Name = "FaiscasGolpe"
+		sparks.Color = if rarity.rainbow then trail.Color else ColorSequence.new(rarity.color, tail)
+		sparks.LightEmission = 1
+		sparks.Size = NumberSequence.new(0.28, 0)
+		sparks.Lifetime = NumberRange.new(0.2, 0.45)
+		sparks.Rate = 45
+		sparks.Speed = NumberRange.new(2, 5)
+		sparks.SpreadAngle = Vector2.new(180, 180)
+		sparks.Enabled = false
+		sparks.Parent = a1
+	end
 
 	model.PrimaryPart = handle
 	return model, handle
@@ -170,7 +210,7 @@ function WeaponModels.attach(character, item)
 	if not hand then
 		return nil
 	end
-	local model, handle = build(base.weaponType, rarity)
+	local model, handle = build(base.weaponType, rarity, item.enchant and item.enchant.id)
 	model:SetAttribute("WeaponType", base.weaponType)
 	local grip
 	if style == "blade" then

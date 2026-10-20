@@ -30,6 +30,11 @@ local Chest = require(script.Chest)
 local MapWindow = require(script.MapWindow)
 local ClassSelect = require(script.ClassSelect)
 local WorldMarkers = require(script.WorldMarkers)
+local Prefs = require(script.Prefs)
+local Sky = require(script.Sky)
+local Auras = require(script.Auras)
+local SettingsWindow = require(script.SettingsWindow)
+local Tutorial = require(script.Tutorial)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -56,19 +61,38 @@ Dialog.init(screen)
 Services.init(screen)
 Chest.init(screen)
 MapWindow.init(screen)
+SettingsWindow.init(screen)
 ClassSelect.init()
+Sky.init()
+Auras.init()
+
+local function toggleInventory()
+	Inventory.toggle()
+	Tutorial.event("inventory")
+end
+local function toggleMap()
+	MapWindow.toggle()
+	Tutorial.event("map")
+end
+
 HUD.init(screen, {
-	onInventory = Inventory.toggle,
+	onInventory = toggleInventory,
 	onCharacter = Character.toggle,
 	onQuests = QuestLog.toggle,
-	onMap = MapWindow.toggle,
+	onMap = toggleMap,
 	onChest = Chest.toggle,
+	onSettings = SettingsWindow.toggle,
 	onAbility = function(slot)
 		local aim, point = Controller.getAim()
 		State.action("ability", slot, aim, point)
 	end,
 })
 WorldMarkers.init()
+Tutorial.init(screen)
+SettingsWindow.onRestartTutorial = Tutorial.restart
+Tutorial.onFinished = function()
+	Popups.banner("🎓 Tutorial concluído!", "Agora é com você, Hunter. Boa caçada!", UI.Colors.Gold, 4)
+end
 
 Controller.isBlocked = function()
 	return Window.anyOpen() or ClassSelect.isOpen()
@@ -77,12 +101,17 @@ Controller.onNoStamina = function()
 	HUD.flashStamina()
 	Popups.message("Sem estamina!", UI.Colors.Stamina)
 end
-Controller.onAttack = HUD.showAttackCue
+Controller.onAttack = function(duration)
+	if Prefs.get("rhythmBar") then
+		HUD.showAttackCue(duration)
+	end
+end
 Controller.onFumble = function()
 	HUD.flashFumble()
 	Fx.fumble()
 end
 Controller.onCharge = HUD.setCharge
+Controller.onEvent = Tutorial.event
 Controller.init()
 
 Services.openChest = Chest.open
@@ -112,6 +141,7 @@ Dialog.services = {
 -- ===================== EVENTOS DO SERVIDOR =====================
 
 Remotes.DataUpdate.OnClientEvent:Connect(function(data)
+	Prefs.load(data.settings)
 	State.set(data)
 	HUD.update(data)
 	if data.class == nil and not ClassSelect.isOpen() then
@@ -181,7 +211,10 @@ local FX_HANDLERS = {
 	parry = Fx.parry,
 	blocked = Fx.blocked,
 	perfectDodge = Fx.perfectDodge,
-	rhythm = Fx.rhythm,
+	rhythm = function(...)
+		Fx.rhythm(...)
+		Tutorial.event("rhythm")
+	end,
 	stagger = Fx.stagger,
 	guardBreak = function()
 		Fx.guardBreak()
@@ -229,7 +262,9 @@ UserInputService.InputBegan:Connect(function(input, processed)
 	elseif key == Enum.KeyCode.J then
 		QuestLog.toggle()
 	elseif key == Enum.KeyCode.M then
-		MapWindow.toggle()
+		toggleMap()
+	elseif key == Enum.KeyCode.P then
+		SettingsWindow.toggle()
 	elseif key == Enum.KeyCode.B then
 		Chest.toggle()
 	end
@@ -238,7 +273,7 @@ end)
 -- O Roblox usa I/O para zoom da câmera; esta ligação tem prioridade maior e "engole" a tecla I
 ContextActionService:BindActionAtPriority("AbrirInventario", function(_, inputState)
 	if inputState == Enum.UserInputState.Begin and not UserInputService:GetFocusedTextBox() then
-		Inventory.toggle()
+		toggleInventory()
 	end
 	return Enum.ContextActionResult.Sink
 end, false, Enum.ContextActionPriority.High.Value + 10, Enum.KeyCode.I)

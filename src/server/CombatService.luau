@@ -98,6 +98,7 @@ function CombatService.dealDamage(player, rec, mult, info)
 		color = info.color,
 		dot = info.dot,
 		posture = posture,
+		element = info.element or (if stats.burn > 0 then "fire" elseif stats.lifesteal > 0 then "blood" else nil),
 	})
 	if dealt > 0 then
 		if stats.lifesteal > 0 then

@@ -117,4 +117,23 @@ function Config.skillXpToNext(level)
 	return math.floor(25 * level ^ 1.55)
 end
 
+-- Ciclo de dia e noite (minutos reais). À noite os inimigos batem mais forte e as recompensas sobem.
+Config.DayMinutes = 14
+Config.NightMinutes = 6
+Config.StartClock = 9 -- hora em que o servidor começa
+Config.NightEnemyDamage = 1.2 -- dano dos inimigos à noite
+Config.NightEliteMultiplier = 2.5 -- chance de Elite à noite
+Config.NightRewardBonus = 0.3 -- XP e ouro extras à noite
+Config.NightDropBonus = 0.25 -- chance extra de equipamento à noite
+
+-- Configurações do jogador (valores padrão; o jogador muda na janela de Configurações)
+Config.DefaultSettings = {
+	volume = 0.8, -- 0 a 1
+	sensitivity = 1, -- 0.2 a 3
+	damageNumbers = true,
+	shake = true,
+	rhythmBar = true,
+	tips = true,
+}
+
 return Config

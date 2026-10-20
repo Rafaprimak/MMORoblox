@@ -103,7 +103,7 @@ function executors.whirl(player, ability, mult)
 			return
 		end
 		Remotes.Fx:FireAllClients("explosion", r.Position - Vector3.new(0, 2.5, 0), ability.radius, "slash")
-		hitRadius(player, r.Position, ability.radius, ability.dmg * mult, { knockback = 4, ability = true })
+		hitRadius(player, r.Position, ability.radius, ability.dmg * mult, { knockback = 4, ability = true, element = ability.style })
 		if i < ability.ticks then
 			task.wait(ability.interval)
 		end
@@ -127,7 +127,7 @@ function executors.slam(player, ability, mult)
 	end
 	local center = root.Position - Vector3.new(0, 2.5, 0)
 	Remotes.Fx:FireAllClients("explosion", center, ability.radius, "earth")
-	hitRadius(player, root.Position, ability.radius, ability.dmg * mult, { stun = ability.stun, knockback = 10, ability = true })
+	hitRadius(player, root.Position, ability.radius, ability.dmg * mult, { stun = ability.stun, knockback = 10, ability = true, element = ability.style })
 end
 
 local function shoot(player, ability, mult, direction, origin, style)
@@ -141,11 +141,11 @@ local function shoot(player, ability, mult, direction, origin, style)
 		aoe = ability.aoe,
 		style = style or ability.style,
 		onHitEnemy = function(rec)
-			CombatService.dealDamage(player, rec, ability.dmg * mult, { fromPosition = origin, ability = true })
+			CombatService.dealDamage(player, rec, ability.dmg * mult, { fromPosition = origin, ability = true, element = ability.style })
 		end,
 		onExplode = function(position)
 			Remotes.Fx:FireAllClients("explosion", position, ability.aoe, ability.style)
-			hitRadius(player, position, ability.aoe, ability.dmg * mult, { knockback = 8, ability = true })
+			hitRadius(player, position, ability.aoe, ability.dmg * mult, { knockback = 8, ability = true, element = ability.style })
 		end,
 	})
 end
@@ -167,14 +167,14 @@ function executors.leap(player, ability, mult, aim, _point, root)
 	dashAndHit(player, direction, ability.dashSpeed, ability.dashTime, 0, 0)
 	-- armadilha de espinhos onde estava
 	Remotes.Fx:FireAllClients("explosion", start - Vector3.new(0, 2.5, 0), ability.radius, "spikes")
-	hitRadius(player, start, ability.radius, ability.dmg * mult, { stun = 1, ability = true })
+	hitRadius(player, start, ability.radius, ability.dmg * mult, { stun = 1, ability = true, element = ability.style })
 end
 
 function executors.rain(player, ability, mult, _aim, point, root)
 	local center = groundPoint(root, point, ability.range)
 	Remotes.Fx:FireAllClients("rain", center, ability.radius, ability.ticks * ability.interval)
 	for i = 1, ability.ticks do
-		hitRadius(player, center + Vector3.new(0, 2, 0), ability.radius, ability.dmg * mult, { ability = true })
+		hitRadius(player, center + Vector3.new(0, 2, 0), ability.radius, ability.dmg * mult, { ability = true, element = ability.style })
 		if i < ability.ticks then
 			task.wait(ability.interval)
 		end
@@ -188,7 +188,7 @@ end
 
 function executors.nova(player, ability, mult, _aim, _point, root)
 	Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), ability.radius, ability.style or "ice")
-	hitRadius(player, root.Position, ability.radius, ability.dmg * mult, { stun = ability.stun, color = Color3.fromRGB(150, 220, 255), ability = true })
+	hitRadius(player, root.Position, ability.radius, ability.dmg * mult, { stun = ability.stun, color = Color3.fromRGB(150, 220, 255), ability = true, element = ability.style })
 end
 
 function executors.blink(player, ability, _mult, aim, _point, root)
@@ -212,7 +212,7 @@ function executors.meteor(player, ability, mult, _aim, point, root)
 	Remotes.Fx:FireAllClients("meteor", center, ability.radius, ability.delay)
 	task.wait(ability.delay)
 	Remotes.Fx:FireAllClients("explosion", center, ability.radius, "fire")
-	hitRadius(player, center + Vector3.new(0, 2, 0), ability.radius, ability.dmg * mult, { knockback = 14, stun = 0.8, ability = true })
+	hitRadius(player, center + Vector3.new(0, 2, 0), ability.radius, ability.dmg * mult, { knockback = 14, stun = 0.8, ability = true, element = ability.style })
 end
 
 function executors.shadowstep(player, ability, _mult, _aim, _point, root)
@@ -250,7 +250,7 @@ function executors.execute(player, ability, mult, aim, _point, root)
 		damageMult *= ability.lowHpBonus
 	end
 	Remotes.Fx:FireAllClients("explosion", EnemyService.centerOf(rec), 4, "shadow")
-	CombatService.dealDamage(player, rec, damageMult, { fromPosition = root.Position, knockback = 8, ability = true })
+	CombatService.dealDamage(player, rec, damageMult, { fromPosition = root.Position, knockback = 8, ability = true, element = ability.style })
 end
 
 function AbilityService.cast(player, slot, aim, aimPoint)

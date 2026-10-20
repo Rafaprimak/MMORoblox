@@ -49,10 +49,11 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - ⬜ Arte: trocar os modelos blocados por meshes (Creator Store, IA do Studio ou artista), começando pelas armas lendárias e pelos chefes (G)
 - ⬜ Animações reais (Animation Editor) para golpes, magias e inimigos, mantendo o `Animator` procedural como reserva (G)
 - ⬜ Sons de verdade: golpes por tipo de arma, magias, passos, ambiente por bioma, música da vila e do chefe (M)
-- ⬜ VFX melhores: rastros por raridade, impacto por elemento, aura de nível alto (M)
-- ⬜ Tutorial guiado nos primeiros 5 minutos (setas, dicas contextuais) (M)
-- ⬜ Ciclo de dia e noite, com inimigos mais fortes à noite (M)
-- ⬜ Configurações: volume, sensibilidade, mostrar/esconder números de dano (P)
+  - 🧪 Base pronta: `Sounds.List` com slot `id` para cada som e reserva com os poucos sons que ainda vêm no Roblox (os antigos, como `swordslash.wav`, foram removidos). Falta escolher os IDs na Creator Store.
+- 🧪 VFX melhores: rastros por raridade e encantamento, faíscas na ponta (Lendário+), impacto por elemento, aura por rank (M)
+- 🧪 Tutorial guiado nos primeiros minutos: 8 dicas que avançam com a ação (andar, missão, feixe, ritmo, aparar, esquiva, inventário, mapa), salvas no servidor (M)
+- 🧪 Ciclo de dia e noite (14 + 6 min): inimigos mais fortes e mais Elites à noite, +XP/ouro/drops, postes acesos, relógio no HUD (M)
+- 🧪 Configurações (P): volume, sensibilidade, números de dano, tremida, barra de ritmo, dicas, recomeçar tutorial (P)
 - ⬜ Ícones: trocar emojis por imagens próprias (M)
 
 ## Fase 2 — Conteúdo

@@ -850,9 +850,54 @@ function PlayerService.sync(player)
 		mount = data.mount,
 		quests = PlayerService.QuestSummary(player),
 		isStudio = RunService:IsStudio(),
+		settings = data.settings,
+		tutorial = data.tutorial,
 	}
 	PlayerService.ExtraSync(player, payload)
 	Remotes.DataUpdate:FireClient(player, payload)
+end
+
+-- ===================== CONFIGURAÇÕES E TUTORIAL =====================
+
+local SETTING_RANGES = { volume = { 0, 1 }, sensitivity = { 0.2, 3 } }
+
+-- Salva as configurações do jogador (só as chaves conhecidas, com tipo e faixa validados)
+function PlayerService.saveSettings(player, values)
+	local data = DataService.get(player)
+	if not data or type(values) ~= "table" then
+		return { ok = false, msg = "Configurações inválidas." }
+	end
+	for key, default in Config.DefaultSettings do
+		local value = values[key]
+		if type(default) == "boolean" and type(value) == "boolean" then
+			data.settings[key] = value
+		elseif type(default) == "number" and type(value) == "number" then
+			local number = tonumber(value) or default
+			local range = SETTING_RANGES[key] or { 0, 1 }
+			if number == number then -- descarta NaN
+				data.settings[key] = math.clamp(number, range[1], range[2])
+			end
+		end
+	end
+	return { ok = true }
+end
+
+-- Marca um passo do tutorial como feito (ou pula o tutorial inteiro)
+function PlayerService.tutorial(player, stepId)
+	local data = DataService.get(player)
+	if not data or type(stepId) ~= "string" or #stepId > 32 then
+		return { ok = false }
+	end
+	if stepId == "skip" then
+		data.tutorial.skipped = true
+	elseif stepId == "restart" then
+		data.tutorial.skipped = false
+		data.tutorial.done = {}
+	else
+		data.tutorial.done[stepId] = true
+	end
+	PlayerService.markDirty(player)
+	return { ok = true }
 end
 
 -- ===================== ENTRADA / SAÍDA =====================

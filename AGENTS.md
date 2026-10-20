@@ -66,6 +66,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Resources` | Pontos de coleta |
 | `Chests` | Baús |
 | `World` | Relevo, biomas, estradas, locais, pedras de viagem |
+| `DayNight` | Hora do dia determinística (`DayNight.now()`), usada pelo servidor e pelo cliente |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
 
 ### Server
@@ -88,6 +89,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `QuestService` | Aceitar, progresso, entrega, diárias, exploração |
 | `TravelService` | Pedras de viagem, montaria, portão do norte |
 | `NPCService` | Cria NPCs e prompts de conversa |
+| `DayNightService` | Ciclo de dia e noite: `workspace.Night`, luz do ambiente, avisos, `skip()` para teste |
 | `WeaponModels` | Arma presa na mão (com rastro) |
 
 ### Client
@@ -97,7 +99,10 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `init.client` | Liga tudo, despacha eventos `Fx`/`Notify`, atalhos de teclado |
 | `State` | Último estado vindo do servidor + `State.request()` / `State.action()` |
 | `UI`, `Window`, `ItemGrid` | Helpers de interface, janela genérica com abas, grade de itens |
-| `HUD`, `Popups`, `Fx`, `Sounds` | Barras, notificações, efeitos visuais, sons |
+| `HUD`, `Popups`, `Fx`, `Sounds` | Barras, notificações, efeitos visuais, sons (`Sounds.List`: cole IDs da Creator Store em `id`) |
+| `Prefs`, `SettingsWindow` | Configurações do jogador (valores sem dependências + janela, tecla P) |
+| `Sky`, `Auras` | Sol suave e postes que acendem à noite; aura de rank nos jogadores |
+| `Tutorial` | Dicas guiadas dos primeiros minutos (avançam com `Tutorial.event(nome)`) |
 | `Controller` | Entrada do jogador (combo, esquiva, corrida, habilidades, celular) |
 | `Animator` | Animações procedurais (gira `Motor6D.Transform` em `RunService.Stepped`) |
 | `EnemyRenderer` | Desenha/anima inimigos a partir das raízes do servidor |
@@ -114,7 +119,7 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 
 ### Rede (`src/shared/Remotes.luau`)
 - **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
-- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
+- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`. Tratado na tabela `FX_HANDLERS` em `init.client`.
@@ -123,8 +128,8 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 ### Atributos e tags
 - **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted`.
 - **Raiz de inimigo** (pasta `workspace.Inimigos`): `Type, Elite, Level, Hp, MaxHp, Posture, MaxPosture, Staggered, Action ("tipo:contador"), Dot, Dead`.
-- **Workspace:** `WorldReady, WorldStatus, WorldProgress`.
-- **Tags:** `Rainbow` (cor arco-íris), `Spin` (gira), `ResourceNode`, `Waystone`, `NPC`.
+- **Workspace:** `WorldReady, WorldStatus, WorldProgress, DayEpoch, Night`.
+- **Tags:** `Rainbow` (cor arco-íris), `Spin` (gira), `ResourceNode`, `Waystone`, `NPC`, `NightLight` (peça que acende à noite; use `Props.nightLight(part)`).
 
 ### Inimigos: servidor x cliente
 O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O cliente (`EnemyRenderer`) constrói o modelo de `EnemyModels`, suaviza o movimento, anima pernas/braços pelo `role`, encaixa os pés no terreno e faz o efeito de morte. **Nunca crie partes visuais de inimigo no servidor.**
@@ -142,6 +147,12 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - **Postura:** cada golpe soma `posture` (multiplicador da arma em `WeaponStyles`). Cheia, o inimigo fica `Staggered` por `Config.StaggerTime` e toma bônus de dano. Inimigos podem definir `posture` em `Enemies.Defs` (padrão `8·√hp`).
 - Depois de atacar, o inimigo fica em `recover`; acertar nessa hora é contra-ataque (`Config.CounterBonus`).
 - Teclas: clique = combo, **R** segurado = pesado carregado, **F** segurado = bloquear/aparar, **Q** = esquiva. O botão direito do mouse é da câmera; não use.
+
+### Dia, noite e configurações
+- A hora vem de `DayNight.now()` (relógio do servidor + `workspace.DayEpoch`). O cliente move o sol localmente todo frame; o servidor só muda o ambiente da luz e o atributo `Night`. Não escreva em `Lighting.ClockTime` no servidor.
+- Regras da noite ficam em `Config.Night*` (dano e Elites dos inimigos, XP/ouro/drops). Para algo novo "só à noite", leia `workspace:GetAttribute("Night")`.
+- Configurações novas: adicione em `Config.DefaultSettings` (o `reconcile` completa saves antigos), na janela `SettingsWindow` e leia com `Prefs.get(chave)`. O servidor valida em `PlayerService.saveSettings`.
+- `Fx.hit` recebe o `element` do golpe (estilo da habilidade ou `fire`/`blood` pelo encantamento) para as faíscas do impacto.
 
 ### Interface
 - Janelas novas: `Window.create(screen, { title, width, height, tabs, accent })` + `win.onOpen`/`win.onTab`; re-renderize em `State.Changed` só se `win:isOpen()`.
