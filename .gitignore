@@ -1,0 +1,12 @@
+# Arquivo gerado pelo Rojo (rode 1-gerar-jogo.bat para criar)
+*.rbxlx
+*.rbxl
+*.rbxlx.lock
+
+# Ferramentas baixadas (rojo.exe, luau-analyze.exe...)
+tools/
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store

@@ -1,0 +1,276 @@
+-- Ponto de entrada do servidor: gera o mundo e liga todos os sistemas.
+local Players = game:GetService("Players")
+Players.CharacterAutoLoads = false -- os personagens só nascem quando o mundo estiver pronto
+
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
+local World = require(Shared.World)
+local Items = require(Shared.Items)
+local Remotes = require(Shared.Remotes)
+
+local WorldGen = require(script.WorldGen)
+local DataService = require(script.DataService)
+local SkillService = require(script.SkillService)
+local PlayerService = require(script.PlayerService)
+local EnemyService = require(script.EnemyService)
+local ProjectileService = require(script.ProjectileService)
+local CombatService = require(script.CombatService)
+local AbilityService = require(script.AbilityService)
+local LootService = require(script.LootService)
+local ResourceService = require(script.ResourceService)
+local CraftingService = require(script.CraftingService)
+local ShopService = require(script.ShopService)
+local QuestService = require(script.QuestService)
+local TravelService = require(script.TravelService)
+local NPCService = require(script.NPCService)
+
+workspace:SetAttribute("WorldReady", false)
+workspace:SetAttribute("WorldStatus", "Preparando o mundo")
+workspace:SetAttribute("WorldProgress", 0)
+
+-- ===================== LIGAÇÕES ENTRE SISTEMAS =====================
+local questHook = QuestService.event
+PlayerService.QuestHook = questHook
+PlayerService.QuestSummary = QuestService.summary
+PlayerService.OnDamaged = TravelService.onDamaged
+CombatService.QuestHook = questHook
+CombatService.BeforeAction = TravelService.dismount
+AbilityService.QuestHook = questHook
+CraftingService.QuestHook = questHook
+ShopService.QuestHook = questHook
+TravelService.QuestHook = questHook
+NPCService.QuestHook = questHook
+EnemyService.FireProjectile = ProjectileService.fire
+
+SkillService.OnChanged = function(player, leveled)
+	PlayerService.markDirty(player)
+	if leveled then
+		PlayerService.refreshCharacter(player, {})
+		questHook(player, "mastery", nil, 0)
+	end
+end
+
+EnemyService.OnHit = function(rec, player)
+	questHook(player, "hit", rec.id, 1)
+end
+
+EnemyService.OnKilled = function(rec, contributors)
+	local def = rec.def
+	for player in contributors do
+		local xp = math.floor(def.xp * (if rec.elite then 3 else 1))
+		PlayerService.addXP(player, xp)
+		local gold = math.random(def.gold[1], def.gold[2]) * (if rec.elite then 3 else 1)
+		if gold > 0 then
+			PlayerService.addGold(player, gold)
+			Remotes.Fx:FireClient(player, "gold", EnemyService.centerOf(rec) + Vector3.new(0, rec.height / 2, 0), gold)
+		end
+		Remotes.Fx:FireClient(player, "xp", EnemyService.centerOf(rec) + Vector3.new(0, rec.height / 2 + 1.5, 0), xp)
+		local data = DataService.get(player)
+		if data then
+			data.stats.kills += 1
+		end
+		local stats = PlayerService.getStats(player)
+		SkillService.addXP(player, stats.masteryId, 8 + def.level)
+		questHook(player, "kill", rec.id, 1)
+
+		LootService.rollMaterials(player, def.drops, if rec.elite then 2 else 1)
+		local rolls = (def.equipDrops or 1) + (if rec.elite then 1 else 0)
+		for _ = 1, rolls do
+			if math.random() <= def.dropChance * (if rec.elite then 3 else 1) then
+				local minRarity = math.max(def.minRarity or 1, if rec.elite then 2 else 1)
+				local item = Items.rollDrop(def.pool, rec.level, "weight", minRarity)
+				LootService.spawnDrop(player, item, rec.pos)
+			end
+		end
+	end
+end
+
+-- ===================== AÇÕES DO CLIENTE =====================
+Remotes.Action.OnServerEvent:Connect(function(player, action, a, b, c)
+	if typeof(action) ~= "string" or not DataService.get(player) then
+		return
+	end
+	if action == "attack" then
+		CombatService.attack(player, a, b)
+	elseif action == "heavy" then
+		CombatService.attack(player, 0, a)
+	elseif action == "dodge" then
+		CombatService.dodge(player)
+	elseif action == "sprint" then
+		PlayerService.setSprinting(player, a == true)
+	elseif action == "ability" then
+		AbilityService.cast(player, a, b, c)
+	elseif action == "potion" then
+		PlayerService.useConsumable(player, a)
+	elseif action == "mount" then
+		TravelService.toggleMount(player)
+	elseif action == "talk" then
+		NPCService.talk(player, a)
+	end
+end)
+
+local function devGift(player, kind)
+	if kind == "xp" then
+		PlayerService.addXP(player, 5000)
+	elseif kind == "gold" then
+		PlayerService.addGold(player, 5000)
+	elseif kind == "materials" then
+		for id in Items.Materials do
+			PlayerService.addMaterial(player, id, 10, true)
+		end
+		for id in Items.Consumables do
+			PlayerService.addConsumable(player, id, 5, true)
+		end
+	elseif kind == "skills" then
+		for _, id in { "mineracao", "herbalismo", "lenhador", "ferraria", "alquimia", "encantamento" } do
+			SkillService.addXP(player, id, 3000)
+		end
+		local stats = PlayerService.getStats(player)
+		SkillService.addXP(player, stats.masteryId, 3000)
+	end
+	PlayerService.markDirty(player)
+	return { ok = true }
+end
+
+Remotes.Request.OnServerInvoke = function(player, action, a, b)
+	if typeof(action) ~= "string" or not DataService.get(player) then
+		return { ok = false }
+	end
+	if action == "sync" then
+		PlayerService.markDirty(player)
+		return { ok = true }
+	elseif action == "equip" then
+		return PlayerService.equip(player, a)
+	elseif action == "sell" then
+		return PlayerService.sell(player, a)
+	elseif action == "sellJunk" then
+		return PlayerService.sellJunk(player)
+	elseif action == "chooseClass" then
+		return PlayerService.chooseClass(player, a)
+	elseif action == "rankAbility" then
+		return PlayerService.rankAbility(player, a)
+	elseif action == "forge" then
+		return CraftingService.forge(player, a)
+	elseif action == "upgrade" then
+		return CraftingService.upgrade(player, a)
+	elseif action == "enchant" then
+		return CraftingService.enchant(player, a)
+	elseif action == "disassemble" then
+		return CraftingService.disassemble(player, a)
+	elseif action == "alchemy" then
+		return CraftingService.alchemy(player, a)
+	elseif action == "buy" then
+		return CraftingService.buy(player, a, b)
+	elseif action == "sellMaterial" then
+		return CraftingService.sellMaterial(player, a, b)
+	elseif action == "openChest" then
+		return ShopService.open(player, a)
+	elseif action == "acceptQuest" then
+		return QuestService.accept(player, a)
+	elseif action == "turnInQuest" then
+		return QuestService.turnIn(player, a)
+	elseif action == "abandonQuest" then
+		return QuestService.abandon(player, a)
+	elseif action == "trackQuest" then
+		return QuestService.track(player, a)
+	elseif action == "travel" then
+		return TravelService.travel(player, a)
+	elseif action == "buyMount" then
+		return TravelService.buyMount(player)
+	elseif action == "dev" and RunService:IsStudio() then
+		return devGift(player, a)
+	end
+	return { ok = false, msg = "Ação inválida." }
+end
+
+-- ===================== JOGADORES =====================
+local worldReady = false
+
+local function spawnCharacter(player)
+	if player.Parent ~= Players then
+		return
+	end
+	player:LoadCharacter()
+end
+
+local function onPlayerAdded(player)
+	local data = PlayerService.onPlayerAdded(player)
+	if not data then
+		return
+	end
+	QuestService.setup(player)
+	player.CharacterAdded:Connect(function(character)
+		player:SetAttribute("Mounted", false)
+		local humanoid = character:WaitForChild("Humanoid", 10)
+		if humanoid then
+			humanoid.Died:Connect(function()
+				TravelService.dismount(player)
+				task.delay(4, spawnCharacter, player)
+			end)
+		end
+	end)
+	while not worldReady do
+		task.wait(0.25)
+	end
+	spawnCharacter(player)
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
+for _, player in Players:GetPlayers() do
+	task.spawn(onPlayerAdded, player)
+end
+
+Players.PlayerRemoving:Connect(function(player)
+	TravelService.dismount(player)
+	PlayerService.onPlayerRemoving(player)
+	DataService.release(player)
+end)
+
+task.spawn(function()
+	while true do
+		task.wait(Config.AutosaveInterval)
+		DataService.saveAll()
+	end
+end)
+
+game:BindToClose(function()
+	for _, player in Players:GetPlayers() do
+		DataService.save(player)
+	end
+end)
+
+-- ===================== MUNDO =====================
+local built = WorldGen.build(function(status, fraction)
+	workspace:SetAttribute("WorldStatus", status)
+	workspace:SetAttribute("WorldProgress", fraction)
+end)
+
+local spawn = Instance.new("SpawnLocation")
+spawn.Name = "Spawn"
+spawn.Anchored = true
+spawn.Neutral = true
+spawn.Duration = 0
+spawn.CanCollide = false
+spawn.Transparency = 1
+spawn.Size = Vector3.new(6, 1, 6)
+spawn.CFrame = CFrame.new(World.TownCenter.X, World.TownHeight + 0.5, World.TownCenter.Z + 16) * CFrame.Angles(0, 0, 0)
+spawn.Parent = workspace
+
+local function safely(name, fn, ...)
+	local ok, err = pcall(fn, ...)
+	if not ok then
+		warn(("[Servidor] Falha em %s: %s"):format(name, tostring(err)))
+	end
+end
+safely("NPCs", NPCService.spawn, built.board)
+safely("Recursos", ResourceService.init)
+safely("Projéteis", ProjectileService.start)
+safely("Inimigos", EnemyService.start)
+safely("Viagem", TravelService.init, built.horse)
+
+worldReady = true
+workspace:SetAttribute("WorldReady", true)
+print("[Servidor] Mundo pronto!")
