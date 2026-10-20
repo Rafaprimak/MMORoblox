@@ -46,8 +46,8 @@ local function createHealthGui(rec)
 	anchor.Size = Vector3.new(0.2, 0.2, 0.2)
 	anchor.Parent = rec.model
 	local gui = UI.new("BillboardGui", {
-		Size = if boss then UDim2.fromOffset(300, 54) else UDim2.fromOffset(150, 36),
-		StudsOffset = Vector3.new(0, 1.2, 0),
+		Size = if boss then UDim2.fromOffset(300, 62) else UDim2.fromOffset(150, 44),
+		StudsOffset = Vector3.new(0, 1.4, 0),
 		MaxDistance = if boss then 260 else 85,
 		LightInfluence = 0,
 		AlwaysOnTop = false,
@@ -56,21 +56,40 @@ local function createHealthGui(rec)
 	})
 	local nameColor = if boss then Color3.fromRGB(255, 90, 70) elseif rec.elite then UI.Colors.Gold else WHITE
 	local level = rec.root:GetAttribute("Level") or def.level
-	UI.label({
+	rec.nameLabel = UI.label({
 		Text = ("%s%s  Nv.%d"):format(if rec.elite then "★ Elite " else "", def.name, level),
-		Size = UDim2.fromScale(1, 0.5),
+		Size = UDim2.fromScale(1, 0.44),
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextColor3 = nameColor,
 		Font = Enum.Font.GothamBlack,
 		Parent = gui,
 	}, { UI.textStroke(1.5) })
-	local back = UI.new("Frame", { Position = UDim2.fromScale(0.05, 0.58), Size = UDim2.fromScale(0.9, 0.34), BackgroundColor3 = Color3.fromRGB(20, 20, 25), Parent = gui }, { UI.corner(4), UI.stroke(Color3.new(0, 0, 0), 1) })
+	local back = UI.new("Frame", { Position = UDim2.fromScale(0.05, 0.5), Size = UDim2.fromScale(0.9, 0.28), BackgroundColor3 = Color3.fromRGB(20, 20, 25), Parent = gui }, { UI.corner(4), UI.stroke(Color3.new(0, 0, 0), 1) })
+	-- barra de postura (guarda): enche com os golpes; cheia = guarda quebrada
+	local postureBack = UI.new("Frame", { Position = UDim2.fromScale(0.15, 0.82), Size = UDim2.fromScale(0.7, 0.13), BackgroundColor3 = Color3.fromRGB(20, 20, 25), BackgroundTransparency = 0.2, Parent = gui }, { UI.corner(3) })
+	rec.postureFill = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.fromScale(0, 1), BackgroundColor3 = Color3.fromRGB(255, 200, 50), Parent = postureBack }, { UI.corner(3) })
+	rec.postureBack = postureBack
+	-- aviso de golpe: ❗ amarelo = dá para aparar (F) • ‼ vermelho = só esquivar (Q)
+	local warnGui = UI.new("BillboardGui", { Size = UDim2.fromOffset(60, 60), StudsOffset = Vector3.new(0, 4.2, 0), MaxDistance = 120, AlwaysOnTop = true, LightInfluence = 0, Enabled = false, Adornee = anchor, Parent = anchor })
+	rec.warnLabel = UI.label({ Text = "!", Size = UDim2.fromScale(1, 1), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = Color3.fromRGB(255, 220, 60), Parent = warnGui }, { UI.textStroke(3) })
+	rec.warnGui = warnGui
 	local trail = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(255, 230, 150), Parent = back }, { UI.corner(4) })
 	local fill = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(225, 55, 55), ZIndex = 2, Parent = back }, { UI.corner(4) })
 	rec.anchor = anchor
 	rec.hpFill = fill
 	rec.hpTrail = trail
 	rec.gui = gui
+end
+
+local function updatePosture(rec)
+	local posture = rec.root:GetAttribute("Posture") or 0
+	local maxPosture = rec.root:GetAttribute("MaxPosture") or 1
+	local staggered = rec.root:GetAttribute("Staggered") == true
+	local ratio = if staggered then 1 else math.clamp(posture / maxPosture, 0, 1)
+	TweenService:Create(rec.postureFill, TweenInfo.new(0.15), { Size = UDim2.fromScale(ratio, 1) }):Play()
+	rec.postureFill.BackgroundColor3 = if staggered then Color3.fromRGB(255, 120, 40) elseif ratio > 0.75 then Color3.fromRGB(255, 160, 40) else Color3.fromRGB(255, 200, 50)
+	rec.postureBack.Visible = staggered or ratio > 0.01
+	rec.staggered = staggered
 end
 
 local function updateHealth(rec)
@@ -105,11 +124,34 @@ local function refreshTint(rec)
 	end
 end
 
+local function showWarning(rec, text, color, duration)
+	rec.warnToken = (rec.warnToken or 0) + 1
+	local token = rec.warnToken
+	rec.warnLabel.Text = text
+	rec.warnLabel.TextColor3 = color
+	rec.warnGui.Enabled = true
+	local scale = rec.warnLabel:FindFirstChildOfClass("UIScale") or UI.new("UIScale", { Parent = rec.warnLabel })
+	scale.Scale = 1.6
+	TweenService:Create(scale, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	task.delay(duration, function()
+		if rec.warnToken == token then
+			rec.warnGui.Enabled = false
+		end
+	end)
+end
+
 local function onAction(rec)
 	local value = rec.root:GetAttribute("Action") or "idle:0"
 	local action = string.match(value, "^(%a+)") or "idle"
 	rec.action = action
 	rec.actionStart = os.clock()
+	if action == "windup" then
+		showWarning(rec, "!", Color3.fromRGB(255, 220, 60), if rec.def.behavior == "dummy" then 0.95 else 0.6)
+	elseif action == "chargeWindup" or action == "slamWindup" then
+		showWarning(rec, "‼", Color3.fromRGB(255, 60, 50), 1.3)
+	elseif action == "attack" or action == "stun" or action == "stagger" or action == "idle" then
+		rec.warnGui.Enabled = false
+	end
 end
 
 local function track(root)
@@ -161,6 +203,7 @@ local function track(root)
 	rec.model.Parent = visuals
 	records[root] = rec
 	updateHealth(rec)
+	updatePosture(rec)
 	onAction(rec)
 	rec.connections = {
 		root:GetAttributeChangedSignal("Hp"):Connect(function()
@@ -168,6 +211,12 @@ local function track(root)
 		end),
 		root:GetAttributeChangedSignal("Action"):Connect(function()
 			onAction(rec)
+		end),
+		root:GetAttributeChangedSignal("Posture"):Connect(function()
+			updatePosture(rec)
+		end),
+		root:GetAttributeChangedSignal("Staggered"):Connect(function()
+			updatePosture(rec)
 		end),
 		root:GetAttributeChangedSignal("Dot"):Connect(function()
 			refreshTint(rec)
@@ -356,6 +405,9 @@ function EnemyRenderer.init()
 				pose = CFrame.new(0, 0.8 * math.min(actionT * 2, 1) * rec.scale, 0) * R(0.2, 0, 0)
 			elseif action == "slam" and actionT < 0.5 then
 				pose = R(-0.35 * math.sin(actionT / 0.5 * math.pi), 0, 0)
+			elseif action == "stagger" and rec.staggered then
+				-- guarda quebrada: cambaleia bastante
+				pose = CFrame.new(0, -0.25 * rec.scale, 0) * R(0.25 + math.sin(now * 6) * 0.08, 0, math.sin(now * 9) * 0.18)
 			elseif action == "stun" and actionT < 3 then
 				pose = R(0, 0, math.sin(now * 14) * 0.12)
 			end

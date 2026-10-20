@@ -123,7 +123,7 @@ function TravelService.buyMount(player)
 	end
 	local pedro = NPCs.ById.pedro
 	local _, root = characterParts(player)
-	if not root or (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(pedro.x, 0, pedro.z)).Magnitude > 30 then
+	if not root or (Vector3.new(root.Position.X, 0, root.Position.Z) - Vector3.new(pedro.x, 0, pedro.z)).Magnitude > 45 then
 		return { ok = false, msg = "Fale com Pedro no estábulo." }
 	end
 	local ok, msg = PlayerService.payCost(player, { gold = Config.MountPrice })
@@ -169,7 +169,7 @@ local function discoveryLoop()
 				for _, stone in World.Waystones do
 					if not data.discovered[stone.id] then
 						local dx, dz = root.Position.X - stone.x, root.Position.Z - stone.z
-						if dx * dx + dz * dz < 20 * 20 then
+						if dx * dx + dz * dz < 26 * 26 then
 							data.discovered[stone.id] = true
 							Remotes.Notify:FireClient(player, { kind = "discover", name = stone.name })
 							TravelService.QuestHook(player, "discover", stone.id, 1)
@@ -179,8 +179,8 @@ local function discoveryLoop()
 				end
 				-- portão selado: só Rank C (nível 10) passa
 				local gateZ = World.PassGateZ
-				if root.Position.Z < gateZ - 1 and root.Position.Z > gateZ - 60 and math.abs(root.Position.X) < 60 and data.level < PASS_LEVEL then
-					local x, z = root.Position.X, gateZ + 10
+				if root.Position.Z < gateZ - 1 and root.Position.Z > gateZ - 60 * World.Scale and math.abs(root.Position.X) < 60 * World.Scale and data.level < PASS_LEVEL then
+					local x, z = root.Position.X, gateZ + 14
 					player.Character:PivotTo(CFrame.new(x, World.height(x, z) + 4, z))
 					Remotes.Notify:FireClient(player, { kind = "message", text = ("A barreira te repele! Precisa de Nível %d (Rank C)."):format(PASS_LEVEL) })
 				end

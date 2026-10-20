@@ -4,6 +4,7 @@
 --   talk(npc)           explore(location) discover(waystone)
 --   craft(item|"forge"|"alchemy")         enchant   upgrade   upgradeTo(nível +N)
 --   level(n)            mastery(n)        mount     chest     dodge   ability   finisher
+--   parry (aparar)      perfectDodge      rhythm (golpe no ritmo)   stagger (quebrar guarda)   fullCharge
 local Quests = {}
 
 local function q(def)
@@ -20,8 +21,9 @@ Quests.List = {
 			{ type = "talk", npc = "kael", amount = 1, text = "Fale com o Mestre Kael" },
 			{ type = "hit", target = "boneco", amount = 12, text = "Golpeie o boneco de treino" },
 			{ type = "dodge", amount = 3, text = "Esquive (tecla Q)" },
+			{ type = "parry", amount = 2, text = "Apare o golpe do boneco (F quando aparecer ❗)" },
 		},
-		reward = { xp = 60, gold = 50, consumables = { pocao_vida = 3 } },
+		reward = { xp = 80, gold = 60, consumables = { pocao_vida = 3 } },
 	}),
 	q({
 		id = "h02", chain = "main", name = "Gosma na Estrada", giver = "kael", turnIn = "lyra",
@@ -244,11 +246,13 @@ Quests.List = {
 	}),
 	q({
 		id = "s_combo", name = "Fluxo de Combate", giver = "kael", turnIn = "kael",
-		text = "Emende golpes até o finalizador e use suas habilidades. É assim que se luta.",
+		text = "Luta boa não é apertar botão sem parar: ataque no ritmo, apare, esquive no último instante e quebre a guarda do inimigo.",
 		requires = { quests = { "h01" } },
 		objectives = {
+			{ type = "rhythm", amount = 15, text = "Acerte golpes no Ritmo (clique quando o golpe termina)" },
+			{ type = "parry", amount = 5, text = "Apare golpes (F na hora certa)" },
+			{ type = "perfectDodge", amount = 3, text = "Faça esquivas perfeitas (Q no último instante)" },
 			{ type = "finisher", amount = 10, text = "Acerte finalizadores de combo (maestria 3)" },
-			{ type = "ability", amount = 10, text = "Use habilidades de classe (teclas 1-4)" },
 		},
 		reward = { xp = 400, gold = 150 },
 	}),
@@ -278,7 +282,9 @@ Quests.DailyPool = {
 	{ id = "d_aprimorar", name = "Treino de Ferreiro", objectives = { { type = "upgrade", amount = 2, text = "Aprimore itens" } }, reward = { xp = 300, gold = 150 } },
 	{ id = "d_baus", name = "Caça ao Tesouro", objectives = { { type = "chest", amount = 2, text = "Abra baús" } }, reward = { xp = 200, gold = 250 } },
 	{ id = "d_habilidades", name = "Treino de Classe", objectives = { { type = "ability", amount = 20, text = "Use habilidades" } }, reward = { xp = 400, gold = 150 } },
-	{ id = "d_esquiva", name = "Treino de Esquiva", objectives = { { type = "dodge", amount = 20, text = "Esquive" } }, reward = { xp = 250, gold = 120 } },
+	{ id = "d_esquiva", name = "Treino de Esquiva", objectives = { { type = "perfectDodge", amount = 8, text = "Faça esquivas perfeitas" } }, reward = { xp = 300, gold = 150 } },
+	{ id = "d_aparar", name = "Treino de Guarda", objectives = { { type = "parry", amount = 10, text = "Apare golpes inimigos" } }, reward = { xp = 350, gold = 160 } },
+	{ id = "d_quebra", name = "Quebra-Guardas", objectives = { { type = "stagger", amount = 10, text = "Quebre a guarda de inimigos" } }, reward = { xp = 400, gold = 180 } },
 	{ id = "d_caranguejo", name = "Contrato: Praia", minLevel = 4, objectives = { { type = "kill", target = "caranguejo", amount = 10, text = "Derrote Caranguejos" } }, reward = { xp = 450, gold = 220 } },
 }
 Quests.DailyBonus = { gold = 500, chest = "prata" }

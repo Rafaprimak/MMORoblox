@@ -11,6 +11,9 @@ local Placement = require(script.Parent.Placement)
 
 local Landmarks = {}
 
+-- Estruturas desenhadas em tamanho "de design" e ampliadas por K (proporcional ao personagem)
+local K = World.Scale
+
 local M = Enum.Material
 local C = Props.Colors
 local part = Props.part
@@ -73,7 +76,8 @@ function Landmarks.waystones(parent)
 		prompt.Parent = obelisk
 		Props.billboard(obelisk, "🌀 " .. stone.name, Color3.fromRGB(140, 210, 255), 6.5, 70)
 		model.Parent = folder
-		Placement.reserve(stone.x, stone.z, 6, "pedra")
+		Props.scaleModel(model, cf, K)
+		Placement.reserve(stone.x, stone.z, 6 * K, "pedra")
 	end
 end
 
@@ -82,31 +86,38 @@ local function goblinCamp(parent, camp, rng)
 	local cx, cz = camp.center.X, camp.center.Y
 	local model = Instance.new("Model")
 	model.Name = "AcampamentoGoblin_" .. camp.id
-	Props.campfire(model, ground(cx, cz, 0, 0.2))
+	local fireGround = ground(cx, cz, 0, 0.2)
+	Props.scaleModel(Props.campfire(model, fireGround), fireGround, K)
 	for i = 1, 3 do
 		local a = i / 3 * math.pi * 2 + rng:NextNumber() * 0.4
-		local x, z = cx + math.cos(a) * 11, cz + math.sin(a) * 11
-		Props.tent(model, ground(x, z, math.atan2(-(cx - x), -(cz - z)), 0.3), Color3.fromRGB(120, 90, 60):Lerp(Color3.fromRGB(80, 100, 60), rng:NextNumber()))
-		Placement.reserve(x, z, 4, "tenda")
+		local x, z = cx + math.cos(a) * 11 * K, cz + math.sin(a) * 11 * K
+		local tentGround = ground(x, z, math.atan2(-(cx - x), -(cz - z)), 0.3)
+		local tent = Props.tent(model, tentGround, Color3.fromRGB(120, 90, 60):Lerp(Color3.fromRGB(80, 100, 60), rng:NextNumber()))
+		Props.scaleModel(tent, tentGround, K)
+		Placement.reserve(x, z, 4 * K, "tenda")
 	end
 	-- paliçada parcial
 	for i = 0, 14 do
 		local a = math.rad(i * 14 + 40)
-		local x, z = cx + math.cos(a) * 22, cz + math.sin(a) * 22
-		local h = rng:NextNumber(5, 7)
-		part(model, { Name = "Estaca", Size = Vector3.new(1.1, h, 1.1), CFrame = ground(x, z, 0, 1) * CFrame.new(0, h / 2, 0) * CFrame.Angles(rng:NextNumber(-0.1, 0.1), 0, rng:NextNumber(-0.1, 0.1)), Color = C.DarkWood, Material = M.Wood })
+		local x, z = cx + math.cos(a) * 22 * K, cz + math.sin(a) * 22 * K
+		local h = rng:NextNumber(5, 7) * K
+		part(model, { Name = "Estaca", Size = Vector3.new(1.1 * K, h, 1.1 * K), CFrame = ground(x, z, 0, 1) * CFrame.new(0, h / 2, 0) * CFrame.Angles(rng:NextNumber(-0.1, 0.1), 0, rng:NextNumber(-0.1, 0.1)), Color = C.DarkWood, Material = M.Wood })
 	end
 	for _ = 1, 4 do
 		local a = rng:NextNumber() * math.pi * 2
-		local x, z = cx + math.cos(a) * 6, cz + math.sin(a) * 6
-		Props.crate(model, ground(x, z, rng:NextNumber() * 3, 0.2), rng:NextNumber(1.6, 2.4))
+		local x, z = cx + math.cos(a) * 6 * K, cz + math.sin(a) * 6 * K
+		Props.crate(model, ground(x, z, rng:NextNumber() * 3, 0.2), rng:NextNumber(1.6, 2.4) * K)
 	end
 	-- estandarte
-	local pole = ground(cx + 4, cz - 4, 0, 0.5)
-	part(model, { Name = "Mastro", Size = Vector3.new(0.4, 9, 0.4), CFrame = pole * CFrame.new(0, 4.5, 0), Color = C.DarkWood, Material = M.Wood })
-	part(model, { Name = "Bandeira", Size = Vector3.new(2.6, 3, 0.15), CFrame = pole * CFrame.new(1.4, 7.4, 0), Color = Color3.fromRGB(160, 30, 30), Material = M.Fabric })
+	local pole = ground(cx + 4 * K, cz - 4 * K, 0, 0.5)
+	local banner = Instance.new("Model")
+	banner.Name = "Estandarte"
+	banner.Parent = model
+	part(banner, { Name = "Mastro", Size = Vector3.new(0.4, 9, 0.4), CFrame = pole * CFrame.new(0, 4.5, 0), Color = C.DarkWood, Material = M.Wood })
+	part(banner, { Name = "Bandeira", Size = Vector3.new(2.6, 3, 0.15), CFrame = pole * CFrame.new(1.4, 7.4, 0), Color = Color3.fromRGB(160, 30, 30), Material = M.Fabric })
+	Props.scaleModel(banner, pole, K)
 	model.Parent = parent
-	Placement.reserve(cx, cz, 4, "fogueira")
+	Placement.reserve(cx, cz, 4 * K, "fogueira")
 end
 
 local function spiderNest(parent, camp, rng)
@@ -115,15 +126,15 @@ local function spiderNest(parent, camp, rng)
 	model.Name = "NinhoAranhas"
 	for _ = 1, 14 do
 		local a = rng:NextNumber() * math.pi * 2
-		local r = rng:NextNumber(4, 26)
+		local r = rng:NextNumber(4, 26) * K
 		local x, z = cx + math.cos(a) * r, cz + math.sin(a) * r
 		local base = ground(x, z, rng:NextNumber() * 6, 0)
-		part(model, { Name = "Teia", Size = Vector3.new(rng:NextNumber(5, 9), rng:NextNumber(4, 7), 0.1), CFrame = base * CFrame.new(0, 3.5, 0) * CFrame.Angles(0, 0, rng:NextNumber(-0.4, 0.4)), Color = Color3.fromRGB(235, 235, 240), Material = M.ForceField, Transparency = 0.3, CanCollide = false })
+		part(model, { Name = "Teia", Size = Vector3.new(rng:NextNumber(5, 9) * K, rng:NextNumber(4, 7) * K, 0.1), CFrame = base * CFrame.new(0, 3.5 * K, 0) * CFrame.Angles(0, 0, rng:NextNumber(-0.4, 0.4)), Color = Color3.fromRGB(235, 235, 240), Material = M.ForceField, Transparency = 0.3, CanCollide = false })
 	end
 	for _ = 1, 6 do
 		local a = rng:NextNumber() * math.pi * 2
-		local r = rng:NextNumber(3, 10)
-		Props.ball(model, (ground(cx + math.cos(a) * r, cz + math.sin(a) * r)).Position + Vector3.new(0, 0.6, 0), rng:NextNumber(1.2, 2), Color3.fromRGB(230, 225, 210), M.SmoothPlastic, { CanCollide = false })
+		local r = rng:NextNumber(3, 10) * K
+		Props.ball(model, (ground(cx + math.cos(a) * r, cz + math.sin(a) * r)).Position + Vector3.new(0, 0.6 * K, 0), rng:NextNumber(1.2, 2) * K, Color3.fromRGB(230, 225, 210), M.SmoothPlastic, { CanCollide = false })
 	end
 	model.Parent = parent
 end
@@ -155,14 +166,15 @@ local function temple(parent, rng)
 	local orb = Props.ball(model, (cf * CFrame.new(0, 4.4, -6)).Position, 1.8, Color3.fromRGB(100, 230, 255), M.Neon, { CanCollide = false })
 	Props.light(orb, Color3.fromRGB(100, 230, 255), 24, 2)
 	model.Parent = parent
-	Placement.reserve(loc.x, loc.z, 18, "templo")
+	Props.scaleModel(model, cf, K)
+	Placement.reserve(loc.x, loc.z, 18 * K, "templo")
 end
 
 local function mine(parent)
 	local loc = World.Locations.mina
 	local model = Instance.new("Model")
 	model.Name = "Mina"
-	local cf = ground(loc.x, loc.z - 8, 0, 0.5)
+	local cf = ground(loc.x, loc.z - 8 * K, 0, 0.5)
 	-- encosta de pedra com entrada
 	part(model, { Name = "Encosta", Size = Vector3.new(26, 16, 10), CFrame = cf * CFrame.new(0, 7, -6), Color = Color3.fromRGB(105, 100, 95), Material = M.Rock })
 	part(model, { Name = "Entrada", Size = Vector3.new(6, 7, 1), CFrame = cf * CFrame.new(0, 3.5, -0.6), Color = Color3.fromRGB(15, 12, 10), Material = M.SmoothPlastic })
@@ -182,7 +194,8 @@ local function mine(parent)
 	part(model, { Name = "Carrinho", Size = Vector3.new(3, 2, 3.6), CFrame = cf * CFrame.new(0, 1.6, 9), Color = Color3.fromRGB(80, 70, 60), Material = M.Metal })
 	part(model, { Name = "Minerio", Size = Vector3.new(2.6, 0.8, 3.2), CFrame = cf * CFrame.new(0, 2.8, 9), Color = Color3.fromRGB(150, 160, 175), Material = M.Rock })
 	model.Parent = parent
-	Placement.reserve(loc.x, loc.z - 8, 16, "mina")
+	Props.scaleModel(model, cf, K)
+	Placement.reserve(loc.x, loc.z - 8 * K, 16 * K, "mina")
 end
 
 -- ===================== LAGO E COSTA =====================
@@ -190,7 +203,7 @@ local function shrine(parent)
 	local loc = World.Locations.santuario_lago
 	local model = Instance.new("Model")
 	model.Name = "SantuarioLago"
-	local cf = platform(model, loc.x - 6, loc.z, Vector3.new(12, 0, 12), Color3.fromRGB(200, 200, 205), M.Marble)
+	local cf = platform(model, loc.x - 6 * K, loc.z, Vector3.new(12, 0, 12), Color3.fromRGB(200, 200, 205), M.Marble)
 	for _, x in { -5, 5 } do
 		for _, z in { -5, 5 } do
 			part(model, { Name = "Pilar", Size = Vector3.new(1.2, 8, 1.2), CFrame = cf * CFrame.new(x, 4, z), Color = Color3.fromRGB(230, 230, 235), Material = M.Marble })
@@ -201,7 +214,8 @@ local function shrine(parent)
 	CollectionService:AddTag(crystal, "Spin")
 	Props.light(crystal, Color3.fromRGB(120, 255, 220), 22, 2)
 	model.Parent = parent
-	Placement.reserve(loc.x - 6, loc.z, 9, "santuario")
+	Props.scaleModel(model, cf, K)
+	Placement.reserve(loc.x - 6 * K, loc.z, 9 * K, "santuario")
 end
 
 local function lighthouse(parent)
@@ -218,13 +232,14 @@ local function lighthouse(parent)
 	Props.light(lamp, Color3.fromRGB(255, 240, 160), 60, 3)
 	Props.column(model, cf * CFrame.new(0, 35, 0), 1.5, 6, Color3.fromRGB(200, 50, 50), M.Slate)
 	model.Parent = parent
-	Placement.reserve(loc.x, loc.z, 9, "farol")
+	Props.scaleModel(model, cf, K)
+	Placement.reserve(loc.x, loc.z, 9 * K, "farol")
 end
 
 local function pier(parent)
 	local model = Instance.new("Model")
 	model.Name = "Pier"
-	local x0, z0 = 45, 292
+	local x0, z0 = 45 * K, 292 * K
 	local deckY = World.SeaLevel + 2.2
 	for i = 0, 11 do
 		local z = z0 + i * 3.4
@@ -238,7 +253,8 @@ local function pier(parent)
 	Props.barrel(model, CFrame.new(x0 + 1.8, deckY + 0.25, z0 + 34))
 	Props.crate(model, CFrame.new(x0 - 1.8, deckY + 0.25, z0 + 32), 2)
 	model.Parent = parent
-	Placement.reserve(x0, z0 + 10, 6, "pier")
+	Props.scaleModel(model, CFrame.new(x0, deckY, z0), K)
+	Placement.reserve(x0, z0 + 10 * K, 6 * K, "pier")
 end
 
 -- ===================== NORTE =====================
@@ -261,7 +277,8 @@ local function passGate(parent)
 	barrier:SetAttribute("Barrier", true)
 	Props.billboard(barrier, "🔒 PORTÃO SELADO • Nível 10", Color3.fromRGB(220, 170, 255), 15, 120)
 	model.Parent = parent
-	Placement.reserve(0, z, 30, "portao")
+	Props.scaleModel(model, center, K)
+	Placement.reserve(0, z, 30 * K, "portao")
 	return barrier
 end
 
@@ -270,30 +287,34 @@ local function crater(parent, rng)
 	local model = Instance.new("Model")
 	model.Name = "CovilRei"
 	-- trono ao fundo (norte)
-	local throne = ground(c.X, c.Z - 38, 0, 0.5)
-	part(model, { Name = "Estrado", Size = Vector3.new(20, 3, 12), CFrame = throne * CFrame.new(0, 1.5, 0), Color = Color3.fromRGB(70, 60, 55), Material = M.Slate })
-	part(model, { Name = "Assento", Size = Vector3.new(8, 3, 6), CFrame = throne * CFrame.new(0, 4.5, 0), Color = Color3.fromRGB(120, 30, 30), Material = M.Fabric })
-	part(model, { Name = "Encosto", Size = Vector3.new(9, 14, 2), CFrame = throne * CFrame.new(0, 10, 3), Color = Color3.fromRGB(90, 75, 40), Material = M.Metal })
-	local gem = Props.ball(model, (throne * CFrame.new(0, 15, 2)).Position, 2.4, Color3.fromRGB(255, 60, 40), M.Neon)
+	local throne = ground(c.X, c.Z - 38 * K, 0, 0.5)
+	local throneModel = Instance.new("Model")
+	throneModel.Name = "Trono"
+	throneModel.Parent = model
+	part(throneModel, { Name = "Estrado", Size = Vector3.new(20, 3, 12), CFrame = throne * CFrame.new(0, 1.5, 0), Color = Color3.fromRGB(70, 60, 55), Material = M.Slate })
+	part(throneModel, { Name = "Assento", Size = Vector3.new(8, 3, 6), CFrame = throne * CFrame.new(0, 4.5, 0), Color = Color3.fromRGB(120, 30, 30), Material = M.Fabric })
+	part(throneModel, { Name = "Encosto", Size = Vector3.new(9, 14, 2), CFrame = throne * CFrame.new(0, 10, 3), Color = Color3.fromRGB(90, 75, 40), Material = M.Metal })
+	local gem = Props.ball(throneModel, (throne * CFrame.new(0, 15, 2)).Position, 2.4, Color3.fromRGB(255, 60, 40), M.Neon)
 	Props.light(gem, Color3.fromRGB(255, 80, 40), 30, 2)
+	Props.scaleModel(throneModel, throne, K)
 	for i = 0, 9 do
 		local a = i / 10 * math.pi * 2
-		local x, z = c.X + math.cos(a) * 58, c.Z + math.sin(a) * 58
+		local x, z = c.X + math.cos(a) * 58 * K, c.Z + math.sin(a) * 58 * K
 		local base = ground(x, z, a, 1)
-		local h = rng:NextNumber(10, 16)
-		part(model, { Name = "Pilar", Size = Vector3.new(3, h, 3), CFrame = base * CFrame.new(0, h / 2, 0), Color = Color3.fromRGB(70, 65, 60), Material = M.Basalt })
-		Props.fire(model, (base * CFrame.new(0, h, 0)).Position, 1)
+		local h = rng:NextNumber(10, 16) * K
+		part(model, { Name = "Pilar", Size = Vector3.new(3 * K, h, 3 * K), CFrame = base * CFrame.new(0, h / 2, 0), Color = Color3.fromRGB(70, 65, 60), Material = M.Basalt })
+		Props.fire(model, (base * CFrame.new(0, h, 0)).Position, K)
 	end
 	for _ = 1, 8 do
 		local a = rng:NextNumber() * math.pi * 2
-		local r = rng:NextNumber(20, 50)
+		local r = rng:NextNumber(20, 50) * K
 		local base = ground(c.X + math.cos(a) * r, c.Z + math.sin(a) * r, rng:NextNumber() * 3, 0)
 		for _ = 1, 4 do
 			part(model, { Name = "Osso", Size = Vector3.new(0.4, 0.4, rng:NextNumber(1.5, 3)), CFrame = base * CFrame.new(rng:NextNumber(-1, 1), 0.2, rng:NextNumber(-1, 1)) * CFrame.Angles(0, rng:NextNumber() * 3, 0), Color = Color3.fromRGB(230, 225, 205), CanCollide = false })
 		end
 	end
 	model.Parent = parent
-	Placement.reserve(c.X, c.Z, 60, "cratera")
+	Placement.reserve(c.X, c.Z, 60 * K, "cratera")
 end
 
 function Landmarks.build(parent, rng)
@@ -309,7 +330,7 @@ function Landmarks.build(parent, rng)
 			spiderNest(folder, camp, rng)
 		end
 		if not camp.boss and camp.id ~= "treino" then
-			Placement.reserve(camp.center.X, camp.center.Y, 6, "acampamento")
+			Placement.reserve(camp.center.X, camp.center.Y, 6 * K, "acampamento")
 		end
 	end
 	temple(folder, rng)

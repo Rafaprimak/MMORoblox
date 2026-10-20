@@ -14,7 +14,7 @@ function Loading.init()
 	local status = UI.label({ Text = "Conectando...", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.52), Size = UDim2.fromOffset(500, 24), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Parent = back })
 	local barBack, fill = UI.bar(back, { Position = UDim2.new(0.5, -200, 0.57, 0), Size = UDim2.fromOffset(400, 14), color = UI.Colors.Gold, text = false })
 	local _ = barBack
-	UI.label({ Text = "Dica: Shift corre • Q esquiva • segure o clique para combos • 1-4 habilidades", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -30), Size = UDim2.fromOffset(700, 20), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Parent = back })
+	UI.label({ Text = "Dica: clique no ritmo para combos • F bloqueia (na hora certa, apara!) • Q esquiva • segure R para o golpe pesado", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -30), Size = UDim2.fromOffset(700, 20), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Parent = back })
 
 	local connection
 	connection = RunService.RenderStepped:Connect(function()

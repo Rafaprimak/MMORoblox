@@ -69,6 +69,25 @@ local function addHat(model, head, style, color)
 	end
 end
 
+-- Altura real do chão (terreno em voxels ou plataformas do mapa), por raycast de cima para baixo.
+-- A fórmula do relevo é só aproximada depois de virar voxel, então não serve para encostar os pés.
+local groundParams = RaycastParams.new()
+groundParams.FilterType = Enum.RaycastFilterType.Include
+groundParams.RespectCanCollide = true -- ignora copas de árvores e enfeites sem colisão
+function NPCService.groundHeight(x, z)
+	local list = { workspace.Terrain }
+	local world = workspace:FindFirstChild("Mundo")
+	if world then
+		table.insert(list, world)
+	end
+	groundParams.FilterDescendantsInstances = list
+	local result = workspace:Raycast(Vector3.new(x, 500, z), Vector3.new(0, -700, 0), groundParams)
+	if result then
+		return result.Position.Y
+	end
+	return World.height(x, z)
+end
+
 local function blockNpc(npc)
 	-- reserva caso o avatar R15 não possa ser criado
 	local model = Instance.new("Model")
@@ -124,7 +143,7 @@ local function createNpc(npc)
 		model, head = blockNpc(npc)
 	end
 	model.Name = npc.name
-	local ground = World.height(npc.x, npc.z)
+	local ground = NPCService.groundHeight(npc.x, npc.z)
 	-- altura da raiz acima do chão: em R15 é HipHeight + metade da raiz
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
 	local root = model.PrimaryPart

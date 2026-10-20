@@ -27,6 +27,8 @@ local potionCooldowns = {}
 local goldValue = Instance.new("NumberValue")
 local lastGold, lastLevel = nil, nil
 local buffIcons = {}
+local cue = { start = 0, duration = 0, active = false }
+local charge = { start = 0, active = false }
 
 local BUFF_INFO = {
 	grito = { icon = "📯", color = Color3.fromRGB(255, 120, 60) },
@@ -94,6 +96,17 @@ function HUD.init(screen, callbacks)
 			State.action("potion", id)
 		end)
 	end
+
+	-- ===== barra de ritmo do combo e barra de carga do pesado =====
+	-- vermelho = cedo demais (quebra o combo) • branco = espere • verde = clique agora ("Ritmo!")
+	local cueFrame = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -106), Size = UDim2.fromOffset(240, 12), BackgroundColor3 = Color3.fromRGB(12, 12, 18), BackgroundTransparency = 0.25, Visible = false, Parent = screen }, { UI.corner(6), UI.stroke(Color3.new(0, 0, 0), 1, 0.4) })
+	refs.cueEarly = UI.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = Color3.fromRGB(150, 60, 60), BackgroundTransparency = 0.3, Parent = cueFrame }, { UI.corner(6) })
+	refs.cueGood = UI.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = Color3.fromRGB(80, 220, 110), BackgroundTransparency = 0.25, Parent = cueFrame }, { UI.corner(6) })
+	refs.cueMarker = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0, 0.5), Size = UDim2.new(0, 4, 1, 8), BackgroundColor3 = Color3.new(1, 1, 1), ZIndex = 3, Parent = cueFrame }, { UI.corner(2) })
+	refs.cueFrame = cueFrame
+	local chargeBack, chargeFill, chargeText = UI.bar(screen, { Position = UDim2.new(0.5, -120, 1, -132), Size = UDim2.fromOffset(240, 16), color = Color3.fromRGB(255, 150, 50), text = "CARREGANDO" })
+	chargeBack.Visible = false
+	refs.chargeBack, refs.chargeFill, refs.chargeText = chargeBack, chargeFill, chargeText
 
 	-- ===== rastreador de missões =====
 	local tracker = UI.new("Frame", { Name = "Missoes", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 150), Size = UDim2.fromOffset(300, 40), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.3, Parent = screen }, { UI.corner(12), UI.stroke(UI.Colors.Stroke, 1.5, 0.4), UI.padding(10), UI.list(3) })
@@ -175,6 +188,29 @@ function HUD.init(screen, callbacks)
 			end
 		end
 
+		-- barra de ritmo
+		if cue.active then
+			local total = cue.duration + Config.RhythmWindow
+			local elapsed = now - cue.start
+			if elapsed > total + 0.05 then
+				cue.active = false
+				refs.cueFrame.Visible = false
+			else
+				refs.cueEarly.Size = UDim2.fromScale(cue.duration * Config.FumbleFraction / total, 1)
+				refs.cueGood.Position = UDim2.fromScale(cue.duration / total, 0)
+				refs.cueGood.Size = UDim2.fromScale(Config.RhythmWindow / total, 1)
+				refs.cueMarker.Position = UDim2.fromScale(math.clamp(elapsed / total, 0, 1), 0.5)
+				refs.cueMarker.BackgroundColor3 = if elapsed >= cue.duration then Color3.fromRGB(140, 255, 160) else Color3.new(1, 1, 1)
+			end
+		end
+		-- barra de carga
+		if charge.active then
+			local ratio = math.clamp((now - charge.start) / Config.HeavyChargeTime, 0, 1)
+			UI.setBar(refs.chargeFill, ratio)
+			refs.chargeText.Text = if ratio >= 1 then "MÁXIMO! solte o R" else ("CARREGANDO %d%%"):format(math.floor(ratio * 100))
+			refs.chargeFill.BackgroundColor3 = if ratio >= 1 then Color3.fromRGB(255, 80, 60) else Color3.fromRGB(255, 150, 50)
+		end
+
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		if root and now > regionCheck then
 			regionCheck = now + 0.5
@@ -209,6 +245,27 @@ function HUD.setCooldown(slot, duration)
 		return
 	end
 	cooldowns[slot] = { untilTime = os.clock() + duration, duration = duration }
+end
+
+function HUD.showAttackCue(duration)
+	cue.start = os.clock()
+	cue.duration = duration
+	cue.active = true
+	refs.cueFrame.Visible = true
+end
+
+function HUD.flashFumble()
+	refs.cueFrame.BackgroundColor3 = Color3.fromRGB(150, 40, 40)
+	UI.tween(refs.cueFrame, 0.35, { BackgroundColor3 = Color3.fromRGB(12, 12, 18) })
+end
+
+function HUD.setCharge(active)
+	charge.active = active
+	charge.start = os.clock()
+	refs.chargeBack.Visible = active
+	if active then
+		UI.setBar(refs.chargeFill, 0)
+	end
 end
 
 function HUD.setPotionCooldown(id, duration)

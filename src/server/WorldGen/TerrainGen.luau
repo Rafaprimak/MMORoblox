@@ -9,8 +9,8 @@ local TerrainGen = {}
 local RES = 4
 local HALF = World.Half
 local MIN_Y = -24
-local MAX_Y = 180
-local NY = (MAX_Y - MIN_Y) / RES
+local MAX_Y = 260
+local NY = (MAX_Y - MIN_Y) / RES -- altura máxima possível (cada bloco usa só o que precisa)
 local N = (2 * HALF) / RES -- colunas por eixo
 local CHUNK = 32 -- colunas por bloco gravado
 
@@ -74,12 +74,20 @@ function TerrainGen.generate(onProgress)
 	local done = 0
 	for cx = 0, chunksPerAxis - 1 do
 		for cz = 0, chunksPerAxis - 1 do
+			-- altura útil deste bloco (evita gravar ar vazio acima do relevo)
+			local top = World.SeaLevel
+			for i = 1, CHUNK do
+				for k = 1, CHUNK do
+					top = math.max(top, heightAt(cx * CHUNK + i, cz * CHUNK + k))
+				end
+			end
+			local ny = math.min(NY, math.ceil((top - MIN_Y) / RES) + 2)
 			local materials = table.create(CHUNK)
 			local occupancy = table.create(CHUNK)
 			for i = 1, CHUNK do
-				local matX = table.create(NY)
-				local occX = table.create(NY)
-				for j = 1, NY do
+				local matX = table.create(ny)
+				local occX = table.create(ny)
+				for j = 1, ny do
 					matX[j] = table.create(CHUNK)
 					occX[j] = table.create(CHUNK)
 				end
@@ -97,7 +105,7 @@ function TerrainGen.generate(onProgress)
 						math.abs(heightAt(ix, iz + 1) - heightAt(ix, iz - 1))
 					) / (2 * RES)
 					local surface = World.surfaceMaterial(x, z, h, slope, weights[ix][iz])
-					for j = 1, NY do
+					for j = 1, ny do
 						local yBottom = MIN_Y + (j - 1) * RES
 						local fill = (h - yBottom) / RES
 						if fill > 0 then
@@ -114,7 +122,7 @@ function TerrainGen.generate(onProgress)
 				end
 			end
 			local minCorner = Vector3.new(-HALF + cx * CHUNK * RES, MIN_Y, -HALF + cz * CHUNK * RES)
-			local maxCorner = minCorner + Vector3.new(CHUNK * RES, NY * RES, CHUNK * RES)
+			local maxCorner = minCorner + Vector3.new(CHUNK * RES, ny * RES, CHUNK * RES)
 			terrain:WriteVoxels(Region3.new(minCorner, maxCorner), RES, materials, occupancy)
 			done += 1
 			if onProgress then

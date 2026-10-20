@@ -123,7 +123,7 @@ local function enemyDropping(itemId, from)
 	return best
 end
 
-local SERVICE_NPC = { forge = "bruno", alchemy = "mira", enchant = "elric", upgrade = "bruno", upgradeTo = "bruno", chest = "otto", hit = "kael" }
+local SERVICE_NPC = { forge = "bruno", alchemy = "mira", enchant = "elric", upgrade = "bruno", upgradeTo = "bruno", chest = "otto", hit = "kael", parry = "kael", rhythm = "kael" }
 
 local function objectiveTarget(def, entry, from)
 	if entry.ready and def.turnIn then

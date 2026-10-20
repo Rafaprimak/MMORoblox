@@ -108,26 +108,40 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 
 ### Ganchos (evitam `require` circular)
 Definidos como funções vazias no módulo e preenchidos em `init.server.luau`:
-`PlayerService.QuestHook / QuestSummary / OnDamaged`, `CombatService.QuestHook / BeforeAction`, `AbilityService.QuestHook`, `CraftingService.QuestHook`, `ShopService.QuestHook`, `TravelService.QuestHook`, `NPCService.QuestHook`, `SkillService.OnChanged`, `EnemyService.OnKilled / OnHit / FireProjectile`.
+`PlayerService.QuestHook / QuestSummary / OnDamaged`, `CombatService.QuestHook / BeforeAction`, `AbilityService.QuestHook`, `CraftingService.QuestHook`, `ShopService.QuestHook`, `TravelService.QuestHook`, `NPCService.QuestHook`, `SkillService.OnChanged`, `EnemyService.OnKilled / OnHit / FireProjectile / OnStagger`, `PlayerService.OnParry`.
 
 Ordem de dependência (quem pode exigir quem): `DataService → SkillService → PlayerService → EnemyService → ProjectileService → CombatService → AbilityService`; `ShopService → QuestService`. Para eventos de missão, chame o gancho `QuestHook(player, tipo, alvo, quantidade)`.
 
 ### Rede (`src/shared/Remotes.luau`)
-- **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavy(aim)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
+- **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
 - **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest`. Tratado em `Popups.handle`.
-- **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana`. Tratado na tabela `FX_HANDLERS` em `init.client`.
+- **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`. Tratado na tabela `FX_HANDLERS` em `init.client`.
 - **Tabelas pela rede:** só arrays puros ou dicionários com chave string. Nada de chaves misturadas.
 
 ### Atributos e tags
 - **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted`.
-- **Raiz de inimigo** (pasta `workspace.Inimigos`): `Type, Elite, Level, Hp, MaxHp, Action ("tipo:contador"), Dot, Dead`.
+- **Raiz de inimigo** (pasta `workspace.Inimigos`): `Type, Elite, Level, Hp, MaxHp, Posture, MaxPosture, Staggered, Action ("tipo:contador"), Dot, Dead`.
 - **Workspace:** `WorldReady, WorldStatus, WorldProgress`.
 - **Tags:** `Rainbow` (cor arco-íris), `Spin` (gira), `ResourceNode`, `Waystone`, `NPC`.
 
 ### Inimigos: servidor x cliente
 O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O cliente (`EnemyRenderer`) constrói o modelo de `EnemyModels`, suaviza o movimento, anima pernas/braços pelo `role`, encaixa os pés no terreno e faz o efeito de morte. **Nunca crie partes visuais de inimigo no servidor.**
+
+### Escala do mundo
+- `World.Scale` (1.5) multiplica tudo do mapa. As posições em `World`, `NPCs.List` e `Enemies.Camps` são escritas em **coordenadas de projeto** e convertidas por `× World.Scale` no próprio módulo. Escreva posições novas nesse mesmo espaço.
+- Construções e objetos são montados no tamanho base e depois escalados com `Props.scaleModel(model, pivot, fator)` (em volta de um ponto no chão). O raio de `Placement.reserve` também vai `× World.Scale`.
+- Distâncias do servidor (perto do NPC, descoberta de pedra, barreira) já consideram a escala; em checagens novas, use studs reais.
+- NPCs são apoiados no chão por raycast (`NPCService.groundHeight`), não pela altura calculada do terreno.
+
+### Combate dinâmico
+- Os golpes **não avançam** o personagem (sem `lunge`); só os pesados de lança e katana têm `dash`.
+- O servidor valida o ritmo do combo (`CombatService`): clicar na janela `Config.RhythmWindow` depois do fim de cada golpe dá bônus; o cliente quebra o combo se o clique vier antes de `Config.FumbleFraction` do golpe.
+- `PlayerService.damagePlayer(player, dano, origem, { unblockable, source })` decide esquiva perfeita, aparar, bloqueio ou dano e retorna `"hit" | "blocked" | "parried" | "evaded"`. Ataques imbloqueáveis (investida, pancada em área) passam `unblockable = true` e aparecem com ‼ vermelho no cliente; os bloqueáveis com ❗ amarelo.
+- **Postura:** cada golpe soma `posture` (multiplicador da arma em `WeaponStyles`). Cheia, o inimigo fica `Staggered` por `Config.StaggerTime` e toma bônus de dano. Inimigos podem definir `posture` em `Enemies.Defs` (padrão `8·√hp`).
+- Depois de atacar, o inimigo fica em `recover`; acertar nessa hora é contra-ataque (`Config.CounterBonus`).
+- Teclas: clique = combo, **R** segurado = pesado carregado, **F** segurado = bloquear/aparar, **Q** = esquiva. O botão direito do mouse é da câmera; não use.
 
 ### Interface
 - Janelas novas: `Window.create(screen, { title, width, height, tabs, accent })` + `win.onOpen`/`win.onTab`; re-renderize em `State.Changed` só se `win:isOpen()`.
@@ -142,7 +156,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 | **Tipo de arma novo** | `Items.WeaponTypes`, `WeaponStyles.<tipo>`, `Skills.List` (maestria com `weaponType`), `WeaponModels` (modelo e estilo de pegada), poses em `Animator` se precisar, `Classes.List[x].weapons` |
 | **Inimigo novo** | `Enemies.Defs` (comportamento: `melee`, `ranged`, `charger`, `slammer`, `boss`, `dummy`), um builder em `EnemyModels` (use `role` e `joint` para animar), um acampamento em `Enemies.Camps` em terreno seco e acessível |
 | **Habilidade nova** | `Classes.Abilities` (escolha ou crie um `kind`), executor em `AbilityService.executors`, pose em `Animator` |
-| **Missão nova** | `Quests.List` (giver/turnIn, `requires`, objetivos). Tipos de objetivo existentes: `kill, hit, gather, deliver, talk, explore, discover, craft, enchant, upgrade, upgradeTo, level, mastery, mount, chest, dodge, ability, finisher` |
+| **Missão nova** | `Quests.List` (giver/turnIn, `requires`, objetivos). Tipos de objetivo existentes: `kill, hit, gather, deliver, talk, explore, discover, craft, enchant, upgrade, upgradeTo, level, mastery, mount, chest, dodge, ability, finisher, parry, perfectDodge, rhythm, stagger, fullCharge` |
 | **Tipo de objetivo novo** | `QuestService` (`matches`/`progressOf`), disparar o `QuestHook` no lugar certo, `WorldMarkers.objectiveTarget` (para onde o feixe aponta) |
 | **NPC novo** | `NPCs.List` (posição em terreno plano), construção em `WorldGen/Town` ou `Landmarks`, serviço em `Dialog.services` + `Services` |
 | **Recurso de coleta** | `Resources.Nodes` + regra em `Scatter` (`NODE_RULES`) + visual em `buildNode` |

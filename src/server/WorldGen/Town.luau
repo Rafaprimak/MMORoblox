@@ -16,6 +16,8 @@ local M = Enum.Material
 local C = Props.Colors
 local part = Props.part
 local Y = World.TownHeight
+-- Construções são desenhadas em tamanho "de design" e ampliadas por K (proporcional ao personagem)
+local K = World.Scale
 
 local function npcFrame(npc)
 	return CFrame.new(npc.x, Y, npc.z) * CFrame.Angles(0, npc.yaw, 0)
@@ -142,27 +144,31 @@ function builders.training(parent, npc)
 		end
 	end
 	local cx, cz = camp.center.X, camp.center.Y
-	local w, d = 13, 10
+	local w, d = 13 * K, 10 * K
 	local corners = {
 		Vector3.new(cx - w, Y, cz - d), Vector3.new(cx + w, Y, cz - d),
 		Vector3.new(cx + w, Y, cz + d), Vector3.new(cx - w, Y, cz + d),
 	}
-	Props.fence(model, corners[2], corners[3], 3)
-	Props.fence(model, corners[3], corners[4], 3)
-	Props.fence(model, corners[4], corners[1], 3)
-	Props.fence(model, corners[1], Vector3.new(cx - 3, Y, cz - d), 3)
-	Props.fence(model, Vector3.new(cx + 3, Y, cz - d), corners[2], 3)
-	-- suporte de armas ao lado do mestre
-	local rack = npcFrame(npc) * CFrame.new(5, 0, 1)
-	part(model, { Name = "Suporte", Size = Vector3.new(4, 0.4, 0.4), CFrame = rack * CFrame.new(0, 3.5, 0), Color = C.DarkWood, Material = M.Wood })
+	Props.fence(model, corners[2], corners[3], 3 * K)
+	Props.fence(model, corners[3], corners[4], 3 * K)
+	Props.fence(model, corners[4], corners[1], 3 * K)
+	Props.fence(model, corners[1], Vector3.new(cx - 4 * K, Y, cz - d), 3 * K)
+	Props.fence(model, Vector3.new(cx + 4 * K, Y, cz - d), corners[2], 3 * K)
+	-- suporte de armas ao lado do mestre (modelo próprio, ampliado no lugar)
+	local rackModel = Instance.new("Model")
+	rackModel.Name = "SuporteArmas"
+	rackModel.Parent = model
+	local rack = npcFrame(npc) * CFrame.new(5 * K, 0, 1 * K)
+	part(rackModel, { Name = "Suporte", Size = Vector3.new(4, 0.4, 0.4), CFrame = rack * CFrame.new(0, 3.5, 0), Color = C.DarkWood, Material = M.Wood })
 	for _, x in { -1.7, 1.7 } do
-		part(model, { Name = "Pe", Size = Vector3.new(0.4, 4, 0.4), CFrame = rack * CFrame.new(x, 2, 0), Color = C.DarkWood, Material = M.Wood })
+		part(rackModel, { Name = "Pe", Size = Vector3.new(0.4, 4, 0.4), CFrame = rack * CFrame.new(x, 2, 0), Color = C.DarkWood, Material = M.Wood })
 	end
 	for i = -1, 1 do
-		part(model, { Name = "Arma", Size = Vector3.new(0.25, 3.6, 0.25), CFrame = rack * CFrame.new(i * 1.1, 2.4, -0.3) * CFrame.Angles(math.rad(-12), 0, 0), Color = Color3.fromRGB(150, 150, 160), Material = M.Metal })
+		part(rackModel, { Name = "Arma", Size = Vector3.new(0.25, 3.6, 0.25), CFrame = rack * CFrame.new(i * 1.1, 2.4, -0.3) * CFrame.Angles(math.rad(-12), 0, 0), Color = Color3.fromRGB(150, 150, 160), Material = M.Metal })
 	end
+	Props.scaleModel(rackModel, rack, K)
 	model.Parent = parent
-	Placement.reserve(cx, cz, 14, "treino")
+	Placement.reserve(cx, cz, 14 * K, "treino")
 	return model
 end
 
@@ -251,11 +257,12 @@ local function fountain(parent)
 	spray.Parent = top
 	water.Name = "Agua"
 	model.Parent = parent
-	Placement.reserve(cf.X, cf.Z, 9, "chafariz")
+	Props.scaleModel(model, cf, K)
+	Placement.reserve(cf.X, cf.Z, 9 * K, "chafariz")
 end
 
 local function entranceArch(parent)
-	local x, z = 0, 76
+	local x, z = World.TownCenter.X, World.TownCenter.Z - 74 * K
 	local ground = World.height(x, z)
 	local cf = CFrame.new(x, ground, z)
 	local model = Instance.new("Model")
@@ -280,8 +287,9 @@ local function entranceArch(parent)
 	label.Text = "VILA AURORA"
 	label.Parent = gui
 	model.Parent = parent
-	Placement.reserve(x - 7, z, 2.5, "arco")
-	Placement.reserve(x + 7, z, 2.5, "arco")
+	Props.scaleModel(model, cf, K)
+	Placement.reserve(x - 7 * K, z, 2.5 * K, "arco")
+	Placement.reserve(x + 7 * K, z, 2.5 * K, "arco")
 end
 
 function Town.build(parent, rng)
@@ -296,15 +304,19 @@ function Town.build(parent, rng)
 	local boardPart = nil
 	for _, npc in NPCs.List do
 		if npc.building and builders[npc.building] then
-			builders[npc.building](folder, npc, rng)
+			local model = builders[npc.building](folder, npc, rng)
+			if model and npc.building ~= "training" then
+				Props.scaleModel(model, npcFrame(npc), K)
+			end
 			local look = CFrame.Angles(0, npc.yaw, 0).LookVector
-			local back = Vector3.new(npc.x, 0, npc.z) - look * 10
-			Placement.reserve(back.X, back.Z, 10, npc.building)
+			local back = Vector3.new(npc.x, 0, npc.z) - look * 10 * K
+			Placement.reserve(back.X, back.Z, 10 * K, npc.building)
 		elseif npc.board then
-			local _, board = builders.board(folder, npc)
+			local model, board = builders.board(folder, npc)
+			Props.scaleModel(model, npcFrame(npc), K)
 			boardPart = board
 		end
-		Placement.reserve(npc.x, npc.z, 3, "npc")
+		Placement.reserve(npc.x, npc.z, 3 * K, "npc")
 	end
 
 	-- casas decorativas em volta
@@ -315,42 +327,45 @@ function Town.build(parent, rng)
 	local houseSpots = { { -125, 74 }, { -60, 74 }, { -12, 76 }, { 40, 82 }, { 105, 76 }, { 145, 74 }, { 195, 76 }, { 232, 72 }, { -165, 70 }, { 165, 62 } }
 	for i, spot in houseSpots do
 		local a = math.rad(spot[1])
-		local x = World.TownCenter.X + math.cos(a) * spot[2] * 0.82
-		local z = World.TownCenter.Z + math.sin(a) * spot[2] * 0.82
-		if Placement.canPlace(x, z, 10, 2) then
+		local x = World.TownCenter.X + math.cos(a) * spot[2] * 0.82 * K
+		local z = World.TownCenter.Z + math.sin(a) * spot[2] * 0.82 * K
+		if Placement.canPlace(x, z, 10 * K, 2) then
 			local yaw = math.atan2(-(World.TownCenter.X - x), -(World.TownCenter.Z - z))
 			local w = rng:NextInteger(10, 14)
 			local d = rng:NextInteger(9, 12)
-			Props.house(folder, CFrame.new(x, Y, z) * CFrame.Angles(0, yaw, 0), w, d, rng:NextInteger(7, 9), houseColors[(i % #houseColors) + 1], roofColors[(i % #roofColors) + 1], rng)
-			Placement.reserve(x, z, 10, "casa")
+			local ground = CFrame.new(x, Y, z) * CFrame.Angles(0, yaw, 0)
+			local house = Props.house(folder, ground, w, d, rng:NextInteger(7, 9), houseColors[(i % #houseColors) + 1], roofColors[(i % #roofColors) + 1], rng)
+			Props.scaleModel(house, ground, K)
+			Placement.reserve(x, z, 10 * K, "casa")
 		end
 	end
 
 	-- postes de luz em volta da praça e nas estradas
 	for i = 0, 11 do
 		local a = math.rad(15 + i * 30)
-		local x = World.TownCenter.X + math.cos(a) * 37
-		local z = World.TownCenter.Z + math.sin(a) * 37
-		if Placement.isFree(x, z, 2) then
-			Props.lamp(folder, CFrame.new(x, Y, z) * CFrame.Angles(0, math.atan2(-(World.TownCenter.X - x), -(World.TownCenter.Z - z)), 0))
-			Placement.reserve(x, z, 1.5, "poste")
+		local x = World.TownCenter.X + math.cos(a) * 37 * K
+		local z = World.TownCenter.Z + math.sin(a) * 37 * K
+		if Placement.isFree(x, z, 2 * K) then
+			local ground = CFrame.new(x, Y, z) * CFrame.Angles(0, math.atan2(-(World.TownCenter.X - x), -(World.TownCenter.Z - z)), 0)
+			Props.scaleModel(Props.lamp(folder, ground), ground, K)
+			Placement.reserve(x, z, 1.5 * K, "poste")
 		end
 	end
 
 	-- detalhes: caixas e barris espalhados
 	for _ = 1, 14 do
 		local a = rng:NextNumber() * math.pi * 2
-		local r = rng:NextNumber(38, 66)
+		local r = rng:NextNumber(38, 66) * K
 		local x = World.TownCenter.X + math.cos(a) * r
 		local z = World.TownCenter.Z + math.sin(a) * r
-		if Placement.canPlace(x, z, 2, 1) then
+		if Placement.canPlace(x, z, 2 * K, 1) then
 			local cf = CFrame.new(x, Y, z) * CFrame.Angles(0, rng:NextNumber() * 3, 0)
 			if rng:NextNumber() < 0.5 then
-				Props.crate(folder, cf)
+				Props.crate(folder, cf, 2.5 * K)
 			else
-				Props.barrel(folder, cf)
+				Props.barrel(folder, cf, K)
 			end
-			Placement.reserve(x, z, 2, "caixa")
+			Placement.reserve(x, z, 2 * K, "caixa")
 		end
 	end
 

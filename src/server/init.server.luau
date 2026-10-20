@@ -36,6 +36,11 @@ local questHook = QuestService.event
 PlayerService.QuestHook = questHook
 PlayerService.QuestSummary = QuestService.summary
 PlayerService.OnDamaged = TravelService.onDamaged
+PlayerService.OnParry = function(player, source)
+	if source then
+		EnemyService.parried(source, player)
+	end
+end
 CombatService.QuestHook = questHook
 CombatService.BeforeAction = TravelService.dismount
 AbilityService.QuestHook = questHook
@@ -55,6 +60,10 @@ end
 
 EnemyService.OnHit = function(rec, player)
 	questHook(player, "hit", rec.id, 1)
+end
+
+EnemyService.OnStagger = function(_rec, player)
+	questHook(player, "stagger", nil, 1)
 end
 
 EnemyService.OnKilled = function(rec, contributors)
@@ -95,8 +104,12 @@ Remotes.Action.OnServerEvent:Connect(function(player, action, a, b, c)
 	end
 	if action == "attack" then
 		CombatService.attack(player, a, b)
+	elseif action == "heavyStart" then
+		CombatService.heavyStart(player)
 	elseif action == "heavy" then
-		CombatService.attack(player, 0, a)
+		CombatService.heavyRelease(player, a)
+	elseif action == "block" then
+		CombatService.block(player, a == true)
 	elseif action == "dodge" then
 		CombatService.dodge(player)
 	elseif action == "sprint" then
@@ -256,7 +269,7 @@ spawn.Duration = 0
 spawn.CanCollide = false
 spawn.Transparency = 1
 spawn.Size = Vector3.new(6, 1, 6)
-spawn.CFrame = CFrame.new(World.TownCenter.X, World.TownHeight + 0.5, World.TownCenter.Z + 16) * CFrame.Angles(0, 0, 0)
+spawn.CFrame = CFrame.new(World.TownCenter.X, World.TownHeight + 0.5, World.TownCenter.Z + 16 * World.Scale)
 spawn.Parent = workspace
 
 local function safely(name, fn, ...)

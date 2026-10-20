@@ -1,8 +1,11 @@
 -- NPCs: posição, aparência, falas e serviços.
 -- services: forge (criar/aprimorar), enchant (encantar/desmontar), alchemy (poções), shop (loja),
 --           classes (trocar classe), stable (montaria), board (missões diárias), chest (baús)
+local World = require(script.Parent.World)
+
 local NPCs = {}
 
+-- Posições abaixo estão em coordenadas de design (mapa de -512 a 512); make() converte para studs reais.
 local TOWN_X, TOWN_Z = 0, 150
 
 local function around(angleDegrees, radius)
@@ -17,6 +20,8 @@ end
 
 local function make(def)
 	def.yaw = def.yaw or facingTown(def.x, def.z)
+	def.x *= World.Scale
+	def.z *= World.Scale
 	return def
 end
 

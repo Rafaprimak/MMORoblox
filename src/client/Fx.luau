@@ -118,7 +118,7 @@ function Fx.floatingText(position, text, color, height, duration)
 end
 
 -- Golpe em inimigo: pisca branco para todos; número só para quem bateu
-function Fx.hit(root, amount, crit, attacker, color)
+function Fx.hit(root, amount, crit, attacker, color, tag)
 	if typeof(root) ~= "Instance" then
 		return
 	end
@@ -127,6 +127,12 @@ function Fx.hit(root, amount, crit, attacker, color)
 		return
 	end
 	local position = EnemyRenderer.topPosition(root)
+	if tag == "counter" then
+		Fx.floatingText(position + Vector3.new(0, 2, 0), "CONTRA-ATAQUE", Color3.fromRGB(120, 220, 255), 24, 0.8)
+		color = color or Color3.fromRGB(120, 220, 255)
+	elseif tag == "staggered" then
+		color = color or Color3.fromRGB(255, 160, 50)
+	end
 	if crit then
 		Fx.floatingText(position, UI.formatNumber(amount) .. "!", color or Color3.fromRGB(255, 210, 40), 48, 0.9)
 		Sounds.play("crit", 1 + math.random() * 0.2, 0.4)
@@ -178,6 +184,110 @@ local function burst(position, color, count, speed, size)
 	end
 end
 Fx.burst = burst
+
+-- ===================== COMBATE DINÂMICO =====================
+
+local function characterRoot(target)
+	local character = target and target.Character
+	return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+-- "Soco" no campo de visão (sensação de impacto)
+local function fovPunch(amount, duration)
+	local camera = workspace.CurrentCamera
+	local base = 70
+	camera.FieldOfView = base - amount
+	TweenService:Create(camera, TweenInfo.new(duration or 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { FieldOfView = base }):Play()
+end
+
+function Fx.parry(who, sourcePosition)
+	local root = characterRoot(who)
+	if not root then
+		return
+	end
+	local point = root.Position + root.CFrame.LookVector * 2.5 + Vector3.new(0, 1, 0)
+	if typeof(sourcePosition) == "Vector3" then
+		point = root.Position:Lerp(sourcePosition + Vector3.new(0, 2, 0), 0.4)
+	end
+	burst(point, Color3.fromRGB(255, 240, 160), 18, 32, 0.45)
+	ring(root.Position - Vector3.new(0, 2.5, 0), 9, Color3.fromRGB(255, 230, 120), 0.35, 0.3)
+	local flash = effectPart({ Shape = Enum.PartType.Ball, Size = Vector3.one * 1.5, CFrame = CFrame.new(point), Color = Color3.new(1, 1, 1), Material = Enum.Material.Neon, Transparency = 0 })
+	TweenService:Create(flash, TweenInfo.new(0.25), { Size = Vector3.one * 7, Transparency = 1 }):Play()
+	Debris:AddItem(flash, 0.3)
+	if who == player then
+		Fx.floatingText(root.Position + Vector3.new(0, 4, 0), "APARADO!", Color3.fromRGB(255, 230, 100), 44, 0.9)
+		Sounds.play("crit", 1.7, 0.6)
+		task.delay(0.05, Sounds.play, "ping", 2.4, 0.5)
+		Fx.shake(0.15, 0.4)
+		fovPunch(8, 0.4)
+	else
+		Sounds.playAt(root, "crit", 1.7, 0.5)
+	end
+end
+
+function Fx.blocked(who, _sourcePosition)
+	local root = characterRoot(who)
+	if not root then
+		return
+	end
+	burst(root.Position + root.CFrame.LookVector * 2 + Vector3.new(0, 1, 0), Color3.fromRGB(200, 200, 210), 6, 18, 0.3)
+	if who == player then
+		Fx.floatingText(root.Position + Vector3.new(0, 3.5, 0), "Bloqueado", Color3.fromRGB(200, 200, 215), 24, 0.6)
+		Sounds.play("swing", 0.6, 0.35)
+		Fx.shake(0.08, 0.15)
+	end
+end
+
+function Fx.guardBreak()
+	local root = characterRoot(player)
+	if root then
+		Fx.floatingText(root.Position + Vector3.new(0, 4, 0), "GUARDA QUEBRADA!", Color3.fromRGB(255, 80, 80), 34, 0.9)
+	end
+	Sounds.play("crit", 0.5, 0.5)
+	Fx.shake(0.3, 0.6)
+end
+
+function Fx.perfectDodge()
+	local root = characterRoot(player)
+	if not root then
+		return
+	end
+	Fx.floatingText(root.Position + Vector3.new(0, 4, 0), "ESQUIVA PERFEITA!", Color3.fromRGB(120, 210, 255), 36, 1)
+	ring(root.Position - Vector3.new(0, 2.5, 0), 10, Color3.fromRGB(120, 210, 255), 0.45, 0.25)
+	burst(root.Position, Color3.fromRGB(150, 220, 255), 10, 14, 0.35)
+	Sounds.play("ping", 2.6, 0.5)
+	fovPunch(6, 0.5)
+end
+
+function Fx.rhythm()
+	local root = characterRoot(player)
+	if root then
+		Fx.floatingText(root.Position + Vector3.new(0, 3.2, 0), "RITMO!", Color3.fromRGB(120, 255, 140), 22, 0.55)
+	end
+	Sounds.play("ping", 2.8, 0.18)
+end
+
+function Fx.fumble()
+	local root = characterRoot(player)
+	if root then
+		Fx.floatingText(root.Position + Vector3.new(0, 3.2, 0), "cedo demais", Color3.fromRGB(190, 190, 200), 20, 0.5)
+	end
+end
+
+function Fx.stagger(root, attacker)
+	if typeof(root) ~= "Instance" then
+		return
+	end
+	local position = EnemyRenderer.topPosition(root)
+	Fx.floatingText(position + Vector3.new(0, 1.5, 0), "QUEBRA DE GUARDA!", Color3.fromRGB(255, 200, 60), 40, 1.1)
+	burst(position, Color3.fromRGB(255, 210, 80), 16, 26, 0.5)
+	ring(position - Vector3.new(0, 1, 0), 7, Color3.fromRGB(255, 220, 90), 0.4, 0.3)
+	if attacker == player then
+		Sounds.play("crit", 0.75, 0.7)
+		Fx.shake(0.2, 0.45)
+		fovPunch(5, 0.35)
+	end
+end
 
 function Fx.death(position, color, scale)
 	scale = scale or 1

@@ -1,5 +1,11 @@
--- Controles: correr (Shift), esquivar (Q), atacar (clique / segurar), pesado (botão direito ou R),
--- habilidades (1-4), poções (Z X V), montaria (H). No celular aparecem botões na tela.
+-- Controles do combate dinâmico:
+--   Clique  = golpe leve. Clique de novo QUANDO O GOLPE TERMINA para emendar o combo ("Ritmo!").
+--             Clicar cedo demais quebra o combo — spam não funciona.
+--   R       = segure para carregar o golpe pesado, solte para golpear (maestria 5)
+--   F       = segure para bloquear; aperte logo antes do golpe inimigo para APARAR
+--   Q       = esquiva (rolamento com invencibilidade); no último instante = esquiva perfeita
+--   Shift   = correr      1-4 = habilidades      Z X V = poções      H = montaria
+-- No celular aparecem botões na tela para cada ação.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local ContextActionService = game:GetService("ContextActionService")
@@ -17,17 +23,24 @@ local Sounds = require(script.Parent.Sounds)
 
 local Controller = {}
 
+-- Ganchos preenchidos pelo init
 Controller.isBlocked = function()
 	return false
-end -- preenchido pelo init (janelas abertas)
+end -- janelas abertas
 Controller.onNoStamina = function() end
+Controller.onAttack = function(_duration) end -- HUD mostra a barra de ritmo
+Controller.onFumble = function() end -- clicou cedo demais
+Controller.onCharge = function(_active) end -- HUD mostra a barra de carga
 
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
 local sprintHeld = false
-local attackHeld = false
+local blocking = false
+local charging = false
 local comboIndex = 0
+local comboBroken = false
+local lockStart = 0
 local lockUntil = 0
 local lastMoveEnd = 0
 local lastDodge = 0
@@ -119,11 +132,21 @@ function Controller.jump(power)
 	end
 end
 
+local function stamina()
+	return player:GetAttribute("Stamina") or 0
+end
+
 local function currentSpeed()
 	if player:GetAttribute("Mounted") then
 		return Config.MountSpeed
 	end
-	if sprintHeld and (player:GetAttribute("Stamina") or 0) > 1 then
+	if blocking then
+		return Config.BlockWalkSpeed
+	end
+	if charging then
+		return Config.BlockWalkSpeed + 2
+	end
+	if sprintHeld and stamina() > 1 then
 		return Config.SprintSpeed
 	end
 	return Config.WalkSpeed
@@ -137,16 +160,38 @@ local function setSprint(on)
 	State.action("sprint", on)
 end
 
--- ===================== ATAQUES =====================
-
 local function weaponStyle()
 	local data = State.data
 	local weaponType = (data and data.stats and data.stats.weaponType) or player:GetAttribute("WeaponType") or "sword"
-	return WeaponStyles.get(weaponType), data and data.stats
+	return WeaponStyles.get(weaponType), data and data.stats, weaponType
 end
 
-local function attack(heavy)
-	if Controller.isBlocked() then
+-- ===================== GUARDA =====================
+
+local function setBlock(on)
+	local character = parts()
+	if on == blocking then
+		return
+	end
+	if on then
+		if not character or Controller.isBlocked() or charging or stamina() < 5 or player:GetAttribute("Mounted") then
+			return
+		end
+		blocking = true
+		Animator.hold(character, "block")
+	else
+		blocking = false
+		if character then
+			Animator.stop(character)
+		end
+	end
+	State.action("block", on)
+end
+
+-- ===================== GOLPES =====================
+
+local function lightAttack()
+	if Controller.isBlocked() or blocking or charging then
 		return
 	end
 	local character = parts()
@@ -155,48 +200,97 @@ local function attack(heavy)
 	end
 	local now = os.clock()
 	if now < lockUntil then
+		-- clicou durante o golpe: cedo demais quebra o combo
+		if now < lockStart + (lockUntil - lockStart) * Config.FumbleFraction and not comboBroken then
+			comboBroken = true
+			Controller.onFumble()
+		end
 		return
 	end
 	local style, stats = weaponStyle()
 	local mastery = stats and stats.masteryLevel or 1
 	local speed = stats and stats.attackSpeed or 1
-	local move
-	if heavy then
-		move = style.heavy
-		if mastery < (move.masteryReq or 0) then
-			State.onError(("Ataque pesado destrava na maestria %d da arma."):format(move.masteryReq))
-			lockUntil = now + 0.3
-			return
-		end
-		if (player:GetAttribute("Stamina") or 0) < (move.stamina or 0) then
-			Controller.onNoStamina()
-			return
-		end
+	if comboBroken or now - lastMoveEnd > Config.ComboWindow then
+		comboIndex = 1
 	else
-		if now - lastMoveEnd <= Config.ComboWindow then
-			comboIndex += 1
-		else
-			comboIndex = 1
-		end
-		if comboIndex > #style.combo or (style.combo[comboIndex].masteryReq or 0) > mastery then
-			comboIndex = 1
-		end
-		move = style.combo[comboIndex]
+		comboIndex += 1
+	end
+	comboBroken = false
+	if comboIndex > #style.combo or (style.combo[comboIndex].masteryReq or 0) > mastery then
+		comboIndex = 1
+	end
+	local move = style.combo[comboIndex]
+	if stamina() < (move.stamina or 0) then
+		Controller.onNoStamina()
+		return
 	end
 	local aim = Controller.getAim()
 	face(aim)
 	local duration = move.duration / speed
+	lockStart = now
 	lockUntil = now + duration
 	lastMoveEnd = lockUntil
 	Animator.play(character, move.pose, duration, true)
-	if move.lunge and move.lunge > 0 then
-		task.delay(move.windup / speed * 0.5, Controller.dash, flat(aim), move.lunge, 0.12)
+	Controller.onAttack(duration)
+	State.action("attack", comboIndex, aim)
+end
+
+local function chargePose(weaponType)
+	if weaponType == "bow" then
+		return "bow", 0.5
+	elseif weaponType == "staff" then
+		return "castBig", 0.45
 	end
-	if heavy then
-		State.action("heavy", aim)
-	else
-		State.action("attack", comboIndex, aim)
+	return "charge", 1
+end
+
+local function startHeavy()
+	if Controller.isBlocked() or blocking or charging then
+		return
 	end
+	local character = parts()
+	if not character or os.clock() < lockUntil then
+		return
+	end
+	local style, stats, weaponType = weaponStyle()
+	local mastery = stats and stats.masteryLevel or 1
+	if mastery < (style.heavy.masteryReq or 0) then
+		State.onError(("Ataque pesado destrava na maestria %d da arma."):format(style.heavy.masteryReq))
+		return
+	end
+	if stamina() < (style.heavy.stamina or 0) then
+		Controller.onNoStamina()
+		return
+	end
+	charging = true
+	local pose, t = chargePose(weaponType)
+	Animator.hold(character, pose, t)
+	Controller.onCharge(true)
+	State.action("heavyStart")
+end
+
+local function releaseHeavy()
+	if not charging then
+		return
+	end
+	charging = false
+	Controller.onCharge(false)
+	local character = parts()
+	if not character then
+		return
+	end
+	Animator.stop(character)
+	local style, stats = weaponStyle()
+	local move = style.heavy
+	local aim = Controller.getAim()
+	face(aim)
+	local duration = move.duration / (stats and stats.attackSpeed or 1)
+	local now = os.clock()
+	lockStart = now
+	lockUntil = now + duration
+	lastMoveEnd = 0 -- o pesado encerra o combo
+	Animator.play(character, move.pose, duration, true)
+	State.action("heavy", aim)
 end
 
 local function dodge()
@@ -211,11 +305,23 @@ local function dodge()
 	if now - lastDodge < Config.DodgeCooldown then
 		return
 	end
-	if (player:GetAttribute("Stamina") or 0) < Config.DodgeCost then
+	if stamina() < Config.DodgeCost then
 		Controller.onNoStamina()
 		return
 	end
 	lastDodge = now
+	-- esquivar cancela guarda, carga e o golpe em andamento
+	if blocking then
+		blocking = false
+		Animator.stop(character)
+	end
+	if charging then
+		charging = false
+		Controller.onCharge(false)
+		Animator.stop(character)
+	end
+	lockUntil = 0
+	comboIndex = 0
 	local direction = humanoid.MoveDirection
 	if direction.Magnitude < 0.1 then
 		direction = -root.CFrame.LookVector
@@ -227,7 +333,7 @@ local function dodge()
 end
 
 local function useAbility(slot)
-	if Controller.isBlocked() then
+	if Controller.isBlocked() or charging then
 		return
 	end
 	local character = parts()
@@ -235,26 +341,48 @@ local function useAbility(slot)
 	if not character or not data or not data.abilities then
 		return
 	end
-	local ability = data.abilities[slot]
-	if not ability then
+	if not data.abilities[slot] then
 		return
 	end
 	if os.clock() < (abilityLocalCooldown[slot] or 0) then
 		return
 	end
+	if blocking then
+		setBlock(false)
+	end
 	local aim, point = Controller.getAim()
 	face(aim)
 	State.action("ability", slot, aim, point)
 end
+Controller.useAbility = useAbility
 
 function Controller.setCooldown(slot, duration)
 	abilityLocalCooldown[slot] = os.clock() + duration
 end
 
-function Controller.cast(abilityId, pose)
+function Controller.cast(_abilityId, pose)
 	local character = parts()
 	if character and pose then
 		Animator.play(character, pose, 0.6, pose ~= "roar" and pose ~= "castBig")
+	end
+end
+
+function Controller.isBlocking()
+	return blocking
+end
+
+function Controller.isCharging()
+	return charging
+end
+
+-- O servidor derrubou a guarda (estamina acabou)
+function Controller.forceStopBlock()
+	if blocking then
+		blocking = false
+		local character = parts()
+		if character then
+			Animator.stop(character)
+		end
 	end
 end
 
@@ -273,10 +401,11 @@ function Controller.init()
 			return
 		end
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			attackHeld = true
-			attack(false)
-		elseif input.UserInputType == Enum.UserInputType.MouseButton2 or input.KeyCode == Enum.KeyCode.R then
-			attack(true)
+			lightAttack()
+		elseif input.KeyCode == Enum.KeyCode.R then
+			startHeavy()
+		elseif input.KeyCode == Enum.KeyCode.F then
+			setBlock(true)
 		elseif input.KeyCode == Enum.KeyCode.Q then
 			dodge()
 		elseif KEY_ABILITY[input.KeyCode] then
@@ -290,18 +419,20 @@ function Controller.init()
 	UserInputService.InputEnded:Connect(function(input)
 		if input.KeyCode == Enum.KeyCode.LeftShift or input.KeyCode == Enum.KeyCode.RightShift then
 			setSprint(false)
-		elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-			attackHeld = false
+		elseif input.KeyCode == Enum.KeyCode.R then
+			releaseHeavy()
+		elseif input.KeyCode == Enum.KeyCode.F then
+			setBlock(false)
 		end
 	end)
 
 	-- botões de toque (aparecem só no celular)
-	local function touchAction(name, title, position, callback, holdable)
+	local function touchAction(name, title, position, onBegin, onEnd)
 		ContextActionService:BindAction(name, function(_, inputState)
 			if inputState == Enum.UserInputState.Begin then
-				callback(true)
-			elseif inputState == Enum.UserInputState.End and holdable then
-				callback(false)
+				onBegin()
+			elseif inputState == Enum.UserInputState.End and onEnd then
+				onEnd()
 			end
 			return Enum.ContextActionResult.Pass
 		end, true)
@@ -309,21 +440,19 @@ function Controller.init()
 		ContextActionService:SetPosition(name, position)
 	end
 	if UserInputService.TouchEnabled then
-		touchAction("Atacar", "⚔", UDim2.new(1, -95, 1, -170), function(down)
-			attackHeld = down
-			if down then
-				attack(false)
-			end
-		end, true)
-		touchAction("Pesado", "💥", UDim2.new(1, -160, 1, -130), function()
-			attack(true)
+		touchAction("Atacar", "⚔", UDim2.new(1, -95, 1, -170), lightAttack)
+		touchAction("Pesado", "💥", UDim2.new(1, -160, 1, -130), startHeavy, releaseHeavy)
+		touchAction("Bloquear", "🛡", UDim2.new(1, -225, 1, -150), function()
+			setBlock(true)
+		end, function()
+			setBlock(false)
 		end)
-		touchAction("Esquivar", "↩", UDim2.new(1, -160, 1, -200), function()
-			dodge()
+		touchAction("Esquivar", "↩", UDim2.new(1, -160, 1, -200), dodge)
+		touchAction("Correr", "🏃", UDim2.new(1, -95, 1, -240), function()
+			setSprint(true)
+		end, function()
+			setSprint(false)
 		end)
-		touchAction("Correr", "🏃", UDim2.new(1, -95, 1, -240), function(down)
-			setSprint(down)
-		end, true)
 		touchAction("Montar", "🐴", UDim2.new(1, -230, 1, -240), function()
 			State.action("mount")
 		end)
@@ -334,11 +463,8 @@ function Controller.init()
 		end
 	end
 
-	-- segurar o ataque repete o combo; velocidade conforme corrida/montaria
+	-- velocidade conforme corrida/guarda/montaria
 	RunService.Heartbeat:Connect(function()
-		if attackHeld and os.clock() >= lockUntil then
-			attack(false)
-		end
 		local _, _, humanoid = parts()
 		if humanoid then
 			local speed = currentSpeed()
@@ -346,9 +472,20 @@ function Controller.init()
 				humanoid.WalkSpeed = speed
 			end
 		end
-		if sprintHeld and (player:GetAttribute("Stamina") or 0) <= 0 then
+		if sprintHeld and stamina() <= 0 then
 			setSprint(false)
 		end
+		if blocking and stamina() <= 0 then
+			setBlock(false)
+		end
+	end)
+
+	-- ao renascer, limpa estados
+	player.CharacterAdded:Connect(function()
+		blocking = false
+		charging = false
+		lockUntil = 0
+		Controller.onCharge(false)
 	end)
 end
 

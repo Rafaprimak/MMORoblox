@@ -12,6 +12,12 @@ local Placement = require(script.Parent.Placement)
 
 local Scatter = {}
 
+-- Escala do mapa (posições) e tamanho dos objetos em relação ao personagem
+local S = World.Scale
+local TREE_SCALE = 1.45
+local ROCK_SCALE = 1.35
+local NODE_SCALE = 1.35
+
 local M = Enum.Material
 local part = Props.part
 
@@ -128,43 +134,44 @@ local function buildNode(parent, nodeType, x, z, rng)
 	prompt.ActionText = def.action
 	prompt.ObjectText = ("%s (Nv. %d)"):format(def.name, def.level)
 	prompt.HoldDuration = def.hold
-	prompt.MaxActivationDistance = 11
+	prompt.MaxActivationDistance = 15
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = prompted
 	CollectionService:AddTag(model, "ResourceNode")
+	Props.scaleModel(model, cf, NODE_SCALE)
 	model.Parent = parent
 	return model
 end
 
 -- Regras de onde cada recurso aparece
 local NODE_RULES = {
-	{ type = "cobre", count = 45, radius = 4, test = function(w, x, z)
+	{ type = "cobre", count = 70, radius = 4, test = function(w, x, z)
 		return w.forest < 0.4 and w.ruins < 0.6 and w.mountain < 0.2 and w.town < 0.05 and w.ocean < 0.05 and w.lake < 0.1
 	end },
-	{ type = "ferro", count = 22, radius = 4, test = function(w)
+	{ type = "ferro", count = 32, radius = 4, test = function(w)
 		return w.ruins > 0.45 and w.mountain < 0.4
 	end },
 	{ type = "ferro", count = 8, radius = 4, test = function(_w, x, z)
 		local loc = World.Locations.mina
 		local d = math.sqrt((x - loc.x) ^ 2 + (z - loc.z) ^ 2)
-		return d > 14 and d < 40
+		return d > 14 * S and d < 40 * S
 	end },
-	{ type = "mitril", count = 10, radius = 4, test = function(w, _x, z)
-		return w.corridor > 0.25 and z < -250 and z > -400
+	{ type = "mitril", count = 14, radius = 4, test = function(w, _x, z)
+		return w.corridor > 0.25 and z < -250 * S and z > -400 * S
 	end },
-	{ type = "erva", count = 55, radius = 2.5, test = function(w)
+	{ type = "erva", count = 85, radius = 2.5, test = function(w)
 		return w.forest < 0.7 and w.ruins < 0.5 and w.mountain < 0.2 and w.town < 0.1 and w.ocean < 0.05 and w.lake < 0.2
 	end },
-	{ type = "cogumelo", count = 30, radius = 2.5, test = function(w)
+	{ type = "cogumelo", count = 45, radius = 2.5, test = function(w)
 		return w.forest > 0.5 and w.mountain < 0.4
 	end },
-	{ type = "flor_lunar", count = 16, radius = 2.5, test = function(w)
+	{ type = "flor_lunar", count = 24, radius = 2.5, test = function(w)
 		return w.ruins > 0.5 and w.mountain < 0.4
 	end },
-	{ type = "arvore", count = 40, radius = 6, test = function(w)
+	{ type = "arvore", count = 60, radius = 6, test = function(w)
 		return w.town < 0.05 and w.ocean < 0.05 and w.mountain < 0.3 and w.ruins < 0.4 and w.lake < 0.1
 	end },
-	{ type = "arvore_antiga", count = 14, radius = 8, test = function(w)
+	{ type = "arvore_antiga", count = 20, radius = 8, test = function(w)
 		return w.forest > 0.65 and w.mountain < 0.3
 	end },
 }
@@ -177,17 +184,18 @@ function Scatter.resources(parent, rng)
 		local placed, attempts = 0, 0
 		while placed < rule.count and attempts < rule.count * 80 do
 			attempts += 1
-			local x = rng:NextNumber(-470, 470)
-			local z = rng:NextNumber(-470, 330)
+			local x = rng:NextNumber(-470, 470) * S
+			local z = rng:NextNumber(-470, 330) * S
 			if rule.type == "ferro" and rule.count == 8 then
 				local loc = World.Locations.mina
-				x = loc.x + rng:NextNumber(-40, 40)
-				z = loc.z + rng:NextNumber(-40, 40)
+				x = loc.x + rng:NextNumber(-40, 40) * S
+				z = loc.z + rng:NextNumber(-40, 40) * S
 			end
 			local w = World.weights(x, z)
-			if rule.test(w, x, z) and dry(x, z, 2) and Placement.slope(x, z) < 0.7 and Placement.canPlace(x, z, rule.radius, 3) then
+			local radius = rule.radius * NODE_SCALE
+			if rule.test(w, x, z) and dry(x, z, 2) and Placement.slope(x, z) < 0.7 and Placement.canPlace(x, z, radius, 3) then
 				buildNode(folder, rule.type, x, z, rng)
-				Placement.reserve(x, z, rule.radius, rule.type)
+				Placement.reserve(x, z, radius, rule.type)
 				placed += 1
 			end
 		end
@@ -221,19 +229,19 @@ function Scatter.nature(parent, rng)
 	local folder = Instance.new("Folder")
 	folder.Name = "Natureza"
 	folder.Parent = parent
-	local budget = { tree = 750, rock = 320, bush = 380, flowers = 220, ruin = 45 }
+	local budget = { tree = 1150, rock = 480, bush = 560, flowers = 330, ruin = 70 }
 	local counts = { tree = 0, rock = 0, bush = 0, flowers = 0, ruin = 0 }
 
-	for attempt = 1, 16000 do
-		local x = rng:NextNumber(-500, 500)
-		local z = rng:NextNumber(-500, 360)
+	for attempt = 1, 34000 do
+		local x = rng:NextNumber(-500, 500) * S
+		local z = rng:NextNumber(-500, 360) * S
 		local w = World.weights(x, z)
 		local h = World.heightWithWeights(x, z, w)
 		if h > World.SeaLevel + 1 and w.town < 0.2 and w.crater < 0.25 then
 			local plains = (1 - w.forest) * (1 - w.ruins) * (1 - w.mountain) * (1 - w.ocean)
 			local grove = World.fbm(x, z, 2, 110, 999) > 0.12
 			local beach = w.ocean > 0.06 and h < World.SeaLevel + 7
-			local treeChance = w.forest * 0.6 + plains * (if grove then 0.3 else 0.015) + w.mountain * (if h < 120 then 0.12 else 0) + w.ruins * 0.05 + (if beach then 0.05 else 0)
+			local treeChance = w.forest * 0.6 + plains * (if grove then 0.3 else 0.015) + w.mountain * (if h < 140 then 0.12 else 0) + w.ruins * 0.05 + (if beach then 0.05 else 0)
 			local rockChance = 0.02 + w.ruins * 0.06 + w.mountain * 0.09
 			local bushChance = w.forest * 0.12 + plains * 0.05
 			local flowerChance = plains * 0.05 + w.lake * 0.1
@@ -252,17 +260,18 @@ function Scatter.nature(parent, rng)
 				kind = "ruin"
 			end
 			if kind and counts[kind] < budget[kind] then
-				local radius = if kind == "tree" then 5 elseif kind == "rock" then 3.5 elseif kind == "ruin" then 6 else 2
+				local radius = (if kind == "tree" then 5 * TREE_SCALE elseif kind == "rock" then 3.5 * ROCK_SCALE elseif kind == "ruin" then 6 * S else 2.5)
 				local slope = Placement.slope(x, z)
 				local slopeLimit = if kind == "rock" then 2 else 0.8
 				if slope < slopeLimit and Placement.canPlace(x, z, radius, if kind == "flowers" then 1 else 3) then
 					local cf = groundCf(x, z, rng:NextNumber() * math.pi * 2, if kind == "rock" then 0.6 else 0.2)
 					local scale = rng:NextNumber(0.8, 1.3)
 					if kind == "tree" then
+						scale *= TREE_SCALE
 						if beach then
 							Props.palm(folder, cf, scale, rng)
 						elseif w.mountain > 0.4 then
-							Props.pine(folder, cf, scale * 1.1, rng, h > 95)
+							Props.pine(folder, cf, scale * 1.1, rng, h > 110)
 						elseif w.ruins > 0.5 and rng:NextNumber() < 0.6 then
 							Props.deadTree(folder, cf, scale, rng)
 						elseif w.forest > 0.5 and rng:NextNumber() < 0.45 then
@@ -271,13 +280,13 @@ function Scatter.nature(parent, rng)
 							Props.oak(folder, cf, scale * (if w.forest > 0.5 then 1.25 else 1), rng)
 						end
 					elseif kind == "rock" then
-						Props.rock(folder, cf, scale * (if w.mountain > 0.5 then 1.8 else 1), rng)
+						Props.rock(folder, cf, scale * ROCK_SCALE * (if w.mountain > 0.5 then 1.8 else 1), rng)
 					elseif kind == "bush" then
-						Props.bush(folder, cf, scale, rng)
+						Props.bush(folder, cf, scale * ROCK_SCALE, rng)
 					elseif kind == "flowers" then
-						Props.flowers(folder, cf, rng)
+						Props.scaleModel(Props.flowers(folder, cf, rng), cf, 1.3)
 					else
-						ruinPiece(folder, cf, rng)
+						Props.scaleModel(ruinPiece(folder, cf, rng), cf, S)
 					end
 					Placement.reserve(x, z, radius, kind)
 					counts[kind] += 1

@@ -5,15 +5,23 @@
 -- Layout: Vila no sul perto da costa, planícies no centro, bosque a leste, ruínas a oeste,
 -- montanhas ao norte e nas laterais, oceano ao sul. A cratera do chefe fica nas montanhas do norte,
 -- acessível por uma passagem.
+--
+-- ESCALA: todas as fórmulas trabalham no "espaço de design" (mapa de -512 a 512) e o resultado é
+-- ampliado por World.Scale. Assim dá para aumentar o mundo inteiro mudando um número só.
+-- Coordenadas expostas (TownCenter, Locations, Waystones, estradas) já estão em studs reais.
 local World = {}
 
-World.Half = 512 -- o mapa vai de -512 a 512
+World.Scale = 1.5
+local S = World.Scale
+
+World.Half = 512 * S -- o mapa vai de -Half a +Half
 World.SeaLevel = 4
-World.TownCenter = Vector3.new(0, 0, 150)
+World.TownCenter = Vector3.new(0, 0, 150 * S)
 World.TownHeight = 18
-World.CraterCenter = Vector3.new(0, 0, -445)
-World.CraterHeight = 40
-World.PassGateZ = -330
+World.CraterCenter = Vector3.new(0, 0, -445 * S)
+World.CraterHeight = 44
+World.PassGateZ = -330 * S
+World.RoadWidth = 6
 
 local SEED = 4242
 
@@ -37,42 +45,48 @@ local function fbm(x, z, octaves, scale, seed)
 	end
 	return total / norm
 end
-World.fbm = fbm
+-- ruído no espaço real (o mapa usa para colorir)
+function World.fbm(x, z, octaves, scale, seed)
+	return fbm(x / S, z / S, octaves, scale, seed)
+end
 
 local function distance(x, z, cx, cz)
 	local dx, dz = x - cx, z - cz
 	return math.sqrt(dx * dx + dz * dz)
 end
 
--- Pesos de cada região (0 a 1) com bordas orgânicas (distorcidas por ruído)
+-- Pesos de cada região (0 a 1) com bordas orgânicas (distorcidas por ruído).
+-- Recebe coordenadas reais; calcula no espaço de design.
 function World.weights(x, z)
-	local warp = fbm(x, z, 2, 180, SEED + 100) * 90
+	local dx, dz = x / S, z / S
+	local warp = fbm(dx, dz, 2, 180, SEED + 100) * 90
 	local w = {}
-	w.forest = 1 - smoothstep(130, 230, distance(x, z, 260, -70) + warp)
-	w.ruins = 1 - smoothstep(120, 220, distance(x, z, -260, -70) - warp)
-	local north = smoothstep(290, 420, -z + warp * 0.6)
-	local sides = smoothstep(380, 480, math.abs(x) + warp * 0.5)
+	w.forest = 1 - smoothstep(130, 230, distance(dx, dz, 260, -70) + warp)
+	w.ruins = 1 - smoothstep(120, 220, distance(dx, dz, -260, -70) - warp)
+	local north = smoothstep(290, 420, -dz + warp * 0.6)
+	local sides = smoothstep(380, 480, math.abs(dx) + warp * 0.5)
 	w.mountain = math.max(north, sides)
-	w.crater = 1 - smoothstep(70, 105, distance(x, z, World.CraterCenter.X, World.CraterCenter.Z))
-	w.corridor = (1 - smoothstep(16, 42, math.abs(x + fbm(x, z, 1, 120, SEED + 61) * 12))) * smoothstep(-205, -240, z)
-	w.ocean = smoothstep(270, 370, z - warp * 0.3)
-	w.lake = 1 - smoothstep(28, 62, distance(x, z, -170, 160) + warp * 0.15)
-	w.town = 1 - smoothstep(78, 108, distance(x, z, World.TownCenter.X, World.TownCenter.Z))
+	w.crater = 1 - smoothstep(70, 105, distance(dx, dz, 0, -445))
+	w.corridor = (1 - smoothstep(16, 42, math.abs(dx + fbm(dx, dz, 1, 120, SEED + 61) * 12))) * smoothstep(-205, -240, dz)
+	w.ocean = smoothstep(270, 370, dz - warp * 0.3)
+	w.lake = 1 - smoothstep(28, 62, distance(dx, dz, -170, 160) + warp * 0.15)
+	w.town = 1 - smoothstep(78, 108, distance(dx, dz, 0, 150))
 	return w
 end
 
 function World.heightWithWeights(x, z, w)
-	local h = 18 + fbm(x, z, 4, 240, SEED) * 32
-	h += w.forest * fbm(x, z, 3, 70, SEED + 7) * 12
-	h += w.ruins * (10 + fbm(x, z, 3, 110, SEED + 11) * 16)
-	local ridge = 1 - math.abs(fbm(x, z, 4, 160, SEED + 23)) * 2
-	h += w.mountain * (1 - w.corridor) * (1 - w.crater) * (55 + ridge * 85)
+	local dx, dz = x / S, z / S
+	local h = 18 + fbm(dx, dz, 4, 240, SEED) * 36
+	h += w.forest * fbm(dx, dz, 3, 70, SEED + 7) * 14
+	h += w.ruins * (12 + fbm(dx, dz, 3, 110, SEED + 11) * 18)
+	local ridge = 1 - math.abs(fbm(dx, dz, 4, 160, SEED + 23)) * 2
+	h += w.mountain * (1 - w.corridor) * (1 - w.crater) * (70 + ridge * 110)
 	-- passagem: sobe suave da planície até a cratera
-	local corridorHeight = lerp(22, World.CraterHeight, smoothstep(-235, -400, z)) + fbm(x, z, 2, 40, SEED + 31) * 2
+	local corridorHeight = lerp(22, World.CraterHeight, smoothstep(-235, -400, dz)) + fbm(dx, dz, 2, 40, SEED + 31) * 2
 	h = lerp(h, corridorHeight, w.corridor)
-	h = lerp(h, World.CraterHeight + fbm(x, z, 2, 30, SEED + 41) * 1.5, w.crater)
-	h = lerp(h, -14, w.ocean)
-	h = lerp(h, -3, w.lake)
+	h = lerp(h, World.CraterHeight + fbm(dx, dz, 2, 30, SEED + 41) * 1.5, w.crater)
+	h = lerp(h, -16, w.ocean)
+	h = lerp(h, -4, w.lake)
 	h = lerp(h, World.TownHeight, w.town)
 	return h
 end
@@ -81,14 +95,22 @@ function World.height(x, z)
 	return World.heightWithWeights(x, z, World.weights(x, z))
 end
 
--- Estradas (linhas entre pontos X,Z)
-World.Roads = {
-	{ Vector2.new(0, 150), Vector2.new(0, 70), Vector2.new(0, 10), Vector2.new(6, -110), Vector2.new(0, -235), Vector2.new(0, -330) },
-	{ Vector2.new(0, 10), Vector2.new(90, -15), Vector2.new(185, -38) },
-	{ Vector2.new(0, 10), Vector2.new(-90, -15), Vector2.new(-185, -38) },
-	{ Vector2.new(20, 185), Vector2.new(70, 240), Vector2.new(112, 280) },
-	{ Vector2.new(-25, 155), Vector2.new(-70, 165), Vector2.new(-108, 166) },
+-- Estradas (em coordenadas de design; convertidas para studs reais abaixo)
+local DESIGN_ROADS = {
+	{ { 0, 150 }, { 0, 70 }, { 0, 10 }, { 6, -110 }, { 0, -235 }, { 0, -330 } },
+	{ { 0, 10 }, { 90, -15 }, { 185, -38 } },
+	{ { 0, 10 }, { -90, -15 }, { -185, -38 } },
+	{ { 20, 185 }, { 70, 240 }, { 112, 280 } },
+	{ { -25, 155 }, { -70, 165 }, { -108, 166 } },
 }
+World.Roads = {}
+for i, road in DESIGN_ROADS do
+	local points = {}
+	for j, point in road do
+		points[j] = Vector2.new(point[1] * S, point[2] * S)
+	end
+	World.Roads[i] = points
+end
 
 local segments = {}
 for _, road in World.Roads do
@@ -114,12 +136,10 @@ function World.roadDistance(x, z)
 	return best
 end
 
-World.RoadWidth = 4.5
-
 -- Material do terreno na superfície
 function World.surfaceMaterial(x, z, h, slope, w)
 	local M = Enum.Material
-	local n = fbm(x, z, 2, 28, SEED + 51)
+	local n = fbm(x / S, z / S, 2, 28, SEED + 51)
 	if h < World.SeaLevel + 0.5 then
 		return if w.ocean > 0.05 then M.Sand else M.Mud
 	end
@@ -130,13 +150,13 @@ function World.surfaceMaterial(x, z, h, slope, w)
 		return M.Sand
 	end
 	local road = World.roadDistance(x, z)
-	if w.town > 0.6 and distance(x, z, World.TownCenter.X, World.TownCenter.Z) < 34 then
+	if w.town > 0.6 and distance(x, z, World.TownCenter.X, World.TownCenter.Z) < 34 * S then
 		return M.Cobblestone
 	end
 	if road < World.RoadWidth then
 		return if w.town > 0.5 then M.Cobblestone else M.Ground
 	end
-	if h > 118 then
+	if h > 135 then
 		return M.Snow
 	end
 	if slope > 1.05 then
@@ -169,7 +189,7 @@ function World.regionName(x, z)
 		return "Vila Aurora"
 	elseif w.crater > 0.35 then
 		return "Covil do Rei Goblin"
-	elseif w.corridor > 0.5 and z < -240 then
+	elseif w.corridor > 0.5 and z < -240 * S then
 		return "Passagem do Norte"
 	elseif w.mountain > 0.6 then
 		return "Montanhas Geladas"
@@ -185,36 +205,43 @@ function World.regionName(x, z)
 	return "Campos Verdejantes"
 end
 
--- Locais nomeados (missões de exploração, marcadores, mapa)
-World.Locations = {
-	vila = { name = "Vila Aurora", x = 0, z = 150, radius = 45 },
-	encruzilhada = { name = "Encruzilhada", x = 0, z = 10, radius = 22 },
-	bosque = { name = "Bosque Sombrio", x = 250, z = -70, radius = 60 },
-	toca_aranhas = { name = "Ninho das Aranhas", x = 330, z = 30, radius = 30 },
-	ruinas = { name = "Planalto das Ruínas", x = -250, z = -70, radius = 60 },
-	templo_ruinas = { name = "Templo em Ruínas", x = -275, z = -115, radius = 25 },
-	mina = { name = "Mina Abandonada", x = -150, z = -205, radius = 25 },
-	santuario_lago = { name = "Santuário do Lago", x = -112, z = 168, radius = 18 },
-	farol = { name = "Farol Abandonado", x = -205, z = 285, radius = 20 },
-	praia = { name = "Costa Dourada", x = 125, z = 292, radius = 40 },
-	passagem = { name = "Passagem do Norte", x = 0, z = -240, radius = 25 },
-	portao_norte = { name = "Portão Selado", x = 0, z = World.PassGateZ, radius = 22 },
-	cratera = { name = "Covil do Rei Goblin", x = 0, z = -445, radius = 55 },
+-- Locais nomeados (missões de exploração, marcadores, mapa). Valores de design × escala.
+local DESIGN_LOCATIONS = {
+	vila = { "Vila Aurora", 0, 150, 45 },
+	encruzilhada = { "Encruzilhada", 0, 10, 22 },
+	bosque = { "Bosque Sombrio", 250, -70, 60 },
+	toca_aranhas = { "Ninho das Aranhas", 330, 30, 30 },
+	ruinas = { "Planalto das Ruínas", -250, -70, 60 },
+	templo_ruinas = { "Templo em Ruínas", -275, -115, 25 },
+	mina = { "Mina Abandonada", -150, -205, 25 },
+	santuario_lago = { "Santuário do Lago", -112, 168, 18 },
+	farol = { "Farol Abandonado", -205, 285, 20 },
+	praia = { "Costa Dourada", 125, 292, 40 },
+	passagem = { "Passagem do Norte", 0, -240, 25 },
+	portao_norte = { "Portão Selado", 0, -330, 22 },
+	cratera = { "Covil do Rei Goblin", 0, -445, 55 },
 }
+World.Locations = {}
+for id, loc in DESIGN_LOCATIONS do
+	World.Locations[id] = { name = loc[1], x = loc[2] * S, z = loc[3] * S, radius = loc[4] * S }
+end
 
 -- Pedras de viagem rápida (descobertas ao chegar perto)
-World.Waystones = {
-	{ id = "vila", name = "Vila Aurora", x = -15, z = 150 },
-	{ id = "encruzilhada", name = "Encruzilhada", x = 14, z = 18 },
-	{ id = "bosque", name = "Bosque Sombrio", x = 192, z = -28 },
-	{ id = "ruinas", name = "Planalto das Ruínas", x = -192, z = -28 },
-	{ id = "praia", name = "Costa Dourada", x = 104, z = 276 },
-	{ id = "lago", name = "Lago Espelhado", x = -98, z = 176 },
-	{ id = "passagem", name = "Passagem do Norte", x = 16, z = -236 },
+local DESIGN_WAYSTONES = {
+	{ "vila", "Vila Aurora", -15, 150 },
+	{ "encruzilhada", "Encruzilhada", 14, 18 },
+	{ "bosque", "Bosque Sombrio", 192, -28 },
+	{ "ruinas", "Planalto das Ruínas", -192, -28 },
+	{ "praia", "Costa Dourada", 104, 276 },
+	{ "lago", "Lago Espelhado", -98, 176 },
+	{ "passagem", "Passagem do Norte", 16, -236 },
 }
+World.Waystones = {}
 World.WaystoneById = {}
-for _, stone in World.Waystones do
-	World.WaystoneById[stone.id] = stone
+for i, stone in DESIGN_WAYSTONES do
+	local entry = { id = stone[1], name = stone[2], x = stone[3] * S, z = stone[4] * S }
+	World.Waystones[i] = entry
+	World.WaystoneById[entry.id] = entry
 end
 
 function World.surfacePosition(x, z, offset)

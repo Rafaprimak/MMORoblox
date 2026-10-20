@@ -62,6 +62,17 @@ function Props.ball(parent, position, diameter, color, material, extra)
 	return part(parent, props)
 end
 
+-- Amplia um modelo inteiro (peças, luzes, partículas) a partir de um ponto fixo.
+-- Use o ponto no chão como pivô para a base continuar encostada no terreno.
+function Props.scaleModel(model, pivot, factor)
+	if not model or factor == 1 then
+		return model
+	end
+	model.WorldPivot = pivot
+	model:ScaleTo(factor)
+	return model
+end
+
 function Props.light(parentPart, color, range, brightness, shadows)
 	local light = Instance.new("PointLight")
 	light.Color = color
@@ -360,8 +371,9 @@ function Props.crate(parent, cf, size)
 	return part(parent, { Name = "Caixa", Size = Vector3.one * size, CFrame = cf * CFrame.new(0, size / 2, 0), Color = C.Plank, Material = M.WoodPlanks })
 end
 
-function Props.barrel(parent, cf)
-	local barrel = Props.column(parent, cf, 3, 2.2, C.Wood, M.Wood)
+function Props.barrel(parent, cf, scale)
+	scale = scale or 1
+	local barrel = Props.column(parent, cf, 3 * scale, 2.2 * scale, C.Wood, M.Wood)
 	barrel.Name = "Barril"
 	return barrel
 end

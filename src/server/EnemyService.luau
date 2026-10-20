@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
 local World = require(Shared.World)
 local Enemies = require(Shared.Enemies)
 local EnemyModels = require(Shared.EnemyModels)
@@ -18,6 +19,7 @@ local EnemyService = {}
 EnemyService.OnKilled = nil -- function(rec, contributors)
 EnemyService.OnHit = nil -- function(rec, player, amount, info)
 EnemyService.FireProjectile = nil -- function(spec) (ProjectileService)
+EnemyService.OnStagger = nil -- function(rec, player): guarda quebrada
 
 local TICK = 0.1
 local active = {}
@@ -92,6 +94,9 @@ function EnemyService.spawn(camp, enemyId, options)
 	root:SetAttribute("Hp", hp)
 	root:SetAttribute("MaxHp", hp)
 	root:SetAttribute("Action", "idle:0")
+	local maxPosture = math.floor((def.posture or 8 * math.sqrt(def.hp)) * (if elite then 1.6 else 1))
+	root:SetAttribute("Posture", 0)
+	root:SetAttribute("MaxPosture", maxPosture)
 
 	local rec = {
 		def = def,
@@ -118,6 +123,10 @@ function EnemyService.spawn(camp, enemyId, options)
 		nextSlam = os.clock() + math.random() * 3 + 3,
 		nextSummon = os.clock() + 15,
 		stunUntil = 0,
+		staggerUntil = 0,
+		posture = 0,
+		maxPosture = maxPosture,
+		lastPostureHit = 0,
 		dots = {},
 		actionCount = 0,
 		summoned = options.summoned,
@@ -166,12 +175,85 @@ local function kill(rec, killer)
 	end
 end
 
--- info: { crit, knockback, stun, fromPosition, color, dot }
+-- ===================== POSTURA (guarda) =====================
+
+local function setPosture(rec, value)
+	rec.posture = math.clamp(value, 0, rec.maxPosture)
+	rec.root:SetAttribute("Posture", math.floor(rec.posture))
+end
+
+-- Guarda quebrada: atordoado por alguns segundos e tomando dano extra
+function EnemyService.stagger(rec, player)
+	if rec.dead then
+		return
+	end
+	local now = os.clock()
+	local duration = if rec.def.boss then Config.StaggerTime * 0.8 else Config.StaggerTime
+	rec.staggerUntil = now + duration
+	rec.stunUntil = math.max(rec.stunUntil, now + duration)
+	rec.state = "stunned"
+	setPosture(rec, 0)
+	rec.root:SetAttribute("Staggered", true)
+	setAction(rec, "stagger")
+	Remotes.Fx:FireAllClients("stagger", rec.root, player)
+	if EnemyService.OnStagger and player then
+		task.spawn(EnemyService.OnStagger, rec, player)
+	end
+	task.delay(duration, function()
+		if not rec.dead and os.clock() >= rec.staggerUntil - 0.05 then
+			rec.root:SetAttribute("Staggered", false)
+		end
+	end)
+end
+
+function EnemyService.addPosture(rec, amount, player)
+	if rec.dead or amount <= 0 or os.clock() < rec.staggerUntil then
+		return
+	end
+	rec.lastPostureHit = os.clock()
+	setPosture(rec, rec.posture + amount)
+	if rec.posture >= rec.maxPosture then
+		EnemyService.stagger(rec, player)
+	end
+end
+
+-- Golpe do inimigo aparado: perde o equilíbrio (curto) e muita postura
+function EnemyService.parried(rec, player)
+	if rec.dead then
+		return
+	end
+	local now = os.clock()
+	if now >= rec.staggerUntil then
+		rec.stunUntil = math.max(rec.stunUntil, now + (if rec.def.boss then 0.6 else 1.1))
+		rec.state = "stunned"
+		setAction(rec, "stun")
+	end
+	EnemyService.addPosture(rec, rec.maxPosture * 0.35, player)
+end
+
+function EnemyService.isStaggered(rec)
+	return os.clock() < rec.staggerUntil
+end
+
+-- info: { crit, knockback, stun, fromPosition, color, dot, posture }
+-- Retorna o dano causado e se foi contra-ataque
 function EnemyService.damage(rec, amount, player, info)
 	if rec.dead then
 		return 0
 	end
 	info = info or {}
+	local now = os.clock()
+	local tag = nil
+	-- contra-ataque: acertar o inimigo enquanto ele se recupera do próprio ataque
+	if not info.dot and rec.state == "recover" then
+		amount *= 1 + Config.CounterBonus
+		info.posture = (info.posture or 0) * (1 + Config.CounterBonus)
+		tag = "counter"
+	end
+	if now < rec.staggerUntil and not info.dot then
+		amount *= 1 + Config.StaggerDamageBonus
+		tag = "staggered"
+	end
 	amount = math.max(1, math.floor(amount * (1 - (rec.def.defense or 0))))
 	rec.hp -= amount
 	rec.lastHitAt = os.clock()
@@ -182,7 +264,10 @@ function EnemyService.damage(rec, amount, player, info)
 		end
 	end
 	rec.root:SetAttribute("Hp", math.max(0, math.floor(rec.hp)))
-	Remotes.Fx:FireAllClients("hit", rec.root, amount, info.crit == true, player, info.color)
+	Remotes.Fx:FireAllClients("hit", rec.root, amount, info.crit == true, player, info.color, tag)
+	if info.posture and info.posture > 0 and rec.hp > 0 then
+		EnemyService.addPosture(rec, info.posture, player)
+	end
 
 	local immovable = rec.def.boss or rec.def.behavior == "dummy"
 	if info.knockback and info.fromPosition and not immovable then
@@ -195,7 +280,7 @@ function EnemyService.damage(rec, amount, player, info)
 			end
 		end
 	end
-	if info.stun and not rec.def.boss then
+	if info.stun and not rec.def.boss and now >= rec.staggerUntil then
 		rec.stunUntil = math.max(rec.stunUntil, os.clock() + info.stun)
 		rec.state = "stunned"
 		setAction(rec, "stun")
@@ -203,7 +288,7 @@ function EnemyService.damage(rec, amount, player, info)
 		rec.stunUntil = math.max(rec.stunUntil, os.clock() + info.stun * 0.3)
 	end
 	if EnemyService.OnHit and player then
-		EnemyService.OnHit(rec, player, amount, info)
+		EnemyService.OnHit(rec, player, amount, info, tag)
 	end
 	if rec.hp <= 0 then
 		if rec.def.behavior == "dummy" then
@@ -371,11 +456,12 @@ local function pickTarget(rec, targets)
 	return best, bestDistance
 end
 
-local function strikePlayers(rec, center, radius, damage)
+-- unblockable = golpe que não dá para bloquear nem aparar (só esquivar)
+local function strikePlayers(rec, center, radius, damage, unblockable)
 	for _, candidate in playersInfo() do
 		local offset = candidate.root.Position - center
 		if flat(offset).Magnitude <= radius + 1.5 and math.abs(offset.Y) < radius + 6 then
-			PlayerService.damagePlayer(candidate.player, damage, center)
+			PlayerService.damagePlayer(candidate.player, damage, rec.pos, { source = rec, unblockable = unblockable })
 		end
 	end
 end
@@ -416,10 +502,44 @@ local function updateEnemy(rec, now, targets)
 	if rec.dead then
 		return
 	end
+	-- a postura volta ao normal se o inimigo ficar um tempo sem apanhar
+	if rec.posture > 0 and now - rec.lastPostureHit > 2.5 and now >= rec.staggerUntil then
+		setPosture(rec, rec.posture - rec.maxPosture * 0.15 * TICK)
+	end
 	if def.behavior == "dummy" then
 		if now - rec.lastHitAt > 2 and rec.hp < rec.maxHp then
 			rec.hp = rec.maxHp
 			rec.root:SetAttribute("Hp", rec.hp)
+		end
+		if now < rec.stunUntil then
+			return
+		end
+		-- boneco: golpe lento e avisado em quem estiver perto (treino de aparar/esquivar)
+		if rec.state == "windup" then
+			if now >= rec.stateUntil then
+				rec.state = "recover"
+				rec.stateUntil = now + 0.9
+				setAction(rec, "attack")
+				strikePlayers(rec, rec.pos + lookOf(rec) * (rec.radius + 1.5), 4, def.damage)
+			end
+			return
+		elseif rec.state == "recover" or rec.state == "stunned" then
+			if now >= rec.stateUntil then
+				rec.state = "idle"
+			end
+			return
+		end
+		for _, candidate in targets do
+			local toPlayer = flat(candidate.root.Position - rec.pos)
+			if toPlayer.Magnitude < def.attackRange + rec.radius + 2 and now - rec.lastAttack >= def.attackCooldown then
+				rec.lastAttack = now
+				rec.yaw = yawTowards(toPlayer)
+				rec.state = "windup"
+				rec.stateUntil = now + 0.9
+				setAction(rec, "windup")
+				place(rec)
+				break
+			end
 		end
 		return
 	end
@@ -443,7 +563,7 @@ local function updateEnemy(rec, now, targets)
 	if rec.state == "windup" then
 		if now >= rec.stateUntil then
 			rec.state = "recover"
-			rec.stateUntil = now + 0.35
+			rec.stateUntil = now + (if boss then 0.55 else 0.75)
 			setAction(rec, "attack")
 			local reach = def.attackRange + rec.radius + 2
 			local center = rec.pos + lookOf(rec) * (rec.radius + 1)
@@ -470,7 +590,7 @@ local function updateEnemy(rec, now, targets)
 		for _, candidate in targets do
 			if not rec.chargeHit[candidate.player] and flat(candidate.root.Position - rec.pos).Magnitude < rec.radius + 3 then
 				rec.chargeHit[candidate.player] = true
-				PlayerService.damagePlayer(candidate.player, def.charge.damage * rec.damageMult, rec.pos)
+				PlayerService.damagePlayer(candidate.player, def.charge.damage * rec.damageMult, rec.pos, { source = rec, unblockable = true })
 			end
 		end
 		if now >= rec.stateUntil then
@@ -486,7 +606,7 @@ local function updateEnemy(rec, now, targets)
 			rec.stateUntil = now + 0.6
 			setAction(rec, "slam")
 			Remotes.Fx:FireAllClients("explosion", rec.pos, def.slam.radius, "earth")
-			strikePlayers(rec, rec.pos, def.slam.radius, def.slam.damage * rec.damageMult)
+			strikePlayers(rec, rec.pos, def.slam.radius, def.slam.damage * rec.damageMult, true)
 		end
 		return
 	end
@@ -571,7 +691,7 @@ local function updateEnemy(rec, now, targets)
 			elseif now - rec.lastAttack >= def.attackCooldown / speedMult then
 				rec.lastAttack = now
 				rec.state = "windup"
-				rec.stateUntil = now + (if boss then 0.55 else 0.4)
+				rec.stateUntil = now + (if boss then 0.65 else 0.5)
 				setAction(rec, "windup")
 			end
 		end
@@ -616,7 +736,7 @@ function EnemyService.start()
 				local options = nil
 				if Enemies.Defs[enemyId].behavior == "dummy" then
 					-- bonecos lado a lado, em posições fixas
-					local x = camp.center.X + (i - (count + 1) / 2) * 7
+					local x = camp.center.X + (i - (count + 1) / 2) * 7 * World.Scale
 					local z = camp.center.Y
 					options = { position = Vector3.new(x, groundAt(x, z), z) }
 				end

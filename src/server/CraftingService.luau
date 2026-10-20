@@ -25,7 +25,7 @@ local function nearService(player, service)
 	for _, npc in NPCs.List do
 		if npc.services and table.find(npc.services, service) then
 			local dx, dz = root.Position.X - npc.x, root.Position.Z - npc.z
-			if dx * dx + dz * dz < 30 * 30 then
+			if dx * dx + dz * dz < 45 * 45 then
 				return true
 			end
 		end

@@ -25,18 +25,24 @@ Lista do que já existe e do que vem a seguir, em ordem de prioridade. Antes de 
 
 Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos.
 
-- 🧪 Testar no Studio: forja (criar e aprimorar), encantar e desmontar, alquimia, loja (comprar/vender) (P)
-- 🧪 Testar montaria (montar, desmontar ao tomar dano, velocidade, pose sentada) (P)
-- 🧪 Testar Arqueiro e Assassino (projéteis, Passo Sombrio, veneno, ataque pelas costas) (P)
-- 🧪 Testar o Rei Goblin: investida, pancada em área, invocação, fase de fúria, barra de chefe (P)
-- 🧪 Testar a cadeia de missões inteira (h01 → h15) e os contratos diários (M)
-- 🧪 Testar coleta (minérios, plantas, árvores) e o feixe de objetivo apontando para recursos (P)
-- 🧪 Conferir as correções da última rodada: roleta do baú visível, tecla I, bonecos lado a lado (P)
+- ✅ Testar no Studio: forja (criar e aprimorar), encantar e desmontar, alquimia, loja (comprar/vender) (P)
+- ✅ Testar montaria (montar, desmontar ao tomar dano, velocidade, pose sentada) (P)
+- ✅ Testar Arqueiro e Assassino (projéteis, Passo Sombrio, veneno, ataque pelas costas) (P)
+- ✅ Testar o Rei Goblin: investida, pancada em área, invocação, fase de fúria, barra de chefe (P)
+- ✅ Testar a cadeia de missões inteira (h01 → h15) e os contratos diários (M)
+- ✅ Testar coleta (minérios, plantas, árvores) e o feixe de objetivo apontando para recursos (P)
+- ✅ Conferir as correções da última rodada: roleta do baú visível, tecla I, bonecos lado a lado (P)
 - ⬜ Balanceamento inicial: slimes tiraram 80% da vida de um Mago nível 1 (P)
 - ⬜ Animações das armas: conferir a pegada de lança, arco e cajado e as poses de golpe (P)
 - ⬜ Performance: medir FPS no celular; reduzir a natureza em `Scatter` se precisar; LOD para árvores distantes (M)
 - ⬜ Investigar os erros `CorePackages` (React) no Output, provavelmente causados por `SetCoreGuiEnabled` (P)
 - ⬜ Mapa: desenhar as estradas e permitir zoom (P)
+- 🧪 Escala do mundo ×1.5: mapa, casas, árvores, rochas e locais proporcionais ao personagem (`World.Scale`, `Props.scaleModel`) (M)
+- 🧪 NPCs apoiados no chão por raycast (alguns ficavam enterrados) (P)
+- 🧪 Golpe pesado saiu do botão direito (conflito com a câmera): agora é segurar **R** e carregar (P)
+- 🧪 Golpes leves não andam mais para frente (P)
+- 🧪 **Combate dinâmico:** ritmo de combo (clicar cedo quebra), estamina por golpe, bloquear/aparar (F), esquiva perfeita, postura e atordoamento, contra-ataque, ataques imbloqueáveis (‼), missões e diárias de aparar/quebrar guarda (G)
+- ⬜ Balancear o combate dinâmico depois dos testes: janelas de ritmo/aparar, postura dos inimigos, custo de estamina (P)
 
 ## Fase 1 — Polimento do que já existe
 

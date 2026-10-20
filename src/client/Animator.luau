@@ -82,6 +82,16 @@ local POSES = {
 		{ 0.65, { RS = R(90, 0, 10), LS = R(90, 0, -10), RT = R(-10) } },
 		{ 1, {} },
 	},
+	-- guarda (segurando F): braços à frente cruzando a arma
+	block = {
+		{ 0, {} },
+		{ 1, { RS = R(95, 0, -40), RE = R(55), LS = R(90, 0, 40), LE = R(65), W = R(0, -12, 0), RT = R(-4) } },
+	},
+	-- carregando o golpe pesado (segurando R): arma bem para trás
+	charge = {
+		{ 0, {} },
+		{ 1, { RS = R(160, 0, 45), RE = R(20), LS = R(40, 0, -20), W = R(0, -45, 0), RT = R(8), RH = R(15), LH = R(-10) } },
+	},
 	roar = {
 		{ 0, {} },
 		{ 0.3, { RS = R(120, 0, 70), LS = R(120, 0, -70), RT = R(12), N = R(25) } },
@@ -197,6 +207,33 @@ function Animator.play(character, poseName, duration, withTrail)
 	end
 end
 
+-- Mantém uma pose parada (guarda, carregar golpe) até chamar Animator.stop
+function Animator.hold(character, poseName, t)
+	if not character or not poseName then
+		return
+	end
+	jobs[character] = { pose = poseName, start = os.clock(), duration = 1, hold = true, t = t or 1, blend = 0 }
+end
+
+function Animator.stop(character)
+	local job = character and jobs[character]
+	if job and job.hold then
+		jobs[character] = nil
+	end
+end
+
+function Animator.holdForPlayer(player, poseName, t)
+	if player and player.Character then
+		Animator.hold(player.Character, poseName, t)
+	end
+end
+
+function Animator.stopForPlayer(player)
+	if player and player.Character then
+		Animator.stop(player.Character)
+	end
+end
+
 function Animator.playForPlayer(player, poseName, duration, withTrail)
 	if player and player.Character then
 		Animator.play(player.Character, poseName, duration, withTrail)
@@ -209,6 +246,19 @@ function Animator.init()
 		for character, job in jobs do
 			if not character.Parent then
 				jobs[character] = nil
+				continue
+			end
+			if job.hold then
+				-- entra na pose suavemente (0,12s) e fica parado nela
+				job.blend = math.min(1, (now - job.start) / 0.12)
+				local pose = samplePose(job.pose, job.t * job.blend)
+				local m = motors(character)
+				for key, offset in pose do
+					local motor = m[key]
+					if motor then
+						motor.Transform = motor.Transform * offset
+					end
+				end
 				continue
 			end
 			local t = (now - job.start) / job.duration

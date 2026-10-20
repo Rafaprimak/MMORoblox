@@ -5,7 +5,8 @@
 --   charger = de vez em quando prepara uma investida (com aviso no chão)
 --   slammer = lento; prepara pancadas em área (com aviso no chão)
 --   boss    = mistura investida, pancada em área e invoca ajudantes
---   dummy   = boneco de treino (não se move, não ataca)
+--   dummy   = boneco de treino (não se move; ataca devagar para treinar aparar/esquivar)
+-- posture: resistência da guarda (opcional; padrão = 8 * raiz(hp)). Encheu = guarda quebrada.
 local Enemies = {}
 
 local function essence(chance)
@@ -14,7 +15,8 @@ end
 
 Enemies.Defs = {
 	boneco = {
-		name = "Boneco de Treino", level = 1, hp = 999999, damage = 0, speed = 0, attackCooldown = 99, attackRange = 0,
+		-- ataca devagar (com aviso) quem chega perto, para treinar aparar (F) e esquivar (Q)
+		name = "Boneco de Treino", level = 1, hp = 999999, damage = 2, speed = 0, attackCooldown = 3.2, attackRange = 5, posture = 120,
 		xp = 0, gold = { 0, 0 }, dropChance = 0, pool = {}, drops = {},
 		aggro = 0, radius = 1.6, model = "dummy", color = Color3.fromRGB(200, 170, 110), behavior = "dummy", regen = 1,
 	},
@@ -121,5 +123,14 @@ Enemies.Camps = {
 }
 
 Enemies.EliteChance = 0.06
+
+-- Os centros acima estão em coordenadas de design; converte para studs reais (ver World.Scale)
+local World = require(script.Parent.World)
+for _, camp in Enemies.Camps do
+	camp.center = camp.center * World.Scale
+	if camp.id ~= "treino" then
+		camp.radius = camp.radius * 1.25
+	end
+end
 
 return Enemies

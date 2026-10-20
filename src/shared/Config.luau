@@ -37,6 +37,23 @@ Config.AffinityBonus = 0.15 -- dano extra com arma da sua classe
 Config.MasteryDamagePerLevel = 0.02
 Config.CombatTimeout = 4
 
+-- Combate dinâmico
+Config.RhythmWindow = 0.32 -- após o fim de um golpe: clicar aqui = "Ritmo!" (bônus)
+Config.RhythmBonus = 0.25 -- +25% de dano e postura no golpe no ritmo
+Config.FumbleFraction = 0.55 -- clicar antes de 55% do golpe atual quebra o combo (anti-spam)
+Config.ParryWindow = 0.22 -- segundos após apertar F em que um golpe é aparado
+Config.BlockReduction = 0.75 -- bloquear reduz 75% do dano
+Config.BlockStaminaPerDamage = 0.8 -- estamina gasta por ponto de dano bloqueado
+Config.BlockWalkSpeed = 9
+Config.RiposteTime = 1.6 -- depois de aparar: próximo golpe é crítico e quebra mais postura
+Config.PerfectDodgeWindow = 0.2 -- golpe que chega nos primeiros 0,2s da esquiva = esquiva perfeita
+Config.PerfectDodgeStamina = 15
+Config.HeavyChargeTime = 1.0 -- segundos para carregar o golpe pesado ao máximo
+Config.PostureBase = 12 -- postura que um golpe leve (multiplicador 1) tira
+Config.StaggerTime = 2.5 -- guarda quebrada: tempo atordoado
+Config.StaggerDamageBonus = 0.5 -- +50% de dano em inimigo com a guarda quebrada
+Config.CounterBonus = 0.3 -- +30% de dano/postura ao acertar um inimigo se recuperando do próprio ataque
+
 -- Economia / itens
 Config.StarterGold = 150
 Config.MaxInventory = 60

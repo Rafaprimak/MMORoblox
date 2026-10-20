@@ -34,7 +34,11 @@
       }
     },
     "Lighting": {
-      "$className": "Lighting"
+      "$className": "Lighting",
+      "$properties": {
+        "LightingStyle": "Realistic",
+        "PrioritizeLightingQuality": false
+      }
     }
   }
 }

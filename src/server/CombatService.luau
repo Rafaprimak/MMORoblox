@@ -1,4 +1,11 @@
--- Ataques do jogador: combos por tipo de arma, ataque pesado, esquiva e cálculo de dano.
+-- Ataques do jogador: combos com ritmo, ataque pesado carregável, esquiva e cálculo de dano/postura.
+--
+-- Regras do combate dinâmico:
+--   * Cada golpe custa estamina (spam esgota a estamina que você precisa para esquivar e bloquear).
+--   * O combo só avança se o próximo clique vier no tempo certo; no "Ritmo" (logo após o golpe terminar)
+--     ganha bônus de dano e postura. Quem clica cedo demais quebra o combo (controlado no cliente).
+--   * Golpes enchem a postura do inimigo; postura cheia = guarda quebrada (atordoado, +50% de dano).
+--   * Depois de aparar (F na hora certa), o próximo golpe é crítico e quebra o dobro de postura.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -18,8 +25,9 @@ local CombatService = {}
 CombatService.QuestHook = function(_player, _kind, _target, _amount) end
 CombatService.BeforeAction = function(_player) end -- desmonta do cavalo etc.
 
-local nextAttackAt = {}
+local combo = {} -- [player] = { index, endAt }
 local nextDodgeAt = {}
+local chargeStart = {}
 
 local function flat(v)
 	return Vector3.new(v.X, 0, v.Z)
@@ -42,13 +50,14 @@ local function validAim(aim, root)
 	return root.CFrame.LookVector
 end
 
--- Dano de um golpe/habilidade em um inimigo. mult = multiplicador do golpe
+-- Dano de um golpe/habilidade em um inimigo. mult = multiplicador do golpe.
+-- info: knockback, stun, fromPosition, color, dot, ability, posture (multiplicador de postura), rhythm, riposte
 function CombatService.dealDamage(player, rec, mult, info)
 	info = info or {}
 	local stats = PlayerService.getStats(player)
 	local s = PlayerService.getState(player)
 	local style = WeaponStyles.get(stats.weaponType)
-	local crit = info.forceCrit or math.random() < stats.crit
+	local crit = info.forceCrit or info.riposte or math.random() < stats.crit
 	if s and s.nextCrit and not info.dot then
 		crit = true
 		s.nextCrit = false
@@ -56,6 +65,9 @@ function CombatService.dealDamage(player, rec, mult, info)
 	local damage = stats.attack * stats.damageMult * mult * (0.9 + math.random() * 0.2) * (1 + PlayerService.buffValue(player, "damage"))
 	if crit then
 		damage *= stats.critMult
+	end
+	if info.rhythm then
+		damage *= 1 + Config.RhythmBonus
 	end
 	-- adagas: bônus pelas costas
 	if style.backstab and info.fromPosition and not info.ability then
@@ -66,12 +78,26 @@ function CombatService.dealDamage(player, rec, mult, info)
 			info.color = Color3.fromRGB(200, 120, 255)
 		end
 	end
+	-- postura: proporcional ao golpe e ao peso da arma (martelo quebra guarda rápido, adaga devagar)
+	local posture = 0
+	if not info.dot then
+		posture = Config.PostureBase * mult * (info.posture or 1) * (if info.ability then 1 else style.posture or 1)
+		posture *= 1 + stats.masteryLevel * 0.01
+		if info.rhythm then
+			posture *= 1 + Config.RhythmBonus
+		end
+		if info.riposte then
+			posture *= 2
+		end
+	end
 	local dealt = EnemyService.damage(rec, damage, player, {
 		crit = crit,
 		knockback = info.knockback,
 		stun = info.stun,
 		fromPosition = info.fromPosition,
 		color = info.color,
+		dot = info.dot,
+		posture = posture,
 	})
 	if dealt > 0 then
 		if stats.lifesteal > 0 then
@@ -93,16 +119,25 @@ function CombatService.dealDamage(player, rec, mult, info)
 end
 
 -- Resolve o efeito de um golpe (depois do tempo de preparação)
-local function resolveMove(player, move, aim, isFinisher)
+local function resolveMove(player, move, aim, extra)
 	local _, root = characterParts(player)
 	if not root then
 		return
 	end
 	local origin = root.Position
 	local hitAny = false
-	local info = { knockback = move.knockback, stun = move.stun, fromPosition = origin }
+	local mult = move.dmg * (extra.damageMult or 1)
+	local riposte = PlayerService.consumeRiposte(player)
+	local info = {
+		knockback = move.knockback,
+		stun = move.stun,
+		fromPosition = origin,
+		posture = extra.postureMult,
+		rhythm = extra.rhythm,
+		riposte = riposte,
+	}
 
-	local function hitList(list, mult)
+	local function hitList(list)
 		for _, rec in list do
 			if CombatService.dealDamage(player, rec, mult, info) > 0 then
 				hitAny = true
@@ -111,11 +146,11 @@ local function resolveMove(player, move, aim, isFinisher)
 	end
 
 	if move.hit == "cone" then
-		hitList(EnemyService.inCone(origin, aim, move.range, move.arc), move.dmg)
+		hitList(EnemyService.inCone(origin, aim, move.range, move.arc))
 	elseif move.hit == "circle" then
 		local center = origin + flat(aim).Unit * move.offset
 		Remotes.Fx:FireAllClients("explosion", center - Vector3.new(0, 2.5, 0), move.radius, "earth")
-		hitList(EnemyService.inRadius(center, move.radius), move.dmg)
+		hitList(EnemyService.inRadius(center, move.radius))
 	elseif move.hit == "nova" then
 		local ticks = move.ticks or 1
 		Remotes.Fx:FireAllClients("explosion", origin - Vector3.new(0, 2.5, 0), move.radius, move.style or "slash")
@@ -124,7 +159,7 @@ local function resolveMove(player, move, aim, isFinisher)
 			if not r then
 				break
 			end
-			hitList(EnemyService.inRadius(r.Position, move.radius), move.dmg)
+			hitList(EnemyService.inRadius(r.Position, move.radius))
 			if i < ticks then
 				task.wait(move.interval or 0.15)
 			end
@@ -144,7 +179,8 @@ local function resolveMove(player, move, aim, isFinisher)
 			for _, rec in EnemyService.alongSegment(last, r.Position, move.radius) do
 				if not hit[rec] then
 					hit[rec] = true
-					if CombatService.dealDamage(player, rec, move.dmg, { stun = move.stun, fromPosition = r.Position }) > 0 then
+					info.fromPosition = r.Position
+					if CombatService.dealDamage(player, rec, mult, info) > 0 then
 						hitAny = true
 					end
 				end
@@ -164,70 +200,128 @@ local function resolveMove(player, move, aim, isFinisher)
 			aoe = move.aoe,
 			style = move.style,
 			onHitEnemy = function(rec)
-				CombatService.dealDamage(player, rec, move.dmg, { fromPosition = spawnAt })
-				if isFinisher then
+				CombatService.dealDamage(player, rec, mult, info)
+				if extra.finisher then
 					CombatService.QuestHook(player, "finisher", nil, 1)
 				end
 			end,
 			onExplode = function(position)
 				Remotes.Fx:FireAllClients("explosion", position, move.aoe, move.style)
 				for _, rec in EnemyService.inRadius(position, move.aoe) do
-					CombatService.dealDamage(player, rec, move.dmg, { fromPosition = position })
+					CombatService.dealDamage(player, rec, mult, info)
 				end
 			end,
 		})
 	end
 
-	if hitAny and isFinisher then
+	if hitAny and extra.finisher then
 		CombatService.QuestHook(player, "finisher", nil, 1)
 	end
 end
 
--- comboIndex = 0 significa ataque pesado
-function CombatService.attack(player, comboIndex, aim)
+local function begin(player, move, aim, extra)
 	local _, root = characterParts(player)
-	if not root then
-		return
-	end
-	CombatService.BeforeAction(player)
 	local stats = PlayerService.getStats(player)
 	local style = WeaponStyles.get(stats.weaponType)
-	local now = os.clock()
-	if now < (nextAttackAt[player] or 0) - 0.1 then
-		return
-	end
-
-	local move, isFinisher
-	if comboIndex == 0 then
-		move = style.heavy
-		if (move.masteryReq or 0) > stats.masteryLevel then
-			Remotes.Notify:FireClient(player, { kind = "message", text = ("Ataque pesado destrava na maestria %d."):format(move.masteryReq) })
-			return
-		end
-		if not PlayerService.spendStamina(player, move.stamina or 0) then
-			Remotes.Fx:FireClient(player, "noStamina")
-			return
-		end
-		isFinisher = false
-	else
-		local index = math.clamp(math.floor(tonumber(comboIndex) or 1), 1, #style.combo)
-		move = style.combo[index]
-		if (move.masteryReq or 0) > stats.masteryLevel then
-			move = style.combo[1]
-			index = 1
-		end
-		isFinisher = index == #style.combo and #style.combo > 1
-	end
-
-	local speed = stats.attackSpeed
-	nextAttackAt[player] = now + move.duration / speed
 	aim = validAim(aim, root)
 	if not style.ranged then
 		local horizontal = flat(aim)
 		aim = if horizontal.Magnitude > 0.01 then horizontal.Unit else flat(root.CFrame.LookVector).Unit
 	end
-	Remotes.Fx:FireAllClients("swing", player, move.pose, move.duration / speed, comboIndex == 0)
-	task.delay(move.windup / speed, resolveMove, player, move, aim, isFinisher)
+	local duration = move.duration / stats.attackSpeed
+	Remotes.Fx:FireAllClients("swing", player, move.pose, duration, extra.heavy == true)
+	if extra.rhythm then
+		Remotes.Fx:FireClient(player, "rhythm")
+	end
+	task.delay(move.windup / stats.attackSpeed, resolveMove, player, move, aim, extra)
+	return duration
+end
+
+-- Golpe leve. O servidor decide o índice do combo pelo tempo (o cliente só sugere).
+function CombatService.attack(player, requestedIndex, aim)
+	local _, root = characterParts(player)
+	if not root then
+		return
+	end
+	CombatService.BeforeAction(player)
+	PlayerService.setBlocking(player, false)
+	local stats = PlayerService.getStats(player)
+	local style = WeaponStyles.get(stats.weaponType)
+	local now = os.clock()
+	local state = combo[player] or { index = 0, endAt = 0 }
+	if now < state.endAt - 0.08 then
+		return -- ainda no golpe anterior
+	end
+
+	-- avança o combo só se o clique veio dentro da janela e na sequência certa
+	local onTime = now <= state.endAt + Config.ComboWindow
+	local expected = state.index % #style.combo + 1
+	local index = if onTime and tonumber(requestedIndex) == expected then expected else 1
+	local move = style.combo[index]
+	if (move.masteryReq or 0) > stats.masteryLevel then
+		index = 1
+		move = style.combo[1]
+	end
+	if not PlayerService.spendStamina(player, move.stamina or 0) then
+		Remotes.Fx:FireClient(player, "noStamina")
+		return
+	end
+	local rhythm = index > 1 and now <= state.endAt + Config.RhythmWindow
+	local duration = begin(player, move, aim, {
+		rhythm = rhythm,
+		finisher = index == #style.combo and #style.combo > 1,
+	})
+	combo[player] = { index = index, endAt = now + duration }
+	if rhythm then
+		CombatService.QuestHook(player, "rhythm", nil, 1)
+	end
+end
+
+-- Ataque pesado: começa a carregar ao apertar R e solta ao largar
+function CombatService.heavyStart(player)
+	local stats = PlayerService.getStats(player)
+	local style = WeaponStyles.get(stats.weaponType)
+	if (style.heavy.masteryReq or 0) > stats.masteryLevel then
+		Remotes.Notify:FireClient(player, { kind = "message", text = ("Ataque pesado destrava na maestria %d da arma."):format(style.heavy.masteryReq) })
+		return
+	end
+	PlayerService.setBlocking(player, false)
+	chargeStart[player] = os.clock()
+	Remotes.Fx:FireAllClients("charge", player, true)
+end
+
+function CombatService.heavyRelease(player, aim)
+	local started = chargeStart[player]
+	chargeStart[player] = nil
+	Remotes.Fx:FireAllClients("charge", player, false)
+	local _, root = characterParts(player)
+	if not started or not root then
+		return
+	end
+	local stats = PlayerService.getStats(player)
+	local style = WeaponStyles.get(stats.weaponType)
+	local move = style.heavy
+	local now = os.clock()
+	local state = combo[player] or { index = 0, endAt = 0 }
+	if now < state.endAt - 0.08 then
+		return
+	end
+	local charge = math.clamp((now - started) / Config.HeavyChargeTime, 0, 1)
+	local cost = (move.stamina or 0) * (1 + charge * 0.5)
+	if not PlayerService.spendStamina(player, cost) then
+		Remotes.Fx:FireClient(player, "noStamina")
+		return
+	end
+	CombatService.BeforeAction(player)
+	local duration = begin(player, move, aim, {
+		heavy = true,
+		damageMult = 1 + charge,
+		postureMult = 1.5 + charge * 2,
+	})
+	combo[player] = { index = 0, endAt = now + duration }
+	if charge >= 0.95 then
+		CombatService.QuestHook(player, "fullCharge", nil, 1)
+	end
 end
 
 function CombatService.dodge(player)
@@ -244,15 +338,28 @@ function CombatService.dodge(player)
 		return
 	end
 	CombatService.BeforeAction(player)
+	chargeStart[player] = nil
 	nextDodgeAt[player] = now + Config.DodgeCooldown
 	PlayerService.grantIFrames(player, Config.DodgeIFrames)
+	PlayerService.startDodge(player)
+	-- esquivar cancela o golpe em andamento (permite reagir no meio do combo)
+	combo[player] = { index = 0, endAt = 0 }
 	Remotes.Fx:FireAllClients("dodge", player)
 	CombatService.QuestHook(player, "dodge", nil, 1)
 end
 
+function CombatService.block(player, value)
+	if value then
+		CombatService.BeforeAction(player)
+		chargeStart[player] = nil
+	end
+	PlayerService.setBlocking(player, value == true)
+end
+
 function CombatService.release(player)
-	nextAttackAt[player] = nil
+	combo[player] = nil
 	nextDodgeAt[player] = nil
+	chargeStart[player] = nil
 end
 
 Players.PlayerRemoving:Connect(CombatService.release)

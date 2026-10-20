@@ -70,15 +70,26 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 
 | Ação | PC | Celular |
 |---|---|---|
-| Atacar / emendar combo | Clique (segure para continuar) | Botão ⚔ |
-| Ataque pesado | Botão direito ou **R** (maestria 5 da arma) | Botão 💥 |
-| Esquivar (rolamento) | **Q** | Botão ↩ |
+| Atacar / emendar combo | Clique **no ritmo** (barra embaixo da mira: clicar cedo demais quebra o combo) | Botão ⚔ |
+| Ataque pesado carregado | Segure e solte **R** (maestria 5 da arma) | Segure 💥 |
+| Bloquear / aparar | Segure **F** (soltar e apertar logo antes do golpe = aparar) | Segure 🛡 |
+| Esquivar (rolamento) | **Q** (no último instante = esquiva perfeita) | Botão ↩ |
 | Correr | **Shift** (gasta estamina) | Botão 🏃 |
 | Habilidades da classe | **1, 2, 3, 4** | Botões 1–4 |
 | Poções | **Z** vida, **X** mana, **V** vigor | Toque na barra |
 | Montar / desmontar | **H** | Botão 🐴 |
 | Inventário / Personagem / Missões / Mapa / Baús | **I / C / J / M / B** | Botões à esquerda |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
+
+O botão direito do mouse fica livre para girar a câmera.
+
+### Combate
+
+- **Ritmo:** cada golpe do combo tem uma janela verde. Clicar nela dá bônus de dano; clicar antes (zona vermelha) quebra o combo.
+- **Inimigos avisam:** ❗ amarelo = golpe que pode ser **bloqueado ou aparado** (F). ‼ vermelho = investida ou pancada **imbloqueável**: esquive (Q).
+- **Aparar** (F logo antes do golpe) atordoa a postura do inimigo e libera um contra-ataque crítico.
+- **Postura:** a barra amarela embaixo da vida do inimigo enche com golpes pesados e aparadas. Cheia, o inimigo fica atordoado e toma +50% de dano.
+- **Contra-ataque:** acertar o inimigo logo depois de ele atacar dá +30% de dano.
 
 ### Modo teste (só no Studio)
 
@@ -94,7 +105,7 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 - **Raridades:** Comum, Incomum, Raro, Épico, Lendário, Mítico e Secreto.
 - **Profissões:** Mineração, Herbalismo, Lenhador, Ferraria, Alquimia e Encantamento.
 - **NPCs:** Bruno (forja e aprimoramento), Elric (encantar e desmontar), Mira (poções), Otto (loja e baús), Kael (classes), Pedro (cavalo), Quadro de Recompensas (contratos diários) e NPCs espalhados pelo mapa.
-- **Missões:** 15 da história e 10 secundárias (caçar, coletar, entregar, explorar, ativar pedras, forjar, encantar, montar, esquivar...), mais 3 contratos diários.
+- **Missões:** 15 da história e 10 secundárias (caçar, coletar, entregar, explorar, ativar pedras, forjar, encantar, montar, aparar, esquivar no tempo certo...), mais 3 contratos diários sorteados de uma lista.
 - **Inimigos:** slimes, lobos, javalis (investida), caranguejos, goblins e arqueiros, aranhas, esqueletos e magos, golems (pancada em área), versões **Elite** e o chefe **Rei Goblin**.
 - **Viagem:** pedras de teletransporte (pelo mapa), cavalo e corrida.
 
@@ -150,7 +161,7 @@ src/client  → StarterPlayer.StarterPlayerScripts.Client  (interface e controle
 | Windows avisa que o `rojo.exe` pode ser perigoso | É o aviso padrão para programas baixados da internet. O Rojo é open source e usado pela comunidade Roblox. Clique em *Mais informações → Executar assim mesmo*. |
 | Aviso amarelo "DataStore indisponível" no Output | Normal no Studio sem publicar: o progresso não é salvo. Para salvar, publique o jogo e ative *Game Settings → Security → Enable Studio Access to API Services*. |
 | Linhas vermelhas `CorePackages...` no Output | Vêm da interface interna do Roblox, não do jogo. Pode ignorar. |
-| Janela "Migração de iluminação" ao abrir | Clique em *Continuar*. |
+| Janela "Migração de iluminação" ao abrir | Não deve mais aparecer (o projeto já define o estilo de luz). Se aparecer, clique em *Continuar*. |
 | O mundo aparece vazio no modo de edição | Normal: ele é gerado quando você aperta Play. |
 | Jogo pesado | É o primeiro protótipo; reduza o zoom de câmera ou feche outros programas. Para ajustar, diminua as quantidades em `src/server/WorldGen/Scatter.luau`. |
 

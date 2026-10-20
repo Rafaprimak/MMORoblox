@@ -31,7 +31,7 @@ local function nearNpc(player, npcId, distance)
 		return false
 	end
 	local dx, dz = root.Position.X - npc.x, root.Position.Z - npc.z
-	return dx * dx + dz * dz <= (distance or 30) ^ 2
+	return dx * dx + dz * dz <= (distance or 45) ^ 2
 end
 
 local function ensureDaily(data)

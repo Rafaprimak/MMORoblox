@@ -77,6 +77,12 @@ Controller.onNoStamina = function()
 	HUD.flashStamina()
 	Popups.message("Sem estamina!", UI.Colors.Stamina)
 end
+Controller.onAttack = HUD.showAttackCue
+Controller.onFumble = function()
+	HUD.flashFumble()
+	Fx.fumble()
+end
+Controller.onCharge = HUD.setCharge
 Controller.init()
 
 Services.openChest = Chest.open
@@ -170,6 +176,34 @@ local FX_HANDLERS = {
 	exhausted = HUD.flashStamina,
 	noMana = function()
 		Popups.message("Sem mana!", UI.Colors.Mana)
+	end,
+	-- combate dinâmico
+	parry = Fx.parry,
+	blocked = Fx.blocked,
+	perfectDodge = Fx.perfectDodge,
+	rhythm = Fx.rhythm,
+	stagger = Fx.stagger,
+	guardBreak = function()
+		Fx.guardBreak()
+		Controller.forceStopBlock()
+	end,
+	block = function(who, on)
+		if who ~= player then
+			if on then
+				Animator.holdForPlayer(who, "block")
+			else
+				Animator.stopForPlayer(who)
+			end
+		end
+	end,
+	charge = function(who, on)
+		if who ~= player then
+			if on then
+				Animator.holdForPlayer(who, "charge")
+			else
+				Animator.stopForPlayer(who)
+			end
+		end
 	end,
 }
 

@@ -25,6 +25,7 @@ PlayerService.QuestSummary = function(_player)
 	return nil
 end
 PlayerService.OnDamaged = function(_player) end
+PlayerService.OnParry = function(_player, _source) end -- source = registro do inimigo (ou nil)
 PlayerService.ExtraSync = function(_player, _payload) end
 
 local dirty = {}
@@ -146,6 +147,11 @@ local function newState(player)
 		potionCooldowns = {},
 		mounted = false,
 		nextCrit = false,
+		blocking = false,
+		blockStart = 0,
+		dodgeStart = 0,
+		perfectDodgeUsed = true,
+		riposteUntil = 0,
 		player = player,
 	}
 end
@@ -223,27 +229,118 @@ function PlayerService.grantIFrames(player, duration)
 	end
 end
 
--- Dano recebido pelo jogador (respeita esquiva e defesa)
-function PlayerService.damagePlayer(player, amount, sourcePosition)
+-- ===================== DEFESA (bloquear, aparar, esquivar) =====================
+
+function PlayerService.setBlocking(player, value)
+	local s = state[player]
+	if not s then
+		return
+	end
+	if value and not s.blocking and s.stamina > 5 and not s.mounted then
+		s.blocking = true
+		s.blockStart = os.clock()
+		s.sprinting = false
+		Remotes.Fx:FireAllClients("block", player, true)
+	elseif not value and s.blocking then
+		s.blocking = false
+		Remotes.Fx:FireAllClients("block", player, false)
+	end
+end
+
+function PlayerService.startDodge(player)
+	local s = state[player]
+	if s then
+		s.dodgeStart = os.clock()
+		s.perfectDodgeUsed = false
+		if s.blocking then
+			PlayerService.setBlocking(player, false)
+		end
+	end
+end
+
+-- O próximo golpe depois de aparar é crítico e quebra mais postura
+function PlayerService.consumeRiposte(player)
+	local s = state[player]
+	if s and os.clock() < s.riposteUntil then
+		s.riposteUntil = 0
+		return true
+	end
+	return false
+end
+
+local function facing(character, sourcePosition)
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if not root or typeof(sourcePosition) ~= "Vector3" then
+		return true
+	end
+	local toSource = Vector3.new(sourcePosition.X - root.Position.X, 0, sourcePosition.Z - root.Position.Z)
+	if toSource.Magnitude < 0.5 then
+		return true
+	end
+	local look = Vector3.new(root.CFrame.LookVector.X, 0, root.CFrame.LookVector.Z).Unit
+	return look:Dot(toSource.Unit) > -0.2 -- ~100° para cada lado
+end
+
+-- Dano recebido pelo jogador.
+-- options.unblockable = golpe que só dá para esquivar (investidas, pancadas em área)
+-- options.source = registro do inimigo que atacou (para aparar)
+-- Retorna "hit", "blocked", "parried" ou "evaded" (ou nil se o jogador não pode tomar dano)
+function PlayerService.damagePlayer(player, amount, sourcePosition, options)
+	options = options or {}
 	local s = state[player]
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if not s or not humanoid or humanoid.Health <= 0 then
-		return false
+		return nil
 	end
-	if os.clock() < s.iframesUntil then
-		Remotes.Fx:FireClient(player, "evaded")
-		return false
+	local now = os.clock()
+	if now < s.iframesUntil then
+		if not s.perfectDodgeUsed and now - s.dodgeStart <= Config.PerfectDodgeWindow then
+			-- esquiva perfeita: devolve estamina e o próximo golpe é crítico
+			s.perfectDodgeUsed = true
+			s.stamina = math.min(PlayerService.getStats(player).maxStamina, s.stamina + Config.PerfectDodgeStamina)
+			s.nextCrit = true
+			Remotes.Fx:FireClient(player, "perfectDodge")
+			PlayerService.QuestHook(player, "perfectDodge", nil, 1)
+		else
+			Remotes.Fx:FireClient(player, "evaded")
+		end
+		return "evaded"
+	end
+	if s.blocking and not options.unblockable and facing(character, sourcePosition) then
+		if now - s.blockStart <= Config.ParryWindow then
+			-- APARAR: nenhum dano, inimigo desequilibrado, contra-ataque garantido
+			s.riposteUntil = now + Config.RiposteTime
+			s.stamina = math.min(PlayerService.getStats(player).maxStamina, s.stamina + 10)
+			s.lastDamageAt = now
+			Remotes.Fx:FireAllClients("parry", player, sourcePosition)
+			PlayerService.OnParry(player, options.source)
+			PlayerService.QuestHook(player, "parry", nil, 1)
+			return "parried"
+		end
+		local blockedDamage = amount * Config.BlockReduction
+		local cost = blockedDamage * Config.BlockStaminaPerDamage
+		if s.stamina >= cost then
+			s.stamina -= cost
+			s.staminaBlockUntil = now + Config.StaminaRegenDelay
+			amount -= blockedDamage
+			Remotes.Fx:FireAllClients("blocked", player, sourcePosition)
+		else
+			-- estamina acabou: a guarda quebra e o golpe entra inteiro
+			s.stamina = 0
+			PlayerService.setBlocking(player, false)
+			Remotes.Fx:FireClient(player, "guardBreak")
+		end
 	end
 	local stats = PlayerService.getStats(player)
 	local defense = stats.defense * (1 + PlayerService.buffValue(player, "defense"))
 	local reduction = defense / (defense + 100)
 	local final = math.max(1, math.floor(amount * (1 - reduction)))
 	humanoid:TakeDamage(final)
-	s.lastDamageAt = os.clock()
+	s.lastDamageAt = now
 	Remotes.Fx:FireClient(player, "hurt", final, sourcePosition)
 	PlayerService.OnDamaged(player)
-	return true
+	return if s.blocking then "blocked" else "hit"
 end
 
 function PlayerService.heal(player, amount)
@@ -829,7 +926,9 @@ task.spawn(function()
 				local manaRegen = Config.ManaRegen * (if class == "mago" then 2 else 1)
 				s.mana = math.min(stats.maxMana, s.mana + manaRegen * dt)
 				local moving = humanoid.MoveDirection.Magnitude > 0.1
-				if s.sprinting and moving and not s.mounted then
+				if s.blocking then
+					s.staminaBlockUntil = now + 0.3
+				elseif s.sprinting and moving and not s.mounted then
 					s.stamina -= Config.SprintDrain * dt
 					s.staminaBlockUntil = now + Config.StaminaRegenDelay * 0.5
 					if s.stamina <= 0 then
