@@ -100,6 +100,27 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 ---
 
+## Projects (organização por iniciativas)
+
+Sugestão de organização no GitHub Projects para execução deste roadmap:
+
+- ⬜ **Project: Fase 0 — Estabilizar**
+  - Foco: testes completos no Studio, correção de bugs críticos e balanceamento inicial.
+- ⬜ **Project: Fase 1 — Polimento**
+  - Foco: melhorar apresentação (arte, animação, som, VFX) e experiência dos primeiros minutos.
+- ⬜ **Project: Fase 2 — Conteúdo**
+  - Foco: expandir regiões, dungeons, profissões e linhas de missão.
+- ⬜ **Project: Fase 3 — Social**
+  - Foco: funcionalidades MMO (party, guilda, troca, mercado, PvP opcional).
+- ⬜ **Project: Fase 4 — Progressão**
+  - Foco: metas de longo prazo (talentos, subclasses, sets, pets, prestígio).
+- ⬜ **Project: Fase 5 — Economia e monetização**
+  - Foco: sustentabilidade da economia e monetização sem pay-to-win.
+- ⬜ **Project: Fase 6 — Lançamento**
+  - Foco: publicação, segurança, analytics e otimização final.
+
+---
+
 ## Como atualizar este arquivo
 
 - Ao terminar um item: troque ⬜ por ✅ (ou 🧪 se não testou no Studio) e, se útil, adicione uma linha curta do que foi feito.
