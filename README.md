@@ -102,6 +102,10 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 
 ## 🛠️ Para quem vai editar o código
 
+- **[AGENTS.md](AGENTS.md):** regras, arquitetura e receitas para desenvolver (vale para pessoas e IAs).
+- **[ROADMAP.md](ROADMAP.md):** o que já existe e as próximas features, por prioridade.
+- **Verificação antes de cada commit:** `powershell -ExecutionPolicy Bypass -File scripts/verificar.ps1`
+
 ### Edição ao vivo (recomendado)
 
 Com isso, qualquer arquivo salvo em `src/` aparece no Studio na hora, sem gerar o `.rbxlx` de novo.
