@@ -20,6 +20,13 @@ end
 
 local function make(def)
 	def.yaw = def.yaw or facingTown(def.x, def.z)
+	-- NPC dentro da construção: a porta fica na posição original, o NPC "indoor" unidades para dentro
+	if def.indoor then
+		def.doorX = def.x * World.Scale
+		def.doorZ = def.z * World.Scale
+		def.x += math.sin(def.yaw) * def.indoor
+		def.z += math.cos(def.yaw) * def.indoor
+	end
 	def.x *= World.Scale
 	def.z *= World.Scale
 	return def
@@ -52,6 +59,7 @@ NPCs.List = {
 		hat = "bandana",
 		services = { "forge" },
 		building = "forge",
+		indoor = 8.5,
 		greeting = "Traga minério e eu transformo em aço. Ou aprenda a forjar você mesmo!",
 	}),
 	town(0, 30, {
@@ -64,6 +72,7 @@ NPCs.List = {
 		hat = "witch",
 		services = { "alchemy" },
 		building = "alchemy",
+		indoor = 9,
 		greeting = "Ervas, cogumelos, flores lunares... tudo vira poção nas mãos certas.",
 	}),
 	town(125, 30, {
@@ -76,6 +85,7 @@ NPCs.List = {
 		hat = "wizard",
 		services = { "enchant" },
 		building = "tower",
+		indoor = 14.5,
 		greeting = "A essência mágica dos monstros pode despertar o poder escondido nas armas.",
 	}),
 	town(28, 32, {
@@ -87,7 +97,8 @@ NPCs.List = {
 		pants = Color3.fromRGB(80, 60, 30),
 		hat = "cap",
 		services = { "shop", "chest", "pets" },
-		building = "stall",
+		building = "emporium",
+		indoor = 9,
 		greeting = "Poções fresquinhas! E se estiver com sorte, um Baú do Hunter...",
 	}),
 	town(90, 32, {

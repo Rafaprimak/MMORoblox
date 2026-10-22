@@ -347,6 +347,143 @@ function Props.house(parent, cf, width, depth, wallHeight, wallColor, roofColor,
 	return model
 end
 
+-- Construção com interior: a porta fica em z = 0 (frente, -Z) e o salão vai para +Z.
+-- Base com degrau na entrada, piso de tábuas, paredes com vão da porta, janelas com moldura,
+-- vigas, telhado, luzes internas e chaminé opcional. Retorna o modelo.
+-- options: doorWidth, doorHeight, floorColor, chimney (offset x), lights (lista de posições locais)
+function Props.building(parent, cf, width, depth, wallHeight, wallColor, roofColor, options)
+	options = options or {}
+	local model = Instance.new("Model")
+	model.Name = options.name or "Construcao"
+	local doorWidth = options.doorWidth or 4
+	local doorHeight = options.doorHeight or 6.5
+	local thickness = 0.8
+	local center = cf * CFrame.new(0, 0, depth / 2)
+	-- base de pedra + piso de tábuas
+	part(model, { Name = "Base", Size = Vector3.new(width + 1.2, 1, depth + 1.2), CFrame = center * CFrame.new(0, 0.5, 0), Color = C.DarkStone, Material = M.Cobblestone })
+	part(model, { Name = "Piso", Size = Vector3.new(width - thickness, 0.2, depth - thickness), CFrame = center * CFrame.new(0, 1.1, 0), Color = options.floorColor or C.Plank, Material = M.WoodPlanks })
+	-- degrau e rampinha na entrada
+	part(model, { Name = "Degrau", Size = Vector3.new(doorWidth + 1.5, 0.5, 1.6), CFrame = cf * CFrame.new(0, 0.25, -1.4), Color = C.Stone, Material = M.Cobblestone })
+	local wallY = 1 + wallHeight / 2
+	-- fundo
+	part(model, { Name = "Parede", Size = Vector3.new(width, wallHeight, thickness), CFrame = cf * CFrame.new(0, wallY, depth - thickness / 2), Color = wallColor, Material = M.WoodPlanks })
+	-- laterais
+	for _, side in { -1, 1 } do
+		part(model, { Name = "Parede", Size = Vector3.new(thickness, wallHeight, depth), CFrame = center * CFrame.new(side * (width / 2 - thickness / 2), wallY, 0), Color = wallColor, Material = M.WoodPlanks })
+		-- rodapé de pedra por fora
+		part(model, { Name = "Rodape", Size = Vector3.new(thickness + 0.3, 1.2, depth + 0.3), CFrame = center * CFrame.new(side * (width / 2 - thickness / 2), 1.6, 0), Color = C.Stone, Material = M.Cobblestone })
+	end
+	-- frente com vão da porta
+	local sideWidth = (width - doorWidth) / 2
+	for _, side in { -1, 1 } do
+		part(model, { Name = "Parede", Size = Vector3.new(sideWidth, wallHeight, thickness), CFrame = cf * CFrame.new(side * (doorWidth / 2 + sideWidth / 2), wallY, thickness / 2), Color = wallColor, Material = M.WoodPlanks })
+		-- batente
+		part(model, { Name = "Batente", Size = Vector3.new(0.5, doorHeight + 0.5, thickness + 0.4), CFrame = cf * CFrame.new(side * (doorWidth / 2 + 0.25), 1 + (doorHeight + 0.5) / 2, thickness / 2), Color = C.DarkWood, Material = M.Wood })
+	end
+	part(model, { Name = "Verga", Size = Vector3.new(doorWidth + 1, wallHeight - doorHeight, thickness), CFrame = cf * CFrame.new(0, 1 + doorHeight + (wallHeight - doorHeight) / 2, thickness / 2), Color = wallColor, Material = M.WoodPlanks })
+	part(model, { Name = "VergaViga", Size = Vector3.new(doorWidth + 1.4, 0.6, thickness + 0.4), CFrame = cf * CFrame.new(0, 1 + doorHeight + 0.3, thickness / 2), Color = C.DarkWood, Material = M.Wood })
+	-- porta aberta (girada para dentro, presa no batente esquerdo)
+	part(model, { Name = "Porta", Size = Vector3.new(doorWidth * 0.5, doorHeight, 0.3), CFrame = cf * CFrame.new(-doorWidth / 2, 1 + doorHeight / 2, thickness) * CFrame.Angles(0, math.rad(-80), 0) * CFrame.new(doorWidth * 0.25, 0, 0), Color = C.DarkWood, Material = M.Wood })
+	-- janelas com moldura e vidro (laterais e fundo)
+	local function window(frame)
+		part(model, { Name = "Moldura", Size = Vector3.new(3.2, 3.2, 0.3), CFrame = frame, Color = C.DarkWood, Material = M.Wood })
+		part(model, { Name = "Vidro", Size = Vector3.new(2.6, 2.6, 0.35), CFrame = frame, Color = Color3.fromRGB(255, 225, 160), Material = M.Glass, Transparency = 0.35 })
+		part(model, { Name = "Cruz", Size = Vector3.new(0.2, 2.6, 0.4), CFrame = frame, Color = C.DarkWood, Material = M.Wood })
+		part(model, { Name = "Cruz", Size = Vector3.new(2.6, 0.2, 0.4), CFrame = frame, Color = C.DarkWood, Material = M.Wood })
+	end
+	for _, side in { -1, 1 } do
+		for _, z in { depth * 0.3, depth * 0.72 } do
+			window(cf * CFrame.new(side * (width / 2), wallY + 0.6, z) * CFrame.Angles(0, math.rad(90), 0))
+		end
+		window(cf * CFrame.new(side * width / 4, wallY + 0.6, 0))
+	end
+	window(cf * CFrame.new(0, wallY + 0.6, depth))
+	-- vigas de canto e viga de topo
+	for _, x in { -1, 1 } do
+		for _, z in { 0, depth } do
+			part(model, { Name = "Viga", Size = Vector3.new(1, wallHeight + 0.4, 1), CFrame = cf * CFrame.new(x * width / 2, wallY, z), Color = C.DarkWood, Material = M.Wood })
+		end
+		part(model, { Name = "VigaTopo", Size = Vector3.new(0.8, 0.8, depth + 1), CFrame = center * CFrame.new(x * width / 2, 1 + wallHeight, 0), Color = C.DarkWood, Material = M.Wood })
+	end
+	part(model, { Name = "VigaTopo", Size = Vector3.new(width + 1, 0.8, 0.8), CFrame = cf * CFrame.new(0, 1 + wallHeight, 0), Color = C.DarkWood, Material = M.Wood })
+	part(model, { Name = "VigaTopo", Size = Vector3.new(width + 1, 0.8, 0.8), CFrame = cf * CFrame.new(0, 1 + wallHeight, depth), Color = C.DarkWood, Material = M.Wood })
+	-- vigas do teto (vistas de dentro)
+	for i = 1, 3 do
+		part(model, { Name = "Caibro", Size = Vector3.new(width - 1, 0.5, 0.5), CFrame = cf * CFrame.new(0, wallHeight + 0.4, depth * i / 4), Color = C.DarkWood, Material = M.Wood })
+	end
+	local roofBase = center * CFrame.new(0, 1 + wallHeight, 0) * CFrame.Angles(0, math.rad(90), 0)
+	local rise = Props.roof(model, roofBase, depth + 1, width + 1, 30, roofColor)
+	if options.chimney then
+		local chimney = part(model, { Name = "Chamine", Size = Vector3.new(1.8, rise + 4, 1.8), CFrame = cf * CFrame.new(options.chimney, 1 + wallHeight + (rise + 4) / 2 - 1, depth * 0.75), Color = C.DarkStone, Material = M.Brick })
+		Props.smoke(chimney, 2)
+	end
+	-- luzes internas (penduradas nos caibros)
+	for _, position in options.lights or { Vector3.new(0, wallHeight - 1, depth * 0.35), Vector3.new(0, wallHeight - 1, depth * 0.75) } do
+		part(model, { Name = "Corrente", Size = Vector3.new(0.15, 1.2, 0.15), CFrame = cf * CFrame.new(position + Vector3.new(0, 0.9, 0)), Color = Color3.fromRGB(50, 50, 55), Material = M.Metal })
+		local lantern = part(model, { Name = "Lampiao", Size = Vector3.new(0.9, 1.1, 0.9), CFrame = cf * CFrame.new(position), Color = Color3.fromRGB(255, 210, 140), Material = M.Neon, CanCollide = false })
+		Props.light(lantern, Color3.fromRGB(255, 200, 140), 22, 1.6, true)
+	end
+	model.Parent = parent
+	return model
+end
+
+-- Prateleira de parede com objetos coloridos (frascos, livros, mercadorias)
+function Props.shelf(parent, cf, width, rows, kind, rng)
+	local model = Instance.new("Model")
+	model.Name = "Prateleira"
+	part(model, { Name = "Fundo", Size = Vector3.new(width, rows * 1.8 + 0.4, 0.3), CFrame = cf * CFrame.new(0, (rows * 1.8 + 0.4) / 2, 0.6), Color = C.DarkWood, Material = M.Wood })
+	for row = 0, rows do
+		part(model, { Name = "Tabua", Size = Vector3.new(width, 0.25, 1.2), CFrame = cf * CFrame.new(0, 0.2 + row * 1.8, 0), Color = C.Wood, Material = M.WoodPlanks })
+	end
+	for _, side in { -1, 1 } do
+		part(model, { Name = "Lado", Size = Vector3.new(0.3, rows * 1.8 + 0.4, 1.2), CFrame = cf * CFrame.new(side * width / 2, (rows * 1.8 + 0.4) / 2, 0), Color = C.DarkWood, Material = M.Wood })
+	end
+	for row = 0, rows - 1 do
+		local x = -width / 2 + 0.6
+		while x < width / 2 - 0.6 do
+			local y = 0.35 + row * 1.8
+			if kind == "potions" then
+				local color = Color3.fromHSV(rng:NextNumber(), 0.7, 1)
+				local h = rng:NextNumber(0.6, 1.1)
+				part(model, { Name = "Frasco", Size = Vector3.new(0.45, h, 0.45), CFrame = cf * CFrame.new(x, y + h / 2, -0.1), Color = color, Material = M.Glass, Transparency = 0.15 })
+				part(model, { Name = "Rolha", Size = Vector3.new(0.25, 0.2, 0.25), CFrame = cf * CFrame.new(x, y + h + 0.1, -0.1), Color = C.Wood, Material = M.Wood })
+				x += rng:NextNumber(0.6, 0.9)
+			elseif kind == "books" then
+				local h = rng:NextNumber(1.0, 1.45)
+				local w = rng:NextNumber(0.25, 0.4)
+				part(model, { Name = "Livro", Size = Vector3.new(w, h, 0.9), CFrame = cf * CFrame.new(x, y + h / 2, 0) * CFrame.Angles(0, 0, math.rad(rng:NextNumber(-6, 6))), Color = Color3.fromHSV(rng:NextNumber(), 0.55, rng:NextNumber(0.35, 0.7)), Material = M.SmoothPlastic })
+				x += w + 0.05
+			else
+				local size = rng:NextNumber(0.6, 1.0)
+				part(model, { Name = "Mercadoria", Size = Vector3.new(size, size * 0.8, size), CFrame = cf * CFrame.new(x, y + size * 0.4, -0.1), Color = Color3.fromHSV(rng:NextNumber(), 0.5, 0.85), Material = if rng:NextNumber() < 0.5 then M.Fabric else M.WoodPlanks })
+				x += size + 0.2
+			end
+		end
+	end
+	model.Parent = parent
+	return model
+end
+
+-- Mesa simples (tampo e 4 pés)
+function Props.table(parent, cf, width, depth, height, color)
+	local model = Instance.new("Model")
+	model.Name = "Mesa"
+	part(model, { Name = "Tampo", Size = Vector3.new(width, 0.35, depth), CFrame = cf * CFrame.new(0, height, 0), Color = color or C.Plank, Material = M.WoodPlanks })
+	for _, x in { -1, 1 } do
+		for _, z in { -1, 1 } do
+			part(model, { Name = "Pe", Size = Vector3.new(0.35, height, 0.35), CFrame = cf * CFrame.new(x * (width / 2 - 0.3), height / 2, z * (depth / 2 - 0.3)), Color = C.DarkWood, Material = M.Wood })
+		end
+	end
+	model.Parent = parent
+	return model
+end
+
+-- Tapete retangular com borda
+function Props.rug(parent, cf, width, depth, color, border)
+	part(parent, { Name = "Tapete", Size = Vector3.new(width, 0.08, depth), CFrame = cf * CFrame.new(0, 1.24, 0), Color = border or C.Gold, Material = M.Fabric, CanCollide = false })
+	part(parent, { Name = "Tapete", Size = Vector3.new(width - 0.6, 0.1, depth - 0.6), CFrame = cf * CFrame.new(0, 1.26, 0), Color = color, Material = M.Fabric, CanCollide = false })
+end
+
 function Props.fence(parent, fromPos, toPos, height, color)
 	local model = Instance.new("Model")
 	model.Name = "Cerca"

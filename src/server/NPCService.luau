@@ -74,14 +74,16 @@ end
 local groundParams = RaycastParams.new()
 groundParams.FilterType = Enum.RaycastFilterType.Include
 groundParams.RespectCanCollide = true -- ignora copas de árvores e enfeites sem colisão
-function NPCService.groundHeight(x, z)
+-- startY: de onde o raio começa (NPCs dentro de casas começam abaixo do telhado)
+function NPCService.groundHeight(x, z, startY)
 	local list = { workspace.Terrain }
 	local world = workspace:FindFirstChild("Mundo")
 	if world then
 		table.insert(list, world)
 	end
 	groundParams.FilterDescendantsInstances = list
-	local result = workspace:Raycast(Vector3.new(x, 500, z), Vector3.new(0, -700, 0), groundParams)
+	local top = startY or 500
+	local result = workspace:Raycast(Vector3.new(x, top, z), Vector3.new(0, -(top + 200), 0), groundParams)
 	if result then
 		return result.Position.Y
 	end
@@ -143,7 +145,7 @@ local function createNpc(npc)
 		model, head = blockNpc(npc)
 	end
 	model.Name = npc.name
-	local ground = NPCService.groundHeight(npc.x, npc.z)
+	local ground = NPCService.groundHeight(npc.x, npc.z, if npc.indoor then World.TownHeight + 5 * World.Scale else nil)
 	-- altura da raiz acima do chão: em R15 é HipHeight + metade da raiz
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
 	local root = model.PrimaryPart

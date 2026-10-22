@@ -23,46 +23,81 @@ local function npcFrame(npc)
 	return CFrame.new(npc.x, Y, npc.z) * CFrame.Angles(0, npc.yaw, 0)
 end
 
+-- Frente da construção (porta). NPCs "indoor" ficam lá dentro; a porta fica onde estava o NPC.
+local function doorFrame(npc)
+	if npc.doorX then
+		return CFrame.new(npc.doorX, Y, npc.doorZ) * CFrame.Angles(0, npc.yaw, 0)
+	end
+	return npcFrame(npc)
+end
+
 local builders = {}
 
--- Forja aberta: telhado sobre pilares, bigorna, fornalha com chaminé, barril e suporte de armas
-function builders.forge(parent, npc)
-	local cf = npcFrame(npc) * CFrame.new(0, 0, 9)
-	local model = Instance.new("Model")
-	model.Name = "Forja"
-	part(model, { Name = "Piso", Size = Vector3.new(16, 0.6, 12), CFrame = cf * CFrame.new(0, 0.3, 0), Color = C.DarkStone, Material = M.Slate })
-	for _, x in { -7.5, 7.5 } do
-		for _, z in { -5.5, 5.5 } do
-			part(model, { Name = "Pilar", Size = Vector3.new(1, 9, 1), CFrame = cf * CFrame.new(x, 4.8, z), Color = C.DarkWood, Material = M.Wood })
+-- Forja: salão com fornalha no fundo, bigorna no meio, suportes de armas, amolador e bancada
+function builders.forge(parent, npc, rng)
+	local cf = doorFrame(npc)
+	local model = Props.building(parent, cf, 18, 16, 10, Color3.fromRGB(150, 110, 80), Color3.fromRGB(90, 60, 50), {
+		name = "Forja",
+		doorWidth = 5,
+		chimney = -5,
+		floorColor = Color3.fromRGB(95, 90, 88),
+		lights = { Vector3.new(4, 9, 5), Vector3.new(-3, 9, 10) },
+	})
+	local inside = cf * CFrame.new(0, 1.2, 0)
+	-- fornalha de tijolos no canto do fundo
+	local furnace = part(model, { Name = "Fornalha", Size = Vector3.new(6, 6, 3.5), CFrame = inside * CFrame.new(-5, 3, 13.6), Color = Color3.fromRGB(120, 60, 50), Material = M.Brick })
+	local _ = furnace
+	local opening = part(model, { Name = "Brasa", Size = Vector3.new(3.4, 2.2, 0.3), CFrame = inside * CFrame.new(-5, 2, 11.8), Color = C.Fire, Material = M.Neon })
+	Props.light(opening, C.Fire, 24, 3, true)
+	Props.fire(model, (inside * CFrame.new(-5, 0.6, 12.6)).Position, 0.7)
+	-- bigorna e balde de têmpera
+	local anvil = inside * CFrame.new(2.5, 0, 6)
+	part(model, { Name = "BigornaBase", Size = Vector3.new(1.6, 1.8, 1.4), CFrame = anvil * CFrame.new(0, 0.9, 0), Color = Color3.fromRGB(45, 45, 50), Material = M.Metal })
+	part(model, { Name = "Bigorna", Size = Vector3.new(3.2, 0.9, 1.4), CFrame = anvil * CFrame.new(0, 2.2, 0), Color = Color3.fromRGB(70, 70, 78), Material = M.Metal })
+	part(model, { Name = "Ponta", Size = Vector3.new(1, 0.5, 0.8), CFrame = anvil * CFrame.new(-2, 2.35, 0), Color = Color3.fromRGB(70, 70, 78), Material = M.Metal })
+	Props.column(model, inside * CFrame.new(5.5, 0, 5), 1.6, 2.2, Color3.fromRGB(90, 70, 50), M.Wood)
+	Props.column(model, inside * CFrame.new(5.5, 1.4, 5), 0.2, 1.9, Color3.fromRGB(60, 110, 160), M.Glass)
+	-- bancada com ferramentas
+	Props.table(model, inside * CFrame.new(6.5, 0, 12.5), 4, 2.2, 3, C.DarkWood)
+	for i = -1, 1 do
+		part(model, { Name = "Ferramenta", Size = Vector3.new(0.3, 0.3, 1.6), CFrame = inside * CFrame.new(6.5 + i * 1.1, 3.35, 12.5) * CFrame.Angles(0, math.rad(i * 15), 0), Color = Color3.fromRGB(110, 110, 120), Material = M.Metal })
+	end
+	-- suportes de armas nas paredes laterais
+	for _, side in { -1, 1 } do
+		local wall = inside * CFrame.new(side * 8.2, 0, 7) * CFrame.Angles(0, math.rad(side * 90), 0)
+		part(model, { Name = "Suporte", Size = Vector3.new(6, 0.4, 0.4), CFrame = wall * CFrame.new(0, 4.5, 0), Color = C.DarkWood, Material = M.Wood })
+		for i = -2, 2 do
+			part(model, { Name = "Lamina", Size = Vector3.new(0.3, 3.2, 0.12), CFrame = wall * CFrame.new(i * 1.15, 3.3, -0.3), Color = Color3.fromRGB(175, 175, 185), Material = M.Metal })
+			part(model, { Name = "Guarda", Size = Vector3.new(0.9, 0.2, 0.25), CFrame = wall * CFrame.new(i * 1.15, 4.8, -0.3), Color = C.Gold, Material = M.Metal })
 		end
 	end
-	Props.roof(model, cf * CFrame.new(0, 9.3, 0), 16, 12, 25, Color3.fromRGB(90, 60, 50))
-	local furnace = part(model, { Name = "Fornalha", Size = Vector3.new(6, 6, 4), CFrame = cf * CFrame.new(-3, 3.6, 3.5), Color = Color3.fromRGB(110, 60, 50), Material = M.Brick })
-	local opening = part(model, { Name = "Brasa", Size = Vector3.new(3, 2, 0.3), CFrame = cf * CFrame.new(-3, 2.4, 1.4), Color = C.Fire, Material = M.Neon })
-	Props.light(opening, C.Fire, 20, 2.5)
-	local chimney = part(model, { Name = "Chamine", Size = Vector3.new(2, 9, 2), CFrame = cf * CFrame.new(-3, 11, 3.5), Color = Color3.fromRGB(90, 50, 45), Material = M.Brick })
-	Props.smoke(chimney, 4)
-	part(model, { Name = "BigornaBase", Size = Vector3.new(1.6, 1.8, 1.4), CFrame = cf * CFrame.new(3, 1.5, -1), Color = Color3.fromRGB(45, 45, 50), Material = M.Metal })
-	part(model, { Name = "Bigorna", Size = Vector3.new(3.2, 0.9, 1.4), CFrame = cf * CFrame.new(3, 2.8, -1), Color = Color3.fromRGB(70, 70, 78), Material = M.Metal })
-	Props.barrel(model, cf * CFrame.new(6, 0.6, 3.5))
-	-- suporte com armas
-	part(model, { Name = "Suporte", Size = Vector3.new(6, 0.4, 0.4), CFrame = cf * CFrame.new(3, 4.5, 5.2), Color = C.DarkWood, Material = M.Wood })
-	for i = -2, 2 do
-		part(model, { Name = "Lamina", Size = Vector3.new(0.3, 3, 0.15), CFrame = cf * CFrame.new(3 + i * 1.1, 3.2, 5), Color = Color3.fromRGB(170, 170, 180), Material = M.Metal })
-	end
-	model.Parent = parent
-	Props.billboard(opening, "⚒️ FORJA", C.Fire, 9)
+	-- amolador
+	local grind = inside * CFrame.new(-5.5, 0, 4)
+	part(model, { Name = "Apoio", Size = Vector3.new(0.4, 2, 1.6), CFrame = grind * CFrame.new(0, 1, 0), Color = C.DarkWood, Material = M.Wood })
+	Props.column(model, grind * CFrame.new(0, 1.4, 0) * CFrame.Angles(0, 0, math.rad(90)), 0.4, 2.2, C.Stone, M.Slate)
+	Props.barrel(model, inside * CFrame.new(-7, 0, 1.8))
+	Props.barrel(model, inside * CFrame.new(-7, 0, 9))
+	-- placa por fora
+	local sign = part(model, { Name = "Placa", Size = Vector3.new(5, 1.6, 0.3), CFrame = cf * CFrame.new(0, 9.2, -0.4), Color = C.Plank, Material = M.WoodPlanks })
+	Props.billboard(sign, "⚒️ FORJA", C.Fire, 3)
+	local _r = rng
 	return model
 end
 
--- Casa da alquimista com caldeirão borbulhante e prateleira de poções
+-- Casa da alquimista: prateleiras de frascos, caldeirão borbulhante, ervas penduradas e balcão
 function builders.alchemy(parent, npc, rng)
-	local cf = npcFrame(npc) * CFrame.new(0, 0, 11)
-	local house = Props.house(parent, cf, 12, 10, 8, Color3.fromRGB(170, 200, 160), Color3.fromRGB(60, 120, 80), rng)
-	local cauldronCf = npcFrame(npc) * CFrame.new(5, 0, 2)
-	local cauldron = Props.column(house, cauldronCf, 2.4, 3.2, Color3.fromRGB(40, 40, 45), M.Metal)
-	local liquid = Props.column(house, cauldronCf * CFrame.new(0, 2.2, 0), 0.3, 2.7, Color3.fromRGB(90, 255, 120), M.Neon)
-	Props.light(liquid, Color3.fromRGB(90, 255, 120), 12, 1.5)
+	local cf = doorFrame(npc)
+	local model = Props.building(parent, cf, 16, 15, 9, Color3.fromRGB(175, 205, 165), Color3.fromRGB(60, 120, 80), { name = "Alquimia", chimney = 4 })
+	local inside = cf * CFrame.new(0, 1.2, 0)
+	Props.shelf(model, inside * CFrame.new(-3, 0, 14) * CFrame.Angles(0, math.rad(180), 0), 7, 3, "potions", rng)
+	Props.shelf(model, inside * CFrame.new(-7.3, 0, 8) * CFrame.Angles(0, math.rad(-90), 0), 6, 3, "potions", rng)
+	Props.shelf(model, inside * CFrame.new(7.3, 0, 10) * CFrame.Angles(0, math.rad(90), 0), 5, 2, "books", rng)
+	-- caldeirão
+	local cauldronCf = inside * CFrame.new(4, 0, 11)
+	local cauldron = Props.column(model, cauldronCf, 2.4, 3.2, Color3.fromRGB(40, 40, 45), M.Metal)
+	cauldron.Name = "Caldeirao"
+	local liquid = Props.column(model, cauldronCf * CFrame.new(0, 2.2, 0), 0.3, 2.7, Color3.fromRGB(90, 255, 120), M.Neon)
+	Props.light(liquid, Color3.fromRGB(90, 255, 120), 14, 1.5)
 	local bubbles = Instance.new("ParticleEmitter")
 	bubbles.Color = ColorSequence.new(Color3.fromRGB(150, 255, 170))
 	bubbles.LightEmission = 0.8
@@ -71,65 +106,117 @@ function builders.alchemy(parent, npc, rng)
 	bubbles.Rate = 10
 	bubbles.Speed = NumberRange.new(1.5, 3)
 	bubbles.Parent = liquid
-	Props.fire(house, (cauldronCf * CFrame.new(0, -0.3, 0)).Position, 0.6)
-	cauldron.Name = "Caldeirao"
-	-- prateleira na frente da casa
-	local shelf = npcFrame(npc) * CFrame.new(-4.5, 0, 4.5)
-	part(house, { Name = "Prateleira", Size = Vector3.new(4, 4, 1), CFrame = shelf * CFrame.new(0, 2, 0), Color = C.Wood, Material = M.WoodPlanks })
-	for i = 0, 5 do
-		local color = Color3.fromHSV(i / 6, 0.7, 1)
-		part(house, { Name = "Frasco", Size = Vector3.new(0.5, 0.8, 0.5), CFrame = shelf * CFrame.new(-1.5 + (i % 3) * 1.5, 1.6 + math.floor(i / 3) * 1.6, -0.6), Color = color, Material = M.Neon, Transparency = 0.2 })
+	Props.fire(model, (cauldronCf * CFrame.new(0, -0.3, 0)).Position, 0.5)
+	-- balcão na frente da alquimista
+	part(model, { Name = "Balcao", Size = Vector3.new(7, 3, 1.4), CFrame = inside * CFrame.new(-1, 1.5, 6.5), Color = C.Wood, Material = M.WoodPlanks })
+	part(model, { Name = "Tampo", Size = Vector3.new(7.4, 0.3, 1.8), CFrame = inside * CFrame.new(-1, 3.1, 6.5), Color = C.DarkWood, Material = M.Wood })
+	for i = -2, 2 do
+		part(model, { Name = "Frasco", Size = Vector3.new(0.5, 0.9, 0.5), CFrame = inside * CFrame.new(-1 + i * 1.3, 3.7, 6.4), Color = Color3.fromHSV((i + 2) / 5, 0.7, 1), Material = M.Neon, Transparency = 0.2 })
 	end
-	Props.billboard(liquid, "⚗️ ALQUIMIA", Color3.fromRGB(120, 255, 140), 7)
-	return house
+	-- ervas penduradas
+	for i = 0, 5 do
+		part(model, { Name = "Erva", Size = Vector3.new(0.5, 1.4, 0.5), CFrame = inside * CFrame.new(-6 + i * 2.4, 7.2, 3), Color = Color3.fromRGB(90, 150 + i * 10, 70), Material = M.Grass })
+	end
+	Props.rug(model, cf * CFrame.new(0, 0, 4), 6, 4, Color3.fromRGB(130, 50, 60))
+	local sign = part(model, { Name = "Placa", Size = Vector3.new(5, 1.6, 0.3), CFrame = cf * CFrame.new(0, 8.4, -0.4), Color = C.Plank, Material = M.WoodPlanks })
+	Props.billboard(sign, "⚗️ ALQUIMIA", Color3.fromRGB(120, 255, 140), 3)
+	return model
 end
 
--- Torre do encantador: cilindros empilhados, telhado cônico e cristal flutuante
-function builders.tower(parent, npc)
-	local cf = npcFrame(npc) * CFrame.new(0, 0, 11)
+-- Torre do encantador: salão redondo com vão de porta, estantes, mesa de encantar, círculo mágico
+function builders.tower(parent, npc, rng)
+	local cf = doorFrame(npc)
+	local radius = 9
+	local center = cf * CFrame.new(0, 0, radius)
 	local model = Instance.new("Model")
 	model.Name = "TorreEncantador"
-	Props.column(model, cf, 1, 14, C.DarkStone, M.Slate)
-	Props.column(model, cf * CFrame.new(0, 1, 0), 18, 11, Color3.fromRGB(120, 110, 140), M.Brick)
-	Props.column(model, cf * CFrame.new(0, 19, 0), 1.2, 13, Color3.fromRGB(80, 60, 110), M.Slate)
+	Props.column(model, center, 1, radius * 2 + 2, C.DarkStone, M.Slate)
+	part(model, { Name = "Degrau", Size = Vector3.new(6, 0.5, 2), CFrame = cf * CFrame.new(0, 0.25, -1.6), Color = C.Stone, Material = M.Cobblestone })
+	part(model, { Name = "Piso", Size = Vector3.new(0.3, radius * 2 - 1, radius * 2 - 1), Shape = Enum.PartType.Cylinder, CFrame = center * CFrame.new(0, 1.05, 0) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(70, 60, 90), Material = M.Slate })
+	-- paredes em segmentos (o segmento da frente vira a porta)
+	local segments = 18
+	local wallHeight = 12
+	for i = 0, segments - 1 do
+		local angle = (i + 0.5) / segments * math.pi * 2
+		local frame = center * CFrame.Angles(0, angle, 0) * CFrame.new(0, 0, -radius)
+		local isDoor = i == 0 or i == segments - 1
+		local width = 2 * radius * math.tan(math.pi / segments) + 0.3
+		if isDoor then
+			part(model, { Name = "Verga", Size = Vector3.new(width, wallHeight - 7, 1), CFrame = frame * CFrame.new(0, 1 + 7 + (wallHeight - 7) / 2, 0), Color = Color3.fromRGB(120, 110, 140), Material = M.Brick })
+		else
+			part(model, { Name = "Parede", Size = Vector3.new(width, wallHeight, 1), CFrame = frame * CFrame.new(0, 1 + wallHeight / 2, 0), Color = Color3.fromRGB(120, 110, 140), Material = M.Brick })
+		end
+		if i % 4 == 2 then
+			part(model, { Name = "Janela", Size = Vector3.new(1.6, 3, 1.2), CFrame = frame * CFrame.new(0, 8, 0), Color = Color3.fromRGB(200, 150, 255), Material = M.Neon })
+		end
+	end
+	-- andares de cima, telhado cônico e cristal
+	Props.column(model, center * CFrame.new(0, 1 + wallHeight, 0), 1.2, radius * 2 + 1.5, Color3.fromRGB(80, 60, 110), M.Slate)
+	Props.column(model, center * CFrame.new(0, 2.2 + wallHeight, 0), 8, radius * 1.6, Color3.fromRGB(120, 110, 140), M.Brick)
 	for i = 1, 4 do
-		Props.column(model, cf * CFrame.new(0, 20 + (i - 1) * 2.2, 0), 2.2, 12 - i * 2.6, Color3.fromRGB(90, 50, 160), M.Slate)
+		Props.column(model, center * CFrame.new(0, 10.2 + wallHeight + (i - 1) * 2.2, 0), 2.2, radius * 1.7 - i * 3, Color3.fromRGB(90, 50, 160), M.Slate)
 	end
-	part(model, { Name = "Porta", Size = Vector3.new(3.2, 5.5, 1), CFrame = cf * CFrame.new(0, 3.8, -5.3), Color = C.DarkWood, Material = M.Wood })
-	for _, angle in { -50, 50, 180 } do
-		local a = math.rad(angle)
-		part(model, { Name = "Janela", Size = Vector3.new(1.6, 2.4, 0.4), CFrame = cf * CFrame.Angles(0, a, 0) * CFrame.new(0, 12, -5.45), Color = Color3.fromRGB(200, 150, 255), Material = M.Neon })
-	end
-	local crystal = part(model, { Name = "Cristal", Size = Vector3.new(2.2, 2.2, 2.2), CFrame = cf * CFrame.new(0, 32, 0) * CFrame.Angles(math.rad(45), 0, math.rad(45)), Color = Color3.fromRGB(190, 120, 255), Material = M.Neon, CanCollide = false })
+	local crystal = part(model, { Name = "Cristal", Size = Vector3.new(2.4, 2.4, 2.4), CFrame = center * CFrame.new(0, 23 + wallHeight, 0) * CFrame.Angles(math.rad(45), 0, math.rad(45)), Color = Color3.fromRGB(190, 120, 255), Material = M.Neon, CanCollide = false })
 	Props.light(crystal, Color3.fromRGB(190, 120, 255), 30, 2)
 	CollectionService:AddTag(crystal, "Spin")
+	-- interior: estantes, mesa de encantar com livro e cristal flutuante, círculo no chão
+	local inside = center * CFrame.new(0, 1.2, 0)
+	for _, angle in { 70, 110, 250, 290 } do
+		Props.shelf(model, inside * CFrame.Angles(0, math.rad(angle), 0) * CFrame.new(0, 0, -(radius - 1.2)) * CFrame.Angles(0, math.rad(180), 0), 4, 3, "books", rng)
+	end
+	local circle = part(model, { Name = "Circulo", Size = Vector3.new(0.1, 8, 8), Shape = Enum.PartType.Cylinder, CFrame = inside * CFrame.new(0, 0.02, 0) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(180, 120, 255), Material = M.Neon, Transparency = 0.6, CanCollide = false })
+	local _c = circle
+	Props.table(model, inside * CFrame.new(0, 0, 3), 4, 2.4, 3, Color3.fromRGB(70, 50, 90))
+	part(model, { Name = "Livro", Size = Vector3.new(1.4, 0.3, 1), CFrame = inside * CFrame.new(0, 3.35, 3) * CFrame.Angles(0, math.rad(15), 0), Color = Color3.fromRGB(120, 40, 60) })
+	local orb = part(model, { Name = "Orbe", Size = Vector3.one * 1.1, Shape = Enum.PartType.Ball, CFrame = inside * CFrame.new(0, 5.2, 3), Color = Color3.fromRGB(200, 150, 255), Material = M.Neon, CanCollide = false })
+	Props.light(orb, Color3.fromRGB(190, 130, 255), 22, 2, true)
+	CollectionService:AddTag(orb, "Spin")
 	model.Parent = parent
 	Props.billboard(crystal, "✨ ENCANTAMENTOS", Color3.fromRGB(200, 150, 255), 3)
 	return model
 end
 
--- Barraca do mercador com toldo listrado, caixas e barris
-function builders.stall(parent, npc)
-	local cf = npcFrame(npc) * CFrame.new(0, 0, 2.5)
-	local model = Instance.new("Model")
-	model.Name = "Barraca"
-	part(model, { Name = "Balcao", Size = Vector3.new(8, 3, 1.6), CFrame = npcFrame(npc) * CFrame.new(0, 1.5, -2.2), Color = C.Plank, Material = M.WoodPlanks })
-	for _, x in { -4.2, 4.2 } do
-		for _, z in { -5, 3 } do
-			part(model, { Name = "Poste", Size = Vector3.new(0.5, 8, 0.5), CFrame = cf * CFrame.new(x, 4, z), Color = C.DarkWood, Material = M.Wood })
-		end
-	end
+-- Empório do Otto: balcão, prateleiras de mercadorias, baús em exposição e ovos de pet no pedestal
+function builders.emporium(parent, npc, rng)
+	local cf = doorFrame(npc)
+	local model = Props.building(parent, cf, 18, 15, 9, Color3.fromRGB(230, 205, 160), Color3.fromRGB(170, 60, 50), { name = "Emporio", doorWidth = 5 })
+	local inside = cf * CFrame.new(0, 1.2, 0)
+	-- toldo listrado sobre a porta
 	for i = 0, 7 do
 		local color = if i % 2 == 0 then Color3.fromRGB(220, 60, 50) else Color3.fromRGB(245, 235, 220)
-		part(model, { Name = "Toldo", Size = Vector3.new(1.1, 0.3, 9.4), CFrame = cf * CFrame.new(-3.85 + i * 1.1, 8.2, -1) * CFrame.Angles(math.rad(12), 0, 0), Color = color, Material = M.Fabric })
+		part(model, { Name = "Toldo", Size = Vector3.new(1.1, 0.25, 3), CFrame = cf * CFrame.new(-3.85 + i * 1.1, 8, -1.5) * CFrame.Angles(math.rad(-18), 0, 0), Color = color, Material = M.Fabric })
 	end
-	Props.crate(model, cf * CFrame.new(-3, 0, 2))
-	Props.crate(model, cf * CFrame.new(-3, 2.5, 2), 1.8)
-	Props.barrel(model, cf * CFrame.new(3, 0, 2))
+	-- balcão
+	part(model, { Name = "Balcao", Size = Vector3.new(10, 3, 1.4), CFrame = inside * CFrame.new(0, 1.5, 6.5), Color = C.Plank, Material = M.WoodPlanks })
+	part(model, { Name = "Tampo", Size = Vector3.new(10.4, 0.3, 1.8), CFrame = inside * CFrame.new(0, 3.1, 6.5), Color = C.DarkWood, Material = M.Wood })
+	part(model, { Name = "Balanca", Size = Vector3.new(1.4, 0.3, 0.8), CFrame = inside * CFrame.new(3, 3.4, 6.4), Color = C.Gold, Material = M.Metal })
 	for i = -1, 1 do
-		Props.ball(model, (npcFrame(npc) * CFrame.new(i * 1.5, 3.4, -2.2)).Position, 0.8, Color3.fromRGB(240, 60, 60), M.SmoothPlastic)
+		Props.ball(model, (inside * CFrame.new(-3 + i * 0.9, 3.6, 6.4)).Position, 0.7, Color3.fromRGB(240, 60, 60), M.SmoothPlastic)
 	end
-	model.Parent = parent
+	-- prateleiras
+	Props.shelf(model, inside * CFrame.new(0, 0, 13.9) * CFrame.Angles(0, math.rad(180), 0), 10, 3, "goods", rng)
+	Props.shelf(model, inside * CFrame.new(-8.3, 0, 9) * CFrame.Angles(0, math.rad(-90), 0), 6, 2, "potions", rng)
+	-- baús em exposição (bronze, prata, real)
+	local chestColors = { Color3.fromRGB(205, 130, 70), Color3.fromRGB(200, 205, 220), Color3.fromRGB(255, 200, 50) }
+	for i, color in chestColors do
+		local chest = inside * CFrame.new(-7.2 + (i - 1) * 2.1, 0, 3)
+		part(model, { Name = "Bau", Size = Vector3.new(1.8, 1.2, 1.2), CFrame = chest * CFrame.new(0, 0.6, 0), Color = C.DarkWood, Material = M.Wood })
+		part(model, { Name = "Tampa", Size = Vector3.new(1.9, 0.5, 1.3), CFrame = chest * CFrame.new(0, 1.45, 0), Color = color, Material = M.Metal })
+	end
+	-- pedestal com ovos de pet
+	local pedestal = inside * CFrame.new(6, 0, 3)
+	Props.column(model, pedestal, 2.5, 2.4, C.Stone, M.Marble)
+	local eggColors = { Color3.fromRGB(230, 220, 200), Color3.fromRGB(110, 170, 255), Color3.fromRGB(255, 190, 50) }
+	for i, color in eggColors do
+		local egg = part(model, { Name = "Ovo", Size = Vector3.new(0.8, 1.05, 0.8), Shape = Enum.PartType.Ball, CFrame = pedestal * CFrame.new(-0.8 + (i - 1) * 0.8, 3, 0), Color = color, Material = if i == 3 then M.Neon else M.SmoothPlastic })
+		local _e = egg
+	end
+	Props.crate(model, inside * CFrame.new(7, 0, 11))
+	Props.crate(model, inside * CFrame.new(7, 2.5, 11), 1.6)
+	Props.barrel(model, inside * CFrame.new(-7, 0, 13))
+	Props.rug(model, cf * CFrame.new(0, 0, 3.5), 5, 4, Color3.fromRGB(60, 80, 140))
+	local sign = part(model, { Name = "Placa", Size = Vector3.new(6, 1.6, 0.3), CFrame = cf * CFrame.new(0, 9.4, -0.4), Color = C.Plank, Material = M.WoodPlanks })
+	Props.billboard(sign, "🛒 EMPÓRIO DO OTTO", C.Gold, 3)
 	return model
 end
 
@@ -306,11 +393,13 @@ function Town.build(parent, rng)
 		if npc.building and builders[npc.building] then
 			local model = builders[npc.building](folder, npc, rng)
 			if model and npc.building ~= "training" then
-				Props.scaleModel(model, npcFrame(npc), K)
+				Props.scaleModel(model, doorFrame(npc), K)
 			end
+			-- reserva a área da construção (atrás da porta)
 			local look = CFrame.Angles(0, npc.yaw, 0).LookVector
-			local back = Vector3.new(npc.x, 0, npc.z) - look * 10 * K
-			Placement.reserve(back.X, back.Z, 10 * K, npc.building)
+			local door = Vector3.new(npc.doorX or npc.x, 0, npc.doorZ or npc.z)
+			local back = door - look * 9 * K
+			Placement.reserve(back.X, back.Z, 12 * K, npc.building)
 		elseif npc.board then
 			local model, board = builders.board(folder, npc)
 			Props.scaleModel(model, npcFrame(npc), K)
