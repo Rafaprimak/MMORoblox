@@ -312,30 +312,57 @@ end
 
 -- Telhado de duas águas feito com duas placas inclinadas (a cumeeira fica no eixo Z local)
 function Props.roof(parent, cf, width, depth, pitch, color)
+	-- Telhado de duas águas com fileiras de telhas sobrepostas (tons alternados), cumeeira,
+	-- tábuas de acabamento nas pontas e oitões triangulares. Largura no eixo X local (caimento),
+	-- profundidade no eixo Z local (cumeeira). Retorna a altura (rise).
 	local angle = math.rad(pitch)
 	local half = width / 2 + 0.8
 	local length = half / math.cos(angle)
 	local rise = math.tan(angle) * half
+	local dark = color:Lerp(Color3.new(0, 0, 0), 0.14)
+	local step, rowLength = 1.15, 1.6
+	local rows = math.max(2, math.ceil((length - 0.3) / step))
 	for _, side in { -1, 1 } do
-		part(parent, {
-			Name = "Telhado",
-			Size = Vector3.new(length, 0.6, depth + 1.6),
-			CFrame = cf * CFrame.new(side * half / 2, rise / 2, 0) * CFrame.Angles(0, 0, -side * angle),
-			Color = color,
-			Material = M.Slate,
-		})
-	end
-	-- oitões (triângulos aproximados por degraus)
-	for _, zSide in { -1, 1 } do
-		for i = 1, 3 do
-			local w = width * (1 - (i - 0.5) / 3)
+		-- direção da beira até a cumeeira e normal para fora do telhado
+		local dirX, dirY = -side * math.cos(angle), math.sin(angle)
+		local normalX, normalY = side * math.sin(angle), math.cos(angle)
+		for i = 0, rows - 1 do
+			local along = math.min(i * step + rowLength / 2, length - rowLength / 2 + 0.2)
+			local lift = 0.18 + (rows - i) * 0.03 -- fileiras de baixo ficam por cima (sobreposição)
+			local x = side * half + dirX * along + normalX * lift
+			local y = dirY * along + normalY * lift
 			part(parent, {
+				Name = "Telhado",
+				Size = Vector3.new(rowLength, 0.32, depth + 1.6),
+				CFrame = cf * CFrame.new(x, y, 0) * CFrame.Angles(0, 0, -side * angle),
+				Color = if i % 2 == 0 then color else dark,
+				Material = M.Slate,
+			})
+		end
+		-- tábuas de acabamento nas pontas do telhado
+		for _, zSide in { -1, 1 } do
+			part(parent, {
+				Name = "Testeira",
+				Size = Vector3.new(length + 0.4, 0.4, 0.3),
+				CFrame = cf * CFrame.new(side * half / 2 + normalX * 0.45, rise / 2 + normalY * 0.45, zSide * (depth / 2 + 0.85)) * CFrame.Angles(0, 0, -side * angle),
+				Color = C.DarkWood,
+				Material = M.Wood,
+			})
+		end
+	end
+	-- cumeeira
+	part(parent, { Name = "Cumeeira", Size = Vector3.new(1.0, 0.55, depth + 1.9), CFrame = cf * CFrame.new(0, rise + 0.45, 0), Color = dark:Lerp(Color3.new(0, 0, 0), 0.2), Material = M.Slate })
+	-- oitões triangulares (duas cunhas por ponta)
+	for _, zSide in { -1, 1 } do
+		for _, xSide in { -1, 1 } do
+			local wedge = part(parent, {
 				Name = "Oitao",
-				Size = Vector3.new(w, rise / 3, 0.4),
-				CFrame = cf * CFrame.new(0, (i - 0.5) * rise / 3, zSide * depth / 2),
+				Size = Vector3.new(0.4, rise, width / 2),
+				CFrame = cf * CFrame.new(xSide * width / 4, rise / 2, zSide * depth / 2) * CFrame.Angles(0, math.rad(if xSide < 0 then 90 else -90), 0),
 				Color = C.Plank,
 				Material = M.WoodPlanks,
 			})
+			wedge.Shape = Enum.PartType.Wedge
 		end
 	end
 	return rise
@@ -348,6 +375,9 @@ function Props.house(parent, cf, width, depth, wallHeight, wallColor, roofColor,
 	part(model, { Name = "Base", Size = Vector3.new(width + 1, 1, depth + 1), CFrame = cf * CFrame.new(0, 0.5, 0), Color = C.DarkStone, Material = M.Cobblestone })
 	local wallY = 1 + wallHeight / 2
 	local thickness = 0.8
+	-- alicerce de pedra na parte de baixo das paredes e viga no meio da altura
+	part(model, { Name = "Alicerce", Size = Vector3.new(width + 0.3, 1.4, depth + 0.3), CFrame = cf * CFrame.new(0, 1.7, 0), Color = C.Stone, Material = M.Cobblestone })
+	part(model, { Name = "VigaMeio", Size = Vector3.new(width + 0.25, 0.4, depth + 0.25), CFrame = cf * CFrame.new(0, 1 + wallHeight * 0.55, 0), Color = C.DarkWood, Material = M.Wood })
 	-- fundo e laterais
 	part(model, { Name = "Parede", Size = Vector3.new(width, wallHeight, thickness), CFrame = cf * CFrame.new(0, wallY, depth / 2 - thickness / 2), Color = wallColor, Material = M.WoodPlanks })
 	for _, side in { -1, 1 } do
@@ -356,6 +386,7 @@ function Props.house(parent, cf, width, depth, wallHeight, wallColor, roofColor,
 		Props.nightWindow(window)
 		local face = cf * CFrame.new(side * (width / 2 + 0.25), wallY + 0.5, 0) * CFrame.Angles(0, math.rad(side * 90), 0)
 		part(model, { Name = "Moldura", Size = Vector3.new(2.8, 0.25, 0.25), CFrame = face * CFrame.new(0, 1.1, 0), Color = C.DarkWood, Material = M.Wood })
+		part(model, { Name = "Peitoril", Size = Vector3.new(2.9, 0.22, 0.45), CFrame = face * CFrame.new(0, -1.1, -0.1), Color = C.Stone, Material = M.Slate })
 		for _, s in { -1, 1 } do
 			part(model, { Name = "Veneziana", Size = Vector3.new(0.9, 2.2, 0.15), CFrame = face * CFrame.new(s * 1.75, 0, 0), Color = Color3.fromRGB(70, 110, 80), Material = M.WoodPlanks })
 		end
@@ -370,7 +401,12 @@ function Props.house(parent, cf, width, depth, wallHeight, wallColor, roofColor,
 		part(model, { Name = "Parede", Size = Vector3.new(sideWidth, wallHeight, thickness), CFrame = cf * CFrame.new(side * (doorWidth / 2 + sideWidth / 2), wallY, -depth / 2 + thickness / 2), Color = wallColor, Material = M.WoodPlanks })
 	end
 	part(model, { Name = "Verga", Size = Vector3.new(doorWidth, wallHeight - 5, thickness), CFrame = cf * CFrame.new(0, 1 + 5 + (wallHeight - 5) / 2, -depth / 2 + thickness / 2), Color = wallColor, Material = M.WoodPlanks })
-	part(model, { Name = "Porta", Size = Vector3.new(doorWidth, 5, 0.3), CFrame = cf * CFrame.new(0, 3.5, -depth / 2 + 0.2), Color = C.DarkWood, Material = M.Wood })
+	part(model, { Name = "Porta", Size = Vector3.new(doorWidth, 5, 0.3), CFrame = cf * CFrame.new(0, 3.5, -depth / 2 + 0.2), Color = C.DarkWood, Material = M.WoodPlanks })
+	for _, y in { 2.2, 4.8 } do
+		part(model, { Name = "Dobradica", Size = Vector3.new(1.4, 0.2, 0.1), CFrame = cf * CFrame.new(-doorWidth / 2 + 0.7, y, -depth / 2 + 0.02), Color = Color3.fromRGB(45, 45, 50), Material = M.Metal })
+	end
+	part(model, { Name = "Arco", Size = Vector3.new(0.35, doorWidth + 0.8, doorWidth + 0.8), Shape = Enum.PartType.Cylinder, CFrame = cf * CFrame.new(0, 6, -depth / 2 - 0.05) * CFrame.Angles(0, math.rad(90), 0), Color = C.Stone, Material = M.Cobblestone })
+	part(model, { Name = "Degrau", Size = Vector3.new(doorWidth + 1, 0.5, 1.2), CFrame = cf * CFrame.new(0, 0.25, -depth / 2 - 1.1), Color = C.Stone, Material = M.Slate })
 	part(model, { Name = "Macaneta", Size = Vector3.new(0.25, 0.25, 0.2), CFrame = cf * CFrame.new(doorWidth / 2 - 0.5, 3.4, -depth / 2 + 0.02), Color = C.Gold, Material = M.Metal })
 	part(model, { Name = "Capacho", Size = Vector3.new(doorWidth, 0.1, 1.4), CFrame = cf * CFrame.new(0, 1.05, -depth / 2 - 0.9), Color = Color3.fromRGB(150, 60, 50), Material = M.Fabric, CanCollide = false })
 	-- lampião ao lado da porta (acende à noite)
@@ -387,7 +423,8 @@ function Props.house(parent, cf, width, depth, wallHeight, wallColor, roofColor,
 	local roofBase = cf * CFrame.new(0, 1 + wallHeight, 0) * CFrame.Angles(0, math.rad(90), 0)
 	local rise = Props.roof(model, roofBase, depth, width, 32, roofColor)
 	if rng and rng:NextNumber() < 0.7 then
-		local chimney = part(model, { Name = "Chamine", Size = Vector3.new(1.6, rise + 3, 1.6), CFrame = cf * CFrame.new(width / 4, 1 + wallHeight + (rise + 3) / 2, depth / 4), Color = C.DarkStone, Material = M.Brick })
+		local chimney = part(model, { Name = "Chamine", Size = Vector3.new(1.6, rise + 3, 1.6), CFrame = cf * CFrame.new(width / 4, 1 + wallHeight + (rise + 3) / 2, depth / 4), Color = Color3.fromRGB(140, 80, 65), Material = M.Brick })
+		part(model, { Name = "TampaChamine", Size = Vector3.new(2.1, 0.35, 2.1), CFrame = cf * CFrame.new(width / 4, 1 + wallHeight + rise + 3, depth / 4), Color = C.DarkStone, Material = M.Slate })
 		Props.smoke(chimney, 1.5)
 	end
 	model.Parent = parent

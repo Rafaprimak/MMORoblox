@@ -193,6 +193,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 ### Vida da vila
 - Moradores e animais **não existem no servidor**: `Townsfolk` calcula a posição a partir de `workspace:GetServerTimeNow()`, então todos os clientes veem a mesma cena sem rede. Morador novo = entrada em `Townsfolk.Villagers` com `route` (pontos de `Townsfolk.point(ângulo, raio)` que não atravessem construções).
 - **Traçado:** tudo fica em `src/shared/TownPlan.luau` (ruas, calçadas, praça, becos, `Services` das lojas/NPCs, `Houses`, `Lamps`), em coordenadas de projeto relativas à praça (x leste, z sul). `WorldGen/Town` constrói a partir dele, `NPCs` usa `TownPlan.Services` e o `World` usa `TownPlan.pavingAt` para pôr chão sem grama embaixo do calçamento (a grama animada atravessa peças finas). Ao mudar o traçado, confira lotes vizinhos e as rotas em `Townsfolk`.
+- **Altura real do terreno:** o Roblox desenha a superfície de um voxel cheio mais alto que a conta. O `TerrainGen` calibra isso no começo (laje de teste + raycast) e compensa em `TerrainGen.Bias`; assim o chão visível bate com `World.height`/`World.TownHeight`. Não remova a calibração.
 - **Grama animada:** o material `Grass` do terreno desenha folhinhas que atravessam peças finas (pisos, calçamento) e escondem pés e móveis. Na vila o terreno usa `LeafyGrass` (sem folhinhas) e chão de pedra/terra embaixo do calçamento. Onde houver piso fino sobre o terreno, evite `Grass` embaixo.
 - **Cena de revelação:** dentro de `ViewportFrame` os `Motor6D` não movem as peças; o `RevealScene` ancora tudo e calcula a pose por cinemática direta (peça-mãe × C0 × giro × C1⁻¹).
 - **Altura dos móveis:** construções são montadas em unidades de projeto e ampliadas ×1,5. Balcão ~1,8, mesa ~1,9, banco ~1,1 (antes de ampliar); assim ficam na cintura do personagem.
@@ -203,7 +204,8 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 ### Animação e áudio
 - `Animator` faz crossfade entre poses (`play`, `hold`, `stop`), tem camadas de postura por arma (`STANCES`), respiração, inclinação e `flinch`. Pose nova = quadros `{ t, juntas }` em `POSES`.
 - O cavalo da montaria tem grupos (`PernaFL`..., `Cabeca`, `Cauda`) ligados ao `Corpo` por Motor6D criados em `TravelService.mount`; o cliente anima as juntas `Junta*`.
-- Som novo: adicione em `SoundIds.Effects` (com `reserva`) e toque com `Sounds.play(nome)`. Ambiente/música: `SoundIds.Ambience/Music` + `SoundIds.RegionAmbience`.
+- Som novo: adicione em `SoundIds.Effects` (com `reserva`) e toque com `Sounds.play(nome)`. Ambiente/música: `SoundIds.Ambience/Music` + `SoundIds.RegionAmbience`. Os IDs atuais são da biblioteca oficial da conta "Roblox" (ID 1); para achar mais, a API pública `apis.roblox.com/toolbox-service/v1/marketplace/3?keyword=...&creatorTargetId=1&creatorType=1` lista áudios oficiais e `.../items/details?assetIds=...` mostra os nomes.
+- **Interface:** tema azul-noite e dourado. Janelas e painéis usam `UI.ornate(frame)` (borda dupla e losangos), títulos usam `UI.TitleFont` (Merriweather) em `FontFace`, botões já vêm com degradê, borda dourada e sons de clique/hover.
 
 ### Interface
 - Janelas novas: `Window.create(screen, { title, width, height, tabs, accent })` + `win.onOpen`/`win.onTab`; re-renderize em `State.Changed` só se `win:isOpen()`.
