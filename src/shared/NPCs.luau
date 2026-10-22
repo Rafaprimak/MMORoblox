@@ -8,11 +8,6 @@ local NPCs = {}
 -- Posições abaixo estão em coordenadas de design (mapa de -512 a 512); make() converte para studs reais.
 local TOWN_X, TOWN_Z = 0, 150
 
-local function around(angleDegrees, radius)
-	local a = math.rad(angleDegrees)
-	return TOWN_X + math.cos(a) * radius, TOWN_Z + math.sin(a) * radius
-end
-
 local function facingTown(x, z)
 	-- yaw para olhar para o centro da praça
 	return math.atan2(-(TOWN_X - x), -(TOWN_Z - z))
@@ -32,14 +27,17 @@ local function make(def)
 	return def
 end
 
-local function town(angle, radius, def)
-	def.x, def.z = around(angle, radius)
-	def.angle = angle
+-- Posição relativa ao centro da praça (x, z de projeto) e para onde o NPC olha, em graus:
+-- 0 = norte (-Z, rumo ao portal), 180 = sul, -90 = leste (+X), 90 = oeste (-X).
+-- As construções da vila (WorldGen/Town) seguem estas mesmas posições.
+local function at(x, z, facing, def)
+	def.x, def.z = TOWN_X + x, TOWN_Z + z
+	def.yaw = math.rad(facing)
 	return make(def)
 end
 
 NPCs.List = {
-	town(-112, 26, {
+	at(-11, -17, 180, {
 		id = "lyra",
 		name = "Capitã Lyra",
 		title = "Guarda da Vila",
@@ -49,7 +47,7 @@ NPCs.List = {
 		hat = "helmet",
 		greeting = "Hunter! A vila precisa de gente como você. Os monstros estão cada vez mais ousados.",
 	}),
-	town(205, 30, {
+	at(-7, -31, -90, {
 		id = "bruno",
 		name = "Bruno",
 		title = "Ferreiro",
@@ -62,7 +60,7 @@ NPCs.List = {
 		indoor = 8.5,
 		greeting = "Traga minério e eu transformo em aço. Ou aprenda a forjar você mesmo!",
 	}),
-	town(0, 30, {
+	at(7, -30, 90, {
 		id = "mira",
 		name = "Mira",
 		title = "Alquimista",
@@ -75,7 +73,7 @@ NPCs.List = {
 		indoor = 9,
 		greeting = "Ervas, cogumelos, flores lunares... tudo vira poção nas mãos certas.",
 	}),
-	town(125, 30, {
+	at(31, 7, 0, {
 		id = "elric",
 		name = "Elric",
 		title = "Encantador",
@@ -88,7 +86,7 @@ NPCs.List = {
 		indoor = 14.5,
 		greeting = "A essência mágica dos monstros pode despertar o poder escondido nas armas.",
 	}),
-	town(28, 32, {
+	at(31, -7, 180, {
 		id = "otto",
 		name = "Otto",
 		title = "Mercador",
@@ -101,7 +99,7 @@ NPCs.List = {
 		indoor = 9,
 		greeting = "Poções fresquinhas! E se estiver com sorte, um Baú do Hunter...",
 	}),
-	town(90, 32, {
+	at(0, 41, 0, {
 		id = "kael",
 		name = "Mestre Kael",
 		title = "Mestre de Classes",
@@ -113,7 +111,7 @@ NPCs.List = {
 		building = "training",
 		greeting = "Todo Hunter precisa dominar sua arma. Treine nos bonecos e fique mais forte.",
 	}),
-	town(-35, 30, {
+	at(-32, 8, 0, {
 		id = "pedro",
 		name = "Pedro",
 		title = "Cavalariço",
@@ -125,7 +123,7 @@ NPCs.List = {
 		building = "stable",
 		greeting = "Um bom cavalo vale mais que mil passos. Quer um?",
 	}),
-	town(-68, 28, {
+	at(11, -17, 180, {
 		id = "quadro",
 		name = "Quadro de Recompensas",
 		title = "Missões diárias",

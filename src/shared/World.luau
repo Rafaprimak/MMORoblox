@@ -17,7 +17,8 @@ local S = World.Scale
 World.Half = 512 * S -- o mapa vai de -Half a +Half
 World.SeaLevel = 4
 World.TownCenter = Vector3.new(0, 0, 150 * S)
-World.TownHeight = 18
+-- múltiplo de 4 a partir de MIN_Y (-24) do TerrainGen: o voxel fica cheio e o chão sai exatamente nessa altura
+World.TownHeight = 20
 World.CraterCenter = Vector3.new(0, 0, -445 * S)
 World.CraterHeight = 44
 World.PassGateZ = -330 * S
@@ -100,8 +101,8 @@ local DESIGN_ROADS = {
 	{ { 0, 150 }, { 0, 70 }, { 0, 10 }, { 6, -110 }, { 0, -235 }, { 0, -330 } },
 	{ { 0, 10 }, { 90, -15 }, { 185, -38 } },
 	{ { 0, 10 }, { -90, -15 }, { -185, -38 } },
-	{ { 20, 185 }, { 70, 240 }, { 112, 280 } },
-	{ { -25, 155 }, { -70, 165 }, { -108, 166 } },
+	{ { 75, 150 }, { 95, 210 }, { 112, 280 } },
+	{ { -75, 150 }, { -92, 160 }, { -108, 166 } },
 }
 World.Roads = {}
 for i, road in DESIGN_ROADS do
@@ -150,8 +151,9 @@ function World.surfaceMaterial(x, z, h, slope, w)
 		return M.Sand
 	end
 	local road = World.roadDistance(x, z)
-	if w.town > 0.6 and distance(x, z, World.TownCenter.X, World.TownCenter.Z) < 34 * S then
-		return M.Cobblestone
+	-- dentro da vila o chão é grama; ruas, praça e calçadas são peças (WorldGen/Town)
+	if w.town > 0.6 and distance(x, z, World.TownCenter.X, World.TownCenter.Z) < 78 * S then
+		return if n > 0.3 then M.LeafyGrass else M.Grass
 	end
 	if road < World.RoadWidth then
 		return if w.town > 0.5 then M.Cobblestone else M.Ground
@@ -228,7 +230,7 @@ end
 
 -- Pedras de viagem rápida (descobertas ao chegar perto)
 local DESIGN_WAYSTONES = {
-	{ "vila", "Vila Aurora", -15, 150 },
+	{ "vila", "Vila Aurora", -16, 134 },
 	{ "encruzilhada", "Encruzilhada", 14, 18 },
 	{ "bosque", "Bosque Sombrio", 192, -28 },
 	{ "ruinas", "Planalto das Ruínas", -192, -28 },

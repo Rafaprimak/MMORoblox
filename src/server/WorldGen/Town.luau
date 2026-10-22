@@ -428,75 +428,149 @@ local function entranceArch(parent)
 end
 
 
--- ===================== VIDA DA VILA =====================
+-- ===================== TRAÇADO DA VILA =====================
+-- Coordenadas de projeto relativas ao centro da praça (x leste, z sul; o portal fica em z = -74).
+-- Rua principal (norte-sul) e rua transversal (leste-oeste) com 8 de largura e calçadas de 3;
+-- praça quadrada de 40 no centro; casas alinhadas com a porta para a rua, vielas de 4 entre elas
+-- e becos atrás das fileiras, com uma segunda fileira de casas virada para o beco.
+-- Direção (facing): 0 = olha para o norte, 180 = sul, -90 = leste, 90 = oeste.
 
--- ponto em volta da praça (ângulo, raio de projeto) virado para o centro
-local function spotFacing(angle, radius)
-	local a = math.rad(angle)
-	local x = World.TownCenter.X + math.cos(a) * radius * K
-	local z = World.TownCenter.Z + math.sin(a) * radius * K
-	local yaw = math.atan2(-(World.TownCenter.X - x), -(World.TownCenter.Z - z))
-	return x, z, CFrame.new(x, Y, z) * CFrame.Angles(0, yaw, 0)
+local STREET_HALF = 4
+local PLAZA_HALF = 20
+
+local function rel(x, z)
+	return World.TownCenter.X + x * K, World.TownCenter.Z + z * K
 end
 
--- tenta cada posição candidata até achar uma livre; build(cf) devolve o modelo (ampliado por K)
-local function placeDecor(folder, candidates, radius, build)
-	for _, candidate in candidates do
-		local x, z, cf = spotFacing(candidate[1], candidate[2])
-		-- dentro da vila pode encostar na beira da rua, mas não no meio dela
-		if Placement.isFree(x, z, radius * K) and World.roadDistance(x, z) > World.RoadWidth / 2 + radius * K * 0.6 then
-			local model = build(cf, candidate)
-			if model then
-				if model.Parent == nil then
-					model.Parent = folder
-				end
-				Props.scaleModel(model, cf, K)
-			end
-			Placement.reserve(x, z, radius * K, "enfeite")
-			return true
+local function lotFrame(x, z, facing)
+	local wx, wz = rel(x, z)
+	return CFrame.new(wx, Y, wz) * CFrame.Angles(0, math.rad(facing), 0)
+end
+
+-- Casas: porta (x, z) na calçada, facing, largura, profundidade (projeto)
+local HOUSES = {
+	-- rua principal, lado oeste (olham para leste)
+	{ -7, -50, -90, 12, 12 }, { -7, -65, -90, 10, 10 },
+	{ -7, 31, -90, 14, 12 },
+	-- rua principal, lado leste (olham para oeste)
+	{ 7, -48, 90, 12, 12 }, { 7, -64, 90, 10, 10 },
+	{ 7, 31, 90, 14, 12 },
+	-- rua transversal leste
+	{ 50, -7, 180, 12, 12 }, { 65, -7, 180, 10, 10 },
+	{ 50, 7, 0, 12, 12 }, { 65, 7, 0, 10, 10 },
+	-- rua transversal oeste
+	{ -31, -7, 180, 14, 12 }, { -50, -7, 180, 12, 12 }, { -65, -7, 180, 10, 10 },
+	{ -52, 7, 0, 12, 12 }, { -66, 7, 0, 9, 10 },
+	-- segunda fileira (portas para os becos)
+	{ -29, -50, -90, 12, 10 }, { -29, -64, -90, 10, 9 },
+	{ 29, -48, 90, 12, 10 }, { 29, -63, 90, 10, 9 },
+	{ -29, 35, -90, 12, 10 }, { 29, 35, 90, 12, 10 },
+}
+
+-- Faixas de piso: { x1, z1, x2, z2, tipo }
+local PAVING = {
+	{ -PLAZA_HALF, -PLAZA_HALF, PLAZA_HALF, PLAZA_HALF, "praca" },
+	{ -STREET_HALF, -80, STREET_HALF, -PLAZA_HALF, "rua" }, -- principal norte (até o portal)
+	{ -STREET_HALF, PLAZA_HALF, STREET_HALF, 44, "rua" }, -- principal sul (até o pátio)
+	{ PLAZA_HALF, -STREET_HALF, 76, STREET_HALF, "rua" }, -- transversal leste
+	{ -76, -STREET_HALF, -PLAZA_HALF, STREET_HALF, "rua" }, -- transversal oeste
+	-- calçadas
+	{ -7, -74, -STREET_HALF, -PLAZA_HALF, "calcada" }, { STREET_HALF, -74, 7, -PLAZA_HALF, "calcada" },
+	{ -7, PLAZA_HALF, -STREET_HALF, 42, "calcada" }, { STREET_HALF, PLAZA_HALF, 7, 42, "calcada" },
+	{ PLAZA_HALF, -7, 72, -STREET_HALF, "calcada" }, { PLAZA_HALF, STREET_HALF, 72, 7, "calcada" },
+	{ -72, -7, -PLAZA_HALF, -STREET_HALF, "calcada" }, { -72, STREET_HALF, -PLAZA_HALF, 7, "calcada" },
+	-- becos atrás das fileiras (chão de terra batida)
+	{ -28, -72, -23, -22, "beco" }, { 23, -72, 28, -22, "beco" },
+	{ -28, 28, -19, 42, "beco" }, { 19, 28, 28, 42, "beco" },
+	{ -72, -28, -23, -23, "beco" }, { 23, -27, 72, -22, "beco" },
+}
+
+local PAVING_LOOK = {
+	praca = { Color3.fromRGB(165, 155, 140), M.Pavement, 0.3 },
+	rua = { Color3.fromRGB(125, 120, 115), M.Cobblestone, 0.28 },
+	calcada = { Color3.fromRGB(185, 175, 160), M.Slate, 0.36 },
+	beco = { Color3.fromRGB(120, 95, 70), M.Ground, 0.22 },
+}
+
+local function reserveStrip(x1, z1, x2, z2)
+	local ax, az = rel(math.min(x1, x2), math.min(z1, z2))
+	local bx, bz = rel(math.max(x1, x2), math.max(z1, z2))
+	local step = 6 * K
+	local x = ax
+	while x <= bx + 0.01 do
+		local z = az
+		while z <= bz + 0.01 do
+			Placement.reserve(x, z, step * 0.75, "rua")
+			z += step
 		end
+		x += step
 	end
-	return false
 end
 
-function Town.decorate(folder, rng, lampSpots)
+local function pave(folder, x1, z1, x2, z2, kind)
+	local look = PAVING_LOOK[kind]
+	local ax, az = rel(math.min(x1, x2), math.min(z1, z2))
+	local bx, bz = rel(math.max(x1, x2), math.max(z1, z2))
+	part(folder, {
+		Name = "Piso_" .. kind,
+		Size = Vector3.new(bx - ax, look[3], bz - az),
+		CFrame = CFrame.new((ax + bx) / 2, Y + look[3] / 2 - 0.05, (az + bz) / 2),
+		Color = look[1],
+		Material = look[2],
+		TopSurface = Enum.SurfaceType.Smooth,
+	})
+	-- ruas e calçadas ficam reservadas já; praça e becos só depois dos enfeites
+	if kind == "rua" or kind == "calcada" then
+		reserveStrip(x1, z1, x2, z2)
+	end
+end
+
+-- ponto de projeto → CFrame no chão virado para "facing"
+local function decorFrame(x, z, facing)
+	return lotFrame(x, z, facing or 0)
+end
+
+-- coloca um enfeite (montado em tamanho de projeto e ampliado por K) se o lugar estiver livre
+local function placeDecor(folder, x, z, facing, radius, build)
+	local wx, wz = rel(x, z)
+	if not Placement.isFree(wx, wz, radius * K) then
+		return false
+	end
+	local cf = decorFrame(x, z, facing)
+	local model = build(cf)
+	if model then
+		if model.Parent == nil then
+			model.Parent = folder
+		end
+		Props.scaleModel(model, cf, K)
+	end
+	Placement.reserve(wx, wz, radius * K, "enfeite")
+	return true
+end
+
+local HOUSE_COLORS = { Color3.fromRGB(235, 220, 190), Color3.fromRGB(200, 170, 130), Color3.fromRGB(220, 200, 170), Color3.fromRGB(180, 150, 120), Color3.fromRGB(210, 190, 200), Color3.fromRGB(190, 205, 215) }
+local ROOF_COLORS = { Color3.fromRGB(150, 60, 45), Color3.fromRGB(70, 80, 120), Color3.fromRGB(110, 70, 50), Color3.fromRGB(60, 100, 70), Color3.fromRGB(130, 50, 70) }
+
+function Town.decorate(folder, rng)
 	-- bancos em volta do chafariz, virados para ele
-	for i = 0, 3 do
-		placeDecor(folder, { { 45 + i * 90, 11.5 } }, 2.4, function(cf)
+	for _, spot in { { 8.2, 8.2 }, { -8.2, 8.2 }, { 8.2, -8.2 }, { -8.2, -8.2 } } do
+		local facing = math.deg(math.atan2(spot[1], spot[2])) -- olha para o centro
+		placeDecor(folder, spot[1], spot[2], facing, 2.4, function(cf)
 			return Props.bench(folder, cf)
 		end)
 	end
-	-- feira: barracas de frutas, pães, peixes e tecidos
+	-- feira nos cantos da praça
 	local awnings = { Color3.fromRGB(200, 60, 50), Color3.fromRGB(60, 120, 190), Color3.fromRGB(70, 150, 80), Color3.fromRGB(200, 140, 40) }
-	local stallSpots = { { -60, 44 }, { -120, 44 }, { 170, 46 }, { -15, 47 }, { 60, 47 }, { 150, 47 } }
-	local stalls = 0
-	for _, spot in stallSpots do
-		if stalls >= 4 then
-			break
-		end
-		if placeDecor(folder, { spot }, 4.5, function(cf)
-			stalls += 1
-			return Props.marketStall(folder, cf, stalls, awnings[stalls])
-		end) then
-			continue
-		end
+	-- (lados leste/oeste perto do norte e cantos do sul; o norte fica para a Lyra e o quadro)
+	for i, spot in { { 16, -11 }, { -16, -11 }, { 15, 15 }, { -15, 15 } } do
+		local facing = if math.abs(spot[2]) < 12 then (if spot[1] > 0 then -90 else 90) else math.deg(math.atan2(spot[1], spot[2]))
+		placeDecor(folder, spot[1], spot[2], facing, 3.6, function(cf)
+			return Props.marketStall(folder, cf, i, awnings[i])
+		end)
 	end
-	-- poço, carroça, varal e galinheiro
-	placeDecor(folder, { { 150, 42 }, { -160, 30 }, { 30, 46 }, { 110, 46 } }, 4, function(cf)
-		return Props.well(folder, cf)
-	end)
-	placeDecor(folder, { { -75, 54 }, { 110, 52 }, { -140, 56 }, { 15, 56 } }, 4, function(cf)
-		return Props.cart(folder, cf * CFrame.Angles(0, math.rad(70), 0))
-	end)
-	placeDecor(folder, { { 175, 54 }, { -20, 56 }, { 80, 58 }, { 230, 50 } }, 5, function(cf)
-		return Props.laundry(folder, cf, rng)
-	end)
-	placeDecor(folder, { { -150, 52 }, { -140, 50 }, { 60, 52 }, { -170, 48 } }, 4, function(cf)
-		return Props.coop(folder, cf)
-	end)
-	-- canteiros de flores em volta da praça
-	for i = 0, 7 do
-		placeDecor(folder, { { 22 + i * 45, 24 } }, 1.6, function(cf)
+	-- canteiros nas bordas da praça (entre as saídas das ruas)
+	for _, spot in { { -12, 19, 180 }, { 12, 19, 180 }, { -19, -12, 90 }, { -19, 12, 90 }, { 19, -12, -90 }, { 19, 12, -90 } } do
+		placeDecor(folder, spot[1], spot[2], spot[3], 1.6, function(cf)
 			local planter = Instance.new("Model")
 			planter.Name = "Canteiro"
 			Props.part(planter, { Name = "Base", Size = Vector3.new(3.2, 0.8, 1.4), CFrame = cf * CFrame.new(0, 0.4, 0), Color = C.Stone, Material = M.Cobblestone })
@@ -505,16 +579,36 @@ function Town.decorate(folder, rng, lampSpots)
 			return planter
 		end)
 	end
-	-- bandeirinhas entre postes vizinhos (só onde não passam por cima de construções)
-	for i = 0, 11 do
-		local a, b = lampSpots[i], lampSpots[(i + 1) % 12]
-		if a and b then
-			local mid = (a + b) / 2
-			if Placement.isFree(mid.X, mid.Z, 1.5 * K) then
-				local top = 7.2 * K
-				Props.bunting(folder, a + Vector3.new(0, top, 0), b + Vector3.new(0, top, 0), 1.6 * K)
+	-- becos: poço, carroça, varais, galinheiro, caixas e barris
+	placeDecor(folder, -30, -30, 45, 3, function(cf)
+		return Props.well(folder, cf)
+	end)
+	placeDecor(folder, 31, -30, 0, 3.5, function(cf)
+		return Props.cart(folder, cf)
+	end)
+	placeDecor(folder, -25.5, -40, 90, 3, function(cf)
+		return Props.laundry(folder, cf, rng)
+	end)
+	placeDecor(folder, 25.5, -56, 90, 3, function(cf)
+		return Props.laundry(folder, cf, rng)
+	end)
+	placeDecor(folder, -48, 33, 0, 3, function(cf)
+		return Props.coop(folder, cf)
+	end)
+	for _, spot in { { -25, -60 }, { 25, -42 }, { -40, -25 }, { 45, -24.5 }, { -24, 38 }, { 24, 30 }, { -60, -25 } } do
+		placeDecor(folder, spot[1], spot[2], rng:NextNumber(0, 360), 1.4, function(cf)
+			local model = Instance.new("Model")
+			model.Name = "Entulho"
+			if rng:NextNumber() < 0.5 then
+				Props.crate(model, cf, 2.4)
+				Props.crate(model, cf * CFrame.new(0.4, 2.4, 0.2), 1.6)
+			else
+				Props.barrel(model, cf)
+				Props.barrel(model, cf * CFrame.new(1.6, 0, 0.6))
 			end
-		end
+			model.Parent = folder
+			return model
+		end)
 	end
 end
 
@@ -523,10 +617,18 @@ function Town.build(parent, rng)
 	folder.Name = "Vila"
 	folder.Parent = parent
 
+	-- piso: praça, ruas, calçadas e becos
+	local paving = Instance.new("Folder")
+	paving.Name = "Ruas"
+	paving.Parent = folder
+	for _, strip in PAVING do
+		pave(paving, strip[1], strip[2], strip[3], strip[4], strip[5])
+	end
+
 	fountain(folder)
 	entranceArch(folder)
 
-	-- construções de cada NPC
+	-- construções de cada NPC (posições em NPCs.List já seguem o traçado)
 	local boardPart = nil
 	for _, npc in NPCs.List do
 		if npc.building and builders[npc.building] then
@@ -537,8 +639,8 @@ function Town.build(parent, rng)
 			-- reserva a área da construção (atrás da porta)
 			local look = CFrame.Angles(0, npc.yaw, 0).LookVector
 			local door = Vector3.new(npc.doorX or npc.x, 0, npc.doorZ or npc.z)
-			local back = door - look * 9 * K
-			Placement.reserve(back.X, back.Z, 12 * K, npc.building)
+			local back = door - look * 8 * K
+			Placement.reserve(back.X, back.Z, 10 * K, npc.building)
 		elseif npc.board then
 			local model, board = builders.board(folder, npc)
 			Props.scaleModel(model, npcFrame(npc), K)
@@ -547,59 +649,67 @@ function Town.build(parent, rng)
 		Placement.reserve(npc.x, npc.z, 3 * K, "npc")
 	end
 
-	-- casas decorativas em volta
-	local houseColors = {
-		Color3.fromRGB(235, 220, 190), Color3.fromRGB(200, 170, 130), Color3.fromRGB(220, 200, 170), Color3.fromRGB(180, 150, 120),
+	-- casas alinhadas com as ruas e becos
+	for i, house in HOUSES do
+		local x, z, facing, width, depth = house[1], house[2], house[3], house[4], house[5]
+		local door = lotFrame(x, z, facing)
+		local center = door * CFrame.new(0, 0, depth / 2 + 0.3)
+		local model = Props.house(folder, center, width, depth, rng:NextInteger(7, 9), HOUSE_COLORS[(i % #HOUSE_COLORS) + 1], ROOF_COLORS[(i % #ROOF_COLORS) + 1], rng)
+		Props.scaleModel(model, door, K)
+		local middle = (door * CFrame.new(0, 0, depth / 2 * K)).Position
+		Placement.reserve(middle.X, middle.Z, math.max(width, depth) / 2 * K, "casa")
+	end
+
+	-- postes nas calçadas (nas vielas entre as casas, longe das portas) e bandeirinhas cruzando a rua
+	local LAMP_ROWS = {
+		{ axis = "z", values = { -21, -41, -57, -72 } }, -- rua principal norte
+		{ axis = "z", values = { 21, 40 } }, -- rua principal sul
+		{ axis = "x", values = { 21, 41, 58, 72 } }, -- transversal leste
+		{ axis = "x", values = { -21, -42, -59, -73 } }, -- transversal oeste
 	}
-	local roofColors = { Color3.fromRGB(150, 60, 45), Color3.fromRGB(70, 80, 120), Color3.fromRGB(110, 70, 50), Color3.fromRGB(60, 100, 70) }
-	local houseSpots = { { -125, 74 }, { -60, 74 }, { -12, 76 }, { 40, 82 }, { 105, 76 }, { 145, 74 }, { 195, 76 }, { 232, 72 }, { -165, 70 }, { 165, 62 } }
-	for i, spot in houseSpots do
-		local a = math.rad(spot[1])
-		local x = World.TownCenter.X + math.cos(a) * spot[2] * 0.82 * K
-		local z = World.TownCenter.Z + math.sin(a) * spot[2] * 0.82 * K
-		if Placement.canPlace(x, z, 10 * K, 2) then
-			local yaw = math.atan2(-(World.TownCenter.X - x), -(World.TownCenter.Z - z))
-			local w = rng:NextInteger(10, 14)
-			local d = rng:NextInteger(9, 12)
-			local ground = CFrame.new(x, Y, z) * CFrame.Angles(0, yaw, 0)
-			local house = Props.house(folder, ground, w, d, rng:NextInteger(7, 9), houseColors[(i % #houseColors) + 1], roofColors[(i % #roofColors) + 1], rng)
-			Props.scaleModel(house, ground, K)
-			Placement.reserve(x, z, 10 * K, "casa")
-		end
-	end
-
-	-- postes de luz em volta da praça e nas estradas
-	local lampSpots = {}
-	for i = 0, 11 do
-		local a = math.rad(15 + i * 30)
-		local x = World.TownCenter.X + math.cos(a) * 37 * K
-		local z = World.TownCenter.Z + math.sin(a) * 37 * K
-		if Placement.isFree(x, z, 2 * K) then
-			local ground = CFrame.new(x, Y, z) * CFrame.Angles(0, math.atan2(-(World.TownCenter.X - x), -(World.TownCenter.Z - z)), 0)
-			Props.scaleModel(Props.lamp(folder, ground), ground, K)
-			Placement.reserve(x, z, 1.5 * K, "poste")
-			lampSpots[i] = Vector3.new(x, Y, z)
-		end
-	end
-
-	-- detalhes: caixas e barris espalhados
-	for _ = 1, 14 do
-		local a = rng:NextNumber() * math.pi * 2
-		local r = rng:NextNumber(38, 66) * K
-		local x = World.TownCenter.X + math.cos(a) * r
-		local z = World.TownCenter.Z + math.sin(a) * r
-		if Placement.canPlace(x, z, 2 * K, 1) then
-			local cf = CFrame.new(x, Y, z) * CFrame.Angles(0, rng:NextNumber() * 3, 0)
-			if rng:NextNumber() < 0.5 then
-				Props.crate(folder, cf, 2.5 * K)
-			else
-				Props.barrel(folder, cf, K)
+	for _, row in LAMP_ROWS do
+		for _, value in row.values do
+			local pair = {}
+			for _, side in { -1, 1 } do
+				local x, z, facing
+				if row.axis == "z" then
+					x, z, facing = side * 5.6, value, if side < 0 then -90 else 90
+				else
+					x, z, facing = value, side * 5.6, if side < 0 then 180 else 0
+				end
+				local wx, wz = rel(x, z)
+				local ground = CFrame.new(wx, Y, wz) * CFrame.Angles(0, math.rad(facing), 0)
+				Props.scaleModel(Props.lamp(folder, ground), ground, K)
+				Placement.reserve(wx, wz, 1.2 * K, "poste")
+				table.insert(pair, Vector3.new(wx, Y + 7.2 * K, wz))
 			end
-			Placement.reserve(x, z, 2 * K, "caixa")
+			Props.bunting(folder, pair[1], pair[2], 1.4 * K)
 		end
 	end
+	-- postes nos cantos da praça
+	for _, corner in { { -19, -19 }, { 19, -19 }, { -19, 19 }, { 19, 19 } } do
+		local wx, wz = rel(corner[1], corner[2])
+		local ground = CFrame.new(wx, Y, wz) * CFrame.Angles(0, math.atan2(corner[1], corner[2]), 0)
+		Props.scaleModel(Props.lamp(folder, ground), ground, K)
+		Placement.reserve(wx, wz, 1.2 * K, "poste")
+	end
+	-- bandeirinhas em X sobre a praça (entre os cantos)
+	local top = Y + 7.2 * K
+	local ax, az = rel(-19, -19)
+	local bx, bz = rel(19, 19)
+	local cx, cz = rel(19, -19)
+	local dx, dz = rel(-19, 19)
+	Props.bunting(folder, Vector3.new(ax, top, az), Vector3.new(bx, top, bz), 3 * K)
+	Props.bunting(folder, Vector3.new(cx, top, cz), Vector3.new(dx, top, dz), 3 * K)
 
-	Town.decorate(folder, rng, lampSpots)
+	Town.decorate(folder, rng)
+
+	-- praça e becos ficam reservados (nada de árvore no caminho)
+	for _, strip in PAVING do
+		if strip[5] == "praca" or strip[5] == "beco" then
+			reserveStrip(strip[1], strip[2], strip[3], strip[4])
+		end
+	end
 	return boardPart
 end
 

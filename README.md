@@ -116,6 +116,8 @@ O botão direito do mouse fica livre para girar a câmera.
 - **Missões:** 15 da história e 10 secundárias (caçar, coletar, entregar, explorar, ativar pedras, forjar, encantar, montar, aparar, esquivar no tempo certo...), mais 3 contratos diários sorteados de uma lista.
 - **Inimigos:** slimes, lobos, javalis (investida), caranguejos, goblins e arqueiros, aranhas, esqueletos e magos, golems (pancada em área), versões **Elite** e o chefe **Rei Goblin**.
 - **Viagem:** pedras de teletransporte (pelo mapa), cavalo e corrida.
+- **Vila Aurora:** ruas calçadas (principal do portal ao pátio de treino e transversal), praça com chafariz, casas alinhadas com as portas para a rua, vielas entre as casas e becos atrás das fileiras.
+- **Locais de interesse:** Moinho dos Campos, Círculo de Pedras, Torre de Vigia Abandonada, Estátua do Herói Caído, Acampamento Abandonado, Observatório em Ruínas, Cemitério Antigo, Altar Esquecido e Navio Naufragado. Descobrir dá XP e ouro, e cada um tem um baú escondido (aparecem como ❓ no mapa).
 - **Vila viva:** moradores passeando e conversando (com balões de fala), guardas fazendo ronda, crianças correndo em volta do chafariz, galinhas, gatos e cachorro soltos, pássaros no céu, borboletas de dia e vaga-lumes à noite; feira com barracas, bancos, poço, carroça, varal, galinheiro, canteiros, bandeirinhas e janelas que acendem à noite.
 - **Dia e noite:** 14 min de dia e 6 de noite. À noite os inimigos batem mais forte e aparecem mais Elites, mas XP, ouro e equipamentos rendem mais.
 - **Tutorial:** dicas no topo da tela nos primeiros níveis (dá para pular ou recomeçar nas Configurações).

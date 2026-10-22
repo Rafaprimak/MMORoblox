@@ -5,6 +5,7 @@ local TerrainGen = require(script.TerrainGen)
 local Town = require(script.Town)
 local Landmarks = require(script.Landmarks)
 local Scatter = require(script.Scatter)
+local PointsOfInterest = require(script.PointsOfInterest)
 
 local WorldGen = {}
 
@@ -77,6 +78,9 @@ function WorldGen.build(onProgress)
 	local landmarks = step("Erguendo ruínas e acampamentos", 0.78, function()
 		return Landmarks.build(folder, rng)
 	end) or {}
+	step("Marcando locais de interesse", 0.81, function()
+		return PointsOfInterest.build(folder, rng)
+	end)
 	step("Espalhando minérios e plantas", 0.84, function()
 		return Scatter.resources(folder, rng)
 	end)

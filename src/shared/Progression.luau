@@ -77,6 +77,8 @@ Progression.Achievements = {
 	{ id = "heroi", name = "Herói", icon = "📜", event = "questDone", tiers = { 10, 50, 200 }, title = "heroi", text = "Complete missões e contratos" },
 	{ id = "ascensao", name = "Ascensão", icon = "⭐", event = "level", mode = "max", tiers = { 10, 25, 50 }, title = "rank_s", text = "Alcance níveis" },
 	{ id = "domador", name = "Domador", icon = "🐾", event = "pet", tiers = { 1, 10, 30 }, title = "domador", text = "Consiga pets" },
+	{ id = "explorador", name = "Explorador", icon = "🧭", event = "poi", tiers = { 3, 6, 9 }, title = "desbravador", text = "Descubra locais de interesse" },
+	{ id = "cacador_tesouros", name = "Caça ao Tesouro", icon = "🗝", event = "poiChest", tiers = { 2, 5, 9 }, title = "achador", text = "Abra baús escondidos nos locais" },
 	{ id = "perfeccionista", name = "Perfeccionista", icon = "⬆", event = "upgradeTo", mode = "max", tiers = { 5, 8, 10 }, title = "perfeccionista", text = "Aprimore um item" },
 }
 
@@ -127,6 +129,8 @@ Progression.Titles = {
 	rank_s = { name = "Hunter Rank S", color = Color3.fromRGB(255, 60, 70) },
 	domador = { name = "Domador de Feras", color = Color3.fromRGB(150, 255, 200) },
 	perfeccionista = { name = "Perfeccionista", color = Color3.fromRGB(200, 150, 255) },
+	desbravador = { name = "Desbravador", color = Color3.fromRGB(150, 220, 140) },
+	achador = { name = "Achador de Tesouros", color = Color3.fromRGB(255, 200, 90) },
 	veterano = { name = "Veterano", color = Color3.fromRGB(230, 200, 150) },
 	imortal = { name = "Imortal", color = Color3.fromRGB(255, 255, 255), rainbow = true },
 }

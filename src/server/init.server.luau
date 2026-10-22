@@ -30,6 +30,7 @@ local DayNightService = require(script.DayNightService)
 local PerkService = require(script.PerkService)
 local PetService = require(script.PetService)
 local ProgressionService = require(script.ProgressionService)
+local ExploreService = require(script.ExploreService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -65,12 +66,15 @@ ShopService.QuestHook = questHook
 TravelService.QuestHook = questHook
 NPCService.QuestHook = questHook
 PetService.QuestHook = questHook
+ExploreService.QuestHook = questHook
 PetService.init()
 PlayerService.ExtraSync = function(player, payload)
 	local data = DataService.get(player)
 	if data then
 		payload.pets = PetService.summary(data)
 		payload.progress = ProgressionService.summary(player)
+		payload.poi = data.poi
+		payload.poiChests = data.poiChests
 	end
 end
 EnemyService.FireProjectile = ProjectileService.fire
@@ -354,6 +358,7 @@ safely("Projéteis", ProjectileService.start)
 safely("Dia e noite", DayNightService.start)
 safely("Inimigos", EnemyService.start)
 safely("Viagem", TravelService.init, built.horse)
+safely("Locais de interesse", ExploreService.start)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

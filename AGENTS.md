@@ -71,6 +71,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Pets` | Pets, ovos (chances em %) e bônus por nível |
 | `Progression` | Login diário, Passe do Hunter, conquistas, marcos de nível e títulos |
 | `SoundIds` | Catálogo de áudio (efeitos, ambiente, música): IDs da Creator Store + reserva |
+| `Points` | Locais de interesse (posição achada de forma determinística em chão seco e plano), recompensa e baú |
 | `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
 
@@ -97,6 +98,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DayNightService` | Ciclo de dia e noite: `workspace.Night`, luz do ambiente, avisos, `skip()` para teste |
 | `PerkService` | Gatilhos dos perks no combate (`modify`, `afterHit`, `onKill`, `onParry`, `onPerfectDodge`, `onFullCharge`) |
 | `PetService` | Ovos, equipar/soltar pets, XP do pet, bônus (`ExtraBonus`), drops raros |
+| `ExploreService` | Descoberta dos locais de interesse e baús escondidos (prompt `BauLocal`) |
 | `ProgressionService` | Conta tudo pelos ganchos de missão: conquistas, passe, login diário, títulos, marcos de nível |
 | `WeaponModels` | Arma presa na mão (com rastro) |
 
@@ -187,6 +189,8 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 
 ### Vida da vila
 - Moradores e animais **não existem no servidor**: `Townsfolk` calcula a posição a partir de `workspace:GetServerTimeNow()`, então todos os clientes veem a mesma cena sem rede. Morador novo = entrada em `Townsfolk.Villagers` com `route` (pontos de `Townsfolk.point(ângulo, raio)` que não atravessem construções).
+- **Traçado:** `WorldGen/Town` define ruas, calçadas, praça e becos (`PAVING`), as casas (`HOUSES`: porta na calçada, direção, largura, profundidade) e os postes. As lojas e NPCs usam `at(x, z, direção)` em `NPCs.List` no mesmo sistema de coordenadas (x leste, z sul, relativo à praça). Ao mudar o traçado, confira lotes vizinhos (vielas de 4) e as rotas em `Townsfolk`.
+- `World.TownHeight` é múltiplo de 4 a partir de -24 (fundo do TerrainGen): assim o voxel fica cheio e o chão sai exatamente na altura usada pelas construções. Não use um valor quebrado (o terreno cobre pisos e NPCs).
 - Enfeites da vila ficam em `Town.decorate` (bancos, feira, poço, carroça, varal, galinheiro, canteiros, bandeirinhas) com posições candidatas e `Placement`.
 - Janelas que acendem à noite: `Props.nightWindow(part)` (cor de dia em `OffColor`).
 
@@ -217,6 +221,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 | **Passiva/talento** | `Classes.Passives[classe]` (ramo, tier, máximo, stats por rank) |
 | **Recurso de coleta** | `Resources.Nodes` + regra em `Scatter` (`NODE_RULES`) + visual em `buildNode` |
 | **Objeto de cenário** | Função em `Props`, posicionamento com `Placement.canPlace` + `Placement.reserve` (obrigatório, evita sobreposição) |
+| **Local de interesse** | `Points` (kind, recompensa, baú) + construtor em `WorldGen/PointsOfInterest` (retorna onde fica o baú) |
 | **Local/pedra de viagem** | `World.Locations` / `World.Waystones` (+ estrada em `World.Roads` se quiser) |
 
 ## 7. Armadilhas já conhecidas (aprendidas testando)

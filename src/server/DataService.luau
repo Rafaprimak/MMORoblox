@@ -32,6 +32,8 @@ function DataService.defaultData()
 		talents = {},
 		loadout = {},
 		pets = {},
+		poi = {},
+		poiChests = {},
 		progress = {
 			counters = {},
 			achievements = {},
@@ -59,7 +61,7 @@ end
 -- Campos que são dicionários livres (não devem ser "completados" com o modelo)
 local FREE_KEYS = {
 	inventory = true, equipped = true, materials = true, consumables = true, skills = true,
-	abilityRanks = true, talents = true, loadout = true, pets = true, counters = true, achievements = true, titles = true, levelRewards = true, active = true, done = true, offered = true, discovered = true,
+	abilityRanks = true, talents = true, loadout = true, pets = true, poi = true, poiChests = true, counters = true, achievements = true, titles = true, levelRewards = true, active = true, done = true, offered = true, discovered = true,
 }
 
 local function reconcile(data, template)
