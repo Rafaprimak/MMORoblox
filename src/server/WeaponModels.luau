@@ -63,44 +63,141 @@ local function build(weaponType, rarity, element)
 		return p
 	end
 	local tip, start = 4, 1
-	if weaponType == "sword" then
-		add(Vector3.new(1.3, 0.22, 0.4), CFrame.new(0, 0.65, 0), STEEL)
-		add(Vector3.new(0.32, 3.3, 0.12), CFrame.new(0, 2.4, 0), accent, accentMaterial, true)
-		tip, start = 4.05, 0.9
-	elseif weaponType == "katana" then
-		add(Vector3.new(0.6, 0.1, 0.6), CFrame.new(0, 0.6, 0), Color3.fromRGB(40, 40, 40))
-		add(Vector3.new(0.2, 4.1, 0.09), CFrame.new(0.06, 2.7, 0) * CFrame.Angles(0, 0, math.rad(-3)), accent, accentMaterial, true)
-		tip, start = 4.75, 0.8
-	elseif weaponType == "dagger" then
-		add(Vector3.new(0.8, 0.15, 0.3), CFrame.new(0, 0.6, 0), STEEL)
-		add(Vector3.new(0.26, 1.6, 0.1), CFrame.new(0, 1.45, 0), accent, accentMaterial, true)
-		tip, start = 2.25, 0.7
-	elseif weaponType == "axe" then
-		add(Vector3.new(0.28, 3.2, 0.28), CFrame.new(0, 1.6, 0), WOOD, Enum.Material.Wood)
-		add(Vector3.new(1.5, 1.3, 0.2), CFrame.new(0.7, 2.8, 0), accent, accentMaterial, true)
-		tip, start = 3.4, 2.2
-	elseif weaponType == "hammer" then
-		add(Vector3.new(0.3, 3.4, 0.3), CFrame.new(0, 1.7, 0), WOOD, Enum.Material.Wood)
-		add(Vector3.new(2.2, 1.4, 1.4), CFrame.new(0, 3.6, 0), accent, accentMaterial, true)
-		tip, start = 4.3, 2.9
-	elseif weaponType == "spear" then
-		add(Vector3.new(0.24, 6.5, 0.24), CFrame.new(0, 1.4, 0), WOOD, Enum.Material.Wood)
-		add(Vector3.new(0.55, 0.55, 0.15), CFrame.new(0, 4.8, 0) * CFrame.Angles(0, 0, math.rad(45)), accent, accentMaterial, true)
-		add(Vector3.new(0.28, 1.2, 0.1), CFrame.new(0, 5.4, 0), accent, accentMaterial, true)
-		tip, start = 6, 4.2
-	elseif weaponType == "staff" then
-		add(Vector3.new(0.3, 6, 0.3), CFrame.new(0, 1.5, 0), WOOD, Enum.Material.Wood)
-		add(Vector3.new(0.9, 0.9, 0.9), CFrame.new(0, 4.9, 0) * CFrame.Angles(math.rad(45), 0, math.rad(45)), accent, Enum.Material.Neon, true)
-		for i = 0, 2 do
-			add(Vector3.new(0.15, 1.1, 0.15), CFrame.new(0, 4.6, 0) * CFrame.Angles(0, i * math.pi * 2 / 3, 0) * CFrame.new(0, 0, -0.55) * CFrame.Angles(math.rad(-20), 0, 0), WOOD, Enum.Material.Wood)
+	local M = Enum.Material
+	local tier = rarity.order
+	-- metal da lâmina melhora com a raridade; detalhes (guarda, gema) usam a cor da raridade
+	local bladeColor = if tier >= 5 then accent:Lerp(Color3.new(1, 1, 1), 0.35) elseif tier >= 3 then STEEL:Lerp(accent, 0.25) else STEEL
+	local bladeMaterial = if tier >= 6 then M.Neon elseif tier >= 4 then M.Foil else M.Metal
+	local GOLD = Color3.fromRGB(220, 180, 70)
+	local trim = if tier >= 3 then GOLD else Color3.fromRGB(90, 90, 100)
+	local function wedge(size, offset, color, material, glow)
+		local p = add(size, offset, color, material, glow)
+		p.Shape = Enum.PartType.Wedge
+		return p
+	end
+	local function ball(size, offset, color, material, glow)
+		local p = add(Vector3.one * size, offset, color, material, glow)
+		p.Shape = Enum.PartType.Ball
+		return p
+	end
+	-- cabo enrolado em couro + pomo
+	local function grip(length, y)
+		for i = 0, math.floor(length / 0.28) - 1 do
+			add(Vector3.new(0.34, 0.12, 0.34), CFrame.new(0, y - length / 2 + 0.14 + i * 0.28, 0) * CFrame.Angles(0, math.rad(45 * (i % 2)), 0), Color3.fromRGB(45, 30, 22), M.Fabric)
 		end
-		tip, start = 5.4, 4.4
-	elseif weaponType == "bow" then
+	end
+	local function gem(offset, size)
+		ball(size or 0.3, offset, accent, M.Neon, true)
+	end
+	-- lâmina com fio afiado (centro + duas bordas em cunha) e ponta em cunha
+	local function blade(width, length, y, thickness)
+		thickness = thickness or 0.12
+		add(Vector3.new(width * 0.5, length, thickness), CFrame.new(0, y, 0), bladeColor, bladeMaterial, tier >= 4)
 		for _, side in { -1, 1 } do
-			add(Vector3.new(0.22, 2.2, 0.22), CFrame.new(0, side * 1.25, -0.25) * CFrame.Angles(math.rad(side * 18), 0, 0), WOOD, Enum.Material.Wood)
-			add(Vector3.new(0.28, 0.5, 0.28), CFrame.new(0, side * 2.3, -0.65), accent, accentMaterial, true)
+			wedge(Vector3.new(thickness * 0.8, length, width * 0.3), CFrame.new(side * width * 0.4, y, 0) * CFrame.Angles(0, math.rad(side * 90), 0), bladeColor:Lerp(Color3.new(1, 1, 1), 0.3), bladeMaterial)
 		end
-		add(Vector3.new(0.05, 4.6, 0.05), CFrame.new(0, 0, 0.35), Color3.fromRGB(235, 235, 235), Enum.Material.SmoothPlastic)
+		-- sulco central
+		add(Vector3.new(width * 0.12, length * 0.75, thickness + 0.02), CFrame.new(0, y - length * 0.05, 0), accent, if tier >= 4 then M.Neon else M.Metal, tier >= 4)
+		-- ponta
+		for _, side in { -1, 1 } do
+			wedge(Vector3.new(thickness, width * 0.9, width * 0.5), CFrame.new(side * width * 0.25, y + length / 2 + width * 0.45, 0) * CFrame.Angles(0, math.rad(side * 90), 0), bladeColor, bladeMaterial)
+		end
+	end
+
+	if weaponType == "sword" then
+		grip(0.9, 0.05)
+		gem(CFrame.new(0, -0.5, 0), 0.32)
+		add(Vector3.new(1.5, 0.22, 0.38), CFrame.new(0, 0.62, 0), trim, M.Metal)
+		for _, side in { -1, 1 } do
+			ball(0.3, CFrame.new(side * 0.78, 0.62, 0), trim, M.Metal)
+		end
+		gem(CFrame.new(0, 0.62, -0.2), 0.22)
+		blade(0.42, 3.1, 2.3)
+		tip, start = 4.2, 0.9
+	elseif weaponType == "katana" then
+		grip(1.1, 0.0)
+		add(Vector3.new(0.7, 0.1, 0.7), CFrame.new(0, 0.62, 0), Color3.fromRGB(35, 35, 40), M.Metal) -- tsuba
+		add(Vector3.new(0.75, 0.04, 0.75), CFrame.new(0, 0.68, 0), trim, M.Metal)
+		add(Vector3.new(0.18, 0.25, 0.14), CFrame.new(0, 0.82, 0), trim, M.Metal) -- habaki
+		for i = 0, 7 do
+			local y = 1.2 + i * 0.47
+			add(Vector3.new(0.17, 0.5, 0.08), CFrame.new(0.02 + i * 0.012, y, 0) * CFrame.Angles(0, 0, math.rad(-2 - i * 0.4)), bladeColor, bladeMaterial, tier >= 4)
+			add(Vector3.new(0.05, 0.5, 0.1), CFrame.new(-0.07 + i * 0.012, y, 0) * CFrame.Angles(0, 0, math.rad(-2 - i * 0.4)), accent, if tier >= 4 then M.Neon else M.Metal, tier >= 4)
+		end
+		wedge(Vector3.new(0.08, 0.45, 0.18), CFrame.new(0.13, 5.0, 0) * CFrame.Angles(0, math.rad(90), 0), bladeColor, bladeMaterial)
+		tip, start = 4.95, 0.9
+	elseif weaponType == "dagger" then
+		grip(0.7, 0.1)
+		gem(CFrame.new(0, -0.32, 0), 0.24)
+		add(Vector3.new(0.9, 0.14, 0.28), CFrame.new(0, 0.55, 0) * CFrame.Angles(0, 0, math.rad(8)), trim, M.Metal)
+		blade(0.32, 1.35, 1.32, 0.1)
+		tip, start = 2.3, 0.7
+	elseif weaponType == "axe" then
+		add(Vector3.new(0.28, 3.4, 0.28), CFrame.new(0, 1.7, 0), WOOD, M.Wood)
+		grip(1.0, 0.1)
+		add(Vector3.new(0.36, 0.5, 0.36), CFrame.new(0, 2.85, 0), trim, M.Metal) -- anel
+		-- lâmina curva em leque (três peças) + contrapeso
+		add(Vector3.new(0.9, 0.9, 0.18), CFrame.new(0.55, 2.95, 0), bladeColor, bladeMaterial, tier >= 4)
+		wedge(Vector3.new(0.18, 0.7, 0.7), CFrame.new(1.1, 3.35, 0) * CFrame.Angles(0, math.rad(90), 0), bladeColor, bladeMaterial)
+		wedge(Vector3.new(0.18, 0.7, 0.7), CFrame.new(1.1, 2.55, 0) * CFrame.Angles(0, math.rad(90), math.rad(180)), bladeColor, bladeMaterial)
+		add(Vector3.new(0.12, 1.6, 0.2), CFrame.new(1.45, 2.95, 0), accent, if tier >= 4 then M.Neon else M.Metal, true)
+		wedge(Vector3.new(0.2, 0.5, 0.45), CFrame.new(-0.35, 2.95, 0) * CFrame.Angles(0, math.rad(-90), 0), trim, M.Metal)
+		tip, start = 3.7, 2.3
+	elseif weaponType == "hammer" then
+		add(Vector3.new(0.3, 3.4, 0.3), CFrame.new(0, 1.7, 0), WOOD, M.Wood)
+		grip(1.1, 0.1)
+		local head = add(Vector3.new(2.0, 1.3, 1.3), CFrame.new(0, 3.65, 0), bladeColor:Lerp(Color3.fromRGB(80, 80, 90), 0.4), M.Metal, false)
+		local _h = head
+		for _, side in { -1, 1 } do
+			add(Vector3.new(0.25, 1.45, 1.45), CFrame.new(side * 0.7, 3.65, 0), trim, M.Metal) -- bandas
+			add(Vector3.new(0.3, 1.0, 1.0), CFrame.new(side * 1.12, 3.65, 0), bladeColor, bladeMaterial, tier >= 4) -- faces
+		end
+		gem(CFrame.new(0, 3.65, -0.66), 0.35)
+		wedge(Vector3.new(0.5, 0.6, 0.5), CFrame.new(0, 4.6, 0), trim, M.Metal) -- ponta de cima
+		tip, start = 4.4, 2.9
+	elseif weaponType == "spear" then
+		add(Vector3.new(0.24, 6.6, 0.24), CFrame.new(0, 1.4, 0), WOOD, M.Wood)
+		for _, y in { -1.4, 0.1, 3.6 } do
+			add(Vector3.new(0.32, 0.25, 0.32), CFrame.new(0, y, 0), trim, M.Metal)
+		end
+		add(Vector3.new(0.35, 0.5, 0.35), CFrame.new(0, 4.75, 0), trim, M.Metal)
+		-- franja (borla) abaixo da ponta
+		for i = 0, 3 do
+			add(Vector3.new(0.08, 0.7, 0.08), CFrame.new(0, 4.3, 0) * CFrame.Angles(0, i * math.pi / 2, 0) * CFrame.new(0, 0, -0.18) * CFrame.Angles(math.rad(-12), 0, 0), Color3.fromRGB(200, 40, 40), M.Fabric)
+		end
+		blade(0.38, 0.9, 5.4, 0.1)
+		for _, side in { -1, 1 } do
+			wedge(Vector3.new(0.08, 0.5, 0.3), CFrame.new(side * 0.32, 5.05, 0) * CFrame.Angles(0, math.rad(side * 90), math.rad(180)), bladeColor, bladeMaterial)
+		end
+		tip, start = 6.2, 4.4
+	elseif weaponType == "staff" then
+		add(Vector3.new(0.3, 6, 0.3), CFrame.new(0, 1.5, 0), WOOD, M.Wood)
+		-- nós da madeira e anéis
+		for _, y in { -0.6, 1.4, 3.3 } do
+			add(Vector3.new(0.38, 0.2, 0.38), CFrame.new(0, y, 0), trim, M.Metal)
+		end
+		-- garras segurando o cristal
+		for i = 0, 3 do
+			add(Vector3.new(0.14, 1.2, 0.14), CFrame.new(0, 4.65, 0) * CFrame.Angles(0, i * math.pi / 2, 0) * CFrame.new(0, 0, -0.45) * CFrame.Angles(math.rad(-22), 0, 0), WOOD:Lerp(trim, 0.3), M.Wood)
+		end
+		local crystal = add(Vector3.new(0.75, 1.2, 0.75), CFrame.new(0, 5.0, 0) * CFrame.Angles(0, math.rad(45), 0), accent, M.Neon, true)
+		local _c = crystal
+		ball(1.35, CFrame.new(0, 5.0, 0), accent, M.ForceField, false)
+		tip, start = 5.5, 4.4
+	elseif weaponType == "bow" then
+		-- arco em segmentos curvos com pontas reforçadas
+		for _, side in { -1, 1 } do
+			for i = 0, 3 do
+				local t = i / 3
+				local y = side * (0.45 + t * 1.7)
+				local z = -0.15 - t * t * 0.55
+				add(Vector3.new(0.2, 0.62, 0.22), CFrame.new(0, y, z) * CFrame.Angles(math.rad(side * (8 + t * 30)), 0, 0), WOOD, M.Wood)
+			end
+			add(Vector3.new(0.26, 0.4, 0.26), CFrame.new(0, side * 2.3, -0.72), accent, if tier >= 4 then M.Neon else M.Metal, true)
+		end
+		add(Vector3.new(0.3, 0.9, 0.3), CFrame.new(0, 0, -0.08), Color3.fromRGB(45, 30, 22), M.Fabric) -- empunhadura
+		gem(CFrame.new(0, 0, -0.28), 0.22)
+		add(Vector3.new(0.04, 4.55, 0.04), CFrame.new(0, 0, 0.3), Color3.fromRGB(235, 235, 235), M.SmoothPlastic)
 		tip, start = 2.3, -2.3
 	end
 

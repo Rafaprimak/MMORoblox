@@ -147,15 +147,34 @@ function Props.oak(parent, ground, scale, rng)
 	local model = Instance.new("Model")
 	model.Name = "Carvalho"
 	local trunkHeight = (7 + rng:NextNumber() * 3) * scale
-	Props.column(model, ground * CFrame.new(0, -0.5, 0), trunkHeight + 0.5, 1.8 * scale, C.Wood:Lerp(C.DarkWood, rng:NextNumber() * 0.5), M.Wood)
-	local leafColor = C.Leaves:Lerp(Color3.fromRGB(110, 170, 60), rng:NextNumber() * 0.6)
-	local top = ground * CFrame.new(0, trunkHeight, 0)
-	Props.ball(model, top.Position + Vector3.new(0, 2 * scale, 0), 9 * scale, leafColor, M.Grass, { CanCollide = false })
-	for i = 1, 3 do
-		local angle = rng:NextNumber() * math.pi * 2
-		local offset = Vector3.new(math.cos(angle) * 3.2 * scale, rng:NextNumber(0, 2) * scale, math.sin(angle) * 3.2 * scale)
-		Props.ball(model, top.Position + offset, (5.5 + rng:NextNumber() * 2) * scale, leafColor:Lerp(Color3.new(0, 0, 0), 0.08 * i), M.Grass, { CanCollide = false })
+	local bark = C.Wood:Lerp(C.DarkWood, rng:NextNumber() * 0.5)
+	-- tronco afinando em 2 partes, levemente torto
+	local lean = CFrame.Angles(rng:NextNumber(-0.06, 0.06), 0, rng:NextNumber(-0.06, 0.06))
+	Props.column(model, ground * CFrame.new(0, -0.5, 0), trunkHeight * 0.55 + 0.5, 2.0 * scale, bark, M.Wood)
+	local upper = ground * CFrame.new(0, trunkHeight * 0.55, 0) * lean
+	Props.column(model, upper, trunkHeight * 0.5, 1.5 * scale, bark, M.Wood)
+	-- raízes
+	for i = 0, 2 do
+		local angle = i * math.pi * 2 / 3 + rng:NextNumber(0, 1)
+		part(model, { Name = "Raiz", Size = Vector3.new(0.8, 0.9, 2.4) * scale, CFrame = ground * CFrame.Angles(0, angle, 0) * CFrame.new(0, 0.2 * scale, -1.2 * scale) * CFrame.Angles(math.rad(-20), 0, 0), Color = bark, Material = M.Wood })
 	end
+	-- dois galhos
+	local top = upper * CFrame.new(0, trunkHeight * 0.45, 0)
+	for _, side in { -1, 1 } do
+		part(model, { Name = "Galho", Size = Vector3.new(0.6, 0.6, 3.4) * scale, CFrame = upper * CFrame.new(0, trunkHeight * 0.3, 0) * CFrame.Angles(0, side * 1.4 + rng:NextNumber(-0.3, 0.3), 0) * CFrame.Angles(math.rad(40), 0, 0) * CFrame.new(0, 0, -1.4 * scale), Color = bark, Material = M.Wood, CanCollide = false })
+	end
+	-- copa em três tons (sombra embaixo, luz em cima)
+	local leafColor = C.Leaves:Lerp(Color3.fromRGB(110, 170, 60), rng:NextNumber() * 0.6)
+	local dark = leafColor:Lerp(Color3.new(0, 0, 0), 0.18)
+	local light = leafColor:Lerp(Color3.fromRGB(200, 230, 120), 0.25)
+	Props.ball(model, top.Position + Vector3.new(0, 1.5 * scale, 0), 9 * scale, leafColor, M.Grass, { CanCollide = false })
+	for i = 1, 4 do
+		local angle = rng:NextNumber() * math.pi * 2
+		local low = i <= 2
+		local offset = Vector3.new(math.cos(angle) * 3.4 * scale, (if low then -0.6 else 1.6) * scale + rng:NextNumber(0, 1) * scale, math.sin(angle) * 3.4 * scale)
+		Props.ball(model, top.Position + offset, (5 + rng:NextNumber() * 2.2) * scale, if low then dark else leafColor, M.Grass, { CanCollide = false })
+	end
+	Props.ball(model, top.Position + Vector3.new(rng:NextNumber(-1, 1), 4.6, rng:NextNumber(-1, 1)) * scale, 4.6 * scale, light, M.Grass, { CanCollide = false })
 	model.Parent = parent
 	return model
 end
@@ -166,14 +185,17 @@ function Props.pine(parent, ground, scale, rng, snowy)
 	local trunkHeight = 3 * scale
 	Props.column(model, ground * CFrame.new(0, -0.5, 0), trunkHeight + 0.5, 1.4 * scale, C.DarkWood, M.Wood)
 	local green = Color3.fromRGB(40, 95, 55):Lerp(Color3.fromRGB(60, 120, 70), rng:NextNumber())
-	local layers = 4
+	local layers = 5
 	for i = 1, layers do
-		local diameter = (9 - i * 1.7) * scale
-		local y = trunkHeight + (i - 1) * 2.6 * scale
-		local layerColor = if snowy and i == layers then Color3.fromRGB(235, 240, 245) else green
-		Props.column(model, ground * CFrame.new(0, y, 0) * CFrame.Angles(0, i * 0.5, 0), 3 * scale, diameter, layerColor, if snowy and i == layers then M.Snow else M.Grass, { CanCollide = false })
+		local diameter = (9.5 - i * 1.55) * scale
+		local y = trunkHeight + (i - 1) * 2.2 * scale
+		local shade = if i % 2 == 0 then green:Lerp(Color3.new(0, 0, 0), 0.12) else green
+		local isSnow = snowy and i >= layers - 1
+		-- camada (disco) + aba mais fina embaixo para parecer um cone
+		Props.column(model, ground * CFrame.new(0, y, 0) * CFrame.Angles(0, i * 0.5, 0), 1.6 * scale, diameter, if isSnow then Color3.fromRGB(235, 240, 245) else shade, if isSnow then M.Snow else M.Grass, { CanCollide = false })
+		Props.column(model, ground * CFrame.new(0, y + 1.6 * scale, 0), 1.2 * scale, diameter * 0.72, if isSnow then Color3.fromRGB(240, 244, 248) else shade:Lerp(Color3.fromRGB(90, 150, 90), 0.15), if isSnow then M.Snow else M.Grass, { CanCollide = false })
 	end
-	Props.ball(model, (ground * CFrame.new(0, trunkHeight + layers * 2.6 * scale + 0.6, 0)).Position, 1.6 * scale, if snowy then Color3.fromRGB(240, 245, 250) else green, M.Grass, { CanCollide = false })
+	Props.ball(model, (ground * CFrame.new(0, trunkHeight + layers * 2.2 * scale + 0.6, 0)).Position, 1.5 * scale, if snowy then Color3.fromRGB(240, 245, 250) else green, M.Grass, { CanCollide = false })
 	model.Parent = parent
 	return model
 end
@@ -240,6 +262,15 @@ function Props.rock(parent, ground, scale, rng, color)
 			Color = color:Lerp(Color3.new(0, 0, 0), rng:NextNumber() * 0.15),
 			Material = M.Rock,
 		})
+		-- musgo em cima da pedra principal
+		if i == 1 and rng:NextNumber() < 0.45 then
+			part(model, { Name = "Musgo", Size = Vector3.new(size.X * 0.8, 0.25, size.Z * 0.8), CFrame = ground * CFrame.new(0, size.Y * 0.75, 0) * CFrame.Angles(0, rng:NextNumber(0, 3), 0), Color = Color3.fromRGB(80, 130, 60), Material = M.Grass, CanCollide = false })
+		end
+	end
+	-- pedrinhas em volta
+	for _ = 1, rng:NextInteger(0, 3) do
+		local pebble = rng:NextNumber(0.5, 1.0) * scale
+		part(model, { Name = "Pedrinha", Size = Vector3.new(pebble, pebble * 0.6, pebble), CFrame = ground * CFrame.new(rng:NextNumber(-3, 3) * scale, pebble * 0.2, rng:NextNumber(-3, 3) * scale) * CFrame.Angles(0, rng:NextNumber(0, 3), 0), Color = color:Lerp(Color3.new(0, 0, 0), 0.1), Material = M.Rock, CanCollide = false })
 	end
 	model.Parent = parent
 	return model
