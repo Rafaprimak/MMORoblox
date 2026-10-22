@@ -178,12 +178,6 @@ function PetService.init()
 			PlayerService.addBonus(bonus, Pets.stats(entry.id, entry.level))
 		end
 	end
-	PlayerService.ExtraSync = function(player, payload)
-		local data = DataService.get(player)
-		if data then
-			payload.pets = PetService.summary(data)
-		end
-	end
 end
 
 function PetService.onPlayerReady(player)

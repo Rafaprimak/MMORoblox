@@ -120,7 +120,11 @@ local function matches(objective, kind, target)
 	return true
 end
 
+-- Missão concluída (ProgressionService conta para conquistas e passe)
+QuestService.OnComplete = function(_player, _daily) end
+
 local function grantReward(player, reward, title, category)
+	QuestService.OnComplete(player, category == "daily")
 	Remotes.Notify:FireClient(player, { kind = "quest", title = title, category = category, reward = Quests.rewardText(reward) })
 	if reward.xp then
 		PlayerService.addXP(player, reward.xp)

@@ -153,12 +153,17 @@ function HUD.init(screen, callbacks)
 		{ "🐴 Montar", "H", function()
 			State.action("mount")
 		end },
+		{ "⭐ Jornada", "K", callbacks.onJourney, "journey" },
 		{ "🐾 Pets", "G", callbacks.onPets },
 		{ "⚙ Configurações", "P", callbacks.onSettings },
 	}
 	for i, entry in entries do
 		local button = UI.button({ Text = entry[1] .. "  [" .. entry[2] .. "]", Size = UDim2.fromOffset(150, 30), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
 		button.MouseButton1Click:Connect(entry[3])
+		if entry[4] then
+			refs.menuButtons = refs.menuButtons or {}
+			refs.menuButtons[entry[4]] = { button = button, text = button.Text }
+		end
 	end
 	refs.devPanel = UI.new("Frame", { Size = UDim2.fromOffset(150, 150), BackgroundTransparency = 1, LayoutOrder = 10, Visible = false, Parent = menu }, { UI.list(3) })
 	UI.label({ Text = "🧪 TESTE (só Studio)", Size = UDim2.fromOffset(150, 14), TextColor3 = UI.Colors.SubText, LayoutOrder = 0, Parent = refs.devPanel }, { UI.textStroke(1) })
@@ -450,6 +455,14 @@ function HUD.update(data)
 	end
 	updateTracker(data)
 	refs.devPanel.Visible = data.isStudio == true
+	-- aviso de recompensa para resgatar na Jornada
+	local journey = refs.menuButtons and refs.menuButtons.journey
+	if journey then
+		local progress = data.progress
+		local claim = progress ~= nil and (progress.login.canClaim or progress.pass.tier > progress.pass.claimed)
+		journey.button.Text = journey.text .. (if claim then "  ❗" else "")
+		journey.button.BackgroundColor3 = if claim then Color3.fromRGB(120, 95, 25) else UI.Colors.PanelLight
+	end
 end
 
 return HUD

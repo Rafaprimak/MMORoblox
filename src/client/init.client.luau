@@ -38,6 +38,7 @@ local Tutorial = require(script.Tutorial)
 local LockOn = require(script.LockOn)
 local PetRenderer = require(script.PetRenderer)
 local PetsWindow = require(script.PetsWindow)
+local JourneyWindow = require(script.JourneyWindow)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -66,6 +67,7 @@ Chest.init(screen)
 MapWindow.init(screen)
 SettingsWindow.init(screen)
 PetsWindow.init(screen)
+JourneyWindow.init(screen)
 PetRenderer.init()
 ClassSelect.init()
 Sky.init()
@@ -88,6 +90,7 @@ HUD.init(screen, {
 	onChest = Chest.toggle,
 	onSettings = SettingsWindow.toggle,
 	onPets = PetsWindow.toggle,
+	onJourney = JourneyWindow.toggle,
 	onAbility = function(slot)
 		local aim, point = Controller.getAim()
 		State.action("ability", slot, aim, point)
@@ -162,6 +165,8 @@ Remotes.Notify.OnClientEvent:Connect(function(notification)
 		Chest.reveal(notification.item, notification.chest)
 	elseif notification.kind == "pet" then
 		PetsWindow.announce(notification)
+	elseif notification.kind == "passTier" or notification.kind == "achievement" or notification.kind == "reward" then
+		JourneyWindow.notify(notification)
 	else
 		Popups.handle(notification)
 	end
@@ -282,6 +287,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		SettingsWindow.toggle()
 	elseif key == Enum.KeyCode.G then
 		PetsWindow.toggle()
+	elseif key == Enum.KeyCode.K then
+		JourneyWindow.toggle()
 	elseif key == Enum.KeyCode.B then
 		Chest.toggle()
 	end

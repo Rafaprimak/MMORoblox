@@ -3,8 +3,14 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local CollectionService = game:GetService("CollectionService")
+local RunService = game:GetService("RunService")
+
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
+local Progression = require(Shared.Progression)
+
+local UI = require(script.Parent.UI)
 
 local Auras = {}
 
@@ -71,18 +77,58 @@ local function refresh(player)
 	end
 end
 
+-- título em cima da cabeça (atributos "Title"/"TitleId")
+local function refreshTitle(player)
+	local character = player.Character
+	local head = character and character:FindFirstChild("Head")
+	if not head then
+		return
+	end
+	local old = head:FindFirstChild("TituloHunter")
+	local titleId = player:GetAttribute("TitleId")
+	local title = titleId and Progression.Titles[titleId]
+	if not title or titleId == "novato" then
+		if old then
+			old:Destroy()
+		end
+		return
+	end
+	local gui = old or UI.new("BillboardGui", { Name = "TituloHunter", Size = UDim2.fromOffset(220, 22), StudsOffset = Vector3.new(0, 3.1, 0), MaxDistance = 70, LightInfluence = 0, Adornee = head, Parent = head })
+	local label = gui:FindFirstChild("Texto") or UI.label({ Name = "Texto", Size = UDim2.fromScale(1, 1), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, Parent = gui }, { UI.textStroke(1.5) })
+	label.Text = "« " .. title.name .. " »"
+	label.TextColor3 = title.color
+	if title.rainbow then
+		CollectionService:AddTag(label, "RainbowText")
+	else
+		CollectionService:RemoveTag(label, "RainbowText")
+	end
+end
+
 local function watch(player)
 	player.CharacterAdded:Connect(function(character)
 		character:WaitForChild("HumanoidRootPart", 10)
+		character:WaitForChild("Head", 10)
 		refresh(player)
+		refreshTitle(player)
 	end)
 	player:GetAttributeChangedSignal("Level"):Connect(function()
 		refresh(player)
 	end)
+	player:GetAttributeChangedSignal("TitleId"):Connect(function()
+		refreshTitle(player)
+	end)
 	refresh(player)
+	refreshTitle(player)
 end
 
 function Auras.init()
+	-- títulos arco-íris
+	RunService.Heartbeat:Connect(function()
+		local color = Color3.fromHSV((os.clock() * 0.25) % 1, 0.7, 1)
+		for _, label in CollectionService:GetTagged("RainbowText") do
+			label.TextColor3 = color
+		end
+	end)
 	for _, player in Players:GetPlayers() do
 		watch(player)
 	end

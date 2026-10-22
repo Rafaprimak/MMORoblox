@@ -29,13 +29,19 @@ local NPCService = require(script.NPCService)
 local DayNightService = require(script.DayNightService)
 local PerkService = require(script.PerkService)
 local PetService = require(script.PetService)
+local ProgressionService = require(script.ProgressionService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
 workspace:SetAttribute("WorldProgress", 0)
 
 -- ===================== LIGAÇÕES ENTRE SISTEMAS =====================
-local questHook = QuestService.event
+-- todo evento de missão também conta para conquistas e Passe do Hunter
+local function questHook(player, kind, target, amount)
+	QuestService.event(player, kind, target, amount)
+	ProgressionService.track(player, kind, target, amount)
+end
+QuestService.OnComplete = ProgressionService.onQuestDone
 PlayerService.QuestHook = questHook
 PlayerService.QuestSummary = QuestService.summary
 PlayerService.OnDamaged = TravelService.onDamaged
@@ -60,6 +66,13 @@ TravelService.QuestHook = questHook
 NPCService.QuestHook = questHook
 PetService.QuestHook = questHook
 PetService.init()
+PlayerService.ExtraSync = function(player, payload)
+	local data = DataService.get(player)
+	if data then
+		payload.pets = PetService.summary(data)
+		payload.progress = ProgressionService.summary(player)
+	end
+end
 EnemyService.FireProjectile = ProjectileService.fire
 
 SkillService.OnChanged = function(player, leveled)
@@ -113,6 +126,7 @@ EnemyService.OnKilled = function(rec, contributors)
 
 		LootService.rollMaterials(player, def.drops, if rec.elite then 2 else 1)
 		PetService.addXP(player, math.ceil(def.xp * 0.5) + 1)
+		ProgressionService.onKill(player, rec)
 		PetService.rollDrop(player, rec)
 		local rolls = (def.equipDrops or 1) + (if rec.elite then 1 else 0)
 		for _ = 1, rolls do
@@ -207,6 +221,12 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return CraftingService.upgrade(player, a)
 	elseif action == "reforge" then
 		return CraftingService.reforge(player, a)
+	elseif action == "claimLogin" then
+		return ProgressionService.claimLogin(player)
+	elseif action == "claimPass" then
+		return ProgressionService.claimPass(player)
+	elseif action == "setTitle" then
+		return ProgressionService.setTitle(player, a)
 	elseif action == "buyEgg" then
 		return PetService.buyEgg(player, a)
 	elseif action == "equipPet" then
@@ -264,6 +284,7 @@ local function onPlayerAdded(player)
 	end
 	QuestService.setup(player)
 	PetService.onPlayerReady(player)
+	ProgressionService.onPlayerReady(player)
 	player.CharacterAdded:Connect(function(character)
 		player:SetAttribute("Mounted", false)
 		local humanoid = character:WaitForChild("Humanoid", 10)
