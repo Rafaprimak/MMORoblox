@@ -248,6 +248,7 @@ local function lightAttack()
 	lockUntil = now + duration
 	lastMoveEnd = lockUntil
 	Animator.play(character, move.pose, duration, true)
+	Sounds.play(if move.pose == "bow" then "bow" else "swing", 0.9 + math.random() * 0.25, 0.3)
 	Controller.onAttack(duration)
 	State.action("attack", comboIndex, aim)
 end
@@ -307,6 +308,7 @@ local function releaseHeavy()
 	lockUntil = now + duration
 	lastMoveEnd = 0 -- o pesado encerra o combo
 	Animator.play(character, move.pose, duration, true)
+	Sounds.play("swingHeavy", 0.8, 0.45)
 	State.action("heavy", aim)
 end
 
@@ -346,7 +348,7 @@ local function dodge()
 	Controller.dash(direction, Config.DodgeSpeed, Config.DodgeDuration)
 	Animator.play(character, "dodge", Config.DodgeDuration + 0.1)
 	Controller.onEvent("dodge")
-	Sounds.play("swing", 0.7, 0.3)
+	Sounds.play("dodge", 0.9, 0.35)
 	State.action("dodge")
 end
 
@@ -382,6 +384,7 @@ function Controller.cast(_abilityId, pose)
 	local character = parts()
 	if character and pose then
 		Animator.play(character, pose, 0.6, pose ~= "roar" and pose ~= "castBig")
+		Sounds.play("cast", 1, 0.4)
 	end
 end
 

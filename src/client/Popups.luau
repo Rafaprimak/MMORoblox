@@ -157,7 +157,7 @@ function Popups.loot(item)
 		Fx.registerRainbow(cardStroke, "Color")
 	end
 	UI.tween(card, 0.35, { Position = UDim2.fromOffset(0, 0) }, Enum.EasingStyle.Back)
-	Sounds.play("ping", 0.75 + rarity.order * 0.12, 0.35 + rarity.order * 0.05)
+	Sounds.play(if rarity.order >= 4 then "lootRare" else "loot", 0.75 + rarity.order * 0.12, 0.35 + rarity.order * 0.05)
 	if rarity.order >= 4 then
 		Popups.burst(rarity.upper .. "!", rarity.color, item.name)
 	end
@@ -228,8 +228,8 @@ function Popups.handle(notification)
 		Popups.pickup(notification.id, notification.count)
 	elseif kind == "levelup" then
 		Popups.burst("NÍVEL " .. notification.level .. "!", UI.Colors.Gold, "+1 ponto de habilidade (tecla C)")
-		Sounds.play("ping", 1.5, 0.6)
-		task.delay(0.12, Sounds.play, "ping", 2, 0.6)
+		Sounds.play("levelup", 1, 0.7)
+		task.delay(0.12, Sounds.play, "ping", 2, 0.4)
 		Fx.levelUp()
 	elseif kind == "rankup" then
 		local rank = Config.getRankByName(notification.rank)
@@ -252,8 +252,8 @@ function Popups.handle(notification)
 		end
 	elseif kind == "quest" then
 		Popups.banner("✅ " .. (QUEST_LABELS[notification.category] or "MISSÃO") .. " COMPLETA: " .. notification.title, notification.reward, UI.Colors.Green, 4.5)
-		Sounds.play("ping", 1.3, 0.5)
-		task.delay(0.15, Sounds.play, "ping", 1.6, 0.5)
+		Sounds.play("quest", 1, 0.6)
+		task.delay(0.15, Sounds.play, "ping", 1.6, 0.4)
 	elseif kind == "questAccepted" then
 		Popups.banner("📜 Nova missão: " .. notification.title, "Acompanhe no canto da tela (J para o diário)", UI.Colors.Gold, 3)
 	elseif kind == "questReady" then

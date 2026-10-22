@@ -1,28 +1,27 @@
--- Sons do jogo. Cada som tem um "id" (cole aqui um rbxassetid://... da Creator Store para trocar)
--- e um "reserva" com um dos poucos arquivos que ainda vêm dentro do Roblox (rbxasset://sounds/...).
--- O Roblox removeu os sons antigos (swordslash.wav etc.), então sem IDs próprios o jogo fica quase mudo.
+-- Sons do jogo. Os IDs ficam no catálogo compartilhado (módulo SoundIds): cole lá os IDs da Creator Store.
+-- Na abertura, Sounds.preload() testa cada ID; os que falharem usam a "reserva" (sons internos do Roblox).
 local SoundService = game:GetService("SoundService")
+local ContentProvider = game:GetService("ContentProvider")
 local Debris = game:GetService("Debris")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local SoundIds = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("SoundIds"))
 
 local Prefs = require(script.Parent.Prefs)
 
 local Sounds = {}
 
-Sounds.List = {
-	ping = { id = "", reserva = "rbxasset://sounds/volume_slider.ogg" }, -- interface, notificações
-	crit = { id = "", reserva = "rbxasset://sounds/action_jump_land.mp3" }, -- impacto forte
-	swing = { id = "", reserva = "rbxasset://sounds/action_jump.mp3" }, -- golpe no ar
-	equip = { id = "", reserva = "rbxasset://sounds/action_get_up.mp3" }, -- equipar, escolher classe
-	explosion = { id = "", reserva = "rbxasset://sounds/impact_explosion_03.mp3" }, -- explosões, pancadas
-	splash = { id = "", reserva = "rbxasset://sounds/impact_water.mp3" }, -- água
-}
+local failed = {} -- [assetId] = true quando o ID não carregou
 
 local function resolve(name)
-	local entry = Sounds.List[name]
+	local entry = SoundIds.Effects[name]
 	if not entry then
 		return nil
 	end
-	return if entry.id ~= "" then entry.id else entry.reserva
+	if entry.id ~= "" and not failed[entry.id] then
+		return entry.id
+	end
+	return if entry.reserva ~= "" then entry.reserva else nil
 end
 
 local function make(name, pitch, volume, parent)
@@ -37,7 +36,7 @@ local function make(name, pitch, volume, parent)
 	sound.Volume = (volume or 0.5) * master
 	sound.Parent = parent
 	sound:Play()
-	Debris:AddItem(sound, 4)
+	Debris:AddItem(sound, 6)
 	return sound
 end
 
@@ -54,6 +53,46 @@ function Sounds.playAt(part, name, pitch, volume)
 	if sound then
 		sound.RollOffMaxDistance = 80
 	end
+end
+
+-- ID utilizável de um loop (ambiente/música) ou nil
+function Sounds.loopId(category, name)
+	local list = SoundIds[category]
+	local entry = list and list[name]
+	if entry and entry.id ~= "" and not failed[entry.id] then
+		return entry.id
+	end
+	return nil
+end
+
+-- Testa todos os IDs preenchidos (em segundo plano). IDs quebrados passam a usar a reserva.
+function Sounds.preload()
+	task.spawn(function()
+		local list = {}
+		for _, category in { SoundIds.Effects, SoundIds.Ambience, SoundIds.Music } do
+			for _, entry in category do
+				if entry.id ~= "" then
+					local sound = Instance.new("Sound")
+					sound.SoundId = entry.id
+					table.insert(list, sound)
+				end
+			end
+		end
+		if #list == 0 then
+			return
+		end
+		pcall(function()
+			ContentProvider:PreloadAsync(list, function(assetId, status)
+				if status ~= Enum.AssetFetchStatus.Success then
+					failed[assetId] = true
+					warn("[Sons] Não carregou: " .. tostring(assetId) .. " (usando a reserva)")
+				end
+			end)
+		end)
+		for _, sound in list do
+			sound:Destroy()
+		end
+	end)
 end
 
 return Sounds

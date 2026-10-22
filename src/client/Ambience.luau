@@ -1,0 +1,86 @@
+-- Som ambiente e música em loop, trocando com crossfade pela região, pela noite e perto de chefes.
+-- Os IDs vêm do catálogo SoundIds (Ambience/Music). Sem ID preenchido, fica em silêncio.
+local Players = game:GetService("Players")
+local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Shared = ReplicatedStorage:WaitForChild("Shared")
+local World = require(Shared.World)
+local SoundIds = require(Shared.SoundIds)
+
+local Sounds = require(script.Parent.Sounds)
+local Prefs = require(script.Parent.Prefs)
+local EnemyRenderer = require(script.Parent.EnemyRenderer)
+
+local Ambience = {}
+
+local FADE = 2.5
+local channels = {} -- [canal] = { sound, id }
+
+local function baseVolume(channel)
+	if channel == "music" then
+		return 0.35 * (Prefs.get("musicVolume") or 0.5)
+	end
+	return 0.45 * (Prefs.get("volume") or 1)
+end
+
+-- troca o som de um canal com crossfade (id nil = silêncio)
+local function setChannel(channel, id)
+	local current = channels[channel]
+	if current and current.id == id then
+		current.sound.Volume = baseVolume(channel)
+		return
+	end
+	if current then
+		local old = current.sound
+		TweenService:Create(old, TweenInfo.new(FADE), { Volume = 0 }):Play()
+		task.delay(FADE + 0.1, function()
+			old:Destroy()
+		end)
+		channels[channel] = nil
+	end
+	if not id then
+		return
+	end
+	local sound = Instance.new("Sound")
+	sound.Name = "Loop_" .. channel
+	sound.SoundId = id
+	sound.Looped = true
+	sound.Volume = 0
+	sound.Parent = SoundService
+	sound:Play()
+	TweenService:Create(sound, TweenInfo.new(FADE), { Volume = baseVolume(channel) }):Play()
+	channels[channel] = { sound = sound, id = id }
+end
+
+function Ambience.init()
+	local player = Players.LocalPlayer
+	task.spawn(function()
+		while true do
+			task.wait(1)
+			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+			if root then
+				local region = World.regionName(root.Position.X, root.Position.Z)
+				local night = workspace:GetAttribute("Night") == true
+				local ambienceKey = SoundIds.RegionAmbience[region] or "campo"
+				setChannel("ambience", Sounds.loopId("Ambience", ambienceKey))
+				setChannel("night", if night then Sounds.loopId("Ambience", "noite") else nil)
+				-- música: chefe > noite > vila > exploração
+				local musicKey
+				if EnemyRenderer.nearestBoss(root.Position, 130) then
+					musicKey = "chefe"
+				elseif night then
+					musicKey = "noite"
+				elseif region == "Vila Aurora" then
+					musicKey = "vila"
+				else
+					musicKey = "exploracao"
+				end
+				setChannel("music", Sounds.loopId("Music", musicKey) or (if musicKey == "noite" then Sounds.loopId("Music", "exploracao") else nil))
+			end
+		end
+	end)
+end
+
+return Ambience

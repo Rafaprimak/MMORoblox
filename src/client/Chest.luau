@@ -191,7 +191,8 @@ function Chest.reveal(item, chestId)
 	local scale = resultPanel:FindFirstChildOfClass("UIScale")
 	scale.Scale = 1.4
 	UI.tween(scale, 0.4, { Scale = 1 }, Enum.EasingStyle.Back)
-	Sounds.play("ping", 0.6 + rarity.order * 0.15, 0.8)
+	Sounds.play("chest", 1, 0.7)
+	Sounds.play(if rarity.order >= 4 then "lootRare" else "loot", 0.6 + rarity.order * 0.15, 0.8)
 	if rarity.order >= 4 then
 		Sounds.play("crit", 0.8, 0.6)
 		Fx.shake(0.25 + rarity.order * 0.05, 0.2 + rarity.order * 0.12)

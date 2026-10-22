@@ -75,10 +75,13 @@ local function toggle(parent, order, title, subtitle, key)
 end
 
 function SettingsWindow.init(screen)
-	win = Window.create(screen, { title = "⚙ Configurações", width = 560, height = 470, name = "Configuracoes" })
+	win = Window.create(screen, { title = "⚙ Configurações", width = 560, height = 530, name = "Configuracoes" })
 	local list = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = win.content }, { UI.list(6) })
 	local refreshers = {
 		stepper(list, 1, "Volume dos efeitos", "Golpes, interface e avisos", "volume", 0.1, 0, 1, function(v)
+			return ("%d%%"):format(math.floor(v * 100 + 0.5))
+		end),
+		stepper(list, 2, "Volume da música", "Música e ambiente de cada região", "musicVolume", 0.1, 0, 1, function(v)
 			return ("%d%%"):format(math.floor(v * 100 + 0.5))
 		end),
 		stepper(list, 2, "Sensibilidade da câmera", "Velocidade ao girar com o mouse", "sensitivity", 0.1, 0.2, 3, function(v)

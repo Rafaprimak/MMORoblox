@@ -259,18 +259,63 @@ function builders.training(parent, npc)
 	return model
 end
 
-local function horse(parent, cf, color)
+-- Cavalo blocado detalhado. Partes que se mexem ficam em grupos (Model) com uma peça principal:
+-- "PernaFL/FR/BL/BR" (principal "Perna"), "Cabeca" (principal "Pescoco") e "Cauda" (principal "Cauda").
+-- Na montaria o servidor liga cada grupo ao "Corpo" com Motor6D e o cliente anima o galope.
+local function horse(parent, cf, color, saddle)
 	local model = Instance.new("Model")
 	model.Name = "Cavalo"
-	local dark = color:Lerp(Color3.new(0, 0, 0), 0.4)
-	part(model, { Name = "Corpo", Size = Vector3.new(2, 2, 4.4), CFrame = cf * CFrame.new(0, 3.4, 0), Color = color })
-	part(model, { Name = "Pescoco", Size = Vector3.new(1.2, 2.4, 1.2), CFrame = cf * CFrame.new(0, 4.8, -2.2) * CFrame.Angles(math.rad(-30), 0, 0), Color = color })
-	part(model, { Name = "Cabeca", Size = Vector3.new(1.1, 1.1, 2.2), CFrame = cf * CFrame.new(0, 5.8, -3.2), Color = color })
-	part(model, { Name = "Crina", Size = Vector3.new(0.4, 2.4, 0.6), CFrame = cf * CFrame.new(0, 5.2, -1.8) * CFrame.Angles(math.rad(-30), 0, 0), Color = dark })
-	part(model, { Name = "Cauda", Size = Vector3.new(0.5, 2.2, 0.5), CFrame = cf * CFrame.new(0, 3.2, 2.4) * CFrame.Angles(math.rad(25), 0, 0), Color = dark })
-	for _, x in { -0.65, 0.65 } do
-		for _, z in { -1.6, 1.6 } do
-			part(model, { Name = "Perna", Size = Vector3.new(0.55, 2.6, 0.55), CFrame = cf * CFrame.new(x, 1.3, z), Color = color })
+	local dark = color:Lerp(Color3.new(0, 0, 0), 0.45)
+	local light = color:Lerp(Color3.new(1, 1, 1), 0.25)
+	local hoofColor = Color3.fromRGB(45, 38, 32)
+	local function add(group, name, size, offset, partColor, material, shape)
+		return part(group, { Name = name, Size = size, CFrame = cf * offset, Color = partColor, Material = material or M.SmoothPlastic, Shape = shape })
+	end
+	local function group(name)
+		local g = Instance.new("Model")
+		g.Name = name
+		g.Parent = model
+		return g
+	end
+	-- tronco
+	add(model, "Corpo", Vector3.new(2.2, 2.2, 4.4), CFrame.new(0, 3.6, 0), color)
+	add(model, "Peito", Vector3.new(2.1, 2.0, 1.2), CFrame.new(0, 3.55, -2.3) * CFrame.Angles(math.rad(-12), 0, 0), color)
+	add(model, "Garupa", Vector3.new(2.35, 2.1, 1.6), CFrame.new(0, 3.75, 1.9), color)
+	add(model, "Barriga", Vector3.new(1.8, 0.5, 3.4), CFrame.new(0, 2.45, 0), light)
+	-- cabeça e pescoço
+	local head = group("Cabeca")
+	add(head, "Pescoco", Vector3.new(1.2, 2.6, 1.35), CFrame.new(0, 5.0, -2.55) * CFrame.Angles(math.rad(-35), 0, 0), color)
+	add(head, "Cranio", Vector3.new(1.15, 1.15, 1.6), CFrame.new(0, 6.35, -3.35) * CFrame.Angles(math.rad(12), 0, 0), color)
+	add(head, "Focinho", Vector3.new(0.95, 0.85, 1.1), CFrame.new(0, 6.0, -4.3) * CFrame.Angles(math.rad(12), 0, 0), light)
+	add(head, "Narina", Vector3.new(0.8, 0.2, 0.2), CFrame.new(0, 6.0, -4.86), dark)
+	for _, x in { -0.32, 0.32 } do
+		add(head, "Orelha", Vector3.new(0.25, 0.65, 0.22), CFrame.new(x, 7.15, -3.05) * CFrame.Angles(math.rad(-10), 0, math.rad(x > 0 and -8 or 8)), color)
+		add(head, "Olho", Vector3.new(0.12, 0.22, 0.22), CFrame.new(x * 1.85, 6.5, -3.65), Color3.fromRGB(20, 20, 25))
+	end
+	add(head, "Crina", Vector3.new(0.38, 3.0, 0.75), CFrame.new(0, 5.55, -2.15) * CFrame.Angles(math.rad(-35), 0, 0), dark, M.Fabric)
+	add(head, "Topete", Vector3.new(0.6, 0.45, 0.7), CFrame.new(0, 6.95, -3.35), dark, M.Fabric)
+	if saddle then
+		add(head, "Redea", Vector3.new(1.2, 0.15, 0.15), CFrame.new(0, 6.0, -4.0), Color3.fromRGB(70, 40, 25))
+	end
+	-- pernas (coxa, canela e casco)
+	for _, leg in { { "PernaFL", -0.65, -1.65 }, { "PernaFR", 0.65, -1.65 }, { "PernaBL", -0.68, 1.75 }, { "PernaBR", 0.68, 1.75 } } do
+		local g = group(leg[1])
+		local x, z = leg[2], leg[3]
+		add(g, "Perna", Vector3.new(0.62, 1.7, 0.7), CFrame.new(x, 2.45, z), color)
+		add(g, "Canela", Vector3.new(0.48, 1.35, 0.5), CFrame.new(x, 1.0, z), color)
+		add(g, "Casco", Vector3.new(0.6, 0.35, 0.65), CFrame.new(x, 0.18, z - 0.03), hoofColor)
+	end
+	-- cauda
+	local tail = group("Cauda")
+	add(tail, "Cauda", Vector3.new(0.5, 2.2, 0.55), CFrame.new(0, 3.6, 2.85) * CFrame.Angles(math.rad(28), 0, 0), dark, M.Fabric)
+	add(tail, "Ponta", Vector3.new(0.62, 0.9, 0.62), CFrame.new(0, 2.6, 3.35) * CFrame.Angles(math.rad(28), 0, 0), dark, M.Fabric)
+	-- sela
+	if saddle then
+		add(model, "Manta", Vector3.new(2.5, 0.15, 2.4), CFrame.new(0, 4.73, 0.1), Color3.fromRGB(40, 70, 140), M.Fabric)
+		add(model, "Sela", Vector3.new(2.25, 0.45, 1.9), CFrame.new(0, 4.95, 0.1), Color3.fromRGB(110, 55, 30))
+		add(model, "Arcao", Vector3.new(1.0, 0.5, 0.35), CFrame.new(0, 5.3, -0.75), Color3.fromRGB(90, 45, 25))
+		for _, x in { -1.2, 1.2 } do
+			add(model, "Estribo", Vector3.new(0.12, 1.4, 0.12), CFrame.new(x, 4.1, 0.1), Color3.fromRGB(60, 60, 65), M.Metal)
 		end
 	end
 	model.Parent = parent

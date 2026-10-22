@@ -70,14 +70,7 @@ function TravelService.mount(player)
 	humanoid.HipHeight = hipHeight + raise
 	local model = Instance.new("Model")
 	model.Name = "Montaria"
-	local horseModel = buildHorse(model, CFrame.new(), Color3.fromRGB(120, 80, 50))
-	-- sela
-	local saddle = Instance.new("Part")
-	saddle.Size = Vector3.new(2.2, 0.4, 2)
-	saddle.Color = Color3.fromRGB(140, 40, 40)
-	saddle.Material = Enum.Material.Fabric
-	saddle.CFrame = CFrame.new(0, 4.6, 0)
-	saddle.Parent = horseModel
+	local horseModel = buildHorse(model, CFrame.new(), Color3.fromRGB(120, 80, 50), true)
 	local rootHeight = hipHeight + raise + root.Size.Y / 2
 	local offset = CFrame.new(0, -rootHeight, 0.4)
 	for _, p in model:GetDescendants() do
@@ -88,6 +81,39 @@ function TravelService.mount(player)
 			p.CanTouch = false
 			p.Massless = true
 			p.CFrame = root.CFrame * offset * p.CFrame
+		end
+	end
+	-- juntas: grupos (pernas, cabeça, cauda) presos ao corpo com Motor6D para o cliente animar o galope
+	local body = horseModel:FindFirstChild("Corpo")
+	local JOINT_MAIN = { Cabeca = "Pescoco", Cauda = "Cauda" }
+	for _, g in horseModel:GetChildren() do
+		if g:IsA("Model") then
+			local mainName = JOINT_MAIN[g.Name] or "Perna"
+			local main = g:FindFirstChild(mainName)
+			if main and body then
+				-- ponto de giro: topo da perna/cauda, base do pescoço
+				local pivot = if g.Name == "Cabeca" then main.CFrame * CFrame.new(0, -main.Size.Y / 2, 0) else main.CFrame * CFrame.new(0, main.Size.Y / 2, 0)
+				local motor = Instance.new("Motor6D")
+				motor.Name = "Junta" .. g.Name
+				motor.Part0 = body
+				motor.Part1 = main
+				motor.C0 = body.CFrame:ToObjectSpace(pivot)
+				motor.C1 = main.CFrame:ToObjectSpace(pivot)
+				motor.Parent = body
+				for _, other in g:GetDescendants() do
+					if other:IsA("BasePart") and other ~= main then
+						local weld = Instance.new("WeldConstraint")
+						weld.Part0 = main
+						weld.Part1 = other
+						weld.Parent = other
+					end
+				end
+			end
+		end
+	end
+	-- o resto (tronco, sela) fica soldado na raiz do jogador
+	for _, p in horseModel:GetChildren() do
+		if p:IsA("BasePart") then
 			local weld = Instance.new("WeldConstraint")
 			weld.Part0 = root
 			weld.Part1 = p

@@ -39,6 +39,8 @@ local LockOn = require(script.LockOn)
 local PetRenderer = require(script.PetRenderer)
 local PetsWindow = require(script.PetsWindow)
 local JourneyWindow = require(script.JourneyWindow)
+local Ambience = require(script.Ambience)
+local Sounds = require(script.Sounds)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -71,6 +73,8 @@ JourneyWindow.init(screen)
 PetRenderer.init()
 ClassSelect.init()
 Sky.init()
+Sounds.preload()
+Ambience.init()
 Auras.init()
 
 local function toggleInventory()
@@ -177,7 +181,11 @@ local FX_HANDLERS = {
 	death = Fx.death,
 	gold = Fx.gold,
 	xp = Fx.xp,
-	hurt = Fx.hurt,
+	hurt = function(amount, source)
+		Fx.hurt(amount, source)
+		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		Animator.flinch(player.Character, if humanoid then 0.4 + (amount or 0) / math.max(humanoid.MaxHealth, 1) * 4 else 1)
+	end,
 	evaded = Fx.evaded,
 	telegraph = Fx.telegraph,
 	explosion = Fx.explosion,

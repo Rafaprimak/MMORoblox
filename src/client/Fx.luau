@@ -157,11 +157,12 @@ function Fx.hit(root, amount, crit, attacker, color, tag, element)
 		if numbers then
 			Fx.floatingText(position, UI.formatNumber(amount), color or Color3.new(1, 1, 1), 32, 0.7)
 		end
-		Sounds.play("swing", 1.4 + math.random() * 0.3, 0.12)
+		Sounds.play("hit", 1.1 + math.random() * 0.3, 0.25)
 	end
 end
 
 function Fx.gold(position, amount)
+	Sounds.play("coin", 1.6 + math.random() * 0.2, 0.25)
 	Fx.floatingText(position + Vector3.new(0, 1.5, 0), "+" .. amount .. " 💰", UI.Colors.Gold, 26, 1)
 end
 
@@ -265,7 +266,7 @@ function Fx.parry(who, sourcePosition)
 	Debris:AddItem(flash, 0.3)
 	if who == player then
 		Fx.floatingText(root.Position + Vector3.new(0, 4, 0), "APARADO!", Color3.fromRGB(255, 230, 100), 44, 0.9)
-		Sounds.play("crit", 1.7, 0.6)
+		Sounds.play("parry", 1.2, 0.7)
 		task.delay(0.05, Sounds.play, "ping", 2.4, 0.5)
 		Fx.shake(0.15, 0.4)
 		fovPunch(8, 0.4)
@@ -282,7 +283,7 @@ function Fx.blocked(who, _sourcePosition)
 	burst(root.Position + root.CFrame.LookVector * 2 + Vector3.new(0, 1, 0), Color3.fromRGB(200, 200, 210), 6, 18, 0.3)
 	if who == player then
 		Fx.floatingText(root.Position + Vector3.new(0, 3.5, 0), "Bloqueado", Color3.fromRGB(200, 200, 215), 24, 0.6)
-		Sounds.play("swing", 0.6, 0.35)
+		Sounds.play("block", 0.9, 0.45)
 		Fx.shake(0.08, 0.15)
 	end
 end
@@ -339,6 +340,7 @@ function Fx.stagger(root, attacker)
 end
 
 function Fx.death(position, color, scale)
+	Sounds.play("enemyDeath", 0.9 + math.random() * 0.2, 0.35)
 	scale = scale or 1
 	local flash = effectPart({ Shape = Enum.PartType.Ball, Size = Vector3.one, CFrame = CFrame.new(position), Color = color, Material = Enum.Material.Neon, Transparency = 0.2 })
 	TweenService:Create(flash, TweenInfo.new(0.3), { Size = Vector3.one * 8 * scale, Transparency = 1 }):Play()
@@ -403,7 +405,9 @@ function Fx.explosion(position, radius, style)
 		Fx.shake(0.25, math.clamp(radius / 20, 0.15, 0.7))
 	end
 	if style == "earth" or style == "fire" then
-		Sounds.play("explosion", 1 + math.random() * 0.2, 0.35)
+		Sounds.play(if style == "fire" then "fire" else "explosion", 1 + math.random() * 0.2, 0.35)
+	elseif style == "ice" or style == "holy" then
+		Sounds.play(style, 1 + math.random() * 0.2, 0.35)
 	end
 end
 
@@ -522,7 +526,7 @@ function Fx.heal(target, amount)
 		Fx.floatingText(root.Position + Vector3.new(0, 3, 0), "+" .. UI.formatNumber(amount), Color3.fromRGB(120, 255, 140), 30, 0.9)
 	end
 	if target == player then
-		Sounds.play("ping", 1.8, 0.3)
+		Sounds.play("heal", 1, 0.4)
 	end
 end
 

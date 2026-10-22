@@ -129,6 +129,7 @@ Config.NightDropBonus = 0.25 -- chance extra de equipamento à noite
 -- Configurações do jogador (valores padrão; o jogador muda na janela de Configurações)
 Config.DefaultSettings = {
 	volume = 0.8, -- 0 a 1
+	musicVolume = 0.5, -- 0 a 1
 	sensitivity = 1, -- 0.2 a 3
 	damageNumbers = true,
 	shake = true,
