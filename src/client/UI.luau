@@ -106,6 +106,12 @@ function UI.button(props, children)
 	end
 	local button = UI.new("TextButton", merged, children)
 	UI.corner(8).Parent = button
+	-- brilho de cima para baixo (mantém a cor do botão), borda escura suave e contorno no texto
+	UI.new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(180, 180, 192)), Rotation = 90, Parent = button })
+	if not button:FindFirstChildOfClass("UIStroke") then
+		UI.new("UIStroke", { Color = Color3.new(0, 0, 0), Thickness = 1.5, Transparency = 0.6, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = button })
+	end
+	button.TextStrokeTransparency = 0.65
 	UI.new("UIPadding", {
 		PaddingLeft = UDim.new(0, 8),
 		PaddingRight = UDim.new(0, 8),
@@ -122,6 +128,9 @@ function UI.button(props, children)
 	end
 	button.MouseButton1Up:Connect(release)
 	button.MouseLeave:Connect(release)
+	button.MouseEnter:Connect(function()
+		TweenService:Create(scale, TweenInfo.new(0.12, Enum.EasingStyle.Quad), { Scale = 1.04 }):Play()
+	end)
 	return button
 end
 

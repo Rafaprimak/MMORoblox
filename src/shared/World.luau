@@ -162,7 +162,8 @@ function World.surfaceMaterial(x, z, h, slope, w)
 		elseif paving then
 			return M.Cobblestone
 		end
-		return if n > 0.3 then M.LeafyGrass else M.Grass
+		-- LeafyGrass não tem as folhinhas animadas, que atravessavam pisos e escondiam pés e móveis
+		return M.LeafyGrass
 	end
 	if road < World.RoadWidth then
 		return if w.town > 0.5 then M.Cobblestone else M.Ground

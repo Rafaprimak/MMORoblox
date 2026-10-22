@@ -240,14 +240,13 @@ local function characterRoot(target)
 end
 
 -- "Soco" no campo de visão (sensação de impacto)
+-- (aplicado pelo Juice junto com a abertura da câmera na corrida)
+Fx.fovKick = nil
 local function fovPunch(amount, duration)
 	if not Prefs.get("shake") then
 		return
 	end
-	local camera = workspace.CurrentCamera
-	local base = 70
-	camera.FieldOfView = base - amount
-	TweenService:Create(camera, TweenInfo.new(duration or 0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { FieldOfView = base }):Play()
+	Fx.fovKick = { amount = amount, start = os.clock(), duration = duration or 0.35 }
 end
 
 function Fx.parry(who, sourcePosition)

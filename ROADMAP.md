@@ -55,6 +55,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Forja, alquimia, torre do encantador e empório viram construções com interior (NPCs lá dentro); câmera Invisicam (M)
 - 🧪 Vila reformulada: ruas, calçadas, praça, vielas e becos; casas alinhadas sem sobreposição; chão da vila alinhado à grade de voxels (NPCs e bancos não afundam mais) (M)
 - 🧪 Vila mais espaçosa (ruas de 12, praça de 52, jardins na frente das casas), traçado em `TownPlan`, chão sem grama embaixo do calçamento, lojas temáticas (ferraria de tijolos com pátio de trabalho, chalé de alquimia com horta, empório com piso quadriculado), pisos variados nas casas, móveis na altura certa (M)
+- 🧪 Polimento: terreno sem grama animada na vila (pisos e pés visíveis), portas sem folha atravessando o batente, cena de revelação animada por cinemática direta, poeira ao correr/aterrissar, câmera que abre na corrida, folhas/pólen/neve/cinzas por região, luz e cor ajustadas, botões e janelas com degradê e efeito ao passar o mouse (M)
 - 🧪 Cena de revelação: seu personagem abre o baú (tampa, feixe de luz, ergue o item) e vê o ovo rachar e o pet aparecer (M)
 - 🧪 9 locais de interesse com descoberta, baú escondido, marcadores no mapa e conquistas (M)
 - 🧪 Vila viva: 10 moradores com rotas e balões de fala, guardas, crianças, animais, pássaros, borboletas, vaga-lumes; feira, bancos, poço, carroça, varal, galinheiro, canteiros, bandeirinhas, janelas que acendem à noite (M)

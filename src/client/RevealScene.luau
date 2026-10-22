@@ -54,7 +54,9 @@ local JOINTS = {
 	LK = { "LeftLowerLeg", "LeftKnee" },
 }
 
--- Copia o personagem do jogador para dentro da cena (sem scripts, raiz ancorada)
+-- Copia o personagem do jogador para dentro da cena. Dentro de uma ViewportFrame as juntas não se
+-- movem sozinhas, então todas as peças ficam ancoradas e a pose é calculada aqui (cinemática direta):
+-- cada peça = peça-mãe * C0 * giro * C1⁻¹ (Motor6D/Weld) ou o deslocamento original (WeldConstraint).
 local function cloneCharacter(worldModel, rootCFrame)
 	local character = Players.LocalPlayer.Character
 	if not character then
@@ -69,42 +71,81 @@ local function cloneCharacter(worldModel, rootCFrame)
 	if not ok or not copy then
 		return nil
 	end
-	for _, item in copy:GetDescendants() do
-		if item:IsA("Script") or item:IsA("LocalScript") or item:IsA("BillboardGui") or item:IsA("ParticleEmitter") or item:IsA("Sound") then
-			item:Destroy()
-		elseif item:IsA("BasePart") then
-			item.CanCollide = false
-			item.Anchored = false
-		end
-	end
 	local humanoid = copy:FindFirstChildOfClass("Humanoid")
 	local root = copy:FindFirstChild("HumanoidRootPart")
 	if not humanoid or not root then
 		copy:Destroy()
 		return nil
 	end
-	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-	root.Anchored = true
 	local height = humanoid.HipHeight + root.Size.Y / 2
-	root.CFrame = rootCFrame * CFrame.new(0, height, 0)
-	copy.Parent = worldModel
-	local motors = {}
-	for key, path in JOINTS do
-		local part = copy:FindFirstChild(path[1])
-		local motor = part and part:FindFirstChild(path[2])
-		if motor and motor:IsA("Motor6D") then
-			motors[key] = motor
+	local rootGoal = rootCFrame * CFrame.new(0, height, 0)
+	-- grafo das juntas (filho → mãe) com a posição de descanso
+	local links = {}
+	for _, item in copy:GetDescendants() do
+		if item:IsA("Motor6D") or item:IsA("Weld") then
+			if item.Part0 and item.Part1 then
+				links[item.Part1] = { parent = item.Part0, c0 = item.C0, c1 = item.C1, motor = if item:IsA("Motor6D") then item.Name else nil }
+			end
+		elseif item:IsA("WeldConstraint") then
+			if item.Part0 and item.Part1 and not links[item.Part1] then
+				links[item.Part1] = { parent = item.Part0, offset = item.Part0.CFrame:ToObjectSpace(item.Part1.CFrame) }
+			end
 		end
 	end
-	return { model = copy, motors = motors, root = root }
+	for _, item in copy:GetDescendants() do
+		if item:IsA("Script") or item:IsA("LocalScript") or item:IsA("BillboardGui") or item:IsA("ParticleEmitter") or item:IsA("Sound") or item:IsA("JointInstance") or item:IsA("WeldConstraint") then
+			item:Destroy()
+		elseif item:IsA("BasePart") then
+			item.CanCollide = false
+			item.Anchored = true
+		end
+	end
+	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+	root.CFrame = rootGoal
+	copy.Parent = worldModel
+	local parts = {}
+	for item in links do
+		table.insert(parts, item)
+	end
+	return { model = copy, root = root, rootCFrame = rootGoal, links = links, parts = parts }
 end
+
+-- nomes dos Motor6D do R15 para cada chave de pose
+local MOTOR_KEY = {
+	RightShoulder = "RS", RightElbow = "RE", LeftShoulder = "LS", LeftElbow = "LE", Waist = "W", Neck = "N",
+	Root = "RT", RightHip = "RH", LeftHip = "LH", RightKnee = "RK", LeftKnee = "LK",
+}
 
 local function pose(actor, joints)
 	if not actor then
 		return
 	end
-	for key, motor in actor.motors do
-		motor.Transform = joints[key] or CFrame.identity
+	local solved = { [actor.root] = actor.rootCFrame }
+	local function solve(part)
+		local cached = solved[part]
+		if cached then
+			return cached
+		end
+		local link = actor.links[part]
+		if not link then
+			solved[part] = part.CFrame
+			return part.CFrame
+		end
+		solved[part] = part.CFrame -- evita laço infinito em juntas circulares
+		local parentCFrame = solve(link.parent)
+		local result
+		if link.offset then
+			result = parentCFrame * link.offset
+		else
+			local key = link.motor and MOTOR_KEY[link.motor]
+			local transform = if key then (joints[key] or CFrame.identity) else CFrame.identity
+			result = parentCFrame * link.c0 * transform * link.c1:Inverse()
+		end
+		solved[part] = result
+		return result
+	end
+	for _, part in actor.parts do
+		part.CFrame = solve(part)
 	end
 end
 

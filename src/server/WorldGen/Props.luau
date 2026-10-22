@@ -446,8 +446,7 @@ function Props.building(parent, cf, width, depth, wallHeight, wallColor, roofCol
 	end
 	part(model, { Name = "Verga", Size = Vector3.new(doorWidth + 1, wallHeight - doorHeight, thickness), CFrame = cf * CFrame.new(0, 1 + doorHeight + (wallHeight - doorHeight) / 2, thickness / 2), Color = wallColor, Material = wallMaterial })
 	part(model, { Name = "VergaViga", Size = Vector3.new(doorWidth + 1.4, 0.6, thickness + 0.4), CFrame = cf * CFrame.new(0, 1 + doorHeight + 0.3, thickness / 2), Color = trim, Material = M.Wood })
-	-- porta aberta (girada para dentro, presa no batente esquerdo)
-	part(model, { Name = "Porta", Size = Vector3.new(doorWidth * 0.5, doorHeight, 0.3), CFrame = cf * CFrame.new(-doorWidth / 2, 1 + doorHeight / 2, thickness) * CFrame.Angles(0, math.rad(-80), 0) * CFrame.new(doorWidth * 0.25, 0, 0), Color = trim, Material = M.Wood })
+	-- vão da porta aberto, só com o batente (a folha aberta atravessava o batente e a parede)
 	-- janelas com moldura e vidro (laterais e fundo)
 	local function window(frame)
 		part(model, { Name = "Moldura", Size = Vector3.new(3.2, 3.2, 0.3), CFrame = frame, Color = trim, Material = M.Wood })

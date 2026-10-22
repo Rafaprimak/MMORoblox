@@ -11,12 +11,15 @@ local WorldGen = {}
 
 local function setupLighting()
 	Lighting.ClockTime = 14.2
-	Lighting.Brightness = 2.4
-	Lighting.Ambient = Color3.fromRGB(70, 70, 85)
-	Lighting.OutdoorAmbient = Color3.fromRGB(135, 135, 150)
-	Lighting.EnvironmentDiffuseScale = 0.6
-	Lighting.EnvironmentSpecularScale = 0.6
+	Lighting.Brightness = 2.8
+	Lighting.Ambient = Color3.fromRGB(75, 72, 88)
+	Lighting.OutdoorAmbient = Color3.fromRGB(140, 140, 155)
+	Lighting.EnvironmentDiffuseScale = 0.9
+	Lighting.EnvironmentSpecularScale = 0.8
 	Lighting.GlobalShadows = true
+	pcall(function()
+		Lighting.ShadowSoftness = 0.3
+	end)
 	for _, child in Lighting:GetChildren() do
 		if child:IsA("PostEffect") or child:IsA("Atmosphere") or child:IsA("Sky") then
 			child:Destroy()
@@ -27,21 +30,30 @@ local function setupLighting()
 	atmosphere.Offset = 0.15
 	atmosphere.Color = Color3.fromRGB(205, 200, 225)
 	atmosphere.Decay = Color3.fromRGB(120, 110, 160)
-	atmosphere.Glare = 0.25
-	atmosphere.Haze = 1.6
+	atmosphere.Glare = 0.35
+	atmosphere.Haze = 1.9
 	atmosphere.Parent = Lighting
 	local bloom = Instance.new("BloomEffect")
-	bloom.Intensity = 0.5
-	bloom.Size = 24
-	bloom.Threshold = 1.2
+	bloom.Intensity = 0.4
+	bloom.Size = 26
+	bloom.Threshold = 1.4
 	bloom.Parent = Lighting
 	local color = Instance.new("ColorCorrectionEffect")
-	color.Saturation = 0.12
-	color.Contrast = 0.06
+	color.Saturation = 0.18
+	color.Contrast = 0.12
+	color.TintColor = Color3.fromRGB(255, 249, 240)
 	color.Parent = Lighting
 	local sunRays = Instance.new("SunRaysEffect")
-	sunRays.Intensity = 0.06
+	sunRays.Intensity = 0.09
+	sunRays.Spread = 0.6
 	sunRays.Parent = Lighting
+	-- leve desfoque no horizonte (profundidade)
+	local depth = Instance.new("DepthOfFieldEffect")
+	depth.FarIntensity = 0.12
+	depth.NearIntensity = 0
+	depth.FocusDistance = 40
+	depth.InFocusRadius = 140
+	depth.Parent = Lighting
 	local clouds = Instance.new("Clouds")
 	clouds.Cover = 0.55
 	clouds.Density = 0.6

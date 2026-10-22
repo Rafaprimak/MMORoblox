@@ -37,11 +37,17 @@ function Window.create(screen, options)
 		Parent = screen,
 	}, { UI.corner(14), UI.stroke(options.accent or UI.Colors.Stroke, 2) })
 	win.scale = UI.new("UIScale", { Parent = win.frame })
+	-- fundo com degradê e faixa colorida do título
+	UI.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(170, 170, 185)), Rotation = 90, Parent = win.frame })
+	UI.new("Frame", { Name = "FaixaTitulo", Size = UDim2.new(1, 0, 0, 46), BackgroundColor3 = options.accent or UI.Colors.Accent, BackgroundTransparency = 0.72, ZIndex = 0, Parent = win.frame }, {
+		UI.corner(14),
+		UI.new("UIGradient", { Transparency = NumberSequence.new(0, 1), Rotation = 0 }),
+	})
 	win.title = UI.label({
 		Text = options.title,
 		Position = UDim2.fromOffset(16, 10),
 		Size = UDim2.new(1, -120, 0, 30),
-		Font = Enum.Font.GothamBlack,
+		Font = Enum.Font.FredokaOne,
 		TextColor3 = options.accent or UI.Colors.Text,
 		Parent = win.frame,
 	}, { UI.textStroke(1) })

@@ -41,6 +41,7 @@ local PetsWindow = require(script.PetsWindow)
 local JourneyWindow = require(script.JourneyWindow)
 local Ambience = require(script.Ambience)
 local TownLife = require(script.TownLife)
+local Juice = require(script.Juice)
 local Sounds = require(script.Sounds)
 
 local player = Players.LocalPlayer
@@ -77,6 +78,7 @@ Sky.init()
 Sounds.preload()
 Ambience.init()
 TownLife.init()
+Juice.init()
 Auras.init()
 
 local function toggleInventory()

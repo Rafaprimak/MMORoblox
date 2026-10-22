@@ -18,7 +18,7 @@ local M = Enum.Material
 
 local function setupLook(terrain)
 	terrain:SetMaterialColor(M.Grass, Color3.fromRGB(104, 160, 72))
-	terrain:SetMaterialColor(M.LeafyGrass, Color3.fromRGB(70, 125, 55))
+	terrain:SetMaterialColor(M.LeafyGrass, Color3.fromRGB(88, 142, 64))
 	terrain:SetMaterialColor(M.Ground, Color3.fromRGB(120, 95, 70))
 	terrain:SetMaterialColor(M.Sand, Color3.fromRGB(225, 205, 150))
 	terrain:SetMaterialColor(M.Rock, Color3.fromRGB(120, 118, 115))
