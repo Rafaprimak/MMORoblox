@@ -40,23 +40,14 @@ local function newPart(parent, size, cf, color, material, shape)
 	return p
 end
 
-local JOINTS = {
-	RS = { "RightUpperArm", "RightShoulder" },
-	RE = { "RightLowerArm", "RightElbow" },
-	LS = { "LeftUpperArm", "LeftShoulder" },
-	LE = { "LeftLowerArm", "LeftElbow" },
-	W = { "UpperTorso", "Waist" },
-	N = { "Head", "Neck" },
-	RT = { "LowerTorso", "Root" },
-	RH = { "RightUpperLeg", "RightHip" },
-	LH = { "LeftUpperLeg", "LeftHip" },
-	RK = { "RightLowerLeg", "RightKnee" },
-	LK = { "LeftLowerLeg", "LeftKnee" },
+-- Copia o personagem do jogador para dentro da cena. Dentro de uma ViewportFrame as juntas não se
+-- movem sozinhas, então todas as peças ficam ancoradas e a pose é calculada aqui: percorre a árvore de
+-- juntas a partir da raiz (em qualquer sentido da junta) e posiciona cada peça (cinemática direta).
+local MOTOR_KEY = {
+	RightShoulder = "RS", RightElbow = "RE", LeftShoulder = "LS", LeftElbow = "LE", Waist = "W", Neck = "N",
+	Root = "RT", RightHip = "RH", LeftHip = "LH", RightKnee = "RK", LeftKnee = "LK",
 }
 
--- Copia o personagem do jogador para dentro da cena. Dentro de uma ViewportFrame as juntas não se
--- movem sozinhas, então todas as peças ficam ancoradas e a pose é calculada aqui (cinemática direta):
--- cada peça = peça-mãe * C0 * giro * C1⁻¹ (Motor6D/Weld) ou o deslocamento original (WeldConstraint).
 local function cloneCharacter(worldModel, rootCFrame)
 	local character = Players.LocalPlayer.Character
 	if not character then
@@ -77,19 +68,42 @@ local function cloneCharacter(worldModel, rootCFrame)
 		copy:Destroy()
 		return nil
 	end
+	-- sem a junta do pescoço o Humanoid "morreria": desliga isso antes de tirar as juntas
+	pcall(function()
+		humanoid.RequiresNeck = false
+		humanoid.BreakJointsOnDeath = false
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+	end)
+	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	local height = humanoid.HipHeight + root.Size.Y / 2
 	local rootGoal = rootCFrame * CFrame.new(0, height, 0)
-	-- grafo das juntas (filho → mãe) com a posição de descanso
-	local links = {}
+	-- arestas da árvore: cada junta liga duas peças; guarda como ir de uma para a outra
+	local edges = {}
+	local function addEdge(from, to, step)
+		edges[from] = edges[from] or {}
+		table.insert(edges[from], { to = to, step = step })
+	end
 	for _, item in copy:GetDescendants() do
-		if item:IsA("Motor6D") or item:IsA("Weld") then
-			if item.Part0 and item.Part1 then
-				links[item.Part1] = { parent = item.Part0, c0 = item.C0, c1 = item.C1, motor = if item:IsA("Motor6D") then item.Name else nil }
-			end
-		elseif item:IsA("WeldConstraint") then
-			if item.Part0 and item.Part1 and not links[item.Part1] then
-				links[item.Part1] = { parent = item.Part0, offset = item.Part0.CFrame:ToObjectSpace(item.Part1.CFrame) }
-			end
+		if (item:IsA("Motor6D") or item:IsA("Weld")) and item.Part0 and item.Part1 then
+			local key = if item:IsA("Motor6D") then MOTOR_KEY[item.Name] else nil
+			local c0, c1 = item.C0, item.C1
+			-- Part0 → Part1: P1 = P0 * C0 * giro * C1⁻¹ ; o caminho inverso usa a inversa
+			addEdge(item.Part0, item.Part1, function(cf, joints)
+				local turn = if key then (joints[key] or CFrame.identity) else CFrame.identity
+				return cf * c0 * turn * c1:Inverse()
+			end)
+			addEdge(item.Part1, item.Part0, function(cf, joints)
+				local turn = if key then (joints[key] or CFrame.identity) else CFrame.identity
+				return cf * (c0 * turn * c1:Inverse()):Inverse()
+			end)
+		elseif item:IsA("WeldConstraint") and item.Part0 and item.Part1 then
+			local offset = item.Part0.CFrame:ToObjectSpace(item.Part1.CFrame)
+			addEdge(item.Part0, item.Part1, function(cf)
+				return cf * offset
+			end)
+			addEdge(item.Part1, item.Part0, function(cf)
+				return cf * offset:Inverse()
+			end)
 		end
 	end
 	for _, item in copy:GetDescendants() do
@@ -100,52 +114,31 @@ local function cloneCharacter(worldModel, rootCFrame)
 			item.Anchored = true
 		end
 	end
-	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	root.CFrame = rootGoal
 	copy.Parent = worldModel
-	local parts = {}
-	for item in links do
-		table.insert(parts, item)
-	end
-	return { model = copy, root = root, rootCFrame = rootGoal, links = links, parts = parts }
+	return { model = copy, root = root, rootCFrame = rootGoal, edges = edges }
 end
-
--- nomes dos Motor6D do R15 para cada chave de pose
-local MOTOR_KEY = {
-	RightShoulder = "RS", RightElbow = "RE", LeftShoulder = "LS", LeftElbow = "LE", Waist = "W", Neck = "N",
-	Root = "RT", RightHip = "RH", LeftHip = "LH", RightKnee = "RK", LeftKnee = "LK",
-}
 
 local function pose(actor, joints)
 	if not actor then
 		return
 	end
+	-- busca em largura a partir da raiz: cada peça é posicionada a partir da vizinha já resolvida
 	local solved = { [actor.root] = actor.rootCFrame }
-	local function solve(part)
-		local cached = solved[part]
-		if cached then
-			return cached
+	local queue = { actor.root }
+	local head = 1
+	while head <= #queue do
+		local part = queue[head]
+		head += 1
+		local cf = solved[part]
+		for _, edge in actor.edges[part] or {} do
+			if not solved[edge.to] then
+				local result = edge.step(cf, joints)
+				solved[edge.to] = result
+				edge.to.CFrame = result
+				table.insert(queue, edge.to)
+			end
 		end
-		local link = actor.links[part]
-		if not link then
-			solved[part] = part.CFrame
-			return part.CFrame
-		end
-		solved[part] = part.CFrame -- evita laço infinito em juntas circulares
-		local parentCFrame = solve(link.parent)
-		local result
-		if link.offset then
-			result = parentCFrame * link.offset
-		else
-			local key = link.motor and MOTOR_KEY[link.motor]
-			local transform = if key then (joints[key] or CFrame.identity) else CFrame.identity
-			result = parentCFrame * link.c0 * transform * link.c1:Inverse()
-		end
-		solved[part] = result
-		return result
-	end
-	for _, part in actor.parts do
-		part.CFrame = solve(part)
 	end
 end
 

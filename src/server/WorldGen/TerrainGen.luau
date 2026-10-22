@@ -36,10 +36,46 @@ local function setupLook(terrain)
 	end)
 end
 
+-- Calibração: o Roblox desenha a superfície de um voxel cheio mais alto do que a conta sugere (cerca de
+-- meio voxel). Escreve uma laje de teste plana numa altura conhecida, mede com raycast onde o chão ficou
+-- e devolve a correção. Assim o chão sai na altura de World.height (vila, pisos, NPCs, moradores).
+TerrainGen.Bias = 0
+
+local function calibrate(terrain)
+	local target = World.TownHeight
+	local size = 8 -- voxels por lado
+	local origin = Vector3.new(-HALF, MIN_Y, -HALF)
+	local ny = math.ceil((target - MIN_Y) / RES) + 3
+	local materials, occupancy = table.create(size), table.create(size)
+	for i = 1, size do
+		materials[i], occupancy[i] = table.create(ny), table.create(ny)
+		for j = 1, ny do
+			local fill = math.clamp((target - (MIN_Y + (j - 1) * RES)) / RES, 0, 1)
+			materials[i][j], occupancy[i][j] = table.create(size, if fill > 0 then M.Grass else M.Air), table.create(size, fill)
+		end
+	end
+	local region = Region3.new(origin, origin + Vector3.new(size * RES, ny * RES, size * RES))
+	terrain:WriteVoxels(region, RES, materials, occupancy)
+	task.wait()
+	local params = RaycastParams.new()
+	params.FilterType = Enum.RaycastFilterType.Include
+	params.FilterDescendantsInstances = { terrain }
+	local center = origin + Vector3.new(size * RES / 2, 0, size * RES / 2)
+	local hit = workspace:Raycast(Vector3.new(center.X, target + 40, center.Z), Vector3.new(0, -80, 0), params)
+	terrain:FillBlock(CFrame.new(region.CFrame.Position), region.Size, M.Air)
+	if not hit then
+		return 0
+	end
+	return math.clamp(target - hit.Position.Y, -RES, RES)
+end
+
 function TerrainGen.generate(onProgress)
 	local terrain = workspace.Terrain
 	terrain:Clear()
 	setupLook(terrain)
+	local ok, bias = pcall(calibrate, terrain)
+	TerrainGen.Bias = if ok then bias else 0
+	print(("[Terreno] Correção de altura dos voxels: %.2f studs"):format(TerrainGen.Bias))
 
 	-- 1) alturas e pesos de cada coluna (com borda de 1 para calcular inclinação)
 	local heights = table.create(N + 2)
@@ -107,13 +143,13 @@ function TerrainGen.generate(onProgress)
 					local surface = World.surfaceMaterial(x, z, h, slope, weights[ix][iz])
 					for j = 1, ny do
 						local yBottom = MIN_Y + (j - 1) * RES
-						local fill = (h - yBottom) / RES
+						local fill = (h + TerrainGen.Bias - yBottom) / RES
 						if fill > 0 then
 							matX[j][k] = if fill > 2.5 then M.Rock else surface
 							occX[j][k] = math.min(fill, 1)
-						elseif yBottom < World.SeaLevel then
+						elseif yBottom < World.SeaLevel + TerrainGen.Bias then
 							matX[j][k] = M.Water
-							occX[j][k] = math.min((World.SeaLevel - yBottom) / RES, 1)
+							occX[j][k] = math.min((World.SeaLevel + TerrainGen.Bias - yBottom) / RES, 1)
 						else
 							matX[j][k] = M.Air
 							occX[j][k] = 0
