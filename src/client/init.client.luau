@@ -181,12 +181,18 @@ Remotes.Notify.OnClientEvent:Connect(function(notification)
 end)
 
 local FX_HANDLERS = {
-	hit = Fx.hit,
+	hit = function(root, amount, crit, attacker, ...)
+		Fx.hit(root, amount, crit, attacker, ...)
+		if attacker == player then
+			Ambience.combatPing()
+		end
+	end,
 	death = Fx.death,
 	gold = Fx.gold,
 	xp = Fx.xp,
 	hurt = function(amount, source)
 		Fx.hurt(amount, source)
+		Ambience.combatPing()
 		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 		Animator.flinch(player.Character, if humanoid then 0.4 + (amount or 0) / math.max(humanoid.MaxHealth, 1) * 4 else 1)
 	end,

@@ -59,6 +59,8 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Som com a biblioteca oficial do Roblox: golpes, acertos, aparar, bloqueio, magias, explosões, moedas, nível, baús, interface; música na vila, explorando, à noite e no chefe; vento e pássaros (M)
 - 🧪 Interface com identidade própria (azul-noite e dourado, moldura dupla, fita no título, fonte serifada) (M)
 - 🧪 Modelagem: telhados com telhas, cumeeira e oitões; casas com alicerce, viga, peitoril, porta de tábuas com arco; NPCs com cabelo, barba e roupa do ofício (M)
+- 🧪 Música de combate por tipo de inimigo (slime, lobo/javali, caranguejo, goblin, aranha, esqueleto, golem, rei goblin), com crossfade de volta para a região depois da luta (P)
+- 🧪 Fachadas refeitas: casas com batentes e verga de pedra, pedra-chave, porta recuada com travessas, alpendre de duas águas, janelas com moldura, venezianas e floreiras (também na frente); lojas com vão da porta sem peças sobrepostas (sem "tremido" na batente), mísulas, soleira e janelas da frente; vitrines do empório do lado de fora (M)
 - 🧪 Polimento: terreno sem grama animada na vila (pisos e pés visíveis), portas sem folha atravessando o batente, cena de revelação animada por cinemática direta, poeira ao correr/aterrissar, câmera que abre na corrida, folhas/pólen/neve/cinzas por região, luz e cor ajustadas, botões e janelas com degradê e efeito ao passar o mouse (M)
 - 🧪 Cena de revelação: seu personagem abre o baú (tampa, feixe de luz, ergue o item) e vê o ovo rachar e o pet aparecer (M)
 - 🧪 9 locais de interesse com descoberta, baú escondido, marcadores no mapa e conquistas (M)

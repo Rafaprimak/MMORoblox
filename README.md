@@ -132,6 +132,8 @@ O Roblox removeu os sons antigos que vinham no Studio, então os sons do jogo fi
 2. Clique com o botão direito no som → **Copiar ID do recurso**.
 3. Cole no campo: `id = "rbxassetid://123456789"`.
 
+**Música de combate:** ao lutar, a música troca para a do tipo de inimigo mais perto (slime, lobo, esqueleto, golem, rei goblin...) e volta para a da região uns 8 segundos depois da luta. Os IDs ficam em `SoundIds.Combat` (catálogo licenciado APM do Roblox); bonecos de treino não trocam a música.
+
 Campos vazios usam um som interno de reserva (ou ficam em silêncio). Ao abrir o jogo, cada ID é testado; se algum não carregar, aparece um aviso no Output e o jogo usa a reserva.
 
 ---

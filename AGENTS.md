@@ -117,7 +117,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `LockOn` | Travar a mira no inimigo (câmera, rosto do personagem, mira de golpes e habilidades) |
 | `PetRenderer`, `PetsWindow` | Desenha/anima os pets de todos; janela de pets e ovos (tecla G) |
 | `JourneyWindow` | Jornada (tecla K): diário, passe, conquistas, títulos |
-| `Ambience` | Ambiente e música em loop por região/noite/chefe, com crossfade |
+| `Ambience` | Ambiente e música em loop por região/noite/chefe/combate, com crossfade (`Ambience.combatPing()` ao bater/apanhar) |
 | `RevealScene` | Cena 3D (ViewportFrame + WorldModel) com uma cópia do personagem abrindo o baú ou vendo o ovo chocar |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
 | `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
@@ -189,6 +189,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - `Props.building` monta casa com porta aberta, piso, janelas, luzes internas e telhado (porta em z = 0, salão para +Z). NPCs com `indoor` em `NPCs.List` ficam lá dentro; a porta fica em `doorX/doorZ`.
 - A câmera usa **Invisicam** (`DevCameraOcclusionMode`): paredes ficam transparentes em vez de puxar a câmera.
 - NPCs `indoor` procuram o chão abaixo do telhado (`NPCService.groundHeight(x, z, startY)`).
+- **Peças não podem se atravessar com faces no mesmo plano** (o Roblox pisca/"treme" a textura). Em vãos de porta, cada peça ocupa a sua faixa: vão | batente | parede, com a verga apoiada nos batentes e a parede acima começando no topo da verga (ver `Props.house` e `Props.building`). Enfeites encostam na parede (face com face), não entram nela. Janela de fachada pronta: `Props.facadeWindow(model, face, largura, altura, { shutters, rng })`, com `face` na superfície externa e -Z para fora.
 
 ### Vida da vila
 - Moradores e animais **não existem no servidor**: `Townsfolk` calcula a posição a partir de `workspace:GetServerTimeNow()`, então todos os clientes veem a mesma cena sem rede. Morador novo = entrada em `Townsfolk.Villagers` com `route` (pontos de `Townsfolk.point(ângulo, raio)` que não atravessem construções).
@@ -204,7 +205,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 ### Animação e áudio
 - `Animator` faz crossfade entre poses (`play`, `hold`, `stop`), tem camadas de postura por arma (`STANCES`), respiração, inclinação e `flinch`. Pose nova = quadros `{ t, juntas }` em `POSES`.
 - O cavalo da montaria tem grupos (`PernaFL`..., `Cabeca`, `Cauda`) ligados ao `Corpo` por Motor6D criados em `TravelService.mount`; o cliente anima as juntas `Junta*`.
-- Som novo: adicione em `SoundIds.Effects` (com `reserva`) e toque com `Sounds.play(nome)`. Ambiente/música: `SoundIds.Ambience/Music` + `SoundIds.RegionAmbience`. Os IDs atuais são da biblioteca oficial da conta "Roblox" (ID 1); para achar mais, a API pública `apis.roblox.com/toolbox-service/v1/marketplace/3?keyword=...&creatorTargetId=1&creatorType=1` lista áudios oficiais e `.../items/details?assetIds=...` mostra os nomes.
+- Som novo: adicione em `SoundIds.Effects` (com `reserva`) e toque com `Sounds.play(nome)`. Ambiente/música: `SoundIds.Ambience/Music` + `SoundIds.RegionAmbience`. Música de combate: `SoundIds.Combat[tipoDoInimigo]` (inimigo novo sem entrada usa `padrao`); músicas licenciadas da conta APMOfficial (`creatorTargetId=7462718749`). Os IDs atuais são da biblioteca oficial da conta "Roblox" (ID 1); para achar mais, a API pública `apis.roblox.com/toolbox-service/v1/marketplace/3?keyword=...&creatorTargetId=1&creatorType=1` lista áudios oficiais e `.../items/details?assetIds=...` mostra os nomes.
 - **Interface:** tema azul-noite e dourado. Janelas e painéis usam `UI.ornate(frame)` (borda dupla e losangos), títulos usam `UI.TitleFont` (Merriweather) em `FontFace`, botões já vêm com degradê, borda dourada e sons de clique/hover.
 
 ### Interface

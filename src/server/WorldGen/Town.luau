@@ -157,8 +157,8 @@ function builders.alchemy(parent, npc, rng)
 	Props.fence(model, g2, g3, 1.6, Color3.fromRGB(230, 225, 210))
 	Props.fence(model, g4, g1, 1.6, Color3.fromRGB(230, 225, 210))
 	-- placa em forma de frasco
-	local sign = part(model, { Name = "PlacaFrasco", Size = Vector3.new(1.6, 1.6, 0.3), Shape = Enum.PartType.Ball, CFrame = cf * CFrame.new(0, 8.6, -0.6), Color = Color3.fromRGB(110, 230, 140), Material = M.Neon })
-	part(model, { Name = "Gargalo", Size = Vector3.new(0.5, 0.8, 0.3), CFrame = cf * CFrame.new(0, 9.6, -0.6), Color = Color3.fromRGB(110, 230, 140), Material = M.Neon })
+	local sign = part(model, { Name = "PlacaFrasco", Size = Vector3.new(1.6, 1.6, 0.3), Shape = Enum.PartType.Ball, CFrame = cf * CFrame.new(0, 9.0, -1.0), Color = Color3.fromRGB(110, 230, 140), Material = M.Neon })
+	part(model, { Name = "Gargalo", Size = Vector3.new(0.5, 0.8, 0.3), CFrame = cf * CFrame.new(0, 10.0, -1.0), Color = Color3.fromRGB(110, 230, 140), Material = M.Neon })
 	Props.billboard(sign, "⚗️ ALQUIMIA", Color3.fromRGB(120, 255, 140), 3)
 	return model
 end
@@ -230,10 +230,14 @@ function builders.emporium(parent, npc, rng)
 		local color = if i % 2 == 0 then Color3.fromRGB(200, 50, 45) else Color3.fromRGB(245, 235, 220)
 		part(model, { Name = "Toldo", Size = Vector3.new(1.4, 0.25, 3), CFrame = cf * CFrame.new(-6.3 + i * 1.4, 8, -1.5) * CFrame.Angles(math.rad(-18), 0, 0), Color = color, Material = M.Fabric })
 	end
-	for _, x in { -5.5, 5.5 } do
-		part(model, { Name = "Vitrine", Size = Vector3.new(3.4, 0.8, 1.2), CFrame = cf * CFrame.new(x, 1.8, 0.9), Color = C.DarkWood, Material = M.Wood })
+	-- vitrines do lado de fora, embaixo das janelas: móvel de madeira, tampo vermelho e redoma de vidro
+	for _, x in { -5.6, 5.6 } do
+		local stand = cf * CFrame.new(x, 0, -1.1)
+		part(model, { Name = "Vitrine", Size = Vector3.new(3, 1.5, 0.9), CFrame = stand * CFrame.new(0, 0.75, 0), Color = C.DarkWood, Material = M.WoodPlanks })
+		part(model, { Name = "TampoVitrine", Size = Vector3.new(3.2, 0.15, 1.05), CFrame = stand * CFrame.new(0, 1.575, 0), Color = Color3.fromRGB(160, 40, 40), Material = M.Wood })
+		part(model, { Name = "Redoma", Size = Vector3.new(2.9, 1.0, 0.85), CFrame = stand * CFrame.new(0, 2.15, 0), Color = Color3.fromRGB(200, 230, 255), Material = M.Glass, Transparency = 0.6, CanCollide = false })
 		for j = -1, 1 do
-			Props.ball(model, (cf * CFrame.new(x + j * 1, 2.5, 0.9)).Position, 0.6, Color3.fromHSV((x + j + 6) / 12, 0.6, 1), M.SmoothPlastic, { CanCollide = false })
+			Props.ball(model, (stand * CFrame.new(j * 0.9, 1.95, 0)).Position, 0.6, Color3.fromHSV((x + j + 6) / 12, 0.6, 1), M.SmoothPlastic, { CanCollide = false })
 		end
 	end
 	-- balcão (cintura)
@@ -259,13 +263,13 @@ function builders.emporium(parent, npc, rng)
 		part(model, { Name = "Ovo", Size = Vector3.new(0.8, 1.05, 0.8), Shape = Enum.PartType.Ball, CFrame = pedestal * CFrame.new(-0.8 + (i - 1) * 0.8, 2.1, 0), Color = color, Material = if i == 3 then M.Neon else M.SmoothPlastic })
 	end
 	-- mercadoria na frente da loja
-	Props.crate(model, cf * CFrame.new(7.5, 0, -2.5), 1.8)
-	Props.crate(model, cf * CFrame.new(7.8, 1.8, -2.4), 1.2)
-	Props.barrel(model, cf * CFrame.new(-7.5, 0, -2.5), 0.8)
+	Props.crate(model, cf * CFrame.new(7.5, 0, -2.8), 1.8)
+	Props.crate(model, cf * CFrame.new(7.8, 1.8, -2.7), 1.2)
+	Props.barrel(model, cf * CFrame.new(-7.5, 0, -2.9), 0.8)
 	for i = 0, 1 do
 		part(model, { Name = "Saco", Size = Vector3.new(1.2, 1.4, 1), CFrame = cf * CFrame.new(-5.6 + i * 1.3, 0.7, -2.6), Color = Color3.fromRGB(200, 180, 130), Material = M.Fabric })
 	end
-	local sign = part(model, { Name = "Placa", Size = Vector3.new(7, 1.8, 0.3), CFrame = cf * CFrame.new(0, 9.6, -0.5), Color = Color3.fromRGB(150, 40, 40), Material = M.WoodPlanks })
+	local sign = part(model, { Name = "Placa", Size = Vector3.new(7, 1.8, 0.3), CFrame = cf * CFrame.new(0, 9.6, -0.65), Color = Color3.fromRGB(150, 40, 40), Material = M.WoodPlanks })
 	Props.billboard(sign, "🛒 EMPÓRIO DO OTTO", C.Gold, 3)
 	return model
 end

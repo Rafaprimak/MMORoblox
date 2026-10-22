@@ -18,6 +18,28 @@ local Ambience = {}
 local FADE = 2.5
 local channels = {} -- [canal] = { sound, id }
 local nextBird = 0
+local lastCombat = -100 -- última vez que você bateu ou apanhou
+local COMBAT_HOLD = 8 -- segundos de música de combate depois da última troca de golpes
+
+-- Chamado quando você acerta um inimigo ou leva dano
+function Ambience.combatPing()
+	lastCombat = os.clock()
+end
+
+-- inimigo vivo mais perto (para escolher a música da luta)
+local function nearestEnemy(position, range)
+	local folder = workspace:FindFirstChild("Inimigos")
+	local best, bestDistance = nil, range
+	for _, root in if folder then folder:GetChildren() else {} do
+		if root:IsA("BasePart") and not root:GetAttribute("Dead") then
+			local distance = (root.Position - position).Magnitude
+			if distance < bestDistance then
+				best, bestDistance = root, distance
+			end
+		end
+	end
+	return best, bestDistance
+end
 
 local function baseVolume(channel)
 	if channel == "music" then
@@ -59,7 +81,7 @@ function Ambience.init()
 	local player = Players.LocalPlayer
 	task.spawn(function()
 		while true do
-			task.wait(1)
+			task.wait(0.5)
 			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 			if root then
 				local region = World.regionName(root.Position.X, root.Position.Z)
@@ -67,9 +89,21 @@ function Ambience.init()
 				local ambienceKey = SoundIds.RegionAmbience[region] or "campo"
 				setChannel("ambience", Sounds.loopId("Ambience", ambienceKey))
 				setChannel("night", if night then Sounds.loopId("Ambience", "noite") else nil)
-				-- música: chefe > noite > vila > exploração
+				-- música: combate (pelo tipo do inimigo) > chefe > noite > vila > exploração
 				local musicKey
-				if EnemyRenderer.nearestBoss(root.Position, 130) then
+				local enemy, enemyDistance = nearestEnemy(root.Position, 45)
+				local fighting = os.clock() - lastCombat < COMBAT_HOLD and enemy ~= nil
+				if enemy and enemyDistance < 16 and enemy:GetAttribute("Type") ~= "boneco" then
+					fighting = true
+					lastCombat = math.max(lastCombat, os.clock() - COMBAT_HOLD + 3)
+				end
+				local combatId = if fighting and enemy then (SoundIds.Combat[enemy:GetAttribute("Type")] or SoundIds.Combat.padrao) else nil
+				if combatId and enemy:GetAttribute("Type") == "boneco" then
+					combatId = nil -- bonecos de treino não têm música de luta
+				end
+				if combatId then
+					musicKey = "combate"
+				elseif EnemyRenderer.nearestBoss(root.Position, 130) then
 					musicKey = "chefe"
 				elseif night then
 					musicKey = "noite"
@@ -78,7 +112,11 @@ function Ambience.init()
 				else
 					musicKey = "exploracao"
 				end
-				setChannel("music", Sounds.loopId("Music", musicKey) or (if musicKey == "noite" then Sounds.loopId("Music", "exploracao") else nil))
+				if combatId then
+					setChannel("music", combatId)
+				else
+					setChannel("music", Sounds.loopId("Music", musicKey) or (if musicKey == "noite" then Sounds.loopId("Music", "exploracao") else nil))
+				end
 				-- pássaros cantando de vez em quando (de dia, fora das montanhas)
 				local now = os.clock()
 				if not night and now > nextBird and ambienceKey ~= "montanha" and ambienceKey ~= "ruinas" and ambienceKey ~= "costa" then

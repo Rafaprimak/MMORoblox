@@ -53,7 +53,7 @@ SoundIds.Ambience = {
 
 -- Música em loop (crossfade ao trocar)
 SoundIds.Music = {
-	vila = { id = "rbxassetid://15930255433", desc = "Música calma da vila" },
+	vila = { id = "rbxassetid://1847223700", desc = "Música calma da vila" },
 	exploracao = { id = "rbxassetid://130053244401794", desc = "Música de aventura (fora da vila)" },
 	noite = { id = "rbxassetid://15675069601", desc = "Música da noite" },
 	chefe = { id = "rbxassetid://17422163655", desc = "Música de chefe" },
@@ -61,6 +61,23 @@ SoundIds.Music = {
 
 -- Cantos de pássaros soltos (tocados de vez em quando de dia na vila, campos e bosque)
 SoundIds.Birds = { "rbxassetid://79205036324023", "rbxassetid://99631809815420", "rbxassetid://106557401612525" }
+
+-- Música de combate por tipo de inimigo (APMOfficial, catálogo licenciado do Roblox: livre para usar).
+-- Toca enquanto você luta e volta para a música da região alguns segundos depois da luta.
+SoundIds.Combat = {
+	slime = "rbxassetid://1836102188", -- Medieval Fantasy Cartoon Chase
+	lobo = "rbxassetid://1841280975", -- The Tribal Drums
+	javali = "rbxassetid://1841280975",
+	caranguejo = "rbxassetid://1842925663", -- Pirate Battle
+	goblin = "rbxassetid://1847313950", -- Spooky Kooky
+	goblin_arqueiro = "rbxassetid://1847313950",
+	aranha = "rbxassetid://1843700415", -- Creepy
+	esqueleto = "rbxassetid://1836271798", -- Spooky Chase
+	esqueleto_mago = "rbxassetid://1836271798",
+	golem = "rbxassetid://1837779548", -- Ancient Myths
+	rei_goblin = "rbxassetid://1837301451", -- Epic Battle Simulator
+	padrao = "rbxassetid://1836102188",
+}
 
 -- qual ambiente cada região usa
 SoundIds.RegionAmbience = {
