@@ -71,6 +71,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Pets` | Pets, ovos (chances em %) e bônus por nível |
 | `Progression` | Login diário, Passe do Hunter, conquistas, marcos de nível e títulos |
 | `SoundIds` | Catálogo de áudio (efeitos, ambiente, música): IDs da Creator Store + reserva |
+| `TownPlan` | Traçado da vila (fonte única): ruas, calçadas, praça, becos, lotes das lojas e casas, postes. Usado pelo terreno, NPCs, construção e moradores |
 | `Points` | Locais de interesse (posição achada de forma determinística em chão seco e plano), recompensa e baú |
 | `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
@@ -117,6 +118,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `PetRenderer`, `PetsWindow` | Desenha/anima os pets de todos; janela de pets e ovos (tecla G) |
 | `JourneyWindow` | Jornada (tecla K): diário, passe, conquistas, títulos |
 | `Ambience` | Ambiente e música em loop por região/noite/chefe, com crossfade |
+| `RevealScene` | Cena 3D (ViewportFrame + WorldModel) com uma cópia do personagem abrindo o baú ou vendo o ovo chocar |
 | `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
 | `Controller` | Entrada do jogador (combo, esquiva, corrida, habilidades, celular) |
 | `Animator` | Animações procedurais (gira `Motor6D.Transform` em `RunService.Stepped`) |
@@ -189,7 +191,8 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 
 ### Vida da vila
 - Moradores e animais **não existem no servidor**: `Townsfolk` calcula a posição a partir de `workspace:GetServerTimeNow()`, então todos os clientes veem a mesma cena sem rede. Morador novo = entrada em `Townsfolk.Villagers` com `route` (pontos de `Townsfolk.point(ângulo, raio)` que não atravessem construções).
-- **Traçado:** `WorldGen/Town` define ruas, calçadas, praça e becos (`PAVING`), as casas (`HOUSES`: porta na calçada, direção, largura, profundidade) e os postes. As lojas e NPCs usam `at(x, z, direção)` em `NPCs.List` no mesmo sistema de coordenadas (x leste, z sul, relativo à praça). Ao mudar o traçado, confira lotes vizinhos (vielas de 4) e as rotas em `Townsfolk`.
+- **Traçado:** tudo fica em `src/shared/TownPlan.luau` (ruas, calçadas, praça, becos, `Services` das lojas/NPCs, `Houses`, `Lamps`), em coordenadas de projeto relativas à praça (x leste, z sul). `WorldGen/Town` constrói a partir dele, `NPCs` usa `TownPlan.Services` e o `World` usa `TownPlan.pavingAt` para pôr chão sem grama embaixo do calçamento (a grama animada atravessa peças finas). Ao mudar o traçado, confira lotes vizinhos e as rotas em `Townsfolk`.
+- **Altura dos móveis:** construções são montadas em unidades de projeto e ampliadas ×1,5. Balcão ~1,8, mesa ~1,9, banco ~1,1 (antes de ampliar); assim ficam na cintura do personagem.
 - `World.TownHeight` é múltiplo de 4 a partir de -24 (fundo do TerrainGen): assim o voxel fica cheio e o chão sai exatamente na altura usada pelas construções. Não use um valor quebrado (o terreno cobre pisos e NPCs).
 - Enfeites da vila ficam em `Town.decorate` (bancos, feira, poço, carroça, varal, galinheiro, canteiros, bandeirinhas) com posições candidatas e `Placement`.
 - Janelas que acendem à noite: `Props.nightWindow(part)` (cor de dia em `OffColor`).

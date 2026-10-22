@@ -2,6 +2,7 @@
 -- services: forge (criar/aprimorar), enchant (encantar/desmontar), alchemy (poções), shop (loja),
 --           classes (trocar classe), stable (montaria), board (missões diárias), chest (baús)
 local World = require(script.Parent.World)
+local TownPlan = require(script.Parent.TownPlan)
 
 local NPCs = {}
 
@@ -36,9 +37,15 @@ local function at(x, z, facing, def)
 	return make(def)
 end
 
+-- NPC da vila na posição do traçado (TownPlan.Services)
+local function service(id, def)
+	local spot = TownPlan.Services[id]
+	def.id = id
+	return at(spot.x, spot.z, spot.facing, def)
+end
+
 NPCs.List = {
-	at(-11, -17, 180, {
-		id = "lyra",
+	service("lyra", {
 		name = "Capitã Lyra",
 		title = "Guarda da Vila",
 		skin = Color3.fromRGB(234, 184, 146),
@@ -47,8 +54,7 @@ NPCs.List = {
 		hat = "helmet",
 		greeting = "Hunter! A vila precisa de gente como você. Os monstros estão cada vez mais ousados.",
 	}),
-	at(-7, -31, -90, {
-		id = "bruno",
+	service("bruno", {
 		name = "Bruno",
 		title = "Ferreiro",
 		skin = Color3.fromRGB(200, 140, 100),
@@ -60,8 +66,7 @@ NPCs.List = {
 		indoor = 8.5,
 		greeting = "Traga minério e eu transformo em aço. Ou aprenda a forjar você mesmo!",
 	}),
-	at(7, -30, 90, {
-		id = "mira",
+	service("mira", {
 		name = "Mira",
 		title = "Alquimista",
 		skin = Color3.fromRGB(245, 205, 170),
@@ -73,8 +78,7 @@ NPCs.List = {
 		indoor = 9,
 		greeting = "Ervas, cogumelos, flores lunares... tudo vira poção nas mãos certas.",
 	}),
-	at(31, 7, 0, {
-		id = "elric",
+	service("elric", {
 		name = "Elric",
 		title = "Encantador",
 		skin = Color3.fromRGB(230, 200, 180),
@@ -86,8 +90,7 @@ NPCs.List = {
 		indoor = 14.5,
 		greeting = "A essência mágica dos monstros pode despertar o poder escondido nas armas.",
 	}),
-	at(31, -7, 180, {
-		id = "otto",
+	service("otto", {
 		name = "Otto",
 		title = "Mercador",
 		skin = Color3.fromRGB(190, 130, 90),
@@ -99,8 +102,7 @@ NPCs.List = {
 		indoor = 9,
 		greeting = "Poções fresquinhas! E se estiver com sorte, um Baú do Hunter...",
 	}),
-	at(0, 41, 0, {
-		id = "kael",
+	service("kael", {
 		name = "Mestre Kael",
 		title = "Mestre de Classes",
 		skin = Color3.fromRGB(150, 100, 70),
@@ -111,8 +113,7 @@ NPCs.List = {
 		building = "training",
 		greeting = "Todo Hunter precisa dominar sua arma. Treine nos bonecos e fique mais forte.",
 	}),
-	at(-32, 8, 0, {
-		id = "pedro",
+	service("pedro", {
 		name = "Pedro",
 		title = "Cavalariço",
 		skin = Color3.fromRGB(225, 170, 130),
@@ -123,8 +124,7 @@ NPCs.List = {
 		building = "stable",
 		greeting = "Um bom cavalo vale mais que mil passos. Quer um?",
 	}),
-	at(11, -17, 180, {
-		id = "quadro",
+	service("quadro", {
 		name = "Quadro de Recompensas",
 		title = "Missões diárias",
 		board = true,

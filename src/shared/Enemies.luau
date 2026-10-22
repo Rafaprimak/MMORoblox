@@ -104,7 +104,7 @@ Enemies.Defs = {
 -- center = X,Z; spawns = { tipo = quantidade }
 Enemies.Camps = {
 	{ id = "treino", center = Vector2.new(0, 205), radius = 7, spawns = { boneco = 3 }, respawn = 1 },
-	{ id = "slimes_a", center = Vector2.new(45, 55), radius = 30, spawns = { slime = 6 }, respawn = 5 },
+	{ id = "slimes_a", center = Vector2.new(60, 32), radius = 30, spawns = { slime = 6 }, respawn = 5 },
 	{ id = "slimes_b", center = Vector2.new(-65, 50), radius = 30, spawns = { slime = 6 }, respawn = 5 },
 	{ id = "slimes_c", center = Vector2.new(75, -60), radius = 28, spawns = { slime = 5 }, respawn = 5 },
 	{ id = "lobos_a", center = Vector2.new(-60, -60), radius = 40, spawns = { lobo = 4 }, respawn = 8 },

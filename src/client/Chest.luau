@@ -14,6 +14,7 @@ local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Fx = require(script.Parent.Fx)
 local Sounds = require(script.Parent.Sounds)
+local RevealScene = require(script.Parent.RevealScene)
 
 local Chest = {}
 
@@ -22,7 +23,8 @@ local REEL_LENGTH = 46
 local WIN_INDEX = 40
 
 local win, odds, possible, buyButton
-local overlayGui, overlay, reel, reelHolder, resultPanel, resultName, resultInfo, againButton, rays
+local overlayGui, overlay, reel, reelHolder, resultPanel, resultName, resultInfo, againButton, rays, sceneHolder
+local currentScene = nil
 local selectedChest = "bronze"
 local revealing = false
 local raysConnection = nil
@@ -103,6 +105,10 @@ end
 
 local function closeOverlay()
 	overlayGui.Enabled = false
+	if currentScene then
+		currentScene:destroy()
+		currentScene = nil
+	end
 	if raysConnection then
 		raysConnection:Disconnect()
 		raysConnection = nil
@@ -119,6 +125,12 @@ function Chest.reveal(item, chestId)
 	win:close()
 	overlayGui.Enabled = true
 	resultPanel.Visible = false
+	reelHolder.Visible = true
+	-- cena no fundo: seu personagem ajoelha e mexe no baú enquanto a roleta gira
+	if currentScene then
+		currentScene:destroy()
+	end
+	currentScene = RevealScene.chest(sceneHolder, chest.color)
 	for _, ray in rays do
 		ray.BackgroundTransparency = 1
 	end
@@ -149,7 +161,7 @@ function Chest.reveal(item, chestId)
 	reel.Position = UDim2.fromOffset(centerOffset, 0)
 
 	-- anima com desaceleração e "tic" a cada carta que passa pelo centro
-	local duration = 5.2
+	local duration = 4.2
 	local start = os.clock()
 	local startX = centerOffset
 	local lastIndex = 0
@@ -169,8 +181,12 @@ function Chest.reveal(item, chestId)
 		RunService.RenderStepped:Wait()
 	end
 
-	-- revelação
+	-- revelação: a tampa abre, o feixe de luz sobe e o personagem ergue o item
 	local rarity = Rarities.ById[item.rarity] or Rarities.List[1]
+	if currentScene then
+		currentScene:open(rarity.color, rarity.order >= 4)
+	end
+	reelHolder.Visible = false
 	for _, ray in rays do
 		ray.BackgroundColor3 = rarity.color
 		ray.BackgroundTransparency = 0.6
@@ -230,17 +246,18 @@ function Chest.init(screen)
 	-- tela da roleta
 	local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 	overlayGui = UI.new("ScreenGui", { Name = "RoletaBau", DisplayOrder = 10, IgnoreGuiInset = true, ResetOnSpawn = false, Enabled = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = playerGui })
-	overlay = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.25, Parent = overlayGui })
+	overlay = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(10, 8, 18), BackgroundTransparency = 0.15, Parent = overlayGui })
+	sceneHolder = UI.new("Frame", { Size = UDim2.fromScale(1, 0.72), BackgroundTransparency = 1, ZIndex = 2, Parent = overlay })
 	rays = {}
 	for i = 1, 2 do
-		rays[i] = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.45), Size = UDim2.fromOffset(520, 520), Rotation = (i - 1) * 45, BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 1, Parent = overlay })
+		rays[i] = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.36), Size = UDim2.fromOffset(520, 520), Rotation = (i - 1) * 45, BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 1, Parent = overlay })
 	end
-	reelHolder = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.45), Size = UDim2.new(0.9, 0, 0, 170), BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.1, ClipsDescendants = true, ZIndex = 3, Parent = overlay }, { UI.corner(14), UI.stroke(UI.Colors.Gold, 3) })
+	reelHolder = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.82), Size = UDim2.new(0.9, 0, 0, 170), BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.1, ClipsDescendants = true, ZIndex = 3, Parent = overlay }, { UI.corner(14), UI.stroke(UI.Colors.Gold, 3) })
 	reel = UI.new("Frame", { Position = UDim2.fromOffset(0, 10), Size = UDim2.fromOffset(REEL_LENGTH * (CARD_W + CARD_GAP), 150), BackgroundTransparency = 1, ZIndex = 4, Parent = reelHolder })
 	UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.new(0, 4, 1, 0), BackgroundColor3 = UI.Colors.Gold, ZIndex = 6, Parent = reelHolder })
-	UI.label({ Text = "▼", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 0.45, -88), Size = UDim2.fromOffset(40, 30), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, ZIndex = 6, Parent = overlay }, { UI.textStroke(2) })
+	UI.label({ Text = "▼", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 0.82, -88), Size = UDim2.fromOffset(40, 30), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, ZIndex = 6, Parent = overlay }, { UI.textStroke(2) })
 
-	resultPanel = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0.45, 100), Size = UDim2.fromOffset(520, 150), BackgroundTransparency = 1, ZIndex = 7, Visible = false, Parent = overlay })
+	resultPanel = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0.72, 0), Size = UDim2.fromOffset(520, 150), BackgroundTransparency = 1, ZIndex = 7, Visible = false, Parent = overlay })
 	UI.new("UIScale", { Parent = resultPanel })
 	resultName = UI.label({ Text = "", Size = UDim2.new(1, 0, 0, 40), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, ZIndex = 7, Parent = resultPanel }, { UI.textStroke(2.5) })
 	resultInfo = UI.label({ Text = "", Position = UDim2.fromOffset(0, 42), Size = UDim2.new(1, 0, 0, 22), TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 7, Parent = resultPanel }, { UI.textStroke(1.5) })

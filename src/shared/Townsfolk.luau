@@ -60,28 +60,28 @@ end
 -- Moradores: aparência e rota (lista de pontos). Cada trecho anda em "speed" studs/s e para "pause" segundos.
 -- As rotas seguem as calçadas e o meio das ruas do traçado da vila (WorldGen/Town).
 Townsfolk.Villagers = {
-	{ name = "Ana", skin = Color3.fromRGB(240, 200, 170), shirt = Color3.fromRGB(200, 80, 90), pants = Color3.fromRGB(70, 50, 40), hair = Color3.fromRGB(90, 50, 30), hat = "scarf", dress = true, speed = 6, pause = 6, route = { A(-5.5, -22), A(-5.5, -46), A(-5.5, -68), A(5.5, -68), A(5.5, -46), A(5.5, -22) } },
-	{ name = "Beto", skin = Color3.fromRGB(200, 150, 110), shirt = Color3.fromRGB(80, 120, 170), pants = Color3.fromRGB(60, 60, 70), hair = Color3.fromRGB(40, 30, 25), hat = "cap", speed = 7, pause = 4, route = { A(0, -70), A(0, -45), A(0, -23) } },
-	{ name = "Clara", skin = Color3.fromRGB(250, 215, 190), shirt = Color3.fromRGB(240, 220, 120), pants = Color3.fromRGB(150, 110, 70), hair = Color3.fromRGB(230, 190, 90), dress = true, speed = 5, pause = 8, route = { A(22, -5.5), A(48, -5.5), A(70, -5.5), A(70, 5.5), A(48, 5.5), A(22, 5.5) } },
-	{ name = "Dido", skin = Color3.fromRGB(150, 100, 70), shirt = Color3.fromRGB(120, 150, 80), pants = Color3.fromRGB(80, 60, 40), hair = Color3.fromRGB(20, 20, 20), hat = "straw", basket = true, speed = 4.5, pause = 9, route = plazaLoop(16.5, false) },
-	{ name = "Elza", skin = Color3.fromRGB(230, 185, 150), shirt = Color3.fromRGB(150, 90, 160), pants = Color3.fromRGB(60, 40, 70), hair = Color3.fromRGB(200, 200, 205), dress = true, old = true, speed = 3.5, pause = 12, route = { A(-5.5, 22), A(-5.5, 39), A(5.5, 39), A(5.5, 22) } },
-	{ name = "Fábio", skin = Color3.fromRGB(210, 160, 120), shirt = Color3.fromRGB(170, 120, 60), pants = Color3.fromRGB(70, 70, 75), hair = Color3.fromRGB(120, 70, 30), hat = "bandana", speed = 7.5, pause = 5, route = { A(-22, 5.5), A(-46, 5.5), A(-70, 5.5), A(-70, -5.5), A(-46, -5.5), A(-22, -5.5) } },
-	{ name = "Guarda Tito", skin = Color3.fromRGB(220, 170, 130), shirt = Color3.fromRGB(40, 70, 150), pants = Color3.fromRGB(50, 50, 60), hair = Color3.fromRGB(60, 40, 20), hat = "helmet", guard = true, speed = 5, pause = 6, route = { A(-2.5, -73), A(2.5, -73), A(2.5, -58), A(-2.5, -58) } },
-	{ name = "Guarda Rui", skin = Color3.fromRGB(180, 130, 95), shirt = Color3.fromRGB(40, 70, 150), pants = Color3.fromRGB(50, 50, 60), hair = Color3.fromRGB(30, 25, 20), hat = "helmet", guard = true, speed = 5, pause = 6, route = { A(23, 0), A(72, 0) } },
-	{ name = "Lia", skin = Color3.fromRGB(245, 205, 175), shirt = Color3.fromRGB(255, 140, 160), pants = Color3.fromRGB(100, 80, 140), hair = Color3.fromRGB(60, 35, 20), child = true, speed = 8, pause = 3, route = plazaLoop(15, false) },
-	{ name = "Téo", skin = Color3.fromRGB(190, 140, 100), shirt = Color3.fromRGB(90, 180, 220), pants = Color3.fromRGB(70, 70, 120), hair = Color3.fromRGB(30, 20, 15), child = true, speed = 8.5, pause = 3, route = plazaLoop(15.5, true) },
-	{ name = "Guarda Ivo", skin = Color3.fromRGB(235, 190, 150), shirt = Color3.fromRGB(40, 70, 150), pants = Color3.fromRGB(50, 50, 60), hair = Color3.fromRGB(80, 50, 25), hat = "helmet", guard = true, speed = 5, pause = 6, route = { A(-23, 0), A(-72, 0) } },
+	{ name = "Ana", skin = Color3.fromRGB(240, 200, 170), shirt = Color3.fromRGB(200, 80, 90), pants = Color3.fromRGB(70, 50, 40), hair = Color3.fromRGB(90, 50, 30), hat = "scarf", dress = true, speed = 6, pause = 6, route = { A(-7.5, -28), A(-7.5, -52), A(-7.5, -86), A(7.5, -86), A(7.5, -52), A(7.5, -28) } },
+	{ name = "Beto", skin = Color3.fromRGB(200, 150, 110), shirt = Color3.fromRGB(80, 120, 170), pants = Color3.fromRGB(60, 60, 70), hair = Color3.fromRGB(40, 30, 25), hat = "cap", speed = 7, pause = 4, route = { A(0, -88), A(0, -56), A(0, -29) } },
+	{ name = "Clara", skin = Color3.fromRGB(250, 215, 190), shirt = Color3.fromRGB(240, 220, 120), pants = Color3.fromRGB(150, 110, 70), hair = Color3.fromRGB(230, 190, 90), dress = true, speed = 5, pause = 8, route = { A(28, -7.5), A(60, -7.5), A(90, -7.5), A(90, 7.5), A(60, 7.5), A(28, 7.5) } },
+	{ name = "Dido", skin = Color3.fromRGB(150, 100, 70), shirt = Color3.fromRGB(120, 150, 80), pants = Color3.fromRGB(80, 60, 40), hair = Color3.fromRGB(20, 20, 20), hat = "straw", basket = true, speed = 4.5, pause = 9, route = plazaLoop(17.5, false) },
+	{ name = "Elza", skin = Color3.fromRGB(230, 185, 150), shirt = Color3.fromRGB(150, 90, 160), pants = Color3.fromRGB(60, 40, 70), hair = Color3.fromRGB(200, 200, 205), dress = true, old = true, speed = 3.5, pause = 12, route = { A(-7.5, 28), A(-7.5, 42), A(7.5, 42), A(7.5, 28) } },
+	{ name = "Fábio", skin = Color3.fromRGB(210, 160, 120), shirt = Color3.fromRGB(170, 120, 60), pants = Color3.fromRGB(70, 70, 75), hair = Color3.fromRGB(120, 70, 30), hat = "bandana", speed = 7.5, pause = 5, route = { A(-28, 7.5), A(-60, 7.5), A(-90, 7.5), A(-90, -7.5), A(-60, -7.5), A(-28, -7.5) } },
+	{ name = "Guarda Tito", skin = Color3.fromRGB(220, 170, 130), shirt = Color3.fromRGB(40, 70, 150), pants = Color3.fromRGB(50, 50, 60), hair = Color3.fromRGB(60, 40, 20), hat = "helmet", guard = true, speed = 5, pause = 6, route = { A(-3, -91), A(3, -91), A(3, -75), A(-3, -75) } },
+	{ name = "Guarda Rui", skin = Color3.fromRGB(180, 130, 95), shirt = Color3.fromRGB(40, 70, 150), pants = Color3.fromRGB(50, 50, 60), hair = Color3.fromRGB(30, 25, 20), hat = "helmet", guard = true, speed = 5, pause = 6, route = { A(28, 0), A(92, 0) } },
+	{ name = "Lia", skin = Color3.fromRGB(245, 205, 175), shirt = Color3.fromRGB(255, 140, 160), pants = Color3.fromRGB(100, 80, 140), hair = Color3.fromRGB(60, 35, 20), child = true, speed = 8, pause = 3, route = plazaLoop(16, false) },
+	{ name = "Téo", skin = Color3.fromRGB(190, 140, 100), shirt = Color3.fromRGB(90, 180, 220), pants = Color3.fromRGB(70, 70, 120), hair = Color3.fromRGB(30, 20, 15), child = true, speed = 8.5, pause = 3, route = plazaLoop(16.5, true) },
+	{ name = "Guarda Ivo", skin = Color3.fromRGB(235, 190, 150), shirt = Color3.fromRGB(40, 70, 150), pants = Color3.fromRGB(50, 50, 60), hair = Color3.fromRGB(80, 50, 25), hat = "helmet", guard = true, speed = 5, pause = 6, route = { A(-28, 0), A(-92, 0) } },
 }
 
 -- Animais soltos: centro (x, z de projeto) e quanto andam em cada eixo
 Townsfolk.Critters = {
-	{ kind = "galinha", center = { -48, 28.5 }, roamX = 4, roamZ = 2, color = Color3.fromRGB(245, 240, 230) },
-	{ kind = "galinha", center = { -46, 28 }, roamX = 4.5, roamZ = 2.5, color = Color3.fromRGB(190, 120, 60) },
-	{ kind = "galinha", center = { -50, 29 }, roamX = 3, roamZ = 2, color = Color3.fromRGB(245, 240, 230) },
-	{ kind = "galinha", center = { -44, 30 }, roamX = 3, roamZ = 2, color = Color3.fromRGB(150, 90, 50) },
-	{ kind = "gato", center = { -25.5, -48 }, roamX = 1, roamZ = 7, color = Color3.fromRGB(240, 160, 80) },
-	{ kind = "gato", center = { 25.5, -40 }, roamX = 1, roamZ = 6, color = Color3.fromRGB(60, 60, 65) },
-	{ kind = "cachorro", center = { 0, -17 }, roamX = 6, roamZ = 1.5, color = Color3.fromRGB(170, 120, 75) },
+	{ kind = "galinha", center = { -55, 29.5 }, roamX = 4, roamZ = 2, color = Color3.fromRGB(245, 240, 230) },
+	{ kind = "galinha", center = { -53, 29 }, roamX = 4.5, roamZ = 2.5, color = Color3.fromRGB(190, 120, 60) },
+	{ kind = "galinha", center = { -57, 30 }, roamX = 3, roamZ = 2, color = Color3.fromRGB(245, 240, 230) },
+	{ kind = "galinha", center = { -51, 30.5 }, roamX = 3, roamZ = 2, color = Color3.fromRGB(150, 90, 50) },
+	{ kind = "gato", center = { -32.5, -62 }, roamX = 1, roamZ = 8, color = Color3.fromRGB(240, 160, 80) },
+	{ kind = "gato", center = { 32.5, -56 }, roamX = 1, roamZ = 7, color = Color3.fromRGB(60, 60, 65) },
+	{ kind = "cachorro", center = { 0, -19 }, roamX = 7, roamZ = 1.5, color = Color3.fromRGB(170, 120, 75) },
 }
 
 -- duração de um trecho e do ciclo inteiro da rota

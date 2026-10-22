@@ -313,7 +313,8 @@ function WeaponModels.attach(character, item)
 	if style == "blade" then
 		grip = CFrame.new(0, -0.25, -0.1) * CFrame.Angles(math.rad(-90), 0, 0)
 	elseif style == "pole" then
-		grip = CFrame.new(0, -0.2, 0)
+		-- cajado: a mão segura um terço acima da ponta de baixo, com o cajado em pé
+		grip = if base.weaponType == "staff" then CFrame.new(0, -1.1, 0) * CFrame.Angles(math.rad(-8), 0, 0) else CFrame.new(0, -0.2, 0)
 	else
 		grip = CFrame.new(0, -0.2, 0) * CFrame.Angles(math.rad(90), 0, 0)
 	end

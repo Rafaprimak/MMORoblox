@@ -176,7 +176,8 @@ local STANCES = {
 	axe = { RS = R(36, 0, -26), RE = R(48), LS = R(40, 0, 30), LE = R(52), RT = R(-4) },
 	hammer = { RS = R(38, 0, -28), RE = R(50), LS = R(42, 0, 32), LE = R(54), RT = R(-5) },
 	spear = { RS = R(42, 0, -16), RE = R(62), LS = R(52, 0, 26), LE = R(32), RT = R(-4), W = R(0, -10, 0) },
-	staff = { RS = R(30, 0, -10), RE = R(42), LS = R(14, 0, 10), RT = R(-2) },
+	-- cajado em pé ao lado do corpo: braço quase reto (o antebraço dobrado deitava o cajado)
+	staff = { RS = R(14, 0, -12), RE = R(8), LS = R(12, 0, 10), RT = R(-2) },
 	bow = { LS = R(22, 0, 4), RS = R(14, 0, -6), RT = R(-2) },
 }
 

@@ -54,6 +54,8 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Modelagem caprichada: armas detalhadas por tipo, armadura/elmo/botas visíveis (capa no Lendário+), árvores, pedras e inimigos com mais detalhe (G)
 - 🧪 Forja, alquimia, torre do encantador e empório viram construções com interior (NPCs lá dentro); câmera Invisicam (M)
 - 🧪 Vila reformulada: ruas, calçadas, praça, vielas e becos; casas alinhadas sem sobreposição; chão da vila alinhado à grade de voxels (NPCs e bancos não afundam mais) (M)
+- 🧪 Vila mais espaçosa (ruas de 12, praça de 52, jardins na frente das casas), traçado em `TownPlan`, chão sem grama embaixo do calçamento, lojas temáticas (ferraria de tijolos com pátio de trabalho, chalé de alquimia com horta, empório com piso quadriculado), pisos variados nas casas, móveis na altura certa (M)
+- 🧪 Cena de revelação: seu personagem abre o baú (tampa, feixe de luz, ergue o item) e vê o ovo rachar e o pet aparecer (M)
 - 🧪 9 locais de interesse com descoberta, baú escondido, marcadores no mapa e conquistas (M)
 - 🧪 Vila viva: 10 moradores com rotas e balões de fala, guardas, crianças, animais, pássaros, borboletas, vaga-lumes; feira, bancos, poço, carroça, varal, galinheiro, canteiros, bandeirinhas, janelas que acendem à noite (M)
 - ⬜ Sons de verdade: golpes por tipo de arma, magias, passos, ambiente por bioma, música da vila e do chefe (M)

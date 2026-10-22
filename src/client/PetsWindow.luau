@@ -11,6 +11,8 @@ local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Sounds = require(script.Parent.Sounds)
 local Popups = require(script.Parent.Popups)
+local RevealScene = require(script.Parent.RevealScene)
+local Players = game:GetService("Players")
 
 local PetsWindow = {}
 
@@ -145,12 +147,41 @@ function PetsWindow.openEggs()
 	win:setTab("Ovos")
 end
 
--- aviso de pet novo (ovo chocado ou drop)
+-- cena do ovo chocando (seu personagem na frente do ovo, que racha e solta o pet)
+local hatching = false
+local function hatchScene(petId, eggColor)
+	while hatching do
+		task.wait(0.2)
+	end
+	hatching = true
+	local gui = UI.new("ScreenGui", { Name = "OvoChocando", DisplayOrder = 40, IgnoreGuiInset = true, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = Players.LocalPlayer:WaitForChild("PlayerGui") })
+	local back = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(10, 8, 18), BackgroundTransparency = 0.12, Parent = gui })
+	local holder = UI.new("Frame", { Size = UDim2.fromScale(1, 0.85), BackgroundTransparency = 1, ZIndex = 2, Parent = back })
+	UI.label({ Text = "O ovo está chocando...", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0.86), Size = UDim2.fromOffset(500, 36), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = Color3.fromRGB(255, 235, 180), ZIndex = 3, Parent = back }, { UI.textStroke(2) })
+	local ok, scene = pcall(RevealScene.egg, holder, eggColor, petId)
+	for i = 1, 6 do
+		task.wait(0.25)
+		Sounds.play("ping", 0.8 + i * 0.12, 0.25)
+	end
+	Sounds.play("hatch", 1, 0.8)
+	task.wait(1.7)
+	if ok and scene then
+		scene:destroy()
+	end
+	UI.tween(back, 0.3, { BackgroundTransparency = 1 })
+	task.wait(0.3)
+	gui:Destroy()
+	hatching = false
+end
+
+-- aviso de pet novo (ovo chocado ou drop): primeiro a cena, depois o anúncio
 function PetsWindow.announce(notification)
 	local def = Pets.List[notification.pet]
 	if not def then
 		return
 	end
+	local egg = Pets.Eggs[notification.source or ""] or Pets.Eggs.comum
+	hatchScene(notification.pet, egg.color)
 	local rarity = Rarities.ById[def.rarity]
 	Popups.burst(("%s %s!"):format(def.icon, string.upper(def.name)), rarity.color, if notification.source == "drop" then "Um ovo caiu do inimigo e chocou!" else "Saiu do ovo! Ele já está seguindo você (tecla G).")
 	Sounds.play("ping", 0.8 + rarity.order * 0.15, 0.8)

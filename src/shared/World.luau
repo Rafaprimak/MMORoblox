@@ -9,6 +9,8 @@
 -- ESCALA: todas as fórmulas trabalham no "espaço de design" (mapa de -512 a 512) e o resultado é
 -- ampliado por World.Scale. Assim dá para aumentar o mundo inteiro mudando um número só.
 -- Coordenadas expostas (TownCenter, Locations, Waystones, estradas) já estão em studs reais.
+local TownPlan = require(script.Parent.TownPlan)
+
 local World = {}
 
 World.Scale = 1.5
@@ -71,7 +73,7 @@ function World.weights(x, z)
 	w.corridor = (1 - smoothstep(16, 42, math.abs(dx + fbm(dx, dz, 1, 120, SEED + 61) * 12))) * smoothstep(-205, -240, dz)
 	w.ocean = smoothstep(270, 370, dz - warp * 0.3)
 	w.lake = 1 - smoothstep(28, 62, distance(dx, dz, -170, 160) + warp * 0.15)
-	w.town = 1 - smoothstep(78, 108, distance(dx, dz, 0, 150))
+	w.town = 1 - smoothstep(TownPlan.Radius, TownPlan.Radius + 30, distance(dx, dz, 0, 150))
 	return w
 end
 
@@ -151,8 +153,15 @@ function World.surfaceMaterial(x, z, h, slope, w)
 		return M.Sand
 	end
 	local road = World.roadDistance(x, z)
-	-- dentro da vila o chão é grama; ruas, praça e calçadas são peças (WorldGen/Town)
-	if w.town > 0.6 and distance(x, z, World.TownCenter.X, World.TownCenter.Z) < 78 * S then
+	-- dentro da vila: embaixo das ruas, praça e becos, chão sem grama (a grama animada atravessaria o
+	-- calçamento, que são peças finas); no resto, grama dos jardins
+	if w.town > 0.5 then
+		local paving = TownPlan.pavingAt((x - World.TownCenter.X) / S, (z - World.TownCenter.Z) / S, 2)
+		if paving == "beco" then
+			return M.Ground
+		elseif paving then
+			return M.Cobblestone
+		end
 		return if n > 0.3 then M.LeafyGrass else M.Grass
 	end
 	if road < World.RoadWidth then
@@ -209,7 +218,7 @@ end
 
 -- Locais nomeados (missões de exploração, marcadores, mapa). Valores de design × escala.
 local DESIGN_LOCATIONS = {
-	vila = { "Vila Aurora", 0, 150, 45 },
+	vila = { "Vila Aurora", 0, 150, 60 },
 	encruzilhada = { "Encruzilhada", 0, 10, 22 },
 	bosque = { "Bosque Sombrio", 250, -70, 60 },
 	toca_aranhas = { "Ninho das Aranhas", 330, 30, 30 },
