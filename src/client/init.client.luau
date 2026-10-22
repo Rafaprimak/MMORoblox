@@ -35,6 +35,7 @@ local Sky = require(script.Sky)
 local Auras = require(script.Auras)
 local SettingsWindow = require(script.SettingsWindow)
 local Tutorial = require(script.Tutorial)
+local LockOn = require(script.LockOn)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -113,6 +114,7 @@ end
 Controller.onCharge = HUD.setCharge
 Controller.onEvent = Tutorial.event
 Controller.init()
+LockOn.init()
 
 Services.openChest = Chest.open
 Dialog.services = {

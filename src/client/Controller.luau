@@ -5,6 +5,7 @@
 --   F       = segure para bloquear; aperte logo antes do golpe inimigo para APARAR
 --   Q       = esquiva (rolamento com invencibilidade); no último instante = esquiva perfeita
 --   Shift   = correr      1-4 = habilidades      Z X V = poções      H = montaria
+--   T / botão do meio = travar a mira no inimigo (LockOn)
 -- No celular aparecem botões na tela para cada ação.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -20,6 +21,7 @@ local WeaponStyles = require(Shared.WeaponStyles)
 local State = require(script.Parent.State)
 local Animator = require(script.Parent.Animator)
 local Sounds = require(script.Parent.Sounds)
+local LockOn = require(script.Parent.LockOn)
 
 local Controller = {}
 
@@ -71,6 +73,16 @@ function Controller.getAim()
 		return Vector3.new(0, 0, -1), Vector3.zero
 	end
 	local origin = root.Position + Vector3.new(0, 1.2, 0)
+	-- mira travada: tudo vai no alvo
+	local locked = LockOn.target()
+	if locked then
+		local point = LockOn.aimPoint(locked)
+		local direction = point - origin
+		if flat(direction).Magnitude < 0.5 then
+			direction = root.CFrame.LookVector
+		end
+		return direction.Unit, point
+	end
 	if UserInputService.MouseEnabled and not UserInputService.TouchEnabled then
 		local effects = workspace:FindFirstChild("Efeitos")
 		local drops = workspace:FindFirstChild("Drops")

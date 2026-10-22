@@ -1,6 +1,8 @@
 -- HUD: vida/mana/estamina, habilidades com recarga, poções, XP, missões, região e barra de chefe.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
+local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -16,6 +18,8 @@ local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
 local EnemyRenderer = require(script.Parent.EnemyRenderer)
 local Sky = require(script.Parent.Sky)
+local LockOn = require(script.Parent.LockOn)
+local Window = require(script.Parent.Window)
 
 local HUD = {}
 
@@ -98,14 +102,18 @@ function HUD.init(screen, callbacks)
 		end)
 	end
 
-	-- ===== barra de ritmo do combo e barra de carga do pesado =====
+	-- ===== retículo: segue o mouse (ou o alvo travado) e carrega as barras de ritmo e de carga =====
 	-- vermelho = cedo demais (quebra o combo) • branco = espere • verde = clique agora ("Ritmo!")
-	local cueFrame = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -106), Size = UDim2.fromOffset(240, 12), BackgroundColor3 = Color3.fromRGB(12, 12, 18), BackgroundTransparency = 0.25, Visible = false, Parent = screen }, { UI.corner(6), UI.stroke(Color3.new(0, 0, 0), 1, 0.4) })
+	local reticle = UI.new("Frame", { Name = "Reticulo", AnchorPoint = Vector2.new(0.5, 0), Size = UDim2.fromOffset(120, 60), BackgroundTransparency = 1, Parent = screen })
+	refs.reticle = reticle
+	refs.ring = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0), Size = UDim2.fromOffset(26, 26), BackgroundTransparency = 1, Visible = false, Parent = reticle }, { UI.corner(13), UI.stroke(Color3.new(1, 1, 1), 2, 0.2) })
+	refs.ringStroke = refs.ring:FindFirstChildOfClass("UIStroke")
+	local cueFrame = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 20), Size = UDim2.fromOffset(110, 8), BackgroundColor3 = Color3.fromRGB(12, 12, 18), BackgroundTransparency = 0.25, Visible = false, Parent = reticle }, { UI.corner(4), UI.stroke(Color3.new(0, 0, 0), 1, 0.4) })
 	refs.cueEarly = UI.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = Color3.fromRGB(150, 60, 60), BackgroundTransparency = 0.3, Parent = cueFrame }, { UI.corner(6) })
 	refs.cueGood = UI.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = Color3.fromRGB(80, 220, 110), BackgroundTransparency = 0.25, Parent = cueFrame }, { UI.corner(6) })
 	refs.cueMarker = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0, 0.5), Size = UDim2.new(0, 4, 1, 8), BackgroundColor3 = Color3.new(1, 1, 1), ZIndex = 3, Parent = cueFrame }, { UI.corner(2) })
 	refs.cueFrame = cueFrame
-	local chargeBack, chargeFill, chargeText = UI.bar(screen, { Position = UDim2.new(0.5, -120, 1, -132), Size = UDim2.fromOffset(240, 16), color = Color3.fromRGB(255, 150, 50), text = "CARREGANDO" })
+	local chargeBack, chargeFill, chargeText = UI.bar(reticle, { Position = UDim2.new(0.5, -60, 0, 32), Size = UDim2.fromOffset(120, 14), color = Color3.fromRGB(255, 150, 50), text = "CARREGANDO" })
 	chargeBack.Visible = false
 	refs.chargeBack, refs.chargeFill, refs.chargeText = chargeBack, chargeFill, chargeText
 
@@ -193,6 +201,28 @@ function HUD.init(screen, callbacks)
 			end
 		end
 
+		-- retículo: no alvo travado, no centro (celular) ou no mouse
+		local locked = LockOn.target()
+		local position = nil
+		if locked then
+			local point, onScreen = workspace.CurrentCamera:WorldToViewportPoint(LockOn.aimPoint(locked))
+			if onScreen then
+				position = Vector2.new(point.X, point.Y) - GuiService:GetGuiInset()
+			end
+		end
+		if not position then
+			if UserInputService.TouchEnabled and not UserInputService.MouseEnabled then
+				local viewport = workspace.CurrentCamera.ViewportSize
+				position = Vector2.new(viewport.X / 2, viewport.Y * 0.42)
+			else
+				position = UserInputService:GetMouseLocation() - GuiService:GetGuiInset()
+			end
+		end
+		refs.reticle.Position = UDim2.fromOffset(position.X, position.Y)
+		refs.reticle.Visible = not Window.anyOpen()
+		refs.ring.Visible = locked ~= nil or cue.active or charge.active
+		refs.ringStroke.Color = if locked then Color3.fromRGB(255, 80, 70) else Color3.new(1, 1, 1)
+
 		-- barra de ritmo
 		if cue.active then
 			local total = cue.duration + Config.RhythmWindow
@@ -212,7 +242,7 @@ function HUD.init(screen, callbacks)
 		if charge.active then
 			local ratio = math.clamp((now - charge.start) / Config.HeavyChargeTime, 0, 1)
 			UI.setBar(refs.chargeFill, ratio)
-			refs.chargeText.Text = if ratio >= 1 then "MÁXIMO! solte o R" else ("CARREGANDO %d%%"):format(math.floor(ratio * 100))
+			refs.chargeText.Text = if ratio >= 1 then "MÁXIMO! SOLTE" else ("%d%%"):format(math.floor(ratio * 100))
 			refs.chargeFill.BackgroundColor3 = if ratio >= 1 then Color3.fromRGB(255, 80, 60) else Color3.fromRGB(255, 150, 50)
 		end
 
