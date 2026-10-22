@@ -67,6 +67,7 @@ function HUD.init(screen, callbacks)
 		UI.stroke(UI.Colors.Stroke, 1.5, 0.3),
 		UI.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(160, 160, 180)), Rotation = 90 }),
 	})
+	UI.ornate(panel, UI.Colors.Trim, 4)
 	refs.classBadge = UI.new("Frame", { Position = UDim2.fromOffset(10, 10), Size = UDim2.fromOffset(62, 62), BackgroundColor3 = Config.Ranks[1].color, Parent = panel }, { UI.corner(12), UI.stroke(Color3.new(1, 1, 1), 2, 0.5) })
 	refs.classIcon = UI.label({ Text = "❔", Size = UDim2.fromScale(1, 0.8), Position = UDim2.fromScale(0, 0.05), TextXAlignment = Enum.TextXAlignment.Center, Parent = refs.classBadge })
 	refs.rankBadge = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 1, 2), Size = UDim2.fromOffset(40, 20), BackgroundColor3 = Config.Ranks[1].color, ZIndex = 3, Parent = refs.classBadge }, { UI.corner(6), UI.stroke(Color3.new(0, 0, 0), 1.5) })

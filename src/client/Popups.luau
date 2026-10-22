@@ -90,7 +90,7 @@ end
 function Popups.burst(text, color, subText)
 	local frame = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.34), Size = UDim2.fromOffset(640, 110), BackgroundTransparency = 1, ZIndex = 40, Parent = screen })
 	local scale = UI.new("UIScale", { Scale = 0.3, Parent = frame })
-	local title = UI.label({ Text = text, TextColor3 = color, Font = Enum.Font.GothamBlack, Size = UDim2.fromScale(1, 0.65), TextXAlignment = Enum.TextXAlignment.Center, Parent = frame }, { UI.textStroke(3) })
+	local title = UI.label({ Text = text, TextColor3 = color, FontFace = UI.TitleFont, Size = UDim2.fromScale(1, 0.65), TextXAlignment = Enum.TextXAlignment.Center, Parent = frame }, { UI.textStroke(3) })
 	if color == Color3.new(1, 1, 1) then
 		Fx.registerRainbow(title, "TextColor3")
 	end
@@ -115,9 +115,10 @@ function Popups.banner(title, subText, color, duration)
 		BackgroundTransparency = 0.15,
 		LayoutOrder = bannerCounter,
 		Parent = bannerList,
-	}, { UI.corner(10), UI.stroke(color, 2) })
+	}, { UI.corner(10), UI.stroke(color, 2), UI.new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(150, 150, 175)), Rotation = 90 }) })
+	UI.ornate(frame, color, 4)
 	local scale = UI.new("UIScale", { Scale = 0.6, Parent = frame })
-	UI.label({ Text = title, TextColor3 = color, Font = Enum.Font.GothamBlack, Position = UDim2.fromOffset(12, 6), Size = UDim2.new(1, -24, 0, 28), TextXAlignment = Enum.TextXAlignment.Center, Parent = frame }, { UI.textStroke(1.5) })
+	UI.label({ Text = title, TextColor3 = color, FontFace = UI.TitleFont, Position = UDim2.fromOffset(12, 6), Size = UDim2.new(1, -24, 0, 28), TextXAlignment = Enum.TextXAlignment.Center, Parent = frame }, { UI.textStroke(1.5) })
 	if subText then
 		UI.label({ Text = subText, Position = UDim2.fromOffset(12, 36), Size = UDim2.new(1, -24, 0, 20), TextXAlignment = Enum.TextXAlignment.Center, Parent = frame })
 	end

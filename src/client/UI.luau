@@ -15,10 +15,14 @@ local function buttonSound(name, volume)
 	end
 end
 
+-- Tema: azul-noite com acabamento dourado (estilo fantasia)
 UI.Colors = {
-	Panel = Color3.fromRGB(20, 22, 30),
-	PanelLight = Color3.fromRGB(34, 37, 50),
-	Stroke = Color3.fromRGB(70, 75, 100),
+	Panel = Color3.fromRGB(19, 21, 36),
+	PanelLight = Color3.fromRGB(34, 37, 58),
+	Stroke = Color3.fromRGB(92, 84, 70),
+	Trim = Color3.fromRGB(214, 178, 96),
+	TrimDark = Color3.fromRGB(120, 92, 44),
+	Ribbon = Color3.fromRGB(120, 30, 38),
 	Text = Color3.fromRGB(240, 240, 245),
 	SubText = Color3.fromRGB(165, 170, 190),
 	Gold = Color3.fromRGB(255, 205, 60),
@@ -53,6 +57,41 @@ function UI.new(className, props, children)
 		instance.Parent = parent
 	end
 	return instance
+end
+
+-- Fonte serifada dos títulos (com reserva para a Gotham se a família não carregar)
+UI.TitleFont = Font.new("rbxasset://fonts/families/Merriweather.json", Enum.FontWeight.Bold)
+
+-- Moldura ornamentada: borda dourada dupla e um losango em cada canto
+function UI.ornate(frame, color, inset)
+	color = color or UI.Colors.Trim
+	inset = inset or 5
+	local stroke = frame:FindFirstChildOfClass("UIStroke")
+	if stroke then
+		stroke.Color = color
+		stroke.Thickness = 2
+		stroke.Transparency = 0.1
+	else
+		UI.new("UIStroke", { Color = color, Thickness = 2, Transparency = 0.1, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = frame })
+	end
+	UI.new("Frame", { Name = "BordaInterna", Position = UDim2.fromOffset(inset, inset), Size = UDim2.new(1, -inset * 2, 1, -inset * 2), BackgroundTransparency = 1, ZIndex = 0, Parent = frame }, {
+		UI.new("UICorner", { CornerRadius = UDim.new(0, 8) }),
+		UI.new("UIStroke", { Color = color, Thickness = 1, Transparency = 0.65 }),
+	})
+	for _, corner in { Vector2.new(0, 0), Vector2.new(1, 0), Vector2.new(0, 1), Vector2.new(1, 1) } do
+		UI.new("Frame", {
+			Name = "Losango",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(corner.X, corner.Y),
+			Size = UDim2.fromOffset(12, 12),
+			Rotation = 45,
+			BackgroundColor3 = color,
+			BorderSizePixel = 0,
+			ZIndex = 8,
+			Parent = frame,
+		}, { UI.new("UIStroke", { Color = UI.Colors.TrimDark, Thickness = 1.5 }) })
+	end
+	return frame
 end
 
 function UI.corner(radius)
@@ -101,6 +140,9 @@ function UI.label(props, children)
 	for key, value in props do
 		merged[key] = value
 	end
+	if props.FontFace then
+		merged.Font = nil -- senão a fonte padrão pode sobrescrever a FontFace
+	end
 	return UI.new("TextLabel", merged, children)
 end
 
@@ -121,7 +163,7 @@ function UI.button(props, children)
 	-- brilho de cima para baixo (mantém a cor do botão), borda escura suave e contorno no texto
 	UI.new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(180, 180, 192)), Rotation = 90, Parent = button })
 	if not button:FindFirstChildOfClass("UIStroke") then
-		UI.new("UIStroke", { Color = Color3.new(0, 0, 0), Thickness = 1.5, Transparency = 0.6, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = button })
+		UI.new("UIStroke", { Color = UI.Colors.Trim, Thickness = 1.2, Transparency = 0.55, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Parent = button })
 	end
 	button.TextStrokeTransparency = 0.65
 	UI.new("UIPadding", {
@@ -153,12 +195,17 @@ function UI.bar(parent, props)
 	local back = UI.new("Frame", {
 		Position = props.Position,
 		Size = props.Size,
-		BackgroundColor3 = Color3.fromRGB(12, 12, 18),
-		BackgroundTransparency = 0.15,
+		BackgroundColor3 = Color3.fromRGB(10, 10, 18),
+		BackgroundTransparency = 0.1,
 		LayoutOrder = props.LayoutOrder,
 		Parent = parent,
-	}, { UI.corner(props.radius or 5) })
-	local fill = UI.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = props.color or UI.Colors.Gold, Parent = back }, { UI.corner(props.radius or 5) })
+	}, { UI.corner(props.radius or 5), UI.new("UIStroke", { Color = Color3.new(0, 0, 0), Thickness = 1.2, Transparency = 0.3 }) })
+	local fill = UI.new("Frame", { Size = UDim2.fromScale(0, 1), BackgroundColor3 = props.color or UI.Colors.Gold, Parent = back }, {
+		UI.corner(props.radius or 5),
+		UI.new("UIGradient", { Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)), ColorSequenceKeypoint.new(0.45, Color3.fromRGB(235, 235, 235)), ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 160)) }), Rotation = 90 }),
+	})
+	-- reflexo no topo da barra
+	UI.new("Frame", { Name = "Reflexo", Position = UDim2.new(0, 3, 0, 2), Size = UDim2.new(1, -6, 0.28, 0), BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.75, BorderSizePixel = 0, ZIndex = 2, Parent = fill }, { UI.corner(4) })
 	local label = nil
 	if props.text ~= false then
 		label = UI.label({

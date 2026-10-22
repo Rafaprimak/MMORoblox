@@ -35,23 +35,41 @@ function Window.create(screen, options)
 		Visible = false,
 		ZIndex = 20,
 		Parent = screen,
-	}, { UI.corner(14), UI.stroke(options.accent or UI.Colors.Stroke, 2) })
+	}, { UI.corner(14), UI.stroke(UI.Colors.Trim, 2) })
 	win.scale = UI.new("UIScale", { Parent = win.frame })
-	-- fundo com degradê e faixa colorida do título
-	UI.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(170, 170, 185)), Rotation = 90, Parent = win.frame })
-	UI.new("Frame", { Name = "FaixaTitulo", Size = UDim2.new(1, 0, 0, 46), BackgroundColor3 = options.accent or UI.Colors.Accent, BackgroundTransparency = 0.72, ZIndex = 0, Parent = win.frame }, {
-		UI.corner(14),
-		UI.new("UIGradient", { Transparency = NumberSequence.new(0, 1), Rotation = 0 }),
+	-- fundo azul-noite com degradê, moldura dourada dupla e losangos nos cantos
+	UI.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(150, 150, 175)), Rotation = 90, Parent = win.frame })
+	UI.ornate(win.frame, UI.Colors.Trim, 6)
+	-- faixa do título em fita (com a cor de destaque da janela) por cima da borda de cima
+	local accent = options.accent or UI.Colors.Accent
+	local ribbon = UI.new("Frame", {
+		Name = "Fita",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0, 2),
+		Size = UDim2.fromOffset(0, 38),
+		AutomaticSize = Enum.AutomaticSize.X,
+		BackgroundColor3 = UI.Colors.Ribbon:Lerp(accent, 0.25),
+		ZIndex = 6,
+		Parent = win.frame,
+	}, {
+		UI.corner(8),
+		UI.new("UIStroke", { Color = UI.Colors.Trim, Thickness = 2 }),
+		UI.new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(160, 150, 150)), Rotation = 90 }),
+		UI.new("UIPadding", { PaddingLeft = UDim.new(0, 26), PaddingRight = UDim.new(0, 26) }),
 	})
 	win.title = UI.label({
 		Text = options.title,
-		Position = UDim2.fromOffset(16, 10),
-		Size = UDim2.new(1, -120, 0, 30),
-		Font = Enum.Font.FredokaOne,
-		TextColor3 = options.accent or UI.Colors.Text,
-		Parent = win.frame,
-	}, { UI.textStroke(1) })
-	local close = UI.button({ Text = "X", Position = UDim2.new(1, -46, 0, 8), Size = UDim2.fromOffset(36, 34), BackgroundColor3 = UI.Colors.Red, Parent = win.frame })
+		Size = UDim2.fromScale(0, 1),
+		AutomaticSize = Enum.AutomaticSize.X,
+		TextScaled = false,
+		TextSize = 21,
+		FontFace = UI.TitleFont,
+		TextColor3 = Color3.fromRGB(255, 232, 170),
+		TextXAlignment = Enum.TextXAlignment.Center,
+		ZIndex = 7,
+		Parent = ribbon,
+	}, { UI.textStroke(1.5) })
+	local close = UI.button({ Text = "✕", Position = UDim2.new(1, -48, 0, 12), Size = UDim2.fromOffset(34, 32), BackgroundColor3 = Color3.fromRGB(150, 40, 45), ZIndex = 6, Parent = win.frame })
 	close.MouseButton1Click:Connect(function()
 		win:close()
 	end)
@@ -80,7 +98,9 @@ function Window.create(screen, options)
 	function win:setTab(name)
 		self.tab = name
 		for tabName, button in self.tabButtons or {} do
-			button.BackgroundColor3 = if tabName == name then (options.accent or UI.Colors.Accent) else UI.Colors.PanelLight
+			local selected = tabName == name
+			button.BackgroundColor3 = if selected then UI.Colors.Trim else UI.Colors.PanelLight
+			button.TextColor3 = if selected then Color3.fromRGB(40, 28, 12) else Color3.fromRGB(235, 220, 180)
 		end
 		if self.onTab then
 			self.onTab(name)
