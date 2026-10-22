@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Items = require(Shared.Items)
 local Rarities = require(Shared.Rarities)
+local Perks = require(Shared.Perks)
 local Recipes = require(Shared.Recipes)
 local NPCs = require(Shared.NPCs)
 
@@ -113,7 +114,7 @@ function CraftingService.enchant(player, uid)
 		return fail(msg)
 	end
 	local level = SkillService.getLevel(player, "encantamento")
-	local options = Items.EnchantsBySlot[base.slot]
+	local options = Items.EnchantsBySlot[Items.enchantSlot(base.slot)]
 	local maxTier = math.min(5, 2 + math.floor(level / 6))
 	local tier = math.random(1, maxTier)
 	-- chance extra de subir um tier
@@ -126,6 +127,34 @@ function CraftingService.enchant(player, uid)
 		PlayerService.refreshCharacter(player, {})
 	end
 	CraftingService.QuestHook(player, "enchant", nil, 1)
+	PlayerService.markDirty(player)
+	return { ok = true, item = Items.describe(item, PlayerService.isEquipped(player, uid)) }
+end
+
+-- Reforjar: sorteia os perks do item de novo (mesma quantidade, pela raridade)
+function CraftingService.reforge(player, uid)
+	local data = DataService.get(player)
+	local item = data and typeof(uid) == "string" and data.inventory[uid]
+	local base = item and Items.Bases[item.base]
+	local rarity = item and Rarities.ById[item.rarity]
+	if not item or not base or not rarity then
+		return fail("Item não encontrado.")
+	end
+	if not nearService(player, "forge") then
+		return fail("Vá até a forja do Bruno.")
+	end
+	if (Perks.CountByOrder[rarity.order] or 0) <= 0 then
+		return fail("Itens Comuns não têm perks.")
+	end
+	local ok, msg = PlayerService.payCost(player, Items.getReforgeCost(item))
+	if not ok then
+		return fail(msg)
+	end
+	item.perks = Perks.roll(base.slot, rarity.order)
+	SkillService.addXP(player, "ferraria", 25 + rarity.order * 10)
+	if PlayerService.isEquipped(player, uid) then
+		PlayerService.refreshCharacter(player, {})
+	end
 	PlayerService.markDirty(player)
 	return { ok = true, item = Items.describe(item, PlayerService.isEquipped(player, uid)) }
 end

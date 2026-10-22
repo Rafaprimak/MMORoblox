@@ -6,6 +6,7 @@ local Config = require(Shared.Config)
 local Items = require(Shared.Items)
 local Recipes = require(Shared.Recipes)
 local Rarities = require(Shared.Rarities)
+local Perks = require(Shared.Perks)
 
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
@@ -93,7 +94,7 @@ local function renderForge()
 		end
 		local base = Items.Bases[recipe.result]
 		text(forge.detail, { Text = Items.icon(recipe.result) .. " " .. base.name, Size = UDim2.new(1, 0, 0, 26), TextSize = 22, Font = Enum.Font.GothamBlack, Parent = forge.detail })
-		local kind = if base.slot == "armor" then "Armadura" else (Items.WeaponTypes[base.weaponType] or {}).name or "Arma"
+		local kind = if base.slot ~= "weapon" then (Items.Slots[base.slot] or {}).name or "Equipamento" else (Items.WeaponTypes[base.weaponType] or {}).name or "Arma"
 		text(forge.detail, { Text = ("%s  •  Poder base %d  •  Ferraria %d"):format(kind, base.power, recipe.skill), Position = UDim2.fromOffset(0, 30), TextColor3 = UI.Colors.SubText, Parent = forge.detail })
 		local ok = costLines(forge.detail, { gold = recipe.gold, materials = recipe.materials }, 60)
 		ok = ok and ferraria >= recipe.skill
@@ -124,6 +125,31 @@ local function renderForge()
 		end
 		local rarity = Rarities.ById[item.rarity]
 		text(forge.detail, { Text = item.name, Size = UDim2.new(1, 0, 0, 26), TextSize = 20, Font = Enum.Font.GothamBlack, TextColor3 = rarity.color, Parent = forge.detail })
+		if forge.win.tab == "Reforjar" then
+			-- perks atuais e custo para sortear de novo
+			local y = 32
+			if #item.perks == 0 then
+				text(forge.detail, { Text = "Este item não tem perks (Comum). Itens Incomuns ou melhores têm 1 a 3 perks.", Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 0, 40), TextColor3 = UI.Colors.SubText, Parent = forge.detail })
+				return
+			end
+			for _, perkId in item.perks do
+				local perk = Perks.List[perkId]
+				if perk then
+					text(forge.detail, { Text = ("%s %s: %s"):format(perk.icon, perk.name, perk.text), Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 0, 36), TextColor3 = if perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255), Parent = forge.detail })
+					y += 38
+				end
+			end
+			local ok = costLines(forge.detail, item.reforgeCost, y + 6)
+			local button = UI.button({ Text = "🎲 REFORJAR PERKS", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(80, 140, 220) else UI.Colors.Dark, Parent = forge.detail })
+			button.MouseButton1Click:Connect(function()
+				local result = State.request("reforge", item.uid)
+				if result and result.ok then
+					Sounds.play("ping", 1.6, 0.6)
+					Popups.burst("PERKS NOVOS!", Color3.fromRGB(120, 200, 255), result.item.name)
+				end
+			end)
+			return
+		end
 		if item.upgrade >= item.maxUpgrade then
 			text(forge.detail, { Text = "Nível máximo de aprimoramento!", Position = UDim2.fromOffset(0, 34), TextColor3 = UI.Colors.Gold, Parent = forge.detail })
 			return
@@ -198,7 +224,7 @@ local function renderEnchant()
 	text(enchant.detail, { Text = "Atual: " .. (item.enchantText or "nenhum"), Position = UDim2.fromOffset(0, 32), TextColor3 = Color3.fromRGB(200, 150, 255), Parent = enchant.detail })
 	local maxTier = math.min(5, 2 + math.floor(level / 6))
 	local possible = {}
-	for _, id in Items.EnchantsBySlot[item.slot] or {} do
+	for _, id in Items.EnchantsBySlot[Items.enchantSlot(item.slot)] or {} do
 		table.insert(possible, Items.Enchants[id].name)
 	end
 	text(enchant.detail, { Text = ("Possíveis: %s\nTier máximo agora: %s (sobe com Encantamento)"):format(table.concat(possible, ", "), Items.roman(maxTier)), Position = UDim2.fromOffset(0, 54), Size = UDim2.new(1, 0, 0, 56), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, Parent = enchant.detail })
@@ -327,7 +353,7 @@ local function renderStable()
 end
 
 function Services.init(screen)
-	forge.win = Window.create(screen, { name = "Forja", title = "⚒️ FORJA", width = 760, height = 500, tabs = { "Criar", "Aprimorar" }, accent = Color3.fromRGB(255, 150, 60) })
+	forge.win = Window.create(screen, { name = "Forja", title = "⚒️ FORJA", width = 760, height = 500, tabs = { "Criar", "Aprimorar", "Reforjar" }, accent = Color3.fromRGB(255, 150, 60) })
 	forge.list = sideList(forge.win.content)
 	forge.grid = ItemGrid.create(forge.win.content, { Position = UDim2.fromOffset(0, 0), Size = UDim2.new(0, 300, 1, 0), cell = 66 })
 	forge.detail = detailPanel(forge.win.content)

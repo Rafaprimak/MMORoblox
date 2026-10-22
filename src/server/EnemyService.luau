@@ -270,6 +270,7 @@ function EnemyService.damage(rec, amount, player, info)
 	rec.hp -= amount
 	rec.lastHitAt = os.clock()
 	if player then
+		rec.lastHitBy = player
 		rec.damageBy[player] = (rec.damageBy[player] or 0) + amount
 		-- ameaça: o inimigo persegue quem gerou mais (tanques geram muito mais)
 		rec.threat[player] = (rec.threat[player] or 0) + amount * PlayerService.threatMultiplier(player)

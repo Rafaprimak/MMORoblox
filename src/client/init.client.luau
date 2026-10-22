@@ -36,6 +36,8 @@ local Auras = require(script.Auras)
 local SettingsWindow = require(script.SettingsWindow)
 local Tutorial = require(script.Tutorial)
 local LockOn = require(script.LockOn)
+local PetRenderer = require(script.PetRenderer)
+local PetsWindow = require(script.PetsWindow)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -63,6 +65,8 @@ Services.init(screen)
 Chest.init(screen)
 MapWindow.init(screen)
 SettingsWindow.init(screen)
+PetsWindow.init(screen)
+PetRenderer.init()
 ClassSelect.init()
 Sky.init()
 Auras.init()
@@ -83,6 +87,7 @@ HUD.init(screen, {
 	onMap = toggleMap,
 	onChest = Chest.toggle,
 	onSettings = SettingsWindow.toggle,
+	onPets = PetsWindow.toggle,
 	onAbility = function(slot)
 		local aim, point = Controller.getAim()
 		State.action("ability", slot, aim, point)
@@ -134,6 +139,7 @@ Dialog.services = {
 		Services.open("stable")
 	end,
 	chest = Chest.open,
+	pets = PetsWindow.openEggs,
 	classes = function()
 		Window.closeAll()
 		ClassSelect.open(true)
@@ -154,6 +160,8 @@ end)
 Remotes.Notify.OnClientEvent:Connect(function(notification)
 	if notification.kind == "chest" then
 		Chest.reveal(notification.item, notification.chest)
+	elseif notification.kind == "pet" then
+		PetsWindow.announce(notification)
 	else
 		Popups.handle(notification)
 	end
@@ -213,6 +221,7 @@ local FX_HANDLERS = {
 	heal = Fx.heal,
 	sanctuary = Fx.sanctuary,
 	taunted = Fx.taunted,
+	chain = Fx.chain,
 	-- combate dinâmico
 	parry = Fx.parry,
 	blocked = Fx.blocked,
@@ -271,6 +280,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		toggleMap()
 	elseif key == Enum.KeyCode.P then
 		SettingsWindow.toggle()
+	elseif key == Enum.KeyCode.G then
+		PetsWindow.toggle()
 	elseif key == Enum.KeyCode.B then
 		Chest.toggle()
 	end

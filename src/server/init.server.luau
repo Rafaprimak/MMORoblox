@@ -27,6 +27,8 @@ local QuestService = require(script.QuestService)
 local TravelService = require(script.TravelService)
 local NPCService = require(script.NPCService)
 local DayNightService = require(script.DayNightService)
+local PerkService = require(script.PerkService)
+local PetService = require(script.PetService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -41,6 +43,13 @@ PlayerService.OnParry = function(player, source)
 	if source then
 		EnemyService.parried(source, player)
 	end
+	PerkService.onParry(player)
+end
+PlayerService.OnPerfectDodge = PerkService.onPerfectDodge
+PlayerService.OnThorns = function(player, source, amount)
+	if source and not source.dead then
+		EnemyService.damage(source, amount, player, { perk = true, color = Color3.fromRGB(120, 200, 90) })
+	end
 end
 CombatService.QuestHook = questHook
 CombatService.BeforeAction = TravelService.dismount
@@ -49,6 +58,8 @@ CraftingService.QuestHook = questHook
 ShopService.QuestHook = questHook
 TravelService.QuestHook = questHook
 NPCService.QuestHook = questHook
+PetService.QuestHook = questHook
+PetService.init()
 EnemyService.FireProjectile = ProjectileService.fire
 
 SkillService.OnChanged = function(player, leveled)
@@ -69,6 +80,9 @@ end
 
 EnemyService.OnKilled = function(rec, contributors)
 	local def = rec.def
+	if rec.lastHitBy and rec.lastHitBy.Parent then
+		PerkService.onKill(rec.lastHitBy, rec)
+	end
 	-- suportes que curaram/fortaleceram alguém nos últimos 12s e estão perto também ganham a recompensa
 	for _, other in Players:GetPlayers() do
 		local character = other.Character
@@ -98,6 +112,8 @@ EnemyService.OnKilled = function(rec, contributors)
 		questHook(player, "kill", rec.id, 1)
 
 		LootService.rollMaterials(player, def.drops, if rec.elite then 2 else 1)
+		PetService.addXP(player, math.ceil(def.xp * 0.5) + 1)
+		PetService.rollDrop(player, rec)
 		local rolls = (def.equipDrops or 1) + (if rec.elite then 1 else 0)
 		for _ = 1, rolls do
 			if math.random() <= def.dropChance * (if rec.elite then 3 else 1) * (if night then 1 + Config.NightDropBonus else 1) then
@@ -189,6 +205,14 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return CraftingService.forge(player, a)
 	elseif action == "upgrade" then
 		return CraftingService.upgrade(player, a)
+	elseif action == "reforge" then
+		return CraftingService.reforge(player, a)
+	elseif action == "buyEgg" then
+		return PetService.buyEgg(player, a)
+	elseif action == "equipPet" then
+		return PetService.equip(player, a)
+	elseif action == "releasePet" then
+		return PetService.release(player, a)
 	elseif action == "enchant" then
 		return CraftingService.enchant(player, a)
 	elseif action == "disassemble" then
@@ -239,6 +263,7 @@ local function onPlayerAdded(player)
 		return
 	end
 	QuestService.setup(player)
+	PetService.onPlayerReady(player)
 	player.CharacterAdded:Connect(function(character)
 		player:SetAttribute("Mounted", false)
 		local humanoid = character:WaitForChild("Humanoid", 10)

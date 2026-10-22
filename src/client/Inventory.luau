@@ -5,6 +5,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Items = require(Shared.Items)
 local Rarities = require(Shared.Rarities)
 local Classes = require(Shared.Classes)
+local Perks = require(Shared.Perks)
 
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
@@ -15,7 +16,7 @@ local Popups = require(script.Parent.Popups)
 
 local Inventory = {}
 
-local win, grid, details, list, junkButton, statsLabel
+local win, grid, details, list, junkButton, statsLabel, slotBar
 local selectedUid = nil
 local junkConfirm = false
 
@@ -43,7 +44,8 @@ function Inventory.describeLines(item)
 			table.insert(lines, { "★ Arma da sua classe (+15% de dano)", UI.Colors.Green })
 		end
 	else
-		table.insert(lines, { "Tipo: Armadura", UI.Colors.SubText })
+		local slotInfo = Items.Slots[item.slot]
+		table.insert(lines, { "Tipo: " .. (if slotInfo then slotInfo.name else "Equipamento"), UI.Colors.SubText })
 		if item.bonus and item.bonus.mana then
 			table.insert(lines, { ("+%d de mana"):format(item.bonus.mana), UI.Colors.Mana })
 		end
@@ -51,8 +53,18 @@ function Inventory.describeLines(item)
 			table.insert(lines, { ("+%d de estamina"):format(item.bonus.stamina), UI.Colors.Stamina })
 		end
 	end
+	for _, text in Items.statLines(item.stats) do
+		table.insert(lines, { text, Color3.fromRGB(255, 220, 140) })
+	end
 	if item.enchantText then
-		table.insert(lines, { "✨ " .. item.enchantText, Color3.fromRGB(200, 150, 255) })
+		table.insert(lines, { "✨ " .. item.enchantText, Color3.fromRGB(200, 150, 255), 34 })
+	end
+	-- perks (estilo Destiny): os fortes em dourado
+	for _, perkId in item.perks or {} do
+		local perk = Perks.List[perkId]
+		if perk then
+			table.insert(lines, { ("%s %s: %s"):format(perk.icon, perk.name, perk.text), if perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255), 36 })
+		end
 	end
 	return lines
 end
@@ -78,9 +90,11 @@ local function renderDetails()
 		line(details, y, "✔ Equipado", UI.Colors.Green)
 	end
 	y += 20
-	for _, entry in Inventory.describeLines(item) do
-		line(details, y, entry[1], entry[2], 30).TextScaled = false
-		y += 22
+	-- lista rolável para caber perks e stats sem cobrir os botões
+	local scroll = UI.new("ScrollingFrame", { Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 1, -y - 88), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 4, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = details }, { UI.list(4) })
+	for index, entry in Inventory.describeLines(item) do
+		local label = UI.label({ Text = entry[1], Size = UDim2.new(1, -6, 0, entry[3] or 18), TextColor3 = entry[2], Font = Enum.Font.GothamBold, TextScaled = false, TextSize = 13, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, LayoutOrder = index, Parent = scroll })
+		local _ = label
 	end
 
 	local equipButton = UI.button({ Text = if item.equipped then "EQUIPADO" else "EQUIPAR", Position = UDim2.new(0, 0, 1, -80), Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = if item.equipped then UI.Colors.Dark else UI.Colors.Green, Parent = details })
@@ -159,7 +173,23 @@ local function render()
 	details.Visible = equipment
 	junkButton.Visible = equipment
 	list.Visible = not equipment
+	slotBar.Visible = equipment
 	if equipment then
+		UI.clear(slotBar)
+		for index, slot in Items.SlotOrder do
+			local info = Items.Slots[slot]
+			local item = equippedIn(slot)
+			local rarity = item and Rarities.ById[item.rarity]
+			local cell = UI.new("TextButton", { Text = "", LayoutOrder = index, Size = UDim2.fromOffset(62, 44), BackgroundColor3 = if rarity then rarity.color:Lerp(Color3.new(0, 0, 0), 0.6) else UI.Colors.Panel, Parent = slotBar }, { UI.corner(8), UI.stroke(if rarity then rarity.color else UI.Colors.Stroke, 1.5) })
+			UI.label({ Text = if item then item.icon else info.icon, Size = UDim2.new(1, 0, 0, 26), TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = if item then 0 else 0.6, Parent = cell })
+			UI.label({ Text = if item then ("+%d"):format(item.upgrade) else info.name, Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 14), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, Parent = cell })
+			cell.MouseButton1Click:Connect(function()
+				if item then
+					selectedUid = item.uid
+					render()
+				end
+			end)
+		end
 		ItemGrid.render(grid, data.inventory, selectedUid, function(uid)
 			selectedUid = uid
 			render()
@@ -171,9 +201,10 @@ local function render()
 end
 
 function Inventory.init(screen)
-	win = Window.create(screen, { name = "Inventario", title = "🎒 INVENTÁRIO", width = 700, height = 500, tabs = { "Equipamentos", "Materiais", "Consumíveis" } })
+	win = Window.create(screen, { name = "Inventario", title = "🎒 INVENTÁRIO", width = 760, height = 560, tabs = { "Equipamentos", "Materiais", "Consumíveis" } })
 	statsLabel = UI.label({ Text = "", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -56, 0, 16), Size = UDim2.fromOffset(320, 20), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = UI.Colors.SubText, Parent = win.frame })
-	grid = ItemGrid.create(win.content, { Position = UDim2.fromOffset(0, 0), Size = UDim2.new(1, -250, 1, -46) })
+	slotBar = UI.new("Frame", { Size = UDim2.new(1, -250, 0, 44), BackgroundTransparency = 1, Parent = win.content }, { UI.list(6, true) })
+	grid = ItemGrid.create(win.content, { Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, -250, 1, -96) })
 	details = UI.new("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 0, 0, 0), Size = UDim2.new(0, 238, 1, -2), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, Parent = win.content }, { UI.corner(10), UI.padding(10) })
 	list = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Visible = false, Parent = win.content }, { UI.list(6) })
 	junkButton = UI.button({ Text = "🗑 Vender Comuns e Incomuns", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.fromOffset(260, 36), BackgroundColor3 = Color3.fromRGB(110, 60, 60), Parent = win.content })

@@ -17,6 +17,7 @@ local Remotes = require(Shared.Remotes)
 local PlayerService = require(script.Parent.PlayerService)
 local SkillService = require(script.Parent.SkillService)
 local EnemyService = require(script.Parent.EnemyService)
+local PerkService = require(script.Parent.PerkService)
 local ProjectileService = require(script.Parent.ProjectileService)
 
 local CombatService = {}
@@ -91,6 +92,10 @@ function CombatService.dealDamage(player, rec, mult, info)
 			posture *= 2
 		end
 	end
+	-- perks da arma e das peças (Fúria Crescente, Carrasco, Contragolpe...)
+	local postureMult
+	damage, postureMult = PerkService.modify(player, rec, damage, info, stats)
+	posture *= postureMult
 	local dealt = EnemyService.damage(rec, damage, player, {
 		crit = crit,
 		knockback = info.knockback,
@@ -112,6 +117,7 @@ function CombatService.dealDamage(player, rec, mult, info)
 		if poison > 0 and not info.dot then
 			EnemyService.applyDot(rec, player, stats.attack * stats.damageMult * poison, 4, "poison")
 		end
+		PerkService.afterHit(player, rec, dealt, info, stats, crit)
 		if not info.ability then
 			SkillService.addXP(player, stats.masteryId, if crit then 4 else 3)
 		end
@@ -322,6 +328,7 @@ function CombatService.heavyRelease(player, aim)
 	})
 	combo[player] = { index = 0, endAt = now + duration }
 	if charge >= 0.95 then
+		PerkService.onFullCharge(player, duration * 0.5)
 		CombatService.QuestHook(player, "fullCharge", nil, 1)
 	end
 end

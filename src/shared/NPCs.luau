@@ -86,7 +86,7 @@ NPCs.List = {
 		shirt = Color3.fromRGB(180, 140, 40),
 		pants = Color3.fromRGB(80, 60, 30),
 		hat = "cap",
-		services = { "shop", "chest" },
+		services = { "shop", "chest", "pets" },
 		building = "stall",
 		greeting = "Poções fresquinhas! E se estiver com sorte, um Baú do Hunter...",
 	}),

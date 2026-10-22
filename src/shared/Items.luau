@@ -1,11 +1,24 @@
 -- Equipamentos, materiais, consumíveis e encantamentos.
+-- Espaços: arma, armadura, elmo, botas (dão vida), amuleto e anel (dão ataque + bônus).
+-- Cada item sorteia perks próprios pela raridade (ver o módulo Perks).
 local HttpService = game:GetService("HttpService")
 
 local Rarities = require(script.Parent.Rarities)
+local Perks = require(script.Parent.Perks)
 
 local Items = {}
 
 Items.MaxUpgrade = 10
+
+Items.Slots = {
+	weapon = { name = "Arma", icon = "⚔️", order = 1, kind = "attack" },
+	armor = { name = "Armadura", icon = "🛡️", order = 2, kind = "health" },
+	helmet = { name = "Elmo", icon = "⛑️", order = 3, kind = "health" },
+	boots = { name = "Botas", icon = "👢", order = 4, kind = "health" },
+	amulet = { name = "Amuleto", icon = "📿", order = 5, kind = "attack" },
+	ring = { name = "Anel", icon = "💍", order = 6, kind = "attack" },
+}
+Items.SlotOrder = { "weapon", "armor", "helmet", "boots", "amulet", "ring" }
 
 Items.WeaponTypes = {
 	sword = { name = "Espada", icon = "🗡️" },
@@ -50,6 +63,54 @@ Items.Bases = {
 	armadura_placas = { name = "Armadura de Placas", slot = "armor", power = 55, tier = 2 },
 	manto_arcano = { name = "Manto Arcano", slot = "armor", power = 30, tier = 2, bonus = { mana = 60 } },
 	couraca_sombria = { name = "Couraça Sombria", slot = "armor", power = 40, tier = 2, bonus = { stamina = 30 } },
+	-- armas extras e tier 3
+	maca_peregrino = { name = "Maça do Peregrino", slot = "weapon", weaponType = "hammer", power = 11, tier = 1 },
+	cetro_luz = { name = "Cetro da Luz", slot = "weapon", weaponType = "staff", power = 13, tier = 2 },
+	espada_runica = { name = "Espada Rúnica", slot = "weapon", weaponType = "sword", power = 19, tier = 3 },
+	machado_tempestade = { name = "Machado da Tempestade", slot = "weapon", weaponType = "axe", power = 23, tier = 3 },
+	martelo_trovao = { name = "Martelo do Trovão", slot = "weapon", weaponType = "hammer", power = 28, tier = 3 },
+	lanca_celestial = { name = "Lança Celestial", slot = "weapon", weaponType = "spear", power = 20, tier = 3 },
+	katana_lua = { name = "Katana da Lua Rubra", slot = "weapon", weaponType = "katana", power = 20, tier = 3 },
+	adagas_vazio = { name = "Adagas do Vazio", slot = "weapon", weaponType = "dagger", power = 15, tier = 3 },
+	arco_fenix = { name = "Arco da Fênix", slot = "weapon", weaponType = "bow", power = 18, tier = 3 },
+	cajado_estelar = { name = "Cajado Estelar", slot = "weapon", weaponType = "staff", power = 18, tier = 3 },
+	-- armaduras tier 3
+	armadura_dragao = { name = "Armadura de Dragão", slot = "armor", power = 80, tier = 3 },
+	manto_estelar = { name = "Manto Estelar", slot = "armor", power = 48, tier = 3, bonus = { mana = 100 } },
+	couraca_vento = { name = "Couraça do Vento", slot = "armor", power = 60, tier = 3, bonus = { stamina = 45 } },
+	-- elmos
+	elmo_couro = { name = "Elmo de Couro", slot = "helmet", power = 8, tier = 1, bonus = { stamina = 5 } },
+	capuz_aprendiz = { name = "Capuz de Aprendiz", slot = "helmet", power = 6, tier = 1, bonus = { mana = 15 } },
+	elmo_ferro = { name = "Elmo de Ferro", slot = "helmet", power = 16, tier = 2 },
+	capuz_sombrio = { name = "Capuz Sombrio", slot = "helmet", power = 13, tier = 2, bonus = { stamina = 15 } },
+	elmo_dragao = { name = "Elmo de Dragão", slot = "helmet", power = 28, tier = 3 },
+	coroa_arcana = { name = "Coroa Arcana", slot = "helmet", power = 22, tier = 3, bonus = { mana = 50 } },
+	-- botas
+	botas_couro = { name = "Botas de Couro", slot = "boots", power = 6, tier = 1, bonus = { stamina = 10 } },
+	sandalias_monge = { name = "Sandálias de Monge", slot = "boots", power = 5, tier = 1, bonus = { mana = 10 } },
+	botas_ferro = { name = "Botas de Ferro", slot = "boots", power = 13, tier = 2 },
+	botas_vento = { name = "Botas do Vento", slot = "boots", power = 10, tier = 2, bonus = { stamina = 25 } },
+	grevas_dragao = { name = "Grevas de Dragão", slot = "boots", power = 22, tier = 3 },
+	botas_estelares = { name = "Botas Estelares", slot = "boots", power = 18, tier = 3, bonus = { stamina = 40 } },
+	-- amuletos (stats crescem com a raridade)
+	amuleto_cobre = { name = "Amuleto de Cobre", slot = "amulet", power = 2, tier = 1, stats = { damage = 0.03 } },
+	amuleto_vida = { name = "Amuleto da Vida", slot = "amulet", power = 1, tier = 1, stats = { health = 0.05 } },
+	amuleto_lua = { name = "Amuleto da Lua", slot = "amulet", power = 4, tier = 2, stats = { crit = 0.02 } },
+	amuleto_sabio = { name = "Amuleto do Sábio", slot = "amulet", power = 3, tier = 2, stats = { manaRegen = 0.15, healPower = 0.05 } },
+	amuleto_dragao = { name = "Amuleto do Dragão", slot = "amulet", power = 7, tier = 3, stats = { damage = 0.06 } },
+	-- anéis
+	anel_cobre = { name = "Anel de Cobre", slot = "ring", power = 2, tier = 1, stats = { crit = 0.01 } },
+	anel_vampiro = { name = "Anel do Vampiro", slot = "ring", power = 3, tier = 2, stats = { lifesteal = 0.02 } },
+	anel_guardiao = { name = "Anel do Guardião", slot = "ring", power = 2, tier = 2, stats = { defense = 0.03, threat = 0.1 } },
+	anel_tempestade = { name = "Anel da Tempestade", slot = "ring", power = 5, tier = 3, stats = { attackSpeed = 0.05 } },
+	anel_rei = { name = "Anel do Rei", slot = "ring", power = 6, tier = 3, stats = { xpGain = 0.08, goldFind = 0.08 } },
+}
+
+-- Texto dos stats de acessórios (para a UI)
+Items.StatNames = {
+	damage = "de dano", health = "de vida", crit = "de crítico", critDamage = "de dano crítico", attackSpeed = "de velocidade de ataque",
+	defense = "de redução de dano", lifesteal = "de roubo de vida", manaRegen = "de mana/s", healPower = "de cura", threat = "de ameaça",
+	xpGain = "de XP", goldFind = "de ouro", cooldown = "de recarga", stamina = "de estamina", mana = "de mana", regen = "de vida/s",
 }
 
 -- Itens que podem sair dos baús
@@ -57,6 +118,12 @@ Items.ChestPool = {
 	"espada_cobre", "machado_lenhador", "martelo_pedra", "lanca_cacador", "katana_errante", "adaga_cobre", "arco_curto", "cajado_aprendiz",
 	"lamina_guardiao", "machado_berserker", "martelo_gigante", "lanca_draconica", "katana_sombria", "presas_gemeas", "arco_longo", "cajado_arcano",
 	"colete_couro", "manto_aprendiz", "cota_malha", "armadura_placas", "manto_arcano", "couraca_sombria",
+	"maca_peregrino", "cetro_luz", "elmo_couro", "capuz_aprendiz", "elmo_ferro", "capuz_sombrio",
+	"botas_couro", "sandalias_monge", "botas_ferro", "botas_vento",
+	"amuleto_cobre", "amuleto_vida", "amuleto_lua", "amuleto_sabio", "anel_cobre", "anel_vampiro", "anel_guardiao",
+	"espada_runica", "machado_tempestade", "martelo_trovao", "lanca_celestial", "katana_lua", "adagas_vazio", "arco_fenix", "cajado_estelar",
+	"armadura_dragao", "manto_estelar", "couraca_vento", "elmo_dragao", "coroa_arcana", "grevas_dragao", "botas_estelares",
+	"amuleto_dragao", "anel_tempestade", "anel_rei",
 }
 
 Items.Materials = {
@@ -133,13 +200,41 @@ end
 local rng = Random.new()
 
 function Items.create(baseId, rarityId, level)
+	local base = Items.Bases[baseId]
+	local rarity = Rarities.ById[rarityId]
 	return {
 		uid = HttpService:GenerateGUID(false),
 		base = baseId,
 		rarity = rarityId,
 		level = level or 1,
 		upgrade = 0,
+		perks = if base and rarity then Perks.roll(base.slot, rarity.order, rng) else {},
 	}
+end
+
+-- Stats do acessório (amuleto/anel) já escalados pela raridade e nível
+function Items.getStats(item)
+	local base = Items.Bases[item.base]
+	local rarity = Rarities.ById[item.rarity]
+	if not base or not base.stats or not rarity then
+		return nil
+	end
+	local scale = (1 + 0.3 * (rarity.order - 1)) * (1 + 0.02 * (item.level - 1)) * (1 + 0.05 * item.upgrade)
+	local result = {}
+	for key, value in base.stats do
+		result[key] = value * scale
+	end
+	return result
+end
+
+function Items.statLines(stats)
+	local lines = {}
+	for key, value in stats or {} do
+		local shown = if key == "regen" then ("%.1f%%"):format(value * 100) else ("%d%%"):format(math.floor(value * 100 + 0.5))
+		table.insert(lines, ("+%s %s"):format(shown, Items.StatNames[key] or key))
+	end
+	table.sort(lines)
+	return lines
 end
 
 function Items.rollDrop(pool, level, weightKey, minOrder)
@@ -191,6 +286,18 @@ function Items.getDisassembleValue(item)
 	return ESSENCE_BY_ORDER[rarity and rarity.order or 1] + math.floor(item.upgrade / 2)
 end
 
+-- Encantamentos: arma usa os de arma; todas as outras peças usam os de armadura
+function Items.enchantSlot(slot)
+	return if slot == "weapon" then "weapon" else "armor"
+end
+
+-- Reforjar (sortear perks de novo) no Bruno
+function Items.getReforgeCost(item)
+	local rarity = Rarities.ById[item.rarity]
+	local order = rarity and rarity.order or 1
+	return { gold = 60 * order * order, materials = { essencia = order } }
+end
+
 function Items.getEnchantCost(item)
 	local rarity = Rarities.ById[item.rarity]
 	local order = rarity and rarity.order or 1
@@ -211,8 +318,9 @@ function Items.icon(baseId)
 	if not base then
 		return "❔"
 	end
-	if base.slot == "armor" then
-		return "🛡️"
+	if base.slot ~= "weapon" then
+		local slot = Items.Slots[base.slot]
+		return if slot then slot.icon else "🛡️"
 	end
 	local weaponType = Items.WeaponTypes[base.weaponType]
 	return if weaponType then weaponType.icon else "🗡️"
@@ -242,8 +350,11 @@ function Items.describe(item, equipped)
 		enchant = item.enchant,
 		enchantText = Items.enchantText(item.enchant),
 		enchantCost = Items.getEnchantCost(item),
+		reforgeCost = Items.getReforgeCost(item),
 		disassemble = Items.getDisassembleValue(item),
 		bonus = base.bonus,
+		stats = Items.getStats(item),
+		perks = item.perks or {},
 		equipped = equipped == true,
 	}
 end

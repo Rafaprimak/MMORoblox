@@ -46,6 +46,7 @@ local BUFF_INFO = {
 	escudo_fe = { icon = "🔰", color = Color3.fromRGB(150, 210, 255) },
 	bencao = { icon = "🌟", color = Color3.fromRGB(255, 230, 120) },
 	provocar = { icon = "😤", color = Color3.fromRGB(255, 120, 90) },
+	furia_crescente = { icon = "🔥", color = Color3.fromRGB(255, 90, 40) },
 }
 
 local function slot(parent, layoutOrder, key, size)
@@ -152,10 +153,11 @@ function HUD.init(screen, callbacks)
 		{ "🐴 Montar", "H", function()
 			State.action("mount")
 		end },
+		{ "🐾 Pets", "G", callbacks.onPets },
 		{ "⚙ Configurações", "P", callbacks.onSettings },
 	}
 	for i, entry in entries do
-		local button = UI.button({ Text = entry[1] .. "  [" .. entry[2] .. "]", Size = UDim2.fromOffset(150, 34), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
+		local button = UI.button({ Text = entry[1] .. "  [" .. entry[2] .. "]", Size = UDim2.fromOffset(150, 30), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
 		button.MouseButton1Click:Connect(entry[3])
 	end
 	refs.devPanel = UI.new("Frame", { Size = UDim2.fromOffset(150, 150), BackgroundTransparency = 1, LayoutOrder = 10, Visible = false, Parent = menu }, { UI.list(3) })

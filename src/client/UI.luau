@@ -222,7 +222,7 @@ function UI.formatPercent(percent)
 end
 
 function UI.statIcon(item)
-	return if item.slot == "armor" then "❤" else "⚔"
+	return if item.slot == "armor" or item.slot == "helmet" or item.slot == "boots" then "❤" else "⚔"
 end
 
 -- Ajusta a escala de uma janela ao tamanho da tela

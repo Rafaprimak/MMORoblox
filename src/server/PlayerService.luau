@@ -9,6 +9,7 @@ local Config = require(Shared.Config)
 local Items = require(Shared.Items)
 local Rarities = require(Shared.Rarities)
 local Classes = require(Shared.Classes)
+local Perks = require(Shared.Perks)
 local Skills = require(Shared.Skills)
 local WeaponStyles = require(Shared.WeaponStyles)
 local Remotes = require(Shared.Remotes)
@@ -67,6 +68,12 @@ end
 
 -- ===================== ATRIBUTOS =====================
 
+-- Esquiva perfeita (perk Ímpeto): ligado ao PerkService no init
+PlayerService.OnPerfectDodge = function(_player) end
+
+-- Perk Espinhos: devolve dano ao inimigo (ligado ao EnemyService no init)
+PlayerService.OnThorns = function(_player, _source, _amount) end
+
 -- Gancho para somar bônus de outros sistemas (pets, perks): function(player, data, bonus)
 PlayerService.ExtraBonus = function(_player, _data, _bonus) end
 
@@ -97,6 +104,7 @@ function PlayerService.getStats(player)
 		masteryLevel = 1,
 		affinity = false,
 		bonus = {},
+		perks = {},
 		damageReduction = 0,
 	}
 	if not data then
@@ -104,9 +112,7 @@ function PlayerService.getStats(player)
 	end
 	local class = Classes.List[data.class]
 	local weapon = PlayerService.getEquipped(player, "weapon")
-	local armor = PlayerService.getEquipped(player, "armor")
 	local weaponBase = weapon and Items.Bases[weapon.base]
-	local armorBase = armor and Items.Bases[armor.base]
 	local weaponType = if weaponBase then weaponBase.weaponType else "sword"
 	local masteryId = Skills.ByWeaponType[weaponType] or "espadas"
 	local masteryLevel = SkillService.getLevel(player, masteryId)
@@ -121,15 +127,56 @@ function PlayerService.getStats(player)
 		end
 		return 0
 	end
+	-- soma de um encantamento de "armadura" em todas as peças que não são arma
+	local function gearEnchant(stat)
+		local total = 0
+		for _, slot in Items.SlotOrder do
+			if slot ~= "weapon" then
+				total += enchantStat(PlayerService.getEquipped(player, slot), stat)
+			end
+		end
+		return total
+	end
 
-	local armorPower = if armor then Items.getPower(armor) else 0
-	local armorBonus = armorBase and armorBase.bonus or {}
+	-- peças de vida (armadura, elmo, botas) e de ataque (amuleto, anel); bônus fixos, stats e perks
+	local armorPower, accessoryPower = 0, 0
+	local armorBonus = { mana = 0, stamina = 0 }
+	local bonus = Classes.talentStats(data.class, data.talents)
+	for _, slot in Items.SlotOrder do
+		local item = PlayerService.getEquipped(player, slot)
+		local base = item and Items.Bases[item.base]
+		if base then
+			if slot ~= "weapon" then
+				local slotInfo = Items.Slots[slot]
+				if slotInfo and slotInfo.kind == "health" then
+					armorPower += Items.getPower(item)
+				else
+					accessoryPower += Items.getPower(item)
+				end
+			end
+			if base.bonus then
+				armorBonus.mana += base.bonus.mana or 0
+				armorBonus.stamina += base.bonus.stamina or 0
+			end
+			local itemStats = Items.getStats(item)
+			if itemStats then
+				addBonus(bonus, itemStats)
+			end
+			for _, perkId in item.perks or {} do
+				stats.perks[perkId] = (stats.perks[perkId] or 0) + 1
+				local perk = Perks.List[perkId]
+				if perk and perk.stats then
+					addBonus(bonus, perk.stats)
+				end
+			end
+		end
+	end
 	local level = data.level
 
-	stats.maxHealth = math.floor(((Config.BaseHealth + level * Config.HealthPerLevel) * (class and class.health or 1) + armorPower) * (1 + enchantStat(armor, "health")))
-	stats.maxMana = math.floor(((Config.BaseMana + level * Config.ManaPerLevel) * (class and class.mana or 1) + (armorBonus.mana or 0)) * (1 + enchantStat(armor, "mana")))
-	stats.maxStamina = math.floor((Config.BaseStamina * (class and class.stamina or 1) + (armorBonus.stamina or 0)) * (1 + enchantStat(armor, "stamina")))
-	stats.attack = (Config.BaseAttack + level * Config.AttackPerLevel + (if weapon then Items.getPower(weapon) else 0)) * (class and class.damage or 1)
+	stats.maxHealth = math.floor(((Config.BaseHealth + level * Config.HealthPerLevel) * (class and class.health or 1) + armorPower) * (1 + gearEnchant("health")))
+	stats.maxMana = math.floor(((Config.BaseMana + level * Config.ManaPerLevel) * (class and class.mana or 1) + armorBonus.mana) * (1 + gearEnchant("mana")))
+	stats.maxStamina = math.floor((Config.BaseStamina * (class and class.stamina or 1) + armorBonus.stamina) * (1 + gearEnchant("stamina")))
+	stats.attack = (Config.BaseAttack + level * Config.AttackPerLevel + (if weapon then Items.getPower(weapon) else 0) + accessoryPower) * (class and class.damage or 1)
 	stats.affinity = class ~= nil and class.weapons[weaponType] == true
 	stats.damageMult = (1 + masteryLevel * Config.MasteryDamagePerLevel) * (if stats.affinity then 1 + Config.AffinityBonus else 1) * (1 + enchantStat(weapon, "damage"))
 	stats.crit = Config.CritChance + (class and class.crit or 0) + (style.crit or 0) + Skills.masteryCrit(masteryLevel) + enchantStat(weapon, "crit")
@@ -137,11 +184,10 @@ function PlayerService.getStats(player)
 	stats.attackSpeed = 1 + Skills.masterySpeed(masteryLevel) + enchantStat(weapon, "speed")
 	stats.lifesteal = enchantStat(weapon, "lifesteal")
 	stats.burn = enchantStat(weapon, "burn")
-	stats.regen = enchantStat(armor, "regen")
+	stats.regen = gearEnchant("regen")
 	stats.defense = armorPower * 0.25
 
-	-- talentos (passivas da árvore) + bônus extras (pet, perks dos itens: gancho ExtraBonus)
-	local bonus = Classes.talentStats(data.class, data.talents)
+	-- talentos + acessórios + perks (somados acima) + bônus extras (pet: gancho ExtraBonus)
 	PlayerService.ExtraBonus(player, data, bonus)
 	stats.bonus = bonus
 	stats.maxHealth = math.floor(stats.maxHealth * (1 + (bonus.health or 0)))
@@ -341,6 +387,7 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 			s.stamina = math.min(PlayerService.getStats(player).maxStamina, s.stamina + Config.PerfectDodgeStamina)
 			s.nextCrit = true
 			Remotes.Fx:FireClient(player, "perfectDodge")
+			PlayerService.OnPerfectDodge(player)
 			PlayerService.QuestHook(player, "perfectDodge", nil, 1)
 		else
 			Remotes.Fx:FireClient(player, "evaded")
@@ -360,7 +407,7 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 			return "parried"
 		end
 		local blockedDamage = amount * Config.BlockReduction
-		local cost = blockedDamage * Config.BlockStaminaPerDamage
+		local cost = blockedDamage * Config.BlockStaminaPerDamage * (if stats.perks.muralha then 0.75 else 1)
 		if s.stamina >= cost then
 			s.stamina -= cost
 			s.staminaBlockUntil = now + Config.StaminaRegenDelay
@@ -376,6 +423,17 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 	local defense = stats.defense * (1 + PlayerService.buffValue(player, "defense"))
 	local reduction = defense / (defense + 100)
 	local final = math.max(1, math.floor(amount * (1 - reduction) * (1 - stats.damageReduction)))
+	-- perk Segunda Chance: o golpe fatal deixa com 1 de vida (a cada 90s)
+	if stats.perks.segunda_chance and final >= humanoid.Health and now >= (s.secondChanceAt or 0) then
+		final = math.max(0, math.floor(humanoid.Health) - 1)
+		s.secondChanceAt = now + 90
+		s.iframesUntil = now + 2
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "😇 SEGUNDA CHANCE!", sub = "Invencível por 2 segundos", color = Color3.fromRGB(255, 230, 140), duration = 2.5 })
+	end
+	-- perk Espinhos: devolve parte do dano corpo a corpo
+	if stats.perks.espinhos and options.source and not options.ranged then
+		PlayerService.OnThorns(player, options.source, final * 0.25 * stats.perks.espinhos)
+	end
 	humanoid:TakeDamage(final)
 	s.lastDamageAt = now
 	Remotes.Fx:FireClient(player, "hurt", final, sourcePosition)

@@ -486,6 +486,25 @@ function Fx.rain(center, radius, duration, style)
 	end
 end
 
+-- Raio em zigue-zague entre dois pontos (perk Tempestade)
+function Fx.chain(from, to)
+	if typeof(from) ~= "Vector3" or typeof(to) ~= "Vector3" then
+		return
+	end
+	local points = { from }
+	for i = 1, 4 do
+		local t = i / 5
+		table.insert(points, from:Lerp(to, t) + Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5) * 2.5)
+	end
+	table.insert(points, to)
+	for i = 1, #points - 1 do
+		local a, b = points[i], points[i + 1]
+		local bolt = effectPart({ Size = Vector3.new(0.25, 0.25, (b - a).Magnitude), CFrame = CFrame.lookAt(a, b) * CFrame.new(0, 0, -(b - a).Magnitude / 2), Color = Color3.fromRGB(170, 220, 255), Material = Enum.Material.Neon })
+		TweenService:Create(bolt, TweenInfo.new(0.25), { Transparency = 1 }):Play()
+		Debris:AddItem(bolt, 0.3)
+	end
+end
+
 -- ===================== SUPORTE =====================
 
 -- Cura em um jogador: número verde (para quem foi curado) e brilho subindo (para todos)

@@ -25,6 +25,7 @@ local SERVICE_LABELS = {
 	alchemy = "⚗️ Alquimia (poções)",
 	shop = "🛒 Loja",
 	chest = "🎁 Baús do Hunter",
+	pets = "🐾 Ovos de Pet",
 	classes = "🧙 Classes",
 	stable = "🐴 Montaria",
 }
