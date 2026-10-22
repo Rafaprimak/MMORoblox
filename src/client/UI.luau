@@ -3,6 +3,18 @@ local TweenService = game:GetService("TweenService")
 
 local UI = {}
 
+-- sons dos botões (carregado só na hora para não criar dependência circular)
+local soundModule = nil
+local function buttonSound(name, volume)
+	if not soundModule then
+		local ok, module = pcall(require, script.Parent.Sounds)
+		soundModule = if ok then module else false
+	end
+	if soundModule then
+		soundModule.play(name, 1, volume)
+	end
+end
+
 UI.Colors = {
 	Panel = Color3.fromRGB(20, 22, 30),
 	PanelLight = Color3.fromRGB(34, 37, 50),
@@ -122,6 +134,7 @@ function UI.button(props, children)
 	local scale = UI.new("UIScale", { Parent = button })
 	button.MouseButton1Down:Connect(function()
 		TweenService:Create(scale, TweenInfo.new(0.06), { Scale = 0.93 }):Play()
+		buttonSound("click", 0.35)
 	end)
 	local function release()
 		TweenService:Create(scale, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
@@ -130,6 +143,7 @@ function UI.button(props, children)
 	button.MouseLeave:Connect(release)
 	button.MouseEnter:Connect(function()
 		TweenService:Create(scale, TweenInfo.new(0.12, Enum.EasingStyle.Quad), { Scale = 1.04 }):Play()
+		buttonSound("hover", 0.12)
 	end)
 	return button
 end

@@ -17,6 +17,7 @@ local Ambience = {}
 
 local FADE = 2.5
 local channels = {} -- [canal] = { sound, id }
+local nextBird = 0
 
 local function baseVolume(channel)
 	if channel == "music" then
@@ -78,6 +79,18 @@ function Ambience.init()
 					musicKey = "exploracao"
 				end
 				setChannel("music", Sounds.loopId("Music", musicKey) or (if musicKey == "noite" then Sounds.loopId("Music", "exploracao") else nil))
+				-- pássaros cantando de vez em quando (de dia, fora das montanhas)
+				local now = os.clock()
+				if not night and now > nextBird and ambienceKey ~= "montanha" and ambienceKey ~= "ruinas" and ambienceKey ~= "costa" then
+					nextBird = now + math.random(5, 13)
+					local bird = Instance.new("Sound")
+					bird.SoundId = SoundIds.Birds[math.random(1, #SoundIds.Birds)]
+					bird.Volume = 0.25 * (Prefs.get("volume") or 1)
+					bird.PlaybackSpeed = 0.9 + math.random() * 0.25
+					bird.Parent = SoundService
+					bird:Play()
+					game:GetService("Debris"):AddItem(bird, 4)
+				end
 			end
 		end
 	end)
