@@ -71,6 +71,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Pets` | Pets, ovos (chances em %) e bônus por nível |
 | `Progression` | Login diário, Passe do Hunter, conquistas, marcos de nível e títulos |
 | `SoundIds` | Catálogo de áudio (efeitos, ambiente, música): IDs da Creator Store + reserva |
+| `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
 
 ### Server
@@ -114,6 +115,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `PetRenderer`, `PetsWindow` | Desenha/anima os pets de todos; janela de pets e ovos (tecla G) |
 | `JourneyWindow` | Jornada (tecla K): diário, passe, conquistas, títulos |
 | `Ambience` | Ambiente e música em loop por região/noite/chefe, com crossfade |
+| `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
 | `Controller` | Entrada do jogador (combo, esquiva, corrida, habilidades, celular) |
 | `Animator` | Animações procedurais (gira `Motor6D.Transform` em `RunService.Stepped`) |
 | `EnemyRenderer` | Desenha/anima inimigos a partir das raízes do servidor |
@@ -182,6 +184,11 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - `Props.building` monta casa com porta aberta, piso, janelas, luzes internas e telhado (porta em z = 0, salão para +Z). NPCs com `indoor` em `NPCs.List` ficam lá dentro; a porta fica em `doorX/doorZ`.
 - A câmera usa **Invisicam** (`DevCameraOcclusionMode`): paredes ficam transparentes em vez de puxar a câmera.
 - NPCs `indoor` procuram o chão abaixo do telhado (`NPCService.groundHeight(x, z, startY)`).
+
+### Vida da vila
+- Moradores e animais **não existem no servidor**: `Townsfolk` calcula a posição a partir de `workspace:GetServerTimeNow()`, então todos os clientes veem a mesma cena sem rede. Morador novo = entrada em `Townsfolk.Villagers` com `route` (pontos de `Townsfolk.point(ângulo, raio)` que não atravessem construções).
+- Enfeites da vila ficam em `Town.decorate` (bancos, feira, poço, carroça, varal, galinheiro, canteiros, bandeirinhas) com posições candidatas e `Placement`.
+- Janelas que acendem à noite: `Props.nightWindow(part)` (cor de dia em `OffColor`).
 
 ### Animação e áudio
 - `Animator` faz crossfade entre poses (`play`, `hold`, `stop`), tem camadas de postura por arma (`STANCES`), respiração, inclinação e `flinch`. Pose nova = quadros `{ t, juntas }` em `POSES`.

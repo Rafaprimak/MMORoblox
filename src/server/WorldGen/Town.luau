@@ -418,10 +418,104 @@ local function entranceArch(parent)
 	label.TextColor3 = C.Gold
 	label.Text = "VILA AURORA"
 	label.Parent = gui
+	for _, side in { -1, 1 } do
+		Props.banner(model, cf * CFrame.new(side * 4.2, 9.3, -1), Color3.fromRGB(40, 70, 150))
+	end
 	model.Parent = parent
 	Props.scaleModel(model, cf, K)
 	Placement.reserve(x - 7 * K, z, 2.5 * K, "arco")
 	Placement.reserve(x + 7 * K, z, 2.5 * K, "arco")
+end
+
+
+-- ===================== VIDA DA VILA =====================
+
+-- ponto em volta da praça (ângulo, raio de projeto) virado para o centro
+local function spotFacing(angle, radius)
+	local a = math.rad(angle)
+	local x = World.TownCenter.X + math.cos(a) * radius * K
+	local z = World.TownCenter.Z + math.sin(a) * radius * K
+	local yaw = math.atan2(-(World.TownCenter.X - x), -(World.TownCenter.Z - z))
+	return x, z, CFrame.new(x, Y, z) * CFrame.Angles(0, yaw, 0)
+end
+
+-- tenta cada posição candidata até achar uma livre; build(cf) devolve o modelo (ampliado por K)
+local function placeDecor(folder, candidates, radius, build)
+	for _, candidate in candidates do
+		local x, z, cf = spotFacing(candidate[1], candidate[2])
+		-- dentro da vila pode encostar na beira da rua, mas não no meio dela
+		if Placement.isFree(x, z, radius * K) and World.roadDistance(x, z) > World.RoadWidth / 2 + radius * K * 0.6 then
+			local model = build(cf, candidate)
+			if model then
+				if model.Parent == nil then
+					model.Parent = folder
+				end
+				Props.scaleModel(model, cf, K)
+			end
+			Placement.reserve(x, z, radius * K, "enfeite")
+			return true
+		end
+	end
+	return false
+end
+
+function Town.decorate(folder, rng, lampSpots)
+	-- bancos em volta do chafariz, virados para ele
+	for i = 0, 3 do
+		placeDecor(folder, { { 45 + i * 90, 11.5 } }, 2.4, function(cf)
+			return Props.bench(folder, cf)
+		end)
+	end
+	-- feira: barracas de frutas, pães, peixes e tecidos
+	local awnings = { Color3.fromRGB(200, 60, 50), Color3.fromRGB(60, 120, 190), Color3.fromRGB(70, 150, 80), Color3.fromRGB(200, 140, 40) }
+	local stallSpots = { { -60, 44 }, { -120, 44 }, { 170, 46 }, { -15, 47 }, { 60, 47 }, { 150, 47 } }
+	local stalls = 0
+	for _, spot in stallSpots do
+		if stalls >= 4 then
+			break
+		end
+		if placeDecor(folder, { spot }, 4.5, function(cf)
+			stalls += 1
+			return Props.marketStall(folder, cf, stalls, awnings[stalls])
+		end) then
+			continue
+		end
+	end
+	-- poço, carroça, varal e galinheiro
+	placeDecor(folder, { { 150, 42 }, { -160, 30 }, { 30, 46 }, { 110, 46 } }, 4, function(cf)
+		return Props.well(folder, cf)
+	end)
+	placeDecor(folder, { { -75, 54 }, { 110, 52 }, { -140, 56 }, { 15, 56 } }, 4, function(cf)
+		return Props.cart(folder, cf * CFrame.Angles(0, math.rad(70), 0))
+	end)
+	placeDecor(folder, { { 175, 54 }, { -20, 56 }, { 80, 58 }, { 230, 50 } }, 5, function(cf)
+		return Props.laundry(folder, cf, rng)
+	end)
+	placeDecor(folder, { { -150, 52 }, { -140, 50 }, { 60, 52 }, { -170, 48 } }, 4, function(cf)
+		return Props.coop(folder, cf)
+	end)
+	-- canteiros de flores em volta da praça
+	for i = 0, 7 do
+		placeDecor(folder, { { 22 + i * 45, 24 } }, 1.6, function(cf)
+			local planter = Instance.new("Model")
+			planter.Name = "Canteiro"
+			Props.part(planter, { Name = "Base", Size = Vector3.new(3.2, 0.8, 1.4), CFrame = cf * CFrame.new(0, 0.4, 0), Color = C.Stone, Material = M.Cobblestone })
+			Props.flowerBox(planter, cf * CFrame.new(0, 1.1, 0), 3, rng)
+			planter.Parent = folder
+			return planter
+		end)
+	end
+	-- bandeirinhas entre postes vizinhos (só onde não passam por cima de construções)
+	for i = 0, 11 do
+		local a, b = lampSpots[i], lampSpots[(i + 1) % 12]
+		if a and b then
+			local mid = (a + b) / 2
+			if Placement.isFree(mid.X, mid.Z, 1.5 * K) then
+				local top = 7.2 * K
+				Props.bunting(folder, a + Vector3.new(0, top, 0), b + Vector3.new(0, top, 0), 1.6 * K)
+			end
+		end
+	end
 end
 
 function Town.build(parent, rng)
@@ -475,6 +569,7 @@ function Town.build(parent, rng)
 	end
 
 	-- postes de luz em volta da praça e nas estradas
+	local lampSpots = {}
 	for i = 0, 11 do
 		local a = math.rad(15 + i * 30)
 		local x = World.TownCenter.X + math.cos(a) * 37 * K
@@ -483,6 +578,7 @@ function Town.build(parent, rng)
 			local ground = CFrame.new(x, Y, z) * CFrame.Angles(0, math.atan2(-(World.TownCenter.X - x), -(World.TownCenter.Z - z)), 0)
 			Props.scaleModel(Props.lamp(folder, ground), ground, K)
 			Placement.reserve(x, z, 1.5 * K, "poste")
+			lampSpots[i] = Vector3.new(x, Y, z)
 		end
 	end
 
@@ -503,6 +599,7 @@ function Town.build(parent, rng)
 		end
 	end
 
+	Town.decorate(folder, rng, lampSpots)
 	return boardPart
 end
 

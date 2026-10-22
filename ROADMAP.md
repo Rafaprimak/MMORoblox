@@ -53,6 +53,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Travar a mira no inimigo (T / botão do meio), estilo souls; barras de ritmo e carga no retículo (M)
 - 🧪 Modelagem caprichada: armas detalhadas por tipo, armadura/elmo/botas visíveis (capa no Lendário+), árvores, pedras e inimigos com mais detalhe (G)
 - 🧪 Forja, alquimia, torre do encantador e empório viram construções com interior (NPCs lá dentro); câmera Invisicam (M)
+- 🧪 Vila viva: 10 moradores com rotas e balões de fala, guardas, crianças, animais, pássaros, borboletas, vaga-lumes; feira, bancos, poço, carroça, varal, galinheiro, canteiros, bandeirinhas, janelas que acendem à noite (M)
 - ⬜ Sons de verdade: golpes por tipo de arma, magias, passos, ambiente por bioma, música da vila e do chefe (M)
   - 🧪 Sistema pronto: catálogo `SoundIds` (efeitos, ambiente por região, música de vila/exploração/noite/chefe), pré-carregamento com reserva automática, crossfade e volume de música. **Falta escolher os IDs na Creator Store** (passo a passo no README).
 - 🧪 VFX melhores: rastros por raridade e encantamento, faíscas na ponta (Lendário+), impacto por elemento, aura por rank (M)

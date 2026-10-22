@@ -20,7 +20,7 @@ local function setLamp(part, on)
 		part:SetAttribute("OnColor", part.Color)
 	end
 	part.Material = if on then Enum.Material.Neon else Enum.Material.Glass
-	part.Color = if on then part:GetAttribute("OnColor") else OFF_COLOR
+	part.Color = if on then part:GetAttribute("OnColor") else (part:GetAttribute("OffColor") or OFF_COLOR)
 	for _, child in part:GetChildren() do
 		if child:IsA("Light") then
 			child.Enabled = on
