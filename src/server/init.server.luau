@@ -69,12 +69,21 @@ end
 
 EnemyService.OnKilled = function(rec, contributors)
 	local def = rec.def
+	-- suportes que curaram/fortaleceram alguém nos últimos 12s e estão perto também ganham a recompensa
+	for _, other in Players:GetPlayers() do
+		local character = other.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if not contributors[other] and root and (root.Position - rec.pos).Magnitude < 70 and PlayerService.recentlySupported(other, 12) then
+			contributors[other] = 0
+		end
+	end
 	local night = DayNightService.isNight()
 	local rewardMult = if night then 1 + Config.NightRewardBonus else 1
 	for player in contributors do
-		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult)
+		local bonus = PlayerService.getStats(player).bonus
+		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.xpGain or 0)))
 		PlayerService.addXP(player, xp)
-		local gold = math.floor(math.random(def.gold[1], def.gold[2]) * (if rec.elite then 3 else 1) * rewardMult)
+		local gold = math.floor(math.random(def.gold[1], def.gold[2]) * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.goldFind or 0)))
 		if gold > 0 then
 			PlayerService.addGold(player, gold)
 			Remotes.Fx:FireClient(player, "gold", EnemyService.centerOf(rec) + Vector3.new(0, rec.height / 2, 0), gold)
@@ -170,6 +179,12 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return PlayerService.chooseClass(player, a)
 	elseif action == "rankAbility" then
 		return PlayerService.rankAbility(player, a)
+	elseif action == "setLoadout" then
+		return PlayerService.setLoadout(player, a, b)
+	elseif action == "learnTalent" then
+		return PlayerService.learnTalent(player, a)
+	elseif action == "respec" then
+		return PlayerService.respec(player)
 	elseif action == "forge" then
 		return CraftingService.forge(player, a)
 	elseif action == "upgrade" then

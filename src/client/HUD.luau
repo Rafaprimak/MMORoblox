@@ -39,6 +39,13 @@ local BUFF_INFO = {
 	grito = { icon = "📯", color = Color3.fromRGB(255, 120, 60) },
 	veneno = { icon = "🧪", color = Color3.fromRGB(120, 230, 80) },
 	elixir = { icon = "🔥", color = Color3.fromRGB(255, 150, 40) },
+	furia = { icon = "😡", color = Color3.fromRGB(255, 70, 50) },
+	foco = { icon = "👁", color = Color3.fromRGB(255, 220, 100) },
+	escudo = { icon = "🛡", color = Color3.fromRGB(170, 120, 255) },
+	frenesi = { icon = "💢", color = Color3.fromRGB(220, 80, 200) },
+	escudo_fe = { icon = "🔰", color = Color3.fromRGB(150, 210, 255) },
+	bencao = { icon = "🌟", color = Color3.fromRGB(255, 230, 120) },
+	provocar = { icon = "😤", color = Color3.fromRGB(255, 120, 90) },
 }
 
 local function slot(parent, layoutOrder, key, size)

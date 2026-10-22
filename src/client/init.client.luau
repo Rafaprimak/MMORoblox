@@ -209,6 +209,10 @@ local FX_HANDLERS = {
 	noMana = function()
 		Popups.message("Sem mana!", UI.Colors.Mana)
 	end,
+	-- suporte e tanque
+	heal = Fx.heal,
+	sanctuary = Fx.sanctuary,
+	taunted = Fx.taunted,
 	-- combate dinâmico
 	parry = Fx.parry,
 	blocked = Fx.blocked,

@@ -67,6 +67,16 @@ end
 
 -- ===================== ATRIBUTOS =====================
 
+-- Gancho para somar bônus de outros sistemas (pets, perks): function(player, data, bonus)
+PlayerService.ExtraBonus = function(_player, _data, _bonus) end
+
+local function addBonus(target, source, scale)
+	for key, value in source do
+		target[key] = (target[key] or 0) + value * (scale or 1)
+	end
+end
+PlayerService.addBonus = addBonus
+
 function PlayerService.getStats(player)
 	local data = DataService.get(player)
 	local stats = {
@@ -86,6 +96,8 @@ function PlayerService.getStats(player)
 		masteryId = "espadas",
 		masteryLevel = 1,
 		affinity = false,
+		bonus = {},
+		damageReduction = 0,
 	}
 	if not data then
 		return stats
@@ -111,12 +123,12 @@ function PlayerService.getStats(player)
 	end
 
 	local armorPower = if armor then Items.getPower(armor) else 0
-	local bonus = armorBase and armorBase.bonus or {}
+	local armorBonus = armorBase and armorBase.bonus or {}
 	local level = data.level
 
 	stats.maxHealth = math.floor(((Config.BaseHealth + level * Config.HealthPerLevel) * (class and class.health or 1) + armorPower) * (1 + enchantStat(armor, "health")))
-	stats.maxMana = math.floor(((Config.BaseMana + level * Config.ManaPerLevel) * (class and class.mana or 1) + (bonus.mana or 0)) * (1 + enchantStat(armor, "mana")))
-	stats.maxStamina = math.floor((Config.BaseStamina * (class and class.stamina or 1) + (bonus.stamina or 0)) * (1 + enchantStat(armor, "stamina")))
+	stats.maxMana = math.floor(((Config.BaseMana + level * Config.ManaPerLevel) * (class and class.mana or 1) + (armorBonus.mana or 0)) * (1 + enchantStat(armor, "mana")))
+	stats.maxStamina = math.floor((Config.BaseStamina * (class and class.stamina or 1) + (armorBonus.stamina or 0)) * (1 + enchantStat(armor, "stamina")))
 	stats.attack = (Config.BaseAttack + level * Config.AttackPerLevel + (if weapon then Items.getPower(weapon) else 0)) * (class and class.damage or 1)
 	stats.affinity = class ~= nil and class.weapons[weaponType] == true
 	stats.damageMult = (1 + masteryLevel * Config.MasteryDamagePerLevel) * (if stats.affinity then 1 + Config.AffinityBonus else 1) * (1 + enchantStat(weapon, "damage"))
@@ -127,6 +139,21 @@ function PlayerService.getStats(player)
 	stats.burn = enchantStat(weapon, "burn")
 	stats.regen = enchantStat(armor, "regen")
 	stats.defense = armorPower * 0.25
+
+	-- talentos (passivas da árvore) + bônus extras (pet, perks dos itens: gancho ExtraBonus)
+	local bonus = Classes.talentStats(data.class, data.talents)
+	PlayerService.ExtraBonus(player, data, bonus)
+	stats.bonus = bonus
+	stats.maxHealth = math.floor(stats.maxHealth * (1 + (bonus.health or 0)))
+	stats.maxMana = math.floor(stats.maxMana * (1 + (bonus.mana or 0)))
+	stats.maxStamina = math.floor(stats.maxStamina * (1 + (bonus.stamina or 0)))
+	stats.damageMult *= 1 + (bonus.damage or 0)
+	stats.crit += bonus.crit or 0
+	stats.critMult += bonus.critDamage or 0
+	stats.attackSpeed += bonus.attackSpeed or 0
+	stats.lifesteal += bonus.lifesteal or 0
+	stats.regen += bonus.regen or 0
+	stats.damageReduction = math.clamp(bonus.defense or 0, 0, 0.6)
 	stats.weaponType = weaponType
 	stats.masteryId = masteryId
 	stats.masteryLevel = masteryLevel
@@ -283,6 +310,19 @@ end
 
 -- Dano recebido pelo jogador.
 -- options.unblockable = golpe que só dá para esquivar (investidas, pancadas em área)
+-- Suporte: curou ou fortaleceu um aliado (conta como ajuda nas recompensas por alguns segundos)
+function PlayerService.markSupport(player)
+	local s = state[player]
+	if s then
+		s.lastSupport = os.clock()
+	end
+end
+
+function PlayerService.recentlySupported(player, seconds)
+	local s = state[player]
+	return s ~= nil and os.clock() - (s.lastSupport or -100) <= seconds
+end
+
 -- options.source = registro do inimigo que atacou (para aparar)
 -- Retorna "hit", "blocked", "parried" ou "evaded" (ou nil se o jogador não pode tomar dano)
 function PlayerService.damagePlayer(player, amount, sourcePosition, options)
@@ -307,8 +347,9 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 		end
 		return "evaded"
 	end
+	local stats = PlayerService.getStats(player)
 	if s.blocking and not options.unblockable and facing(character, sourcePosition) then
-		if now - s.blockStart <= Config.ParryWindow then
+		if now - s.blockStart <= Config.ParryWindow + (stats.bonus.parryWindow or 0) then
 			-- APARAR: nenhum dano, inimigo desequilibrado, contra-ataque garantido
 			s.riposteUntil = now + Config.RiposteTime
 			s.stamina = math.min(PlayerService.getStats(player).maxStamina, s.stamina + 10)
@@ -332,10 +373,9 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 			Remotes.Fx:FireClient(player, "guardBreak")
 		end
 	end
-	local stats = PlayerService.getStats(player)
 	local defense = stats.defense * (1 + PlayerService.buffValue(player, "defense"))
 	local reduction = defense / (defense + 100)
-	local final = math.max(1, math.floor(amount * (1 - reduction)))
+	local final = math.max(1, math.floor(amount * (1 - reduction) * (1 - stats.damageReduction)))
 	humanoid:TakeDamage(final)
 	s.lastDamageAt = now
 	Remotes.Fx:FireClient(player, "hurt", final, sourcePosition)
@@ -477,13 +517,10 @@ function PlayerService.addXP(player, amount)
 		data.skillPoints += Config.SkillPointsPerLevel
 		leveled = true
 		-- avisa sobre habilidade destravada
-		local class = Classes.List[data.class]
-		if class then
-			for _, abilityId in class.abilities do
-				local ability = Classes.Abilities[abilityId]
-				if ability.unlock == data.level then
-					Remotes.Notify:FireClient(player, { kind = "ability", ability = abilityId })
-				end
+		for _, abilityId in Classes.allAbilities(data.class) do
+			local ability = Classes.Abilities[abilityId]
+			if ability.unlock == data.level then
+				Remotes.Notify:FireClient(player, { kind = "ability", ability = abilityId, learn = ability.advanced == true })
 			end
 		end
 	end
@@ -682,13 +719,170 @@ end
 
 -- ===================== CLASSE E HABILIDADES =====================
 
+-- ===================== HABILIDADES E TALENTOS =====================
+
+-- Rank da habilidade (0 = não pode usar). Básicas: rank 1 grátis ao atingir o nível.
+-- Avançadas: precisam ser aprendidas com 1 ponto.
 function PlayerService.abilityRank(player, abilityId)
 	local data = DataService.get(player)
 	local ability = Classes.Abilities[abilityId]
 	if not data or not ability or data.level < ability.unlock then
 		return 0
 	end
+	if ability.advanced then
+		return data.abilityRanks[abilityId] or 0
+	end
 	return math.max(1, data.abilityRanks[abilityId] or 1)
+end
+
+function PlayerService.abilityCooldown(player, ability, rank)
+	local stats = PlayerService.getStats(player)
+	local reduction = math.clamp(stats.bonus.cooldown or 0, 0, 0.4)
+	return Classes.rankCooldown(ability, rank) * (1 - reduction)
+end
+
+-- Multiplicador de ameaça (tanques geram mais; usado pelos inimigos para escolher o alvo)
+function PlayerService.threatMultiplier(player)
+	local data = DataService.get(player)
+	local class = data and Classes.List[data.class]
+	local stats = PlayerService.getStats(player)
+	return math.max(0.2, (class and class.threat or 1) * (1 + (stats.bonus.threat or 0)))
+end
+
+-- As 4 habilidades das teclas 1 a 4 (padrão: as básicas da classe)
+function PlayerService.getLoadout(player)
+	local data = DataService.get(player)
+	local class = data and Classes.List[data.class]
+	if not class then
+		return {}
+	end
+	local all = Classes.allAbilities(data.class)
+	local result = {}
+	for slot = 1, 4 do
+		local id = data.loadout and data.loadout[slot]
+		if type(id) == "string" and id ~= "" and table.find(all, id) and not table.find(result, id) then
+			result[slot] = id
+		else
+			result[slot] = ""
+		end
+	end
+	-- vazio de verdade só se o jogador tirou; primeira vez usa as básicas
+	if not data.loadout or #data.loadout == 0 then
+		for slot = 1, 4 do
+			result[slot] = class.abilities[slot]
+		end
+	end
+	return result
+end
+
+function PlayerService.setLoadout(player, slot, abilityId)
+	local data = DataService.get(player)
+	local class = data and Classes.List[data.class]
+	if not class or typeof(slot) ~= "number" or slot < 1 or slot > 4 or slot % 1 ~= 0 then
+		return { ok = false, msg = "Espaço inválido." }
+	end
+	local loadout = PlayerService.getLoadout(player)
+	if abilityId == "" then
+		loadout[slot] = ""
+	else
+		if type(abilityId) ~= "string" or not table.find(Classes.allAbilities(data.class), abilityId) then
+			return { ok = false, msg = "Habilidade inválida." }
+		end
+		if PlayerService.abilityRank(player, abilityId) <= 0 then
+			return { ok = false, msg = "Aprenda essa habilidade primeiro." }
+		end
+		-- se já estava em outro espaço, troca de lugar
+		local previous = table.find(loadout, abilityId)
+		if previous then
+			loadout[previous] = loadout[slot]
+		end
+		loadout[slot] = abilityId
+	end
+	data.loadout = loadout
+	PlayerService.markDirty(player)
+	return { ok = true }
+end
+
+-- Aprende (avançada, rank 0 → 1) ou sobe o rank de uma habilidade
+function PlayerService.rankAbility(player, abilityId)
+	local data = DataService.get(player)
+	local class = data and Classes.List[data.class]
+	local ability = Classes.Abilities[abilityId]
+	if not class or not ability or not table.find(Classes.allAbilities(data.class), abilityId) then
+		return { ok = false, msg = "Habilidade inválida." }
+	end
+	if data.level < ability.unlock then
+		return { ok = false, msg = ("Destrava no nível %d."):format(ability.unlock) }
+	end
+	local rank = PlayerService.abilityRank(player, abilityId)
+	if rank >= Classes.MaxAbilityRank then
+		return { ok = false, msg = "Rank máximo!" }
+	end
+	if data.skillPoints <= 0 then
+		return { ok = false, msg = "Sem pontos de talento. Suba de nível!" }
+	end
+	data.skillPoints -= 1
+	data.abilityRanks[abilityId] = rank + 1
+	-- aprendeu agora: coloca num espaço vazio, se houver
+	if rank == 0 then
+		local loadout = PlayerService.getLoadout(player)
+		local empty = table.find(loadout, "")
+		if empty then
+			loadout[empty] = abilityId
+			data.loadout = loadout
+		end
+	end
+	PlayerService.markDirty(player)
+	return { ok = true, rank = rank + 1, learned = rank == 0 }
+end
+
+-- Compra um rank de passiva
+function PlayerService.learnTalent(player, nodeId)
+	local data = DataService.get(player)
+	local passive = type(nodeId) == "string" and Classes.PassiveById[nodeId]
+	if not data or not passive or passive.class ~= data.class then
+		return { ok = false, msg = "Talento inválido." }
+	end
+	local rank = data.talents[nodeId] or 0
+	if rank >= passive.max then
+		return { ok = false, msg = "Rank máximo!" }
+	end
+	local needed = Classes.TierPoints[passive.tier] or 0
+	if Classes.branchPoints(data.class, data.talents, passive.branch) < needed then
+		return { ok = false, msg = ("Gaste %d pontos neste ramo para liberar."):format(needed) }
+	end
+	if data.skillPoints <= 0 then
+		return { ok = false, msg = "Sem pontos de talento. Suba de nível!" }
+	end
+	data.skillPoints -= 1
+	data.talents[nodeId] = rank + 1
+	PlayerService.refreshCharacter(player, {})
+	PlayerService.markDirty(player)
+	return { ok = true }
+end
+
+local function refundAll(data)
+	data.skillPoints = math.max(0, (data.level - 1) * Config.SkillPointsPerLevel)
+	data.abilityRanks = {}
+	data.talents = {}
+	data.loadout = {}
+end
+
+-- Redistribuir todos os pontos (custa ouro a partir do nível 10)
+function PlayerService.respec(player)
+	local data = DataService.get(player)
+	if not data or not data.class then
+		return { ok = false, msg = "Escolha uma classe primeiro." }
+	end
+	local price = if data.level >= 10 then Classes.RespecPrice else 0
+	if data.gold < price then
+		return { ok = false, msg = ("Redistribuir custa %d de ouro."):format(price) }
+	end
+	data.gold -= price
+	refundAll(data)
+	PlayerService.refreshCharacter(player, {})
+	PlayerService.markDirty(player)
+	return { ok = true, msg = "Pontos devolvidos!" }
 end
 
 function PlayerService.chooseClass(player, classId)
@@ -705,13 +899,9 @@ function PlayerService.chooseClass(player, classId)
 			return { ok = false, msg = ("Trocar de classe custa %d de ouro."):format(Config.ClassChangePrice) }
 		end
 		data.gold -= Config.ClassChangePrice
-		-- devolve os pontos gastos
-		for _, rank in data.abilityRanks do
-			data.skillPoints += math.max(0, rank - 1)
-		end
 	end
 	data.class = classId
-	data.abilityRanks = {}
+	refundAll(data)
 	local weapon = Items.create(class.starter, "Comum", 1)
 	data.inventory[weapon.uid] = weapon
 	data.equipped.weapon = weapon.uid
@@ -723,28 +913,6 @@ function PlayerService.chooseClass(player, classId)
 	return { ok = true }
 end
 
-function PlayerService.rankAbility(player, abilityId)
-	local data = DataService.get(player)
-	local class = data and Classes.List[data.class]
-	local ability = Classes.Abilities[abilityId]
-	if not class or not ability or not table.find(class.abilities, abilityId) then
-		return { ok = false, msg = "Habilidade inválida." }
-	end
-	if data.level < ability.unlock then
-		return { ok = false, msg = ("Destrava no nível %d."):format(ability.unlock) }
-	end
-	local rank = PlayerService.abilityRank(player, abilityId)
-	if rank >= Classes.MaxAbilityRank then
-		return { ok = false, msg = "Rank máximo!" }
-	end
-	if data.skillPoints <= 0 then
-		return { ok = false, msg = "Sem pontos de habilidade. Suba de nível!" }
-	end
-	data.skillPoints -= 1
-	data.abilityRanks[abilityId] = rank + 1
-	PlayerService.markDirty(player)
-	return { ok = true, rank = rank + 1 }
-end
 
 -- ===================== POÇÕES =====================
 
@@ -805,17 +973,34 @@ function PlayerService.sync(player)
 	end
 	local stats = PlayerService.getStats(player)
 	local abilities = {}
+	local tree = {}
 	local class = Classes.List[data.class]
 	if class then
-		for slot, abilityId in class.abilities do
+		local loadout = PlayerService.getLoadout(player)
+		for slot = 1, 4 do
+			local abilityId = loadout[slot]
 			local ability = Classes.Abilities[abilityId]
-			local rank = PlayerService.abilityRank(player, abilityId)
-			abilities[slot] = {
+			if ability then
+				local rank = PlayerService.abilityRank(player, abilityId)
+				abilities[slot] = {
+					id = abilityId,
+					rank = rank,
+					unlocked = rank > 0,
+					cooldown = PlayerService.abilityCooldown(player, ability, math.max(rank, 1)),
+				}
+			else
+				abilities[slot] = { id = "", rank = 0, unlocked = false, cooldown = 0 }
+			end
+		end
+		for _, abilityId in Classes.allAbilities(data.class) do
+			local ability = Classes.Abilities[abilityId]
+			table.insert(tree, {
 				id = abilityId,
-				rank = rank,
-				unlocked = rank > 0,
-				cooldown = Classes.rankCooldown(ability, math.max(rank, 1)),
-			}
+				rank = PlayerService.abilityRank(player, abilityId),
+				unlock = ability.unlock,
+				advanced = ability.advanced == true,
+				slot = table.find(loadout, abilityId) or 0,
+			})
 		end
 	end
 	local payload = {
@@ -826,6 +1011,8 @@ function PlayerService.sync(player)
 		class = data.class,
 		skillPoints = data.skillPoints,
 		abilities = abilities,
+		tree = tree,
+		talents = data.talents,
 		stats = {
 			attack = math.floor(stats.attack * stats.damageMult),
 			maxHealth = stats.maxHealth,
@@ -968,7 +1155,7 @@ task.spawn(function()
 			if humanoid and humanoid.Health > 0 and DataService.get(player) then
 				local stats = PlayerService.getStats(player)
 				local class = DataService.get(player).class
-				local manaRegen = Config.ManaRegen * (if class == "mago" then 2 else 1)
+				local manaRegen = Config.ManaRegen * (if class == "mago" or class == "clerigo" then 2 else 1) * (1 + (stats.bonus.manaRegen or 0))
 				s.mana = math.min(stats.maxMana, s.mana + manaRegen * dt)
 				local moving = humanoid.MoveDirection.Magnitude > 0.1
 				if s.blocking then

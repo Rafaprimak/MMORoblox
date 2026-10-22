@@ -124,6 +124,9 @@ function EnemyService.spawn(camp, enemyId, options)
 		level = level,
 		damageMult = if elite then 1.5 else 1,
 		damageBy = {},
+		threat = {},
+		tauntBy = nil,
+		tauntUntil = 0,
 		state = "idle",
 		stateUntil = 0,
 		lastAttack = 0,
@@ -268,9 +271,9 @@ function EnemyService.damage(rec, amount, player, info)
 	rec.lastHitAt = os.clock()
 	if player then
 		rec.damageBy[player] = (rec.damageBy[player] or 0) + amount
-		if not rec.forcedTarget or math.random() < 0.3 then
-			rec.forcedTarget = player
-		end
+		-- ameaça: o inimigo persegue quem gerou mais (tanques geram muito mais)
+		rec.threat[player] = (rec.threat[player] or 0) + amount * PlayerService.threatMultiplier(player)
+		rec.forcedTarget = EnemyService.topThreat(rec)
 	end
 	rec.root:SetAttribute("Hp", math.max(0, math.floor(rec.hp)))
 	Remotes.Fx:FireAllClients("hit", rec.root, amount, info.crit == true, player, info.color, tag, info.element or (if info.dot then "dot" else nil))
@@ -444,6 +447,46 @@ local function playersInfo()
 	return list
 end
 
+-- jogador com mais ameaça (ou quem provocou, enquanto durar)
+function EnemyService.topThreat(rec)
+	if rec.tauntBy and os.clock() < rec.tauntUntil and rec.tauntBy.Parent then
+		return rec.tauntBy
+	end
+	local best, bestValue = nil, 0
+	for player, value in rec.threat do
+		if player.Parent and value > bestValue then
+			best, bestValue = player, value
+		end
+	end
+	return best
+end
+
+-- Provocar: o inimigo ataca este jogador por "duration" segundos e ganha muita ameaça dele
+function EnemyService.taunt(rec, player, duration)
+	if rec.dead then
+		return
+	end
+	rec.tauntBy = player
+	rec.tauntUntil = os.clock() + duration
+	local top = 0
+	for _, value in rec.threat do
+		top = math.max(top, value)
+	end
+	rec.threat[player] = top * 1.5 + 50
+	rec.forcedTarget = player
+	Remotes.Fx:FireAllClients("taunted", rec.root, player)
+end
+
+-- Curas geram ameaça nos inimigos que já estão lutando por perto
+function EnemyService.addThreatNear(player, position, radius, amount)
+	for _, rec in active do
+		if not rec.dead and next(rec.threat) ~= nil and flat(rec.pos - position).Magnitude <= radius then
+			rec.threat[player] = (rec.threat[player] or 0) + amount
+			rec.forcedTarget = EnemyService.topThreat(rec)
+		end
+	end
+end
+
 local function pickTarget(rec, targets)
 	local def = rec.def
 	local best, bestDistance = nil, nil
@@ -566,6 +609,8 @@ local function updateEnemy(rec, now, targets)
 	local target, distance = pickTarget(rec, targets)
 	if not target then
 		rec.forcedTarget = nil
+		rec.threat = {}
+		rec.tauntBy = nil
 	end
 
 	-- ===== estados especiais em andamento =====

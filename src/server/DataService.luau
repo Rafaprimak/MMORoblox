@@ -29,6 +29,8 @@ function DataService.defaultData()
 		class = nil,
 		skillPoints = 0,
 		abilityRanks = {},
+		talents = {},
+		loadout = {},
 		inventory = {},
 		equipped = {},
 		materials = {},
@@ -47,7 +49,7 @@ end
 -- Campos que são dicionários livres (não devem ser "completados" com o modelo)
 local FREE_KEYS = {
 	inventory = true, equipped = true, materials = true, consumables = true, skills = true,
-	abilityRanks = true, active = true, done = true, offered = true, discovered = true,
+	abilityRanks = true, talents = true, loadout = true, active = true, done = true, offered = true, discovered = true,
 }
 
 local function reconcile(data, template)

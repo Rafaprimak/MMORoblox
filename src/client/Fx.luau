@@ -43,6 +43,7 @@ local STYLE_COLORS = {
 	enemyArrow = Color3.fromRGB(200, 120, 80),
 	enemyMagic = Color3.fromRGB(210, 80, 255),
 	travel = Color3.fromRGB(110, 200, 255),
+	holy = Color3.fromRGB(255, 230, 140),
 }
 
 function Fx.styleColor(style)
@@ -212,6 +213,7 @@ local IMPACTS = {
 	earth = { color = Color3.fromRGB(170, 130, 90), count = 7, size = 0.6 },
 	roar = { color = Color3.fromRGB(255, 200, 60), count = 5, size = 0.45 },
 	slash = { color = Color3.fromRGB(240, 240, 255), count = 4, size = 0.35 },
+	holy = { color = Color3.fromRGB(255, 230, 140), count = 6, size = 0.45, flash = true },
 }
 local PHYSICAL = { color = Color3.fromRGB(255, 245, 220), count = 3, size = 0.3 }
 
@@ -467,18 +469,63 @@ function Fx.projectileEnd(id, position, explodeRadius, style)
 	end
 end
 
-function Fx.rain(center, radius, duration)
-	ring(center, radius, Fx.styleColor("arrow"), duration, 0.2)
+function Fx.rain(center, radius, duration, style)
+	local color = Fx.styleColor(style or "arrow")
+	local magic = style == "fire" or style == "ice"
+	ring(center, radius, color, duration, 0.2)
 	local count = math.floor(duration * 25)
 	for i = 1, count do
 		task.delay(i / count * duration, function()
 			local angle = math.random() * math.pi * 2
 			local r = math.sqrt(math.random()) * radius
 			local target = center + Vector3.new(math.cos(angle) * r, 0, math.sin(angle) * r)
-			local arrow = effectPart({ Size = Vector3.new(0.2, 0.2, 2.6), Color = Fx.styleColor("arrow"), CFrame = CFrame.lookAt(target + Vector3.new(0, 30, 0), target) })
+			local arrow = effectPart({ Size = if magic then Vector3.new(0.7, 0.7, 2.2) else Vector3.new(0.2, 0.2, 2.6), Color = color, Material = if magic then Enum.Material.Neon else Enum.Material.SmoothPlastic, CFrame = CFrame.lookAt(target + Vector3.new(0, 30, 0), target) })
 			TweenService:Create(arrow, TweenInfo.new(0.25, Enum.EasingStyle.Linear), { CFrame = CFrame.lookAt(target + Vector3.new(0, 1, 0), target - Vector3.new(0, 1, 0)) }):Play()
 			Debris:AddItem(arrow, 0.6)
 		end)
+	end
+end
+
+-- ===================== SUPORTE =====================
+
+-- Cura em um jogador: número verde (para quem foi curado) e brilho subindo (para todos)
+function Fx.heal(target, amount)
+	local character = typeof(target) == "Instance" and target.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+	burst(root.Position - Vector3.new(0, 1.5, 0), Color3.fromRGB(140, 255, 160), 6, 10, 0.35)
+	local glow = effectPart({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(6, 4, 4), CFrame = CFrame.new(root.Position) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(150, 255, 170), Material = Enum.Material.Neon, Transparency = 0.6 })
+	TweenService:Create(glow, TweenInfo.new(0.6), { Size = Vector3.new(0.5, 6, 6), Transparency = 1 }):Play()
+	Debris:AddItem(glow, 0.65)
+	if amount and amount > 0 and (target == player or Prefs.get("damageNumbers")) then
+		Fx.floatingText(root.Position + Vector3.new(0, 3, 0), "+" .. UI.formatNumber(amount), Color3.fromRGB(120, 255, 140), 30, 0.9)
+	end
+	if target == player then
+		Sounds.play("ping", 1.8, 0.3)
+	end
+end
+
+-- Área sagrada que cura (Santuário)
+function Fx.sanctuary(center, radius, duration)
+	local disc = effectPart({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.3, radius * 2, radius * 2), CFrame = CFrame.new(center + Vector3.new(0, 0.2, 0)) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(255, 235, 150), Material = Enum.Material.Neon, Transparency = 0.7 })
+	local pillar = effectPart({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(30, radius * 0.6, radius * 0.6), CFrame = CFrame.new(center + Vector3.new(0, 15, 0)) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(255, 245, 200), Material = Enum.Material.Neon, Transparency = 0.8 })
+	TweenService:Create(disc, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Transparency = 0.95 }):Play()
+	TweenService:Create(pillar, TweenInfo.new(duration, Enum.EasingStyle.Linear), { Transparency = 1 }):Play()
+	Debris:AddItem(disc, duration + 0.1)
+	Debris:AddItem(pillar, duration + 0.1)
+end
+
+-- Inimigo provocado: "!" vermelho em cima dele
+function Fx.taunted(enemyRoot, by)
+	if typeof(enemyRoot) ~= "Instance" then
+		return
+	end
+	local position = EnemyRenderer.topPosition(enemyRoot)
+	Fx.floatingText(position + Vector3.new(0, 1, 0), "!", Color3.fromRGB(255, 70, 60), 40, 0.7)
+	if by == player then
+		ring(enemyRoot.Position, 3, Color3.fromRGB(255, 80, 60), 0.3, 0.25)
 	end
 end
 

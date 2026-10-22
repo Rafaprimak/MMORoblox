@@ -70,11 +70,12 @@ function CombatService.dealDamage(player, rec, mult, info)
 		damage *= 1 + Config.RhythmBonus
 	end
 	-- adagas: bônus pelas costas
+	local bonus = stats.bonus or {}
 	if style.backstab and info.fromPosition and not info.ability then
 		local enemyLook = Vector3.new(-math.sin(rec.yaw), 0, -math.cos(rec.yaw))
 		local toAttacker = flat(info.fromPosition - rec.pos)
 		if toAttacker.Magnitude > 0.1 and enemyLook:Dot(toAttacker.Unit) < -0.3 then
-			damage *= 1 + style.backstab
+			damage *= 1 + style.backstab + (bonus.backstab or 0)
 			info.color = Color3.fromRGB(200, 120, 255)
 		end
 	end
@@ -82,7 +83,7 @@ function CombatService.dealDamage(player, rec, mult, info)
 	local posture = 0
 	if not info.dot then
 		posture = Config.PostureBase * mult * (info.posture or 1) * (if info.ability then 1 else style.posture or 1)
-		posture *= 1 + stats.masteryLevel * 0.01
+		posture *= (1 + stats.masteryLevel * 0.01) * (1 + (bonus.posture or 0))
 		if info.rhythm then
 			posture *= 1 + Config.RhythmBonus
 		end
@@ -316,7 +317,7 @@ function CombatService.heavyRelease(player, aim)
 	CombatService.BeforeAction(player)
 	local duration = begin(player, move, aim, {
 		heavy = true,
-		damageMult = 1 + charge,
+		damageMult = (1 + charge) * (1 + (stats.bonus.heavyDamage or 0)),
 		postureMult = 1.5 + charge * 2,
 	})
 	combo[player] = { index = 0, endAt = now + duration }

@@ -111,7 +111,7 @@ function executors.whirl(player, ability, mult)
 end
 
 function executors.buff(player, ability, mult)
-	PlayerService.addBuff(player, "grito", { damage = ability.damage * mult, defense = ability.defense * mult }, ability.time)
+	PlayerService.addBuff(player, ability.buffId or "grito", { damage = ability.damage * mult, defense = ability.defense * mult }, ability.time)
 	local _, root = characterParts(player)
 	if root then
 		Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), 12, "roar")
@@ -172,7 +172,7 @@ end
 
 function executors.rain(player, ability, mult, _aim, point, root)
 	local center = groundPoint(root, point, ability.range)
-	Remotes.Fx:FireAllClients("rain", center, ability.radius, ability.ticks * ability.interval)
+	Remotes.Fx:FireAllClients("rain", center, ability.radius, ability.ticks * ability.interval, ability.style)
 	for i = 1, ability.ticks do
 		hitRadius(player, center + Vector3.new(0, 2, 0), ability.radius, ability.dmg * mult, { ability = true, element = ability.style })
 		if i < ability.ticks then
@@ -253,13 +253,104 @@ function executors.execute(player, ability, mult, aim, _point, root)
 	CombatService.dealDamage(player, rec, damageMult, { fromPosition = root.Position, knockback = 8, ability = true, element = ability.style })
 end
 
+
+-- ===================== SUPORTE E TANQUE =====================
+
+-- jogadores vivos dentro do raio (aliados: o jogo não tem PvP)
+local function alliesNear(position, radius)
+	local list = {}
+	for _, other in Players:GetPlayers() do
+		local character = other.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if humanoid and root and humanoid.Health > 0 and (root.Position - position).Magnitude <= radius then
+			table.insert(list, { player = other, humanoid = humanoid, root = root })
+		end
+	end
+	return list
+end
+
+-- cura proporcional à vida máxima de cada aliado; gera ameaça e conta como "ajuda" nas recompensas
+local function healAllies(player, position, radius, fraction)
+	local stats = PlayerService.getStats(player)
+	local power = 1 + (stats.bonus.healPower or 0)
+	local total = 0
+	for _, ally in alliesNear(position, radius) do
+		local missing = ally.humanoid.MaxHealth - ally.humanoid.Health
+		local amount = ally.humanoid.MaxHealth * fraction * power
+		if missing > 0 then
+			PlayerService.heal(ally.player, amount)
+			total += math.min(amount, missing)
+		end
+		Remotes.Fx:FireAllClients("heal", ally.player, math.floor(amount))
+		if ally.player ~= player then
+			PlayerService.markSupport(player)
+		end
+	end
+	if total > 0 then
+		EnemyService.addThreatNear(player, position, 45, total * 0.5)
+		AbilityService.QuestHook(player, "heal", nil, math.floor(total))
+	end
+	return total
+end
+
+function executors.heal(player, ability, mult, _aim, _point, root)
+	Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), ability.radius * 0.5, "holy")
+	healAllies(player, root.Position, ability.radius, ability.heal * mult)
+	if ability.iframes then
+		for _, ally in alliesNear(root.Position, ability.radius) do
+			PlayerService.grantIFrames(ally.player, ability.iframes)
+		end
+	end
+end
+
+function executors.allybuff(player, ability, mult, _aim, _point, root)
+	Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), ability.radius * 0.6, "holy")
+	for _, ally in alliesNear(root.Position, ability.radius) do
+		PlayerService.addBuff(ally.player, ability.buffId, { damage = (ability.damage or 0) * mult, defense = (ability.defense or 0) * mult }, ability.time)
+		Remotes.Fx:FireAllClients("heal", ally.player, 0)
+		if ally.player ~= player then
+			PlayerService.markSupport(player)
+		end
+	end
+end
+
+function executors.sanctuary(player, ability, mult, _aim, point, root)
+	local center = groundPoint(root, point, ability.range)
+	Remotes.Fx:FireAllClients("sanctuary", center, ability.radius, ability.ticks * ability.interval)
+	for i = 1, ability.ticks do
+		healAllies(player, center + Vector3.new(0, 2, 0), ability.radius, ability.heal * mult)
+		if i < ability.ticks then
+			task.wait(ability.interval)
+		end
+	end
+end
+
+function executors.holynova(player, ability, mult, _aim, _point, root)
+	Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), ability.radius, "holy")
+	hitRadius(player, root.Position, ability.radius, ability.dmg * mult, { knockback = 6, ability = true, element = "holy" })
+	healAllies(player, root.Position, ability.radius, ability.heal * mult)
+end
+
+-- Tanque: força os inimigos perto a atacarem você
+function executors.taunt(player, ability, mult, _aim, _point, root)
+	Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), ability.radius, "roar")
+	local count = 0
+	for _, rec in EnemyService.inRadius(root.Position, ability.radius) do
+		EnemyService.taunt(rec, player, ability.time)
+		count += 1
+	end
+	PlayerService.addBuff(player, "provocar", { defense = ability.defense * mult }, ability.time)
+	AbilityService.QuestHook(player, "taunt", nil, count)
+end
+
 function AbilityService.cast(player, slot, aim, aimPoint)
 	local data = DataService.get(player)
 	local class = data and Classes.List[data.class]
 	if not class or typeof(slot) ~= "number" then
 		return
 	end
-	local abilityId = class.abilities[math.floor(slot)]
+	local abilityId = PlayerService.getLoadout(player)[math.floor(slot)]
 	local ability = abilityId and Classes.Abilities[abilityId]
 	if not ability then
 		return
@@ -283,13 +374,13 @@ function AbilityService.cast(player, slot, aim, aimPoint)
 		return
 	end
 	CombatService.BeforeAction(player)
-	local cooldown = Classes.rankCooldown(ability, rank)
+	local cooldown = PlayerService.abilityCooldown(player, ability, rank)
 	cooldowns[player][abilityId] = now + cooldown
 	Remotes.Fx:FireClient(player, "cooldown", slot, cooldown)
 	Remotes.Fx:FireAllClients("cast", player, abilityId, ability.pose)
 	AbilityService.QuestHook(player, "ability", abilityId, 1)
 	PlayerService.markCombat(player)
-	local mult = Classes.rankMultiplier(rank)
+	local mult = Classes.rankMultiplier(rank) * (1 + (PlayerService.getStats(player).bonus.abilityDamage or 0))
 	local executor = executors[ability.kind]
 	if executor then
 		task.spawn(function()
