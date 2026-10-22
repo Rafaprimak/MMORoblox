@@ -9,7 +9,7 @@ Este arquivo é a fonte da verdade sobre **como trabalhar neste projeto**. Leia 
 - **Jogo:** MMORPG de Hunters no Roblox (mundo aberto, classes, combos por arma, profissões, missões, baús).
 - **Linguagem:** Luau. **Ferramenta de build:** Rojo 7 (`default.project.json`).
 - **Idioma:** todo texto que o jogador vê é em **português do Brasil**. Comentários também em português. Nomes de variáveis/funções em inglês.
-- **Visual:** protótipo "blocado" (Parts simples). Não há assets externos (meshes, imagens, animações, sons com ID). Tudo é gerado por código.
+- **Visual:** "blocado" caprichado (Parts simples, sem meshes, imagens ou animações com ID). Tudo é gerado por código. A única exceção são os **sons**: IDs opcionais da Creator Store em `src/shared/SoundIds.luau` (com reserva interna).
 - **O servidor manda em tudo.** O cliente só desenha, anima e envia intenções. Nunca confie em valores vindos do cliente.
 
 ## 2. Regras de ouro
@@ -67,6 +67,10 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Chests` | Baús |
 | `World` | Relevo, biomas, estradas, locais, pedras de viagem |
 | `DayNight` | Hora do dia determinística (`DayNight.now()`), usada pelo servidor e pelo cliente |
+| `Perks` | Perks dos itens (estilo Destiny): catálogo, sorteio por raridade (`Perks.roll`) |
+| `Pets` | Pets, ovos (chances em %) e bônus por nível |
+| `Progression` | Login diário, Passe do Hunter, conquistas, marcos de nível e títulos |
+| `SoundIds` | Catálogo de áudio (efeitos, ambiente, música): IDs da Creator Store + reserva |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
 
 ### Server
@@ -90,6 +94,9 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `TravelService` | Pedras de viagem, montaria, portão do norte |
 | `NPCService` | Cria NPCs e prompts de conversa |
 | `DayNightService` | Ciclo de dia e noite: `workspace.Night`, luz do ambiente, avisos, `skip()` para teste |
+| `PerkService` | Gatilhos dos perks no combate (`modify`, `afterHit`, `onKill`, `onParry`, `onPerfectDodge`, `onFullCharge`) |
+| `PetService` | Ovos, equipar/soltar pets, XP do pet, bônus (`ExtraBonus`), drops raros |
+| `ProgressionService` | Conta tudo pelos ganchos de missão: conquistas, passe, login diário, títulos, marcos de nível |
 | `WeaponModels` | Arma presa na mão (com rastro) |
 
 ### Client
@@ -103,6 +110,10 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Prefs`, `SettingsWindow` | Configurações do jogador (valores sem dependências + janela, tecla P) |
 | `Sky`, `Auras` | Sol suave e postes que acendem à noite; aura de rank nos jogadores |
 | `Tutorial` | Dicas guiadas dos primeiros minutos (avançam com `Tutorial.event(nome)`) |
+| `LockOn` | Travar a mira no inimigo (câmera, rosto do personagem, mira de golpes e habilidades) |
+| `PetRenderer`, `PetsWindow` | Desenha/anima os pets de todos; janela de pets e ovos (tecla G) |
+| `JourneyWindow` | Jornada (tecla K): diário, passe, conquistas, títulos |
+| `Ambience` | Ambiente e música em loop por região/noite/chefe, com crossfade |
 | `Controller` | Entrada do jogador (combo, esquiva, corrida, habilidades, celular) |
 | `Animator` | Animações procedurais (gira `Motor6D.Transform` em `RunService.Stepped`) |
 | `EnemyRenderer` | Desenha/anima inimigos a partir das raízes do servidor |
@@ -113,20 +124,22 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 
 ### Ganchos (evitam `require` circular)
 Definidos como funções vazias no módulo e preenchidos em `init.server.luau`:
-`PlayerService.QuestHook / QuestSummary / OnDamaged`, `CombatService.QuestHook / BeforeAction`, `AbilityService.QuestHook`, `CraftingService.QuestHook`, `ShopService.QuestHook`, `TravelService.QuestHook`, `NPCService.QuestHook`, `SkillService.OnChanged`, `EnemyService.OnKilled / OnHit / FireProjectile / OnStagger`, `PlayerService.OnParry`.
+`PlayerService.QuestHook / QuestSummary / OnDamaged`, `CombatService.QuestHook / BeforeAction`, `AbilityService.QuestHook`, `CraftingService.QuestHook`, `ShopService.QuestHook`, `TravelService.QuestHook`, `NPCService.QuestHook`, `SkillService.OnChanged`, `EnemyService.OnKilled / OnHit / FireProjectile / OnStagger`, `PlayerService.OnParry / OnPerfectDodge / OnThorns / ExtraBonus / ExtraSync`, `QuestService.OnComplete`, `PetService.QuestHook`.
+
+Todo evento de missão (`questHook` no init) vai também para `ProgressionService.track`: para uma conquista nova, basta usar um tipo de evento que já é disparado.
 
 Ordem de dependência (quem pode exigir quem): `DataService → SkillService → PlayerService → EnemyService → ProjectileService → CombatService → AbilityService`; `ShopService → QuestService`. Para eventos de missão, chame o gancho `QuestHook(player, tipo, alvo, quantidade)`.
 
 ### Rede (`src/shared/Remotes.luau`)
 - **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
-- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
+- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
-- **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest`. Tratado em `Popups.handle`.
-- **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`. Tratado na tabela `FX_HANDLERS` em `init.client`.
+- **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward`. Tratado em `Popups.handle`.
+- **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
 - **Tabelas pela rede:** só arrays puros ou dicionários com chave string. Nada de chaves misturadas.
 
 ### Atributos e tags
-- **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted`.
+- **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted, Pet, PetLevel, Title, TitleId`.
 - **Raiz de inimigo** (pasta `workspace.Inimigos`): `Type, Elite, Level, Hp, MaxHp, Posture, MaxPosture, Staggered, Action ("tipo:contador"), Dot, Dead`.
 - **Workspace:** `WorldReady, WorldStatus, WorldProgress, DayEpoch, Night`.
 - **Tags:** `Rainbow` (cor arco-íris), `Spin` (gira), `ResourceNode`, `Waystone`, `NPC`, `NightLight` (peça que acende à noite; use `Props.nightLight(part)`).
@@ -154,6 +167,27 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - Configurações novas: adicione em `Config.DefaultSettings` (o `reconcile` completa saves antigos), na janela `SettingsWindow` e leia com `Prefs.get(chave)`. O servidor valida em `PlayerService.saveSettings`.
 - `Fx.hit` recebe o `element` do golpe (estilo da habilidade ou `fire`/`blood` pelo encantamento) para as faíscas do impacto.
 
+### Classes, talentos e ameaça
+- Cada classe tem `role` (tank, support, dps, control), `threat` e `abilities` (4 básicas, grátis) + `extra` (4 avançadas, `advanced = true`, custam 1 ponto). O loadout das teclas 1-4 fica em `data.loadout` (`PlayerService.getLoadout`).
+- Passivas em `Classes.Passives[classe]` (3 ramos, tiers liberados por `Classes.TierPoints`). Os bônus viram `stats.bonus` em `PlayerService.getStats` (junto com acessórios, perks de stats e pet). Chaves de bônus novas precisam ser lidas em algum lugar (ver o comentário em `Classes`).
+- Ameaça: `EnemyService` soma `dano × PlayerService.threatMultiplier` e persegue o maior (`topThreat`); `EnemyService.taunt` força o alvo; curas usam `addThreatNear`.
+
+### Itens, perks e pets
+- Espaços em `Items.SlotOrder`; `Items.Slots[slot].kind` diz se a peça dá vida (`health`) ou ataque (`attack`). Acessórios têm `stats` (escalados por `Items.getStats`).
+- Perk novo: adicione em `Perks.List` (com `stats` fixos ou com gatilho em `PerkService`). Perks com gatilho de dano recebido ficam em `PlayerService.damagePlayer`.
+- Pet novo: `Pets.List` (+ um `shape` existente em `PetRenderer`) e coloque nas `odds` de algum ovo (sempre somando 100).
+- Danos extras de perks vão direto em `EnemyService.damage` com `info.perk = true` (não disparam perks de novo).
+
+### Construções com interior
+- `Props.building` monta casa com porta aberta, piso, janelas, luzes internas e telhado (porta em z = 0, salão para +Z). NPCs com `indoor` em `NPCs.List` ficam lá dentro; a porta fica em `doorX/doorZ`.
+- A câmera usa **Invisicam** (`DevCameraOcclusionMode`): paredes ficam transparentes em vez de puxar a câmera.
+- NPCs `indoor` procuram o chão abaixo do telhado (`NPCService.groundHeight(x, z, startY)`).
+
+### Animação e áudio
+- `Animator` faz crossfade entre poses (`play`, `hold`, `stop`), tem camadas de postura por arma (`STANCES`), respiração, inclinação e `flinch`. Pose nova = quadros `{ t, juntas }` em `POSES`.
+- O cavalo da montaria tem grupos (`PernaFL`..., `Cabeca`, `Cauda`) ligados ao `Corpo` por Motor6D criados em `TravelService.mount`; o cliente anima as juntas `Junta*`.
+- Som novo: adicione em `SoundIds.Effects` (com `reserva`) e toque com `Sounds.play(nome)`. Ambiente/música: `SoundIds.Ambience/Music` + `SoundIds.RegionAmbience`.
+
 ### Interface
 - Janelas novas: `Window.create(screen, { title, width, height, tabs, accent })` + `win.onOpen`/`win.onTab`; re-renderize em `State.Changed` só se `win:isOpen()`.
 - Toda `ScreenGui` criada por script deve ter `ZIndexBehavior = Enum.ZIndexBehavior.Sibling` (o padrão `Global` faz elementos sumirem atrás do fundo).
@@ -169,7 +203,11 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 | **Habilidade nova** | `Classes.Abilities` (escolha ou crie um `kind`), executor em `AbilityService.executors`, pose em `Animator` |
 | **Missão nova** | `Quests.List` (giver/turnIn, `requires`, objetivos). Tipos de objetivo existentes: `kill, hit, gather, deliver, talk, explore, discover, craft, enchant, upgrade, upgradeTo, level, mastery, mount, chest, dodge, ability, finisher, parry, perfectDodge, rhythm, stagger, fullCharge` |
 | **Tipo de objetivo novo** | `QuestService` (`matches`/`progressOf`), disparar o `QuestHook` no lugar certo, `WorldMarkers.objectiveTarget` (para onde o feixe aponta) |
-| **NPC novo** | `NPCs.List` (posição em terreno plano), construção em `WorldGen/Town` ou `Landmarks`, serviço em `Dialog.services` + `Services` |
+| **NPC novo** | `NPCs.List` (posição em terreno plano; `indoor` se ficar dentro de uma construção), construção em `WorldGen/Town` ou `Landmarks`, serviço em `Dialog.services` + `Services` |
+| **Perk novo** | `Perks.List` (pool `weapon` ou `gear`; `stats` fixos ou gatilho em `PerkService`) |
+| **Pet novo** | `Pets.List` + `odds` de um ovo (somando 100) |
+| **Conquista nova** | `Progression.Achievements` (evento de missão existente) + título em `Progression.Titles` |
+| **Passiva/talento** | `Classes.Passives[classe]` (ramo, tier, máximo, stats por rank) |
 | **Recurso de coleta** | `Resources.Nodes` + regra em `Scatter` (`NODE_RULES`) + visual em `buildNode` |
 | **Objeto de cenário** | Função em `Props`, posicionamento com `Placement.canPlace` + `Placement.reserve` (obrigatório, evita sobreposição) |
 | **Local/pedra de viagem** | `World.Locations` / `World.Waystones` (+ estrada em `World.Roads` se quiser) |

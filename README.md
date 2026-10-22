@@ -70,7 +70,8 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 
 | Ação | PC | Celular |
 |---|---|---|
-| Atacar / emendar combo | Clique **no ritmo** (barra embaixo da mira: clicar cedo demais quebra o combo) | Botão ⚔ |
+| Atacar / emendar combo | Clique **no ritmo** (barra embaixo do retículo: clicar cedo demais quebra o combo) | Botão ⚔ |
+| Travar a mira no inimigo | **T** ou botão do meio do mouse (mexa o mouse rápido para o lado para trocar de alvo) | Botão 🎯 |
 | Ataque pesado carregado | Segure e solte **R** (maestria 5 da arma) | Segure 💥 |
 | Bloquear / aparar | Segure **F** (soltar e apertar logo antes do golpe = aparar) | Segure 🛡 |
 | Esquivar (rolamento) | **Q** (no último instante = esquiva perfeita) | Botão ↩ |
@@ -79,7 +80,9 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Poções | **Z** vida, **X** mana, **V** vigor | Toque na barra |
 | Montar / desmontar | **H** | Botão 🐴 |
 | Inventário / Personagem / Missões / Mapa / Baús | **I / C / J / M / B** | Botões à esquerda |
-| Configurações (volume, sensibilidade, números de dano...) | **P** | Botão ⚙ |
+| Jornada (recompensa diária, passe, conquistas, títulos) | **K** | Botão ⭐ |
+| Pets | **G** | Botão 🐾 |
+| Configurações (volume, música, sensibilidade, números de dano...) | **P** | Botão ⚙ |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
 
 O botão direito do mouse fica livre para girar a câmera.
@@ -101,17 +104,31 @@ O botão direito do mouse fica livre para girar a câmera.
 ## 🗺️ O que tem no jogo
 
 - **Mundo:** Vila Aurora (sul), Campos Verdejantes, Bosque Sombrio (leste), Planalto das Ruínas (oeste), lago com santuário, praia com farol e píer, montanhas nevadas, Passagem do Norte com o Portão Selado (Nível 10) e o Covil do Rei Goblin.
-- **Classes:** Guerreiro, Arqueiro, Mago e Assassino. Cada uma tem 4 habilidades (liberadas nos níveis 1, 3, 6 e 10) que sobem de rank com pontos (1 por nível).
+- **Classes e papéis (como num MMORPG):** Guerreiro (**tanque**: muita vida, ameaça em dobro e Provocar), Clérigo (**suporte**: curas, escudos e bênçãos para os aliados por perto), Mago (**controle**: área e congelamento), Arqueiro e Assassino (**dano**). Os inimigos atacam quem gera mais ameaça.
+- **Árvore de talentos (tecla C):** 8 habilidades por classe (4 básicas + 4 avançadas que custam 1 ponto); você escolhe quais 4 vão nas teclas 1-4. Passivas em 3 ramos por classe, com tiers. Redistribuir pontos é grátis até o nível 10.
 - **Armas:** espada, machado, martelo, lança, katana, adaga, arco e cajado, cada uma com combo e ataque pesado próprios. A maestria da arma sobe com o uso: nível 3 libera o finalizador do combo e nível 5 o ataque pesado.
 - **Raridades:** Comum, Incomum, Raro, Épico, Lendário, Mítico e Secreto.
+- **Equipamento:** arma, armadura, elmo, botas, amuleto e anel (mais de 70 bases, até o tier 3). Cada item sorteia **perks** próprios pela raridade, no estilo Destiny (Fúria Crescente, Explosão Fatal, Eco, Tempestade, Segunda Chance, Espinhos...). O Bruno reforja os perks.
+- **Pets (tecla G):** seguem você, sobem de nível com os abates e dão bônus. Ovos no Otto, pagos com ouro, com as chances visíveis; ovos raros caem de Elites e chefes.
+- **Jornada (tecla K):** recompensa diária em sequência de 7 dias, Passe do Hunter grátis com 50 tiers, 15 conquistas com títulos e marcos de nível.
 - **Profissões:** Mineração, Herbalismo, Lenhador, Ferraria, Alquimia e Encantamento.
-- **NPCs:** Bruno (forja e aprimoramento), Elric (encantar e desmontar), Mira (poções), Otto (loja e baús), Kael (classes), Pedro (cavalo), Quadro de Recompensas (contratos diários) e NPCs espalhados pelo mapa.
+- **NPCs:** Bruno (forja, aprimoramento e reforja), Elric (encantar e desmontar), Mira (poções), Otto (loja, baús e ovos de pet), Kael (classes), Pedro (cavalo), Quadro de Recompensas (contratos diários) e NPCs espalhados pelo mapa. A forja, a alquimia, a torre do Elric e o empório do Otto são construções com interior: entre para falar com eles.
 - **Missões:** 15 da história e 10 secundárias (caçar, coletar, entregar, explorar, ativar pedras, forjar, encantar, montar, aparar, esquivar no tempo certo...), mais 3 contratos diários sorteados de uma lista.
 - **Inimigos:** slimes, lobos, javalis (investida), caranguejos, goblins e arqueiros, aranhas, esqueletos e magos, golems (pancada em área), versões **Elite** e o chefe **Rei Goblin**.
 - **Viagem:** pedras de teletransporte (pelo mapa), cavalo e corrida.
 - **Dia e noite:** 14 min de dia e 6 de noite. À noite os inimigos batem mais forte e aparecem mais Elites, mas XP, ouro e equipamentos rendem mais.
 - **Tutorial:** dicas no topo da tela nos primeiros níveis (dá para pular ou recomeçar nas Configurações).
-- **Visual:** rastro da arma por raridade (Lendário+ solta faíscas), faíscas de impacto por elemento e aura do rank (D em diante).
+- **Visual:** rastro da arma por raridade (Lendário+ solta faíscas), faíscas de impacto por elemento, aura do rank (D em diante), armaduras, elmos e botas visíveis no personagem (capa no Lendário+), animações com transição suave e cavalo animado.
+
+### 🔊 Sons e música
+
+O Roblox removeu os sons antigos que vinham no Studio, então os sons do jogo ficam num catálogo para você preencher: **`src/shared/SoundIds.luau`**. Para cada efeito, ambiente (vila, floresta, praia...) e música (vila, exploração, noite, chefe) há um campo `id`:
+
+1. No Studio, abra **Caixa de ferramentas → Creator Store → Áudio** e procure (ex.: "sword swing", "forest ambience", "medieval town music"). Prefira sons enviados pela conta **Roblox** (livres para usar).
+2. Clique com o botão direito no som → **Copiar ID do recurso**.
+3. Cole no campo: `id = "rbxassetid://123456789"`.
+
+Campos vazios usam um som interno de reserva (ou ficam em silêncio). Ao abrir o jogo, cada ID é testado; se algum não carregar, aparece um aviso no Output e o jogo usa a reserva.
 
 ---
 

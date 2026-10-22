@@ -48,8 +48,13 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 - ⬜ Arte: trocar os modelos blocados por meshes (Creator Store, IA do Studio ou artista), começando pelas armas lendárias e pelos chefes (G)
 - ⬜ Animações reais (Animation Editor) para golpes, magias e inimigos, mantendo o `Animator` procedural como reserva (G)
+  - 🧪 Animator procedural reescrito: crossfade, smootherstep, quadros com antecipação/acompanhamento, postura de combate por arma, respiração, inclinação ao correr, tranco ao levar dano
+- 🧪 Montaria animada: cavalo novo com juntas (pernas, cabeça e cauda galopando) (M)
+- 🧪 Travar a mira no inimigo (T / botão do meio), estilo souls; barras de ritmo e carga no retículo (M)
+- 🧪 Modelagem caprichada: armas detalhadas por tipo, armadura/elmo/botas visíveis (capa no Lendário+), árvores, pedras e inimigos com mais detalhe (G)
+- 🧪 Forja, alquimia, torre do encantador e empório viram construções com interior (NPCs lá dentro); câmera Invisicam (M)
 - ⬜ Sons de verdade: golpes por tipo de arma, magias, passos, ambiente por bioma, música da vila e do chefe (M)
-  - 🧪 Base pronta: `Sounds.List` com slot `id` para cada som e reserva com os poucos sons que ainda vêm no Roblox (os antigos, como `swordslash.wav`, foram removidos). Falta escolher os IDs na Creator Store.
+  - 🧪 Sistema pronto: catálogo `SoundIds` (efeitos, ambiente por região, música de vila/exploração/noite/chefe), pré-carregamento com reserva automática, crossfade e volume de música. **Falta escolher os IDs na Creator Store** (passo a passo no README).
 - 🧪 VFX melhores: rastros por raridade e encantamento, faíscas na ponta (Lendário+), impacto por elemento, aura por rank (M)
 - 🧪 Tutorial guiado nos primeiros minutos: 8 dicas que avançam com a ação (andar, missão, feixe, ritmo, aparar, esquiva, inventário, mapa), salvas no servidor (M)
 - 🧪 Ciclo de dia e noite (14 + 6 min): inimigos mais fortes e mais Elites à noite, +XP/ouro/drops, postes acesos, relógio no HUD (M)
@@ -58,7 +63,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 ## Fase 2 — Conteúdo
 
-- ⬜ **Dungeons instanciadas** (portais com andares, sala do chefe, baú final) para 1 a 4 jogadores (G)
+- ⬜ **Dungeons instanciadas** (portais com andares, sala do chefe, baú final) para 1 a 4 jogadores, pensadas para grupo com tanque, suporte e dano (G)
 - ⬜ Novas regiões e níveis 20–40: Pântano Venenoso, Deserto de Âmbar, Pico Vulcânico, cada uma com 3 inimigos, 1 chefe e recursos tier 3 (G)
 - ⬜ World boss com horário e anúncio global, com recompensa por participação (M)
 - ⬜ Eventos sazonais com skins temporárias (Halloween, Natal), seguindo a ideia da "camada de meme rotativa" (M)
@@ -78,13 +83,18 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 ## Fase 4 — Progressão de longo prazo
 
-- ⬜ Árvore de talentos por classe (passivas que mudam o estilo de jogo) (G)
+- 🧪 Árvore de talentos por classe: 8 habilidades (4 avançadas), loadout das teclas 1-4, passivas em 3 ramos com tiers, redistribuir pontos (G)
+- 🧪 Papéis de grupo: Guerreiro tanque (ameaça e Provocar), Clérigo suporte (classe nova: curas, escudos, bênçãos), Mago controle, Arqueiro/Assassino dano; sistema de ameaça nos inimigos (G)
+- 🧪 Perks nos itens (estilo Destiny), 0 a 3 por raridade, com reforja no Bruno (G)
+- 🧪 Elmo, botas, amuleto e anel; 45 bases novas incluindo tier 3 (M)
+- 🧪 Pets com bônus, nível e ovos com chances visíveis (M)
+- 🧪 Jornada: login diário em sequência, Passe do Hunter grátis (50 tiers), 15 conquistas com títulos, marcos de nível (G)
 - ⬜ Subclasses no Rank B (ex.: Guerreiro → Paladino/Berserker) (G)
-- ⬜ Sets de equipamento com bônus por 2/4 peças; capacete, botas e acessórios (M)
+- ⬜ Sets de equipamento com bônus por 2/4 peças (capacete, botas e acessórios já existem) (M)
 - ⬜ Gemas e soquetes (M)
-- ⬜ Pets que coletam drops e dão bônus (M)
+- ⬜ Pets que coletam os drops sozinhos (o resto dos pets já existe) (P)
 - ⬜ Prestígio/renascimento após o nível máximo, com bônus permanente (M)
-- ⬜ Conquistas e títulos (P)
+- ✅ Conquistas e títulos (ver Jornada acima)
 - ⬜ Casa do jogador (housing) com troféus de chefes (G)
 
 ## Fase 5 — Economia e monetização (sem pay-to-win)
