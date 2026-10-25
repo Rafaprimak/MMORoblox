@@ -134,6 +134,15 @@ end
 -- No Studio todo mundo é VIP, para testar.
 Config.VipGamePassId = 0
 
+-- ===== Produtos de Robux (developer products) =====
+-- Crie cada produto no Creator Hub (Monetização → Developer Products) e cole o ID aqui. Com id = 0 o
+-- produto ainda não está à venda (no Studio dá para testar de graça pelo botão "Testar").
+-- robux = preço mostrado enquanto o ID não existe (o preço de verdade é o do Creator Hub).
+Config.Products = {
+	chest_celestial = { id = 0, robux = 199, kind = "chest", target = "celestial" },
+	egg_celestial = { id = 0, robux = 249, kind = "egg", target = "celestial" },
+}
+
 -- ===== Presentes por tempo no servidor =====
 -- Contam só o tempo seguido no MESMO servidor (trocou de servidor, recomeça). minutes = quando libera.
 Config.PlaytimeRewards = {

@@ -48,13 +48,13 @@ local function applyAttributes(player, data)
 end
 
 -- adiciona um pet novo (ovo ou drop) e avisa o jogador
-function PetService.give(player, petId, source)
+function PetService.give(player, petId, source, force)
 	local data = DataService.get(player)
 	local def = Pets.List[petId]
 	if not data or not def then
 		return nil
 	end
-	if count(data) >= Pets.MaxOwned then
+	if count(data) >= Pets.MaxOwned and not force then
 		Remotes.Notify:FireClient(player, { kind = "message", text = "Você tem pets demais! Solte algum para ganhar outro." })
 		return nil
 	end
@@ -81,6 +81,9 @@ function PetService.buyEgg(player, eggId)
 	if not data or not egg then
 		return fail("Ovo inválido.")
 	end
+	if egg.robux then
+		return fail("Esse ovo é comprado com Robux.")
+	end
 	if not nearOtto(player) then
 		return fail("Ovos são vendidos pelo Otto, na vila.")
 	end
@@ -94,6 +97,15 @@ function PetService.buyEgg(player, eggId)
 	local petId = Pets.rollEgg(eggId, rng)
 	local uid = PetService.give(player, petId, eggId)
 	return { ok = true, pet = petId, uid = uid }
+end
+
+-- Ovo pago com Robux: choca sempre (mesmo com o limite de pets cheio)
+function PetService.grantEgg(player, eggId)
+	if not Pets.Eggs[eggId] or not DataService.get(player) then
+		return nil
+	end
+	local petId = Pets.rollEgg(eggId, rng)
+	return PetService.give(player, petId, eggId, true)
 end
 
 function PetService.equip(player, uid)

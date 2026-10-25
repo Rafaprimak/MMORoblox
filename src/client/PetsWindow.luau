@@ -7,6 +7,7 @@ local Rarities = require(Shared.Rarities)
 local Items = require(Shared.Items)
 
 local UI = require(script.Parent.UI)
+local Store = require(script.Parent.Store)
 local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Sounds = require(script.Parent.Sounds)
@@ -81,11 +82,11 @@ local function renderOwned(data)
 end
 
 local function renderEggs(data)
-	UI.label({ Text = "Ovos são vendidos pelo Otto (na vila) e pagos só com ouro do jogo. As chances de cada pet aparecem abaixo.", Size = UDim2.new(1, -10, 0, 34), TextWrapped = true, TextColor3 = UI.Colors.SubText, LayoutOrder = 0, Parent = body })
+	UI.label({ Text = "Ovos são vendidos pelo Otto (na vila) e pagos com ouro; o Ovo Celestial é pago com Robux e só tem pets Lendários para cima. As chances de cada pet aparecem abaixo.", Size = UDim2.new(1, -10, 0, 34), TextWrapped = true, TextColor3 = UI.Colors.SubText, LayoutOrder = 0, Parent = body })
 	local row = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 380), BackgroundTransparency = 1, LayoutOrder = 1, Parent = body }, { UI.list(10, true) })
 	for index, eggId in Pets.EggOrder do
 		local egg = Pets.Eggs[eggId]
-		local card = UI.new("Frame", { Size = UDim2.new(1 / 3, -7, 1, 0), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.15, LayoutOrder = index, Parent = row }, { UI.corner(12), UI.stroke(egg.color, 2) })
+		local card = UI.new("Frame", { Size = UDim2.new(1 / #Pets.EggOrder, -8, 1, 0), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.15, LayoutOrder = index, Parent = row }, { UI.corner(12), UI.stroke(egg.color, 2) })
 		UI.label({ Text = egg.icon, Position = UDim2.fromOffset(0, 6), Size = UDim2.new(1, 0, 0, 50), TextXAlignment = Enum.TextXAlignment.Center, Parent = card })
 		UI.label({ Text = egg.name, Position = UDim2.fromOffset(0, 56), Size = UDim2.new(1, 0, 0, 22), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = egg.color, Parent = card }, { UI.textStroke(1) })
 		-- chances, da mais rara para a mais comum
@@ -102,9 +103,13 @@ local function renderEggs(data)
 			UI.label({ Text = ("%s %s"):format(def.icon, def.name), Position = UDim2.fromOffset(10, 82 + (i - 1) * 22), Size = UDim2.new(1, -70, 0, 20), TextColor3 = rarity.color, Parent = card })
 			UI.label({ Text = ("%g%%"):format(entry.chance), AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 82 + (i - 1) * 22), Size = UDim2.fromOffset(56, 20), TextXAlignment = Enum.TextXAlignment.Right, Parent = card })
 		end
-		local canBuy = data.gold >= egg.price
-		local buy = UI.button({ Text = ("CHOCAR  💰%s"):format(UI.formatNumber(egg.price)), AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(1, -20, 0, 40), BackgroundColor3 = if canBuy then egg.color:Lerp(Color3.new(0, 0, 0), 0.25) else UI.Colors.Dark, Parent = card })
+		local canBuy = egg.robux or data.gold >= egg.price
+		local buy = UI.button({ Text = if egg.robux then "COMPRAR  " .. Store.priceText(egg.product) else ("CHOCAR  💰%s"):format(UI.formatNumber(egg.price)), AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(1, -20, 0, 40), BackgroundColor3 = if canBuy then egg.color:Lerp(Color3.new(0, 0, 0), 0.25) else UI.Colors.Dark, Parent = card })
 		buy.MouseButton1Click:Connect(function()
+			if egg.robux then
+				Store.buy(egg.product)
+				return
+			end
 			local result = State.request("buyEgg", eggId)
 			if result and result.ok then
 				win:setTab("Meus Pets")

@@ -17,11 +17,13 @@ ShopService.QuestHook = function(_player, _kind, _target, _amount) end
 local function roll(player, chestId)
 	local data = DataService.get(player)
 	local chest = Chests.List[chestId]
-	local base = Items.ChestPool[math.random(1, #Items.ChestPool)]
-	local rarity = Rarities.roll(Chests.WeightKey, chest.minRarity)
+	local pool = Items.chestPool(chest.pool)
+	local base = pool[math.random(1, #pool)]
+	local rarity = Rarities.roll(Chests.weightKey(chest), chest.minRarity)
 	local item = Items.create(base, rarity.id, data.level)
 	data.stats.chests += 1
-	PlayerService.addItem(player, item, { silent = true })
+	-- baú pago com Robux nunca é vendido sozinho por inventário cheio
+	PlayerService.addItem(player, item, { silent = true, force = chest.robux == true })
 	ShopService.QuestHook(player, "chest", chestId, 1)
 	PlayerService.markDirty(player)
 	return item
@@ -32,6 +34,9 @@ function ShopService.open(player, chestId)
 	local chest = Chests.List[chestId]
 	if not data or not chest then
 		return { ok = false, msg = "Baú inválido." }
+	end
+	if chest.robux then
+		return { ok = false, msg = "Esse baú é comprado com Robux." }
 	end
 	if data.gold < chest.price then
 		return { ok = false, msg = ("Ouro insuficiente! O %s custa %d."):format(chest.name, chest.price) }

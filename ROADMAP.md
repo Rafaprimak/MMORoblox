@@ -122,7 +122,8 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 ## Fase 5 — Economia e monetização (sem pay-to-win)
 
-- 🧪 **VIP** (game pass, `Config.VipGamePassId`): Auto Caçar (tecla N). Falta criar o game pass no Creator Hub e colar o ID (P)
+- 🧪 **VIP** (game pass, `Config.VipGamePassId`): Auto Caçar (tecla N), 100% AFK (reconecta no mesmo servidor antes do limite de 20 min do Roblox e volta caçando; quem morre volta ao ponto de caça). Falta criar o game pass no Creator Hub e colar o ID (P)
+- 🧪 **Baú Celestial e Ovo Celestial** (developer products em `Config.Products`): só Lendário/Mítico/Secreto (78% / 19,5% / 2,5%) e só pets Lendários para cima (4 pets novos), com as chances na janela antes da compra; entrega única por compra (`data.purchases`). Falta criar os produtos e colar os IDs (P)
 - 🧪 Presentes por tempo seguido no mesmo servidor: 8 presentes de 5 a 120 min (tecla U) (P)
 - 🧪 XP mais difícil: curva `60·nível^1,75` e inimigos muito abaixo do seu nível dão pouco XP (P)
 - ⬜ Lista do que pode ser vendido por Robux (nada de poder direto que desequilibre; aleatório sempre com chances):

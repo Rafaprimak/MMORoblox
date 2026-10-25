@@ -35,6 +35,7 @@ local ExploreService = require(script.ExploreService)
 local DungeonService = require(script.DungeonService)
 local VipService = require(script.VipService)
 local PlaytimeService = require(script.PlaytimeService)
+local MonetizationService = require(script.MonetizationService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -290,7 +291,11 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
-		return VipService.setAutoFarm(player, a)
+		return VipService.setAutoFarm(player, a, b)
+	elseif action == "afkRejoin" then
+		return VipService.afkRejoin(player)
+	elseif action == "devPremium" then
+		return MonetizationService.devGrant(player, a)
 	elseif action == "dungeonReady" then
 		return DungeonService.setReady(player, a)
 	elseif action == "dungeonExit" then
@@ -330,6 +335,7 @@ local function onPlayerAdded(player)
 	player.CharacterAdded:Connect(function(character)
 		player:SetAttribute("Mounted", false)
 		DungeonService.onCharacterAdded(player, character)
+		VipService.onCharacterAdded(player, character)
 		local humanoid = character:WaitForChild("Humanoid", 10)
 		if humanoid then
 			humanoid.Died:Connect(function()
@@ -401,6 +407,7 @@ safely("Inimigos", EnemyService.start)
 safely("Viagem", TravelService.init, built.horse)
 safely("Locais de interesse", ExploreService.start)
 safely("Masmorras", DungeonService.init)
+safely("Robux", MonetizationService.init)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

@@ -15,6 +15,8 @@ local ShopService = require(script.Parent.ShopService)
 local PlaytimeService = {}
 
 local sessions = {} -- [player] = { joined, claimed = { [index] = true }, announced = { [index] = true } }
+local recent = {} -- [userId] = { session, leftAt } (quem saiu há pouco: o "reconectar" do modo AFK não zera o tempo)
+local GRACE = 180
 
 local function session(player)
 	local s = sessions[player]
@@ -26,10 +28,18 @@ local function session(player)
 end
 
 function PlaytimeService.onPlayerAdded(player)
+	local saved = recent[player.UserId]
+	if saved and os.clock() - saved.leftAt <= GRACE then
+		sessions[player] = saved.session
+	end
+	recent[player.UserId] = nil
 	session(player)
 end
 
 function PlaytimeService.onPlayerRemoving(player)
+	if sessions[player] then
+		recent[player.UserId] = { session = sessions[player], leftAt = os.clock() }
+	end
 	sessions[player] = nil
 end
 

@@ -174,6 +174,20 @@ Items.Sets = {
 	},
 }
 
+-- Itens que podem sair do Baú Celestial: todo equipamento de tier 3 (sem Únicos nem exclusivos de masmorra)
+Items.PremiumPool = {}
+for baseId, base in Items.Bases do
+	if (base.tier or 0) >= 3 and not base.unique and not base.dungeon then
+		table.insert(Items.PremiumPool, baseId)
+	end
+end
+table.sort(Items.PremiumPool)
+
+-- lista de bases de um baú ("premium" = Baú Celestial)
+function Items.chestPool(poolName)
+	return if poolName == "premium" then Items.PremiumPool else Items.ChestPool
+end
+
 -- Texto dos stats de acessórios (para a UI)
 Items.StatNames = {
 	damage = "de dano", health = "de vida", crit = "de crítico", critDamage = "de dano crítico", attackSpeed = "de velocidade de ataque",

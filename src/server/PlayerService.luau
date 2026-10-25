@@ -764,7 +764,7 @@ function PlayerService.addItem(player, item, options)
 	local rarity = Rarities.ById[item.rarity] or Rarities.List[1]
 	local base = Items.Bases[item.base]
 
-	if countInventory(data) >= Config.MaxInventory then
+	if countInventory(data) >= Config.MaxInventory and not options.force then
 		local value = Items.getSellValue(item)
 		data.gold += value
 		Remotes.Notify:FireClient(player, { kind = "message", text = ("Inventário cheio! %s vendido por %d de ouro."):format(Items.displayName(item), value) })

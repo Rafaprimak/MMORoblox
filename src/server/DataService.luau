@@ -35,6 +35,7 @@ function DataService.defaultData()
 		poi = {},
 		poiChests = {},
 		dungeons = {}, -- [masmorraId] = maior andar de chefe vencido (ponto de retorno)
+		purchases = {}, -- [PurchaseId] = true (compras com Robux já entregues; evita entregar duas vezes)
 		progress = {
 			counters = {},
 			achievements = {},

@@ -18,15 +18,21 @@ Pets.List = {
 	golem_mini = { name = "Mini Golem", icon = "🗿", rarity = "Epico", shape = "golem", color = Color3.fromRGB(140, 135, 125), accent = Color3.fromRGB(255, 160, 60), stats = { health = 0.08, threat = 0.1 } },
 	fada = { name = "Fada da Luz", icon = "💫", rarity = "Epico", shape = "wisp", fly = true, color = Color3.fromRGB(255, 240, 170), accent = Color3.fromRGB(200, 255, 230), glow = true, stats = { healPower = 0.1, manaRegen = 0.1 } },
 	dragao_bebe = { name = "Dragão Bebê", icon = "🐉", rarity = "Lendario", shape = "dragon", fly = true, color = Color3.fromRGB(200, 60, 60), accent = Color3.fromRGB(255, 200, 80), stats = { damage = 0.08, crit = 0.02 } },
+	unicornio = { name = "Unicórnio", icon = "🦄", rarity = "Lendario", shape = "quadruped", color = Color3.fromRGB(250, 245, 255), accent = Color3.fromRGB(255, 160, 230), ears = "pointy", tail = "big", glow = true, stats = { health = 0.1, regen = 0.003 } },
+	tigre_celeste = { name = "Tigre Celeste", icon = "🐯", rarity = "Lendario", shape = "quadruped", color = Color3.fromRGB(120, 200, 255), accent = Color3.fromRGB(30, 40, 80), ears = "pointy", tail = "big", glow = true, stats = { damage = 0.08, attackSpeed = 0.04 } },
+	dragao_sombrio = { name = "Dragão Sombrio", icon = "🐲", rarity = "Mitico", shape = "dragon", fly = true, color = Color3.fromRGB(60, 30, 90), accent = Color3.fromRGB(190, 110, 255), glow = true, stats = { damage = 0.12, critDamage = 0.15 } },
+	dragao_estelar = { name = "Dragão Estelar", icon = "🌌", rarity = "Secreto", shape = "dragon", fly = true, color = Color3.fromRGB(40, 50, 110), accent = Color3.fromRGB(200, 230, 255), glow = true, stats = { damage = 0.14, xpGain = 0.15, goldFind = 0.15 } },
 	fenix = { name = "Fênix", icon = "🔥", rarity = "Mitico", shape = "bird", fly = true, color = Color3.fromRGB(255, 120, 30), accent = Color3.fromRGB(255, 230, 90), glow = true, stats = { damage = 0.1, regen = 0.003, xpGain = 0.1 } },
 }
 
 -- Ovos: pagos só com ouro do jogo. "odds" em %, somando 100 (mostradas antes da compra).
-Pets.EggOrder = { "comum", "raro", "lendario" }
+Pets.EggOrder = { "comum", "raro", "lendario", "celestial" }
 Pets.Eggs = {
 	comum = { name = "Ovo Comum", icon = "🥚", price = 500, color = Color3.fromRGB(230, 220, 200), odds = { slime = 30, gato = 25, cachorro = 25, coelho = 12, coruja = 8 } },
 	raro = { name = "Ovo Raro", icon = "🥚", price = 3000, color = Color3.fromRGB(110, 170, 255), odds = { coelho = 20, coruja = 20, raposa = 25, tartaruga = 25, lobo_espiritual = 6, golem_mini = 4 } },
 	lendario = { name = "Ovo Lendário", icon = "🥚", price = 15000, color = Color3.fromRGB(255, 190, 50), odds = { raposa = 20, tartaruga = 20, lobo_espiritual = 25, golem_mini = 15, fada = 13, dragao_bebe = 6, fenix = 1 } },
+	-- pago com Robux (Config.Products.egg_celestial): só pets Lendários para cima
+	celestial = { name = "Ovo Celestial", icon = "🌟", robux = true, product = "egg_celestial", color = Color3.fromRGB(120, 225, 255), odds = { dragao_bebe = 30, unicornio = 25, tigre_celeste = 25, fenix = 12, dragao_sombrio = 7, dragao_estelar = 1 } },
 }
 
 -- bônus cresce 10% por nível do pet

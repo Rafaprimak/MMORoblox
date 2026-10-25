@@ -19,7 +19,7 @@ Este arquivo é a fonte da verdade sobre **como trabalhar neste projeto**. Leia 
 3. **Não quebre o determinismo do mundo.** `src/shared/World.luau` é usado pelo servidor (terreno, altura dos inimigos) e pelo cliente (mapa, nomes de região). Mudar ruído, sementes ou pesos muda o mapa inteiro e pode colocar acampamentos, NPCs e pedras dentro de montanhas ou da água. Se mudar, confira as posições em `Enemies.Camps`, `NPCs.List`, `World.Locations` e `World.Waystones`.
 4. **Evite `require` circular.** Use os *ganchos* (seção 5) em vez de um serviço exigir outro que já o exige.
 5. **Mudou o formato do save?** Mantenha compatibilidade em `DataService.defaultData()` (o `reconcile` completa campos novos). Se for incompatível, troque `Config.DataStoreName` (ex.: `HunterRPG_v3`) e anote no ROADMAP.
-6. **Nada aleatório pago com Robux sem mostrar as chances.** É regra do Roblox (*paid random items*): todas as chances em %, somando 100%, visíveis antes da compra. Hoje os baús são pagos só com ouro do jogo; mantenha a janela de chances.
+6. **Nada aleatório pago com Robux sem mostrar as chances.** É regra do Roblox (*paid random items*): todas as chances em %, somando 100%, visíveis antes da compra. O Baú Celestial e o Ovo Celestial são pagos com Robux e usam as mesmas janelas de chances; qualquer produto aleatório novo precisa delas. Produto novo = entrada em `Config.Products` + entrega em `MonetizationService.grant` (nunca outro `ProcessReceipt`).
 7. **Atualize a documentação**: README (como rodar/controles), ROADMAP (marque o que fez) e este arquivo (se criar um padrão novo).
 8. **Commits pequenos e descritivos**, em português. Não faça commit do `tools/` nem do `.rbxlx` (já estão no `.gitignore`).
 
@@ -104,6 +104,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DungeonBuilder` | Peças das masmorras: salas por tema e tipo (`decor.*`), paredes com porta em arco, corredores com grade (`corridor`/`openGate`), escada, tochas |
 | `DungeonService` | Grupo no portal, cópia da masmorra longe do mapa (x ≈ 6000), um andar por vez com mecânica, objetivo extra, segredos e altar; chefes, baús, pontos de retorno, Mercador de Masmorras |
 | `VipService` | VIP (game pass `Config.VipGamePassId`; no Studio todos são VIP) e o atributo `AutoFarm` (Auto Caçar, desliga nas masmorras) |
+| `MonetizationService` | Compras com Robux (`Config.Products`): o único `ProcessReceipt` do jogo; entrega uma vez por `PurchaseId` (`data.purchases`) e salva na hora |
 | `PlaytimeService` | Presentes por tempo seguido no mesmo servidor (`Config.PlaytimeRewards`), por sessão |
 | `ExploreService` | Descoberta dos locais de interesse e baús escondidos (prompt `BauLocal`) |
 | `ProgressionService` | Conta tudo pelos ganchos de missão: conquistas, passe, login diário, títulos, marcos de nível |
@@ -129,6 +130,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DungeonWindow` | Janela do portal (grupo e andar inicial), janela do Mercador de Masmorras e painel do andar |
 | `DungeonAtmosphere` | Clima das masmorras no cliente (luz, névoa, tom, poeira/brasas) enquanto o jogador tem o atributo `Dungeon` |
 | `AutoHunt` | Auto Caçar no cliente (só com `AutoFarm`): anda até o inimigo mais perto, ataca no ritmo (`Controller.autoAttack`), toma poção e volta ao ponto de partida |
+| `Store` | Cliente: abre a compra com Robux (`Store.buy(chave)`) e mostra o preço; produto com id 0 = no Studio entrega de graça para testar |
 | `PlaytimeWindow` | Janela de Presentes (tecla U) com o tempo neste servidor |
 | `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
@@ -151,14 +153,14 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 
 ### Rede (`src/shared/Remotes.luau`)
 - **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
-- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, claimPlaytime, autoFarm, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
+- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, claimPlaytime, autoFarm, afkRejoin, devPremium, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward, dungeonPortal`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
 - **Tabelas pela rede:** só arrays puros ou dicionários com chave string. Nada de chaves misturadas.
 
 ### Atributos e tags
-- **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted, Pet, PetLevel, Title, TitleId, Dungeon, Vip, AutoFarm`.
+- **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted, Pet, PetLevel, Title, TitleId, Dungeon, Vip, AutoFarm, AutoAnchor` (ponto de caça do Auto Caçar).
 - **Raiz de inimigo** (pasta `workspace.Inimigos`): `Type, Elite, Level, Hp, MaxHp, Posture, MaxPosture, Staggered, Action ("tipo:contador"), Dot, Dead`.
 - **Workspace:** `WorldReady, WorldStatus, WorldProgress, DayEpoch, Night`.
 - **Tags:** `Rainbow` (cor arco-íris), `Spin` (gira), `ResourceNode`, `Waystone`, `NPC`, `NightLight` (peça que acende à noite; use `Props.nightLight(part)`).

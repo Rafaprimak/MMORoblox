@@ -52,7 +52,8 @@ function AutoHunt.toggle()
 		end
 		return
 	end
-	State.request("autoFarm", true)
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	State.request("autoFarm", true, root and root.Position)
 end
 
 local function nearestEnemy(origin)
@@ -120,13 +121,21 @@ function AutoHunt.init(screen)
 		Parent = screen,
 	}, { UI.corner(10) })
 	UI.ornate(banner, UI.Colors.Trim, 3)
-	UI.label({ Text = "⚔ AUTO CAÇAR (VIP)  •  mova-se ou aperte N para parar", Size = UDim2.new(1, -16, 1, 0), Position = UDim2.fromOffset(8, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, Parent = banner }, { UI.textStroke(1) })
+	UI.label({ Text = "⚔ AUTO CAÇAR (VIP, pode ficar AFK)  •  mova-se ou aperte N para parar", Size = UDim2.new(1, -16, 1, 0), Position = UDim2.fromOffset(8, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, Parent = banner }, { UI.textStroke(1) })
 
-	player:GetAttributeChangedSignal("AutoFarm"):Connect(function()
+	local function refreshAnchor()
 		local on = AutoHunt.isOn()
 		banner.Visible = on
 		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-		anchor = if on and root then root.Position else nil
+		-- o ponto de caça vem do servidor (sobrevive a morte e ao reconectar)
+		local serverAnchor = player:GetAttribute("AutoAnchor")
+		anchor = if not on then nil elseif typeof(serverAnchor) == "Vector3" then serverAnchor elseif root then root.Position else nil
+	end
+	player:GetAttributeChangedSignal("AutoAnchor"):Connect(refreshAnchor)
+	player:GetAttributeChangedSignal("AutoFarm"):Connect(function()
+		refreshAnchor()
+		local on = AutoHunt.isOn()
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 		if not on then
 			local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 			if humanoid and root then
@@ -143,6 +152,15 @@ function AutoHunt.init(screen)
 			AutoHunt.toggle()
 		elseif AutoHunt.isOn() and (MOVE_KEYS[input.KeyCode] or input.KeyCode == Enum.KeyCode.Thumbstick1) then
 			State.request("autoFarm", false)
+		end
+	end)
+	refreshAnchor()
+	-- 100% AFK: o Roblox desconecta depois de 20 min sem mexer no teclado/mouse. Antes disso o jogo
+	-- reconecta no mesmo servidor e o Auto Caçar volta ligado no mesmo ponto.
+	player.Idled:Connect(function(idleSeconds)
+		if AutoHunt.isOn() and idleSeconds >= 16 * 60 then
+			Popups.message("Modo AFK: reconectando para não ser desconectado...", UI.Colors.Gold)
+			State.request("afkRejoin")
 		end
 	end)
 	local accumulator = 0

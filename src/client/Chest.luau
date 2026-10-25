@@ -11,6 +11,7 @@ local Chests = require(Shared.Chests)
 
 local UI = require(script.Parent.UI)
 local ItemIcon = require(script.Parent.ItemIcon)
+local Store = require(script.Parent.Store)
 local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Fx = require(script.Parent.Fx)
@@ -28,6 +29,7 @@ local overlayGui, overlay, reel, reelHolder, resultPanel, resultName, resultInfo
 local currentScene = nil
 local selectedChest = "bronze"
 local revealing = false
+local possibleTitle = nil
 local raysConnection = nil
 
 local function makeCard(parent, baseId, rarity, index)
@@ -80,7 +82,7 @@ local function renderWindow()
 	win.title.Text = ("%s %s"):format(chest.icon, chest.name)
 	UI.clear(odds)
 	UI.label({ Text = "CHANCES REAIS", Size = UDim2.new(1, 0, 0, 20), Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = odds })
-	for i, entry in Rarities.odds(Chests.WeightKey, chest.minRarity) do
+	for i, entry in Rarities.odds(Chests.weightKey(chest), chest.minRarity) do
 		local row = UI.new("Frame", { Size = UDim2.new(1, 0, 0, 26), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, LayoutOrder = i, Parent = odds }, { UI.corner(6) })
 		local dot = UI.new("Frame", { Position = UDim2.fromOffset(8, 6), Size = UDim2.fromOffset(14, 14), BackgroundColor3 = entry.rarity.color, Parent = row }, { UI.corner(7) })
 		local name = UI.label({ Text = entry.rarity.name, Position = UDim2.fromOffset(30, 3), Size = UDim2.fromOffset(120, 20), TextColor3 = entry.rarity.color, Parent = row }, { UI.textStroke(1) })
@@ -90,12 +92,22 @@ local function renderWindow()
 			Fx.registerRainbow(name, "TextColor3")
 		end
 	end
+	possibleTitle.Text = if chest.robux then "ITENS POSSÍVEIS (só Lendário, Mítico e Secreto)" else "ITENS POSSÍVEIS (de Comum a Secreto)"
 	UI.clear(possible)
-	for i, baseId in Items.ChestPool do
+	for i, baseId in Items.chestPool(chest.pool) do
 		local cell = UI.new("Frame", { LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.2 }, { UI.corner(8) })
 		ItemIcon.new(cell, baseId, "Comum", { Size = UDim2.fromScale(0.9, 0.58), Position = UDim2.fromScale(0.5, 0), AnchorPoint = Vector2.new(0.5, 0), glow = false })
 		UI.label({ Text = Items.Bases[baseId].name, Position = UDim2.new(0, 3, 0.58, 0), Size = UDim2.new(1, -6, 0.36, 0), TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = true, Parent = cell })
 		cell.Parent = possible
+	end
+	if chest.robux then
+		-- pago com Robux: as chances acima ficam sempre visíveis antes da compra
+		local price = Store.priceText(chest.product)
+		buyButton.Text = "COMPRAR  •  " .. price
+		buyButton.BackgroundColor3 = Color3.fromRGB(40, 150, 210)
+		againButton.Text = "COMPRAR OUTRO  " .. price
+		againButton.BackgroundColor3 = Color3.fromRGB(40, 150, 210)
+		return
 	end
 	local affordable = data and data.gold >= chest.price
 	buyButton.Text = ("ABRIR  •  💰 %s"):format(UI.formatNumber(chest.price))
@@ -146,8 +158,9 @@ function Chest.reveal(item, chestId)
 		if i == WIN_INDEX then
 			baseId, rarity = item.base, Rarities.ById[item.rarity] or Rarities.List[1]
 		else
-			baseId = Items.ChestPool[math.random(1, #Items.ChestPool)]
-			rarity = Rarities.roll(Chests.WeightKey, chest.minRarity)
+			local pool = Items.chestPool(chest.pool)
+			baseId = pool[math.random(1, #pool)]
+			rarity = Rarities.roll(Chests.weightKey(chest), chest.minRarity)
 		end
 		makeCard(reel, baseId, rarity, i)
 	end
@@ -223,6 +236,12 @@ local function buy()
 	if revealing then
 		return
 	end
+	local chest = Chests.List[selectedChest]
+	if chest and chest.robux then
+		overlayGui.Enabled = false
+		Store.buy(chest.product) -- o servidor entrega e a revelação começa sozinha
+		return
+	end
 	local result = State.request("openChest", selectedChest)
 	if result and result.ok then
 		task.spawn(Chest.reveal, result.item, result.chest)
@@ -230,16 +249,16 @@ local function buy()
 end
 
 function Chest.init(screen)
-	win = Window.create(screen, { name = "Baus", title = "🎁 BAÚS", width = 720, height = 520, tabs = { "Bronze", "Prata", "Real" }, accent = UI.Colors.Gold })
+	win = Window.create(screen, { name = "Baus", title = "🎁 BAÚS", width = 720, height = 520, tabs = { "Bronze", "Prata", "Real", "Celestial" }, accent = UI.Colors.Gold })
 	odds = UI.new("Frame", { Size = UDim2.new(0, 250, 1, -60), BackgroundTransparency = 1, Parent = win.content }, { UI.list(4) })
-	UI.label({ Text = "ITENS POSSÍVEIS (de Comum a Secreto)", Position = UDim2.fromOffset(262, 0), Size = UDim2.new(1, -262, 0, 20), Font = Enum.Font.GothamBlack, Parent = win.content })
+	possibleTitle = UI.label({ Text = "ITENS POSSÍVEIS (de Comum a Secreto)", Position = UDim2.fromOffset(262, 0), Size = UDim2.new(1, -262, 0, 20), Font = Enum.Font.GothamBlack, Parent = win.content })
 	possible = UI.new("ScrollingFrame", { Position = UDim2.fromOffset(262, 24), Size = UDim2.new(1, -262, 1, -84), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 5, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, {
 		UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(78, 70), CellPadding = UDim2.fromOffset(6, 6), SortOrder = Enum.SortOrder.LayoutOrder }),
 	})
 	buyButton = UI.button({ Text = "ABRIR", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, 0), Size = UDim2.new(0.6, 0, 0, 50), BackgroundColor3 = Color3.fromRGB(230, 155, 30), Parent = win.content })
 	buyButton.MouseButton1Click:Connect(buy)
 	win.onTab = function(name)
-		selectedChest = if name == "Prata" then "prata" elseif name == "Real" then "real" else "bronze"
+		selectedChest = if name == "Prata" then "prata" elseif name == "Real" then "real" elseif name == "Celestial" then "celestial" else "bronze"
 		renderWindow()
 	end
 	win.onOpen = renderWindow
