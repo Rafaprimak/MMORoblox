@@ -83,6 +83,8 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Jornada (recompensa diária, passe, conquistas, títulos) | **K** | Botão ⭐ |
 | Pets | **G** | Botão 🐾 |
 | Configurações (volume, música, sensibilidade, qualidade gráfica, números de dano...) | **P** | Botão ⚙ |
+| Presentes por tempo no servidor | **U** | Botão 🎁 Presentes |
+| Auto Caçar (só VIP; mover o personagem desliga) | **N** | Botão ⚔ Auto Caçar |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
 
 O botão direito do mouse fica livre para girar a câmera.

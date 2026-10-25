@@ -49,11 +49,12 @@ local function baseVolume(channel)
 	return 0.45 * (Prefs.get("volume") or 1)
 end
 
--- troca o som de um canal com crossfade (id nil = silêncio)
-local function setChannel(channel, id)
+-- troca o som de um canal com crossfade (id nil = silêncio); mult ajusta o volume daquele som
+local function setChannel(channel, id, mult)
+	mult = mult or 1
 	local current = channels[channel]
 	if current and current.id == id then
-		current.sound.Volume = baseVolume(channel)
+		current.sound.Volume = baseVolume(channel) * mult
 		return
 	end
 	if current then
@@ -74,7 +75,7 @@ local function setChannel(channel, id)
 	sound.Volume = 0
 	sound.Parent = SoundService
 	sound:Play()
-	TweenService:Create(sound, TweenInfo.new(FADE), { Volume = baseVolume(channel) }):Play()
+	TweenService:Create(sound, TweenInfo.new(FADE), { Volume = baseVolume(channel) * mult }):Play()
 	channels[channel] = { sound = sound, id = id }
 end
 
@@ -91,7 +92,11 @@ function Ambience.init()
 				local region = if inDungeon then "Masmorra" else World.regionName(root.Position.X, root.Position.Z)
 				local night = workspace:GetAttribute("Night") == true
 				local ambienceKey = SoundIds.RegionAmbience[region] or "campo"
-				setChannel("ambience", if inDungeon then (dungeonSounds and dungeonSounds.ambience) else Sounds.loopId("Ambience", ambienceKey))
+				if inDungeon then
+					setChannel("ambience", dungeonSounds and dungeonSounds.ambience, dungeonSounds and dungeonSounds.ambienceVolume)
+				else
+					setChannel("ambience", Sounds.loopId("Ambience", ambienceKey))
+				end
 				setChannel("night", if night and not inDungeon then Sounds.loopId("Ambience", "noite") else nil)
 				-- música: combate (pelo tipo do inimigo) > chefe > noite > vila > exploração
 				local musicKey

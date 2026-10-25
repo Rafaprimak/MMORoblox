@@ -61,7 +61,10 @@ local function slot(parent, layoutOrder, key, size)
 	return { frame = frame, icon = icon, key = keyLabel, cover = cover, timer = timer, bottom = bottom, button = button, stroke = frame:FindFirstChildOfClass("UIStroke"), scale = UI.new("UIScale", { Parent = frame }) }
 end
 
+local hudCallbacks = nil
+
 function HUD.init(screen, callbacks)
+	hudCallbacks = callbacks
 	-- ===== painel do jogador =====
 	local panel = UI.new("Frame", { Name = "Jogador", Position = UDim2.fromOffset(12, 12), Size = UDim2.fromOffset(330, 112), BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.12, Parent = screen }, {
 		UI.corner(12),
@@ -149,7 +152,7 @@ function HUD.init(screen, callbacks)
 	refs.bossFrame, refs.bossFill, refs.bossText = bossFrame, bossFill, bossText
 
 	-- ===== botões do menu =====
-	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 20), Size = UDim2.fromOffset(150, 400), BackgroundTransparency = 1, Parent = screen }, { UI.list(6) })
+	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 20), Size = UDim2.fromOffset(150, 400), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
 	local entries = {
 		{ "🎒 Inventário", "I", callbacks.onInventory },
 		{ "🧙 Personagem", "C", callbacks.onCharacter },
@@ -161,10 +164,12 @@ function HUD.init(screen, callbacks)
 		end },
 		{ "⭐ Jornada", "K", callbacks.onJourney, "journey" },
 		{ "🐾 Pets", "G", callbacks.onPets },
+		{ "🎁 Presentes", "U", callbacks.onPlaytime, "playtime" },
+		{ "⚔ Auto Caçar", "N", callbacks.onAutoHunt, "autohunt" },
 		{ "⚙ Configurações", "P", callbacks.onSettings },
 	}
 	for i, entry in entries do
-		local button = UI.button({ Text = entry[1] .. "  [" .. entry[2] .. "]", Size = UDim2.fromOffset(150, 30), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
+		local button = UI.button({ Text = entry[1] .. "  [" .. entry[2] .. "]", Size = UDim2.fromOffset(150, 27), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
 		button.MouseButton1Click:Connect(entry[3])
 		if entry[4] then
 			refs.menuButtons = refs.menuButtons or {}
@@ -463,6 +468,20 @@ function HUD.update(data)
 	end
 	updateTracker(data)
 	refs.devPanel.Visible = data.isStudio == true
+	-- presentes de tempo prontos e Auto Caçar (VIP)
+	local playtime = refs.menuButtons and refs.menuButtons.playtime
+	if playtime and hudCallbacks and hudCallbacks.playtimeReady then
+		local ready = hudCallbacks.playtimeReady()
+		playtime.button.Text = playtime.text .. (if ready > 0 then ("  ❗%d"):format(ready) else "")
+		playtime.button.BackgroundColor3 = if ready > 0 then Color3.fromRGB(120, 95, 25) else UI.Colors.PanelLight
+	end
+	local auto = refs.menuButtons and refs.menuButtons.autohunt
+	if auto then
+		local player = game:GetService("Players").LocalPlayer
+		local on = player:GetAttribute("AutoFarm") == true
+		auto.button.Text = auto.text .. (if on then "  ✔" elseif not player:GetAttribute("Vip") then "  VIP" else "")
+		auto.button.BackgroundColor3 = if on then Color3.fromRGB(40, 110, 60) else UI.Colors.PanelLight
+	end
 	-- aviso de recompensa para resgatar na Jornada
 	local journey = refs.menuButtons and refs.menuButtons.journey
 	if journey then

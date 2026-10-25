@@ -44,6 +44,8 @@ local TownLife = require(script.TownLife)
 local Juice = require(script.Juice)
 local DungeonWindow = require(script.DungeonWindow)
 local DungeonAtmosphere = require(script.DungeonAtmosphere)
+local AutoHunt = require(script.AutoHunt)
+local PlaytimeWindow = require(script.PlaytimeWindow)
 local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
 
@@ -77,6 +79,8 @@ PetsWindow.init(screen)
 JourneyWindow.init(screen)
 DungeonWindow.init(screen)
 DungeonAtmosphere.init()
+AutoHunt.init(screen)
+PlaytimeWindow.init(screen)
 PetRenderer.init()
 ClassSelect.init()
 Sky.init()
@@ -105,6 +109,15 @@ HUD.init(screen, {
 	onSettings = SettingsWindow.toggle,
 	onPets = PetsWindow.toggle,
 	onJourney = JourneyWindow.toggle,
+	onPlaytime = function()
+		PlaytimeWindow.toggle()
+	end,
+	onAutoHunt = function()
+		AutoHunt.toggle()
+	end,
+	playtimeReady = function()
+		return PlaytimeWindow.readyCount()
+	end,
 	onAbility = function(slot)
 		local aim, point = Controller.getAim()
 		State.action("ability", slot, aim, point)
@@ -318,6 +331,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		JourneyWindow.toggle()
 	elseif key == Enum.KeyCode.B then
 		Chest.toggle()
+	elseif key == Enum.KeyCode.U then
+		PlaytimeWindow.toggle()
 	end
 end)
 

@@ -961,6 +961,7 @@ local function launch(dungeonId)
 		run.members[member] = true
 		runOf[member] = run
 		member:SetAttribute("Dungeon", dungeon.id)
+		member:SetAttribute("AutoFarm", false)
 	end
 	local ok, err = pcall(startFloor, run, 1)
 	if not ok then

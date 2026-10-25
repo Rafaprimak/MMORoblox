@@ -111,10 +111,41 @@ function Config.getRankByName(name)
 	return Config.Ranks[1]
 end
 
--- XP para passar do nível atual para o próximo
+-- XP para passar do nível atual para o próximo (curva mais íngreme: subir de nível leva tempo)
 function Config.xpToNext(level)
-	return math.floor(40 * level ^ 1.6)
+	return math.floor(60 * level ^ 1.75)
 end
+
+-- Inimigos bem abaixo do seu nível quase não dão XP (não compensa farmar slime no nível 20):
+-- até 3 níveis abaixo = XP cheio; depois perde 15% por nível, até sobrar 10%
+Config.XpLevelGapFree = 3
+Config.XpLevelGapPenalty = 0.15
+Config.XpLevelGapMin = 0.1
+function Config.xpLevelFactor(playerLevel, enemyLevel)
+	local gap = playerLevel - enemyLevel - Config.XpLevelGapFree
+	if gap <= 0 then
+		return 1
+	end
+	return math.max(Config.XpLevelGapMin, 1 - gap * Config.XpLevelGapPenalty)
+end
+
+-- ===== VIP (game pass) =====
+-- Coloque aqui o ID do game pass "VIP" depois de criá-lo no Creator Hub (0 = ainda não está à venda).
+-- No Studio todo mundo é VIP, para testar.
+Config.VipGamePassId = 0
+
+-- ===== Presentes por tempo no servidor =====
+-- Contam só o tempo seguido no MESMO servidor (trocou de servidor, recomeça). minutes = quando libera.
+Config.PlaytimeRewards = {
+	{ minutes = 5, gold = 150, consumables = { pocao_vida = 2 } },
+	{ minutes = 10, gold = 300, materials = { essencia = 2 } },
+	{ minutes = 20, gold = 500, consumables = { pocao_vida = 3, pocao_mana = 3 } },
+	{ minutes = 30, chest = "bronze", materials = { essencia = 3 } },
+	{ minutes = 45, gold = 1200, consumables = { elixir_forca = 1, pocao_vigor = 2 } },
+	{ minutes = 60, chest = "prata", materials = { essencia = 5 } },
+	{ minutes = 90, gold = 3000, consumables = { pocao_grande = 3, tonico_pedra = 1 } },
+	{ minutes = 120, chest = "real", gold = 5000 },
+}
 
 -- XP das perícias (maestrias e profissões)
 Config.SkillMaxLevel = 50

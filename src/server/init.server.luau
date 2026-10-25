@@ -33,6 +33,8 @@ local PetService = require(script.PetService)
 local ProgressionService = require(script.ProgressionService)
 local ExploreService = require(script.ExploreService)
 local DungeonService = require(script.DungeonService)
+local VipService = require(script.VipService)
+local PlaytimeService = require(script.PlaytimeService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -79,6 +81,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.poi = data.poi
 		payload.poiChests = data.poiChests
 		payload.dungeon = DungeonService.summary(player)
+		payload.playtime = PlaytimeService.summary(player)
 	end
 end
 EnemyService.FireProjectile = ProjectileService.fire
@@ -116,7 +119,9 @@ EnemyService.OnKilled = function(rec, contributors)
 	local rewardMult = (if night then 1 + Config.NightRewardBonus else 1) * (rec.rewardMult or 1)
 	for player in contributors do
 		local bonus = PlayerService.getStats(player).bonus
-		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.xpGain or 0)))
+		local playerData = DataService.get(player)
+		local gapFactor = Config.xpLevelFactor(playerData and playerData.level or 1, rec.level)
+		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.xpGain or 0)) * gapFactor)
 		PlayerService.addXP(player, xp)
 		local gold = math.floor(math.random(def.gold[1], def.gold[2]) * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.goldFind or 0)))
 		if gold > 0 then
@@ -282,6 +287,10 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return DungeonService.join(player, a)
 	elseif action == "dungeonLeaveLobby" then
 		return DungeonService.leaveLobby(player)
+	elseif action == "claimPlaytime" then
+		return PlaytimeService.claim(player, a)
+	elseif action == "autoFarm" then
+		return VipService.setAutoFarm(player, a)
 	elseif action == "dungeonReady" then
 		return DungeonService.setReady(player, a)
 	elseif action == "dungeonExit" then
@@ -314,6 +323,8 @@ local function onPlayerAdded(player)
 		return
 	end
 	QuestService.setup(player)
+	VipService.onPlayerAdded(player)
+	PlaytimeService.onPlayerAdded(player)
 	PetService.onPlayerReady(player)
 	ProgressionService.onPlayerReady(player)
 	player.CharacterAdded:Connect(function(character)
@@ -339,6 +350,7 @@ for _, player in Players:GetPlayers() do
 end
 
 Players.PlayerRemoving:Connect(function(player)
+	PlaytimeService.onPlayerRemoving(player)
 	DungeonService.onPlayerRemoving(player)
 	TravelService.dismount(player)
 	PlayerService.onPlayerRemoving(player)

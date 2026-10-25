@@ -122,6 +122,15 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 ## Fase 5 — Economia e monetização (sem pay-to-win)
 
+- 🧪 **VIP** (game pass, `Config.VipGamePassId`): Auto Caçar (tecla N). Falta criar o game pass no Creator Hub e colar o ID (P)
+- 🧪 Presentes por tempo seguido no mesmo servidor: 8 presentes de 5 a 120 min (tecla U) (P)
+- 🧪 XP mais difícil: curva `60·nível^1,75` e inimigos muito abaixo do seu nível dão pouco XP (P)
+- ⬜ Lista do que pode ser vendido por Robux (nada de poder direto que desequilibre; aleatório sempre com chances):
+  - Game passes (uma vez): VIP (Auto Caçar, +selo no nome), Inventário +50, 2º pet equipado, Viagem livre (usar pedras de qualquer lugar), Montarias especiais (cosmético, mesma velocidade), Pacote de cores/rastros de arma, Emotes
+  - Produtos (consumíveis): Poção de XP x2 por 30 min, Poção de sorte de drop por 30 min, Reviver na hora dentro da masmorra, Chave extra de masmorra, Redistribuir talentos, Reforja de perks, Pacotes de ouro (com cuidado na economia)
+  - Cosméticos: auras de rank, títulos, cores do nome, skins de armas e armaduras (só o visual), molduras de ícone
+  - Temporada: Passe do Hunter premium (trilha extra de recompensas)
+  - Aleatórios pagos (ovos/baús premium) só com a janela de chances em % (regra do Roblox)
 - ⬜ Game passes cosméticos: auras, montarias especiais, rastros de arma (M)
 - ⬜ Passe de temporada com trilha grátis + premium (M)
 - ⬜ Revisar a economia: fontes e ralos de ouro, preços, inflação (M)

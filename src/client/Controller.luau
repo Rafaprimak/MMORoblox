@@ -73,6 +73,14 @@ function Controller.getAim()
 		return Vector3.new(0, 0, -1), Vector3.zero
 	end
 	local origin = root.Position + Vector3.new(0, 1.2, 0)
+	-- Auto Caçar: mira no inimigo escolhido por ele
+	if Controller.autoAimPoint then
+		local direction = Controller.autoAimPoint - origin
+		if flat(direction).Magnitude < 0.5 then
+			direction = root.CFrame.LookVector
+		end
+		return direction.Unit, Controller.autoAimPoint
+	end
 	-- mira travada: tudo vai no alvo
 	local locked = LockOn.target()
 	if locked then
@@ -408,6 +416,19 @@ function Controller.forceStopBlock()
 end
 
 -- ===================== ENTRADAS =====================
+
+-- Auto Caçar: golpe de combo mirando num ponto (respeita o ritmo: só sai quando o golpe anterior acaba)
+Controller.autoAimPoint = nil
+function Controller.autoAttack(point)
+	Controller.autoAimPoint = point
+	lightAttack()
+	Controller.autoAimPoint = nil
+end
+
+-- true enquanto um golpe está em andamento
+function Controller.isAttacking()
+	return os.clock() < lockUntil
+end
 
 local KEY_ABILITY = { [Enum.KeyCode.One] = 1, [Enum.KeyCode.Two] = 2, [Enum.KeyCode.Three] = 3, [Enum.KeyCode.Four] = 4 }
 local KEY_POTION = { [Enum.KeyCode.Z] = "pocao_vida", [Enum.KeyCode.X] = "pocao_mana", [Enum.KeyCode.V] = "pocao_vigor" }
