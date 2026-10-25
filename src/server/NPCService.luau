@@ -40,6 +40,12 @@ local function addHat(model, head, style, color)
 	if style == "helmet" then
 		hatPart(model, head, Vector3.new(s * 1.15, s * 0.6, s * 1.15), CFrame.new(0, s * 0.35, 0), Color3.fromRGB(150, 150, 160), Enum.Material.Metal)
 		hatPart(model, head, Vector3.new(0.2, s * 0.5, s * 0.3), CFrame.new(0, s * 0.6, 0), Color3.fromRGB(180, 40, 40), Enum.Material.Fabric)
+	elseif style == "wide" then
+		-- chapéu de aba larga de viajante, com faixa e pena
+		hatPart(model, head, Vector3.new(0.12, s * 2.1, s * 2.1), CFrame.new(0, s * 0.42, 0) * CYL, Color3.fromRGB(45, 32, 28), Enum.Material.Fabric, Enum.PartType.Cylinder)
+		hatPart(model, head, Vector3.new(s * 0.55, s * 1.05, s * 1.05), CFrame.new(0, s * 0.7, 0) * CYL, Color3.fromRGB(55, 40, 34), Enum.Material.Fabric, Enum.PartType.Cylinder)
+		hatPart(model, head, Vector3.new(s * 0.16, s * 1.08, s * 1.08), CFrame.new(0, s * 0.52, 0) * CYL, Color3.fromRGB(120, 60, 150), Enum.Material.Fabric, Enum.PartType.Cylinder)
+		hatPart(model, head, Vector3.new(0.08, s * 0.9, s * 0.22), CFrame.new(s * 0.5, s * 0.85, s * 0.15) * CFrame.Angles(0, 0, math.rad(-25)), Color3.fromRGB(200, 60, 60), Enum.Material.Fabric)
 	elseif style == "bandana" then
 		hatPart(model, head, Vector3.new(s * 1.08, s * 0.3, s * 1.08), CFrame.new(0, s * 0.3, 0), Color3.fromRGB(160, 40, 40), Enum.Material.Fabric)
 	elseif style == "witch" or style == "wizard" then
@@ -130,6 +136,7 @@ local LOOKS = {
 	orin = { hair = Color3.fromRGB(235, 235, 240), beard = Color3.fromRGB(240, 240, 245), longBeard = true, outfit = "robe", robe = Color3.fromRGB(200, 200, 210) },
 	tomas = { hair = Color3.fromRGB(60, 45, 30), beard = Color3.fromRGB(60, 45, 30), outfit = "armor" },
 	sol = { hair = Color3.fromRGB(20, 15, 10), long = true, outfit = "vest" },
+	varg = { hair = Color3.fromRGB(70, 65, 70), beard = Color3.fromRGB(80, 75, 80), longBeard = true, outfit = "merchant" },
 }
 
 local function addLook(model, npc)
@@ -181,6 +188,30 @@ local function addLook(model, npc)
 		end
 		if lower then
 			piece(lower, Vector3.new(lower.Size.X + 0.1, 0.3, lower.Size.Z + 0.1), CFrame.new(0, 0.15, 0), Color3.fromRGB(60, 40, 25), Enum.Material.Fabric)
+		end
+	elseif look.outfit == "merchant" then
+		-- casaco longo de viajante, cinto com bolsas e chaves, bandoleira com frascos
+		local coat = Color3.fromRGB(70, 45, 85)
+		piece(torso, ts + Vector3.new(0.18, 0.05, 0.18), CFrame.new(), coat, Enum.Material.Fabric)
+		piece(torso, Vector3.new(ts.X * 0.3, ts.Y, 0.08), CFrame.new(0, 0, -ts.Z / 2 - 0.1), Color3.fromRGB(150, 120, 90), Enum.Material.Fabric)
+		for _, side in { -1, 1 } do
+			piece(torso, Vector3.new(ts.X * 0.18, ts.Y * 0.9, 0.06), CFrame.new(side * ts.X * 0.22, 0.05, -ts.Z / 2 - 0.12), Color3.fromRGB(200, 170, 90), Enum.Material.Fabric) -- lapelas
+		end
+		piece(torso, Vector3.new(ts.X * 1.25, 0.22, ts.Z + 0.3), CFrame.new(0, 0.1, 0) * CFrame.Angles(0, 0, math.rad(35)), Color3.fromRGB(60, 40, 25), Enum.Material.Leather)
+		for i = 0, 2 do
+			piece(torso, Vector3.new(0.22, 0.34, 0.22), CFrame.new(-0.45 + i * 0.32, 0.4 - i * 0.22, -ts.Z / 2 - 0.2), Color3.fromHSV(0.1 + i * 0.3, 0.7, 1), Enum.Material.Neon)
+		end
+		if lower then
+			piece(lower, Vector3.new(lower.Size.X + 0.3, 2.2, lower.Size.Z + 0.35), CFrame.new(0, -0.95, 0.03), coat, Enum.Material.Fabric)
+			piece(lower, Vector3.new(lower.Size.X + 0.36, 0.28, lower.Size.Z + 0.4), CFrame.new(0, 0.12, 0), Color3.fromRGB(60, 40, 25), Enum.Material.Leather)
+			piece(lower, Vector3.new(0.3, 0.3, 0.12), CFrame.new(0, 0.12, -lower.Size.Z / 2 - 0.24), Color3.fromRGB(220, 180, 90), Enum.Material.Metal)
+			for _, side in { -1, 1 } do
+				piece(lower, Vector3.new(0.45, 0.45, 0.3), CFrame.new(side * lower.Size.X * 0.42, -0.2, -lower.Size.Z / 2 - 0.22), Color3.fromRGB(110, 75, 45), Enum.Material.Leather)
+			end
+			-- molho de chaves pendurado no cinto
+			for i = 0, 2 do
+				piece(lower, Vector3.new(0.08, 0.4, 0.06), CFrame.new(0.35 + i * 0.1, -0.15, -lower.Size.Z / 2 - 0.25) * CFrame.Angles(0, 0, math.rad(-15 + i * 15)), Color3.fromRGB(220, 190, 110), Enum.Material.Metal)
+			end
 		end
 	elseif look.outfit == "armor" then
 		piece(torso, ts + Vector3.new(0.2, 0.05, 0.2), CFrame.new(), Color3.fromRGB(150, 155, 165), Enum.Material.Metal)

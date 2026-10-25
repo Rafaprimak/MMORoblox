@@ -87,10 +87,11 @@ function Ambience.init()
 			if root then
 				local dungeonId = player:GetAttribute("Dungeon")
 				local inDungeon = dungeonId ~= nil and Dungeons.ById[dungeonId] ~= nil
+				local dungeonSounds = inDungeon and SoundIds.Dungeon[dungeonId]
 				local region = if inDungeon then "Masmorra" else World.regionName(root.Position.X, root.Position.Z)
 				local night = workspace:GetAttribute("Night") == true
 				local ambienceKey = SoundIds.RegionAmbience[region] or "campo"
-				setChannel("ambience", if inDungeon then nil else Sounds.loopId("Ambience", ambienceKey))
+				setChannel("ambience", if inDungeon then (dungeonSounds and dungeonSounds.ambience) else Sounds.loopId("Ambience", ambienceKey))
 				setChannel("night", if night and not inDungeon then Sounds.loopId("Ambience", "noite") else nil)
 				-- música: combate (pelo tipo do inimigo) > chefe > noite > vila > exploração
 				local musicKey
@@ -115,7 +116,12 @@ function Ambience.init()
 				else
 					musicKey = "exploracao"
 				end
-				if combatId then
+				if dungeonSounds then
+					-- masmorra: só as trilhas dela (nada do mundo aberto)
+					local fightingHere = os.clock() - lastCombat < COMBAT_HOLD and enemy ~= nil
+					local trackId = if EnemyRenderer.nearestBoss(root.Position, 130) then dungeonSounds.boss elseif fightingHere then dungeonSounds.combat else dungeonSounds.music
+					setChannel("music", trackId)
+				elseif combatId then
 					setChannel("music", combatId)
 				else
 					setChannel("music", Sounds.loopId("Music", musicKey) or (if musicKey == "noite" then Sounds.loopId("Music", "exploracao") else nil))

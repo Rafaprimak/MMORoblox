@@ -83,6 +83,8 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
   - 🧪 Andares com mecânica sorteada (ondas, alavancas com emboscada, grelhas de fogo), objetivo extra com bônus (tempo, ninguém cair, caçada ao Campeão, relíquias), tijolo solto com baú secreto, baú suspeito (mímico), altar de bênção
   - 🧪 Material e itens exclusivos por masmorra (18 bases) com perk de assinatura; Mercador de Masmorras (Varg) com chaves, poção grande, tônico de pedra e itens exclusivos; 4 conquistas e títulos
   - ⬜ Balancear vida/dano dos andares e dos chefes depois de testar em grupo
+  - 🧪 Andares com planta de várias salas (`DungeonBuilder`): portas em arco, corredores com grade, salas laterais e 12 tipos de sala por tema; clima escuro com névoa (`DungeonAtmosphere`) e trilhas próprias por masmorra
+  - 🧪 Mercador de Masmorras dentro do Covil do Mercador (armas exclusivas expostas nas paredes, manequim com armadura de conjunto) e visual novo do Varg
   - ⬜ Mais mecânicas (proteger cristal, plataformas, salas escuras), modificadores semanais e ranking de tempo
 - 🧪 Corrigido: o chefe nunca era marcado como chefe (`def.boss`), então a barra do chefe e a música de chefe não apareciam
 - ⬜ Novas regiões e níveis 20–40: Pântano Venenoso, Deserto de Âmbar, Pico Vulcânico, cada uma com 3 inimigos, 1 chefe e recursos tier 3 (G)

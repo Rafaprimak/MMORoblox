@@ -101,6 +101,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DayNightService` | Ciclo de dia e noite: `workspace.Night`, luz do ambiente, avisos, `skip()` para teste |
 | `PerkService` | Gatilhos dos perks no combate (`modify`, `afterHit`, `onKill`, `onParry`, `onPerfectDodge`, `onFullCharge`) |
 | `PetService` | Ovos, equipar/soltar pets, XP do pet, bônus (`ExtraBonus`), drops raros |
+| `DungeonBuilder` | Peças das masmorras: salas por tema e tipo (`decor.*`), paredes com porta em arco, corredores com grade (`corridor`/`openGate`), escada, tochas |
 | `DungeonService` | Grupo no portal, cópia da masmorra longe do mapa (x ≈ 6000), um andar por vez com mecânica, objetivo extra, segredos e altar; chefes, baús, pontos de retorno, Mercador de Masmorras |
 | `ExploreService` | Descoberta dos locais de interesse e baús escondidos (prompt `BauLocal`) |
 | `ProgressionService` | Conta tudo pelos ganchos de missão: conquistas, passe, login diário, títulos, marcos de nível |
@@ -124,6 +125,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `RevealScene` | Cena 3D (ViewportFrame + WorldModel) com uma cópia do personagem abrindo o baú ou vendo o ovo chocar |
 | `ItemIcon` | Ícone 3D (ViewportFrame) de item, com modelo guardado por base/raridade e giro opcional |
 | `DungeonWindow` | Janela do portal (grupo e andar inicial), janela do Mercador de Masmorras e painel do andar |
+| `DungeonAtmosphere` | Clima das masmorras no cliente (luz, névoa, tom, poeira/brasas) enquanto o jogador tem o atributo `Dungeon` |
 | `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
 | `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
@@ -199,7 +201,8 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 
 ### Masmorras
 - Tudo é dado em `src/shared/Dungeons.luau`. Masmorra nova = entrada em `DESIGN` (posição de projeto do portal, `pools` por faixa de andares, `bosses` nos andares 5/10/15/20, `material`, `key`, `loot`) + tema em `DungeonService.THEMES` (se for novo) + material/chave em `Items.Materials` + bases exclusivas em `Items.Bases` (`dungeon`, `signature`) + perk de assinatura em `Perks.List` (`exclusive`, nunca sorteado).
-- O andar é montado na hora por `DungeonService` em `workspace.Masmorras` (pares e ímpares em lugares diferentes; o anterior é apagado depois do teleporte). Os inimigos usam o `EnemyService` normal com um "acampamento" de sala: `floorY` (piso plano), `bounds` (paredes), `hpMult`, `damageMult`, `levelBonus`, sem `respawn` (não renascem), `dungeonId` e `floor`.
+- O andar é montado na hora por `DungeonService` em `workspace.Masmorras` (pares e ímpares em lugares diferentes; o anterior é apagado depois do teleporte). A planta é uma grade (`CELL`): patamar → salas de combate (cada uma com `mechanic`, acampamento próprio e grade na saída) → escada, mais salas laterais (altar, baú ou mímico). As peças vêm do `DungeonBuilder`; tipo de sala novo = função em `decor` + nome em `Themes[tema].kinds` (enfeites encostados nas paredes, centro livre para a luta).
+- Música dentro das masmorras: só `SoundIds.Dungeon[id]` (`music`, `combat`, `boss`, `ambience`); o `Ambience` não usa a música do mundo aberto lá dentro. O `Sky` não mexe no relógio da luz enquanto o jogador está numa masmorra. Os inimigos usam o `EnemyService` normal com um "acampamento" de sala: `floorY` (piso plano), `bounds` (paredes), `hpMult`, `damageMult`, `levelBonus`, sem `respawn` (não renascem), `dungeonId` e `floor`.
 - Mecânicas (`MECHANICS`) e objetivos extras (`OBJECTIVES`) ficam no topo do `DungeonService`; o texto do painel sai de `mechanicText`/`objectiveText`. Para uma mecânica nova: monte as peças em `buildFloor`, trate no `update` e escreva o texto.
 - `def.boss` agora é calculado em `Enemies` (`behavior == "boss"`). Chefes só de masmorra têm `dungeon = true`.
 - Grupo: cada membro manda `dungeonReady`; com todos prontos, conta 3 s e começa (`launch`). Sempre do andar 1; a chave sai do líder (primeiro do grupo).

@@ -23,6 +23,7 @@ TownPlan.Services = {
 	kael = { x = 0, z = 42, facing = 0 }, -- entrada do pátio de treino
 	lyra = { x = -15, z = -23, facing = 180 }, -- praça, borda norte
 	quadro = { x = 15, z = -23, facing = 180 }, -- quadro de contratos
+	varg = { x = -12, z = 36, facing = -90 }, -- Covil do Mercador de Masmorras (rua do sul, lado oeste)
 }
 
 -- Casas: { x da porta, z da porta, facing, largura, profundidade }
@@ -31,7 +32,7 @@ TownPlan.Houses = {
 	{ -12, -62, -90, 12, 12 }, { -12, -80, -90, 10, 10 },
 	{ 12, -62, 90, 12, 12 }, { 12, -80, 90, 10, 10 },
 	-- rua principal sul
-	{ -12, 36, -90, 12, 12 }, { 12, 36, 90, 12, 12 },
+	{ 12, 36, 90, 12, 12 }, -- o lote em frente (x -12) é o Covil do Mercador (serviço "varg")
 	-- transversal leste
 	{ 64, -12, 180, 12, 12 }, { 82, -12, 180, 10, 10 },
 	{ 64, 12, 0, 12, 12 }, { 82, 12, 0, 10, 10 },

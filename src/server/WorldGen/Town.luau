@@ -7,6 +7,7 @@ local World = require(Shared.World)
 local NPCs = require(Shared.NPCs)
 local Enemies = require(Shared.Enemies)
 local TownPlan = require(Shared.TownPlan)
+local ItemModels = require(Shared.ItemModels)
 
 local Props = require(script.Parent.Props)
 local Placement = require(script.Parent.Placement)
@@ -274,38 +275,92 @@ function builders.emporium(parent, npc, rng)
 	return model
 end
 
--- Barraca do Mercador de Masmorras: toldo roxo-escuro, balcão com chaves, crânio e baú, estandarte
--- com o símbolo das masmorras. Montada atrás do NPC (ele fica na frente do balcão).
-function builders.dungeonStall(parent, npc)
-	local cf = npcFrame(npc) * CFrame.new(0, 0, 3.2) -- atrás do NPC
-	local model = Instance.new("Model")
-	model.Name = "BarracaMasmorras"
-	local dark = Color3.fromRGB(45, 35, 50)
-	for _, x in { -2.6, 2.6 } do
-		for _, z in { -1, 1.6 } do
-			part(model, { Name = "Poste", Size = Vector3.new(0.35, 5.6, 0.35), CFrame = cf * CFrame.new(x, 2.8, z), Color = C.DarkWood, Material = M.Wood })
-		end
-	end
-	part(model, { Name = "Balcao", Size = Vector3.new(5, 1.6, 1.2), CFrame = cf * CFrame.new(0, 0.8, -1), Color = dark, Material = M.WoodPlanks })
-	part(model, { Name = "Tampo", Size = Vector3.new(5.4, 0.2, 1.5), CFrame = cf * CFrame.new(0, 1.7, -1), Color = Color3.fromRGB(110, 70, 140), Material = M.Wood })
-	-- toldo listrado
-	for i = 0, 5 do
-		part(model, { Name = "Toldo", Size = Vector3.new(1, 0.2, 3.6), CFrame = cf * CFrame.new(-2.5 + i * 1, 5.7, 0.3) * CFrame.Angles(math.rad(14), 0, 0), Color = if i % 2 == 0 then Color3.fromRGB(70, 40, 90) else Color3.fromRGB(30, 25, 35), Material = M.Fabric })
-	end
-	-- mercadorias: chaves, crânio, baú, frascos e uma brasa
-	for i, color in { Color3.fromRGB(150, 220, 255), Color3.fromRGB(255, 120, 60) } do
-		part(model, { Name = "Chave", Size = Vector3.new(0.9, 0.18, 0.25), CFrame = cf * CFrame.new(-1.8 + i * 0.5, 1.9, -1.1) * CFrame.Angles(0, 0.3 * i, 0), Color = color, Material = M.Neon })
-	end
-	Props.ball(model, (cf * CFrame.new(0.2, 2.15, -1)).Position, 0.6, Color3.fromRGB(235, 230, 210), M.SmoothPlastic)
-	part(model, { Name = "Bau", Size = Vector3.new(1.3, 0.8, 0.9), CFrame = cf * CFrame.new(1.6, 2.2, -1), Color = C.DarkWood, Material = M.Wood })
-	part(model, { Name = "TampaBau", Size = Vector3.new(1.4, 0.3, 1), CFrame = cf * CFrame.new(1.6, 2.75, -1), Color = C.Gold, Material = M.Metal })
-	local glow = part(model, { Name = "Brasa", Size = Vector3.one * 0.5, CFrame = cf * CFrame.new(-0.6, 2.05, -0.9), Color = Color3.fromRGB(255, 110, 40), Material = M.Neon, Shape = Enum.PartType.Ball })
-	Props.light(glow, Color3.fromRGB(200, 120, 255), 12, 1.2)
-	-- estandarte atrás
-	part(model, { Name = "Fundo", Size = Vector3.new(5, 3.4, 0.15), CFrame = cf * CFrame.new(0, 3.7, 1.7), Color = Color3.fromRGB(60, 35, 80), Material = M.Fabric })
-	part(model, { Name = "Simbolo", Size = Vector3.new(1.4, 1.4, 0.1), CFrame = cf * CFrame.new(0, 3.8, 1.6) * CFrame.Angles(0, 0, math.rad(45)), Color = Color3.fromRGB(255, 200, 90), Material = M.Neon })
+-- item de verdade (mesmo modelo do ícone) pendurado/exposto: encolhido para caber no tamanho pedido
+local function showcase(parent, baseId, rarityId, cf, maxSize)
+	local model = ItemModels.build(baseId, rarityId, { anchored = true })
+	local size = model:GetExtentsSize()
+	model:ScaleTo(math.clamp(maxSize / math.max(size.X, size.Y, size.Z), 0.1, 1))
+	local center = model:GetBoundingBox()
+	model:PivotTo(cf * CFrame.new(center.Position):ToObjectSpace(model:GetPivot()))
 	model.Parent = parent
-	Props.billboard(glow, "🏰 MERCADOR DE MASMORRAS", Color3.fromRGB(200, 150, 255), 5)
+	return model
+end
+
+-- COVIL DO MERCADOR (masmorras): casa de pedra escura com vigas roxas, piso de pedra, balcão com
+-- chaves e frascos, armas exclusivas das masmorras expostas nas paredes, manequim com armadura de
+-- conjunto, baú de saque, estandartes das três masmorras e um cristal de portal no fundo.
+function builders.dungeonShop(parent, npc, rng)
+	local cf = doorFrame(npc)
+	local model = Props.building(parent, cf, 14, 15, 10, Color3.fromRGB(78, 74, 84), Color3.fromRGB(70, 45, 95), {
+		name = "CovilMercador",
+		doorWidth = 4.5,
+		wallMaterial = M.Cobblestone,
+		roofMaterial = M.Slate,
+		floor = "stone",
+		floorColor = Color3.fromRGB(70, 66, 74),
+		trim = Color3.fromRGB(70, 45, 95),
+		chimney = -4,
+		lights = { Vector3.new(-3, 8.5, 5), Vector3.new(3, 8.5, 11) },
+	})
+	local inside = cf * CFrame.new(0, 1.2, 0)
+	-- balcão (cintura) com tampo, chaves e frascos; Varg fica atrás dele
+	part(model, { Name = "Balcao", Size = Vector3.new(8, 1.7, 1.4), CFrame = inside * CFrame.new(0, 0.85, 8), Color = Color3.fromRGB(55, 38, 30), Material = M.WoodPlanks })
+	part(model, { Name = "Tampo", Size = Vector3.new(8.4, 0.2, 1.8), CFrame = inside * CFrame.new(0, 1.8, 8), Color = Color3.fromRGB(90, 55, 120), Material = M.Wood })
+	for i, color in { Color3.fromRGB(150, 220, 255), Color3.fromRGB(255, 120, 60), Color3.fromRGB(255, 220, 120) } do
+		part(model, { Name = "Chave", Size = Vector3.new(0.9, 0.16, 0.25), CFrame = inside * CFrame.new(-3.2 + i * 0.6, 1.98, 7.8) * CFrame.Angles(0, 0.4 * i, 0), Color = color, Material = M.Neon })
+	end
+	for i = 0, 2 do
+		part(model, { Name = "Frasco", Size = Vector3.new(0.4, 0.65, 0.4), CFrame = inside * CFrame.new(1.8 + i * 0.6, 2.22, 8), Color = Color3.fromHSV(0.05 + i * 0.3, 0.7, 1), Material = M.Neon, Transparency = 0.15 })
+	end
+	part(model, { Name = "Livro", Size = Vector3.new(1.2, 0.2, 0.9), CFrame = inside * CFrame.new(0, 1.98, 7.9) * CFrame.Angles(0, 0.2, 0), Color = Color3.fromRGB(110, 40, 50), Material = M.Fabric })
+	-- prateleira de poções e chaves no fundo, atrás do balcão
+	Props.shelf(model, inside * CFrame.new(-2, 0, 14) * CFrame.Angles(0, math.rad(180), 0), 7, 3, "potions", rng)
+	-- armas exclusivas expostas nas paredes, em placas de madeira
+	-- (entre as janelas laterais, que ficam em z 4,5 e 10,8)
+	local displays = {
+		{ "ceifa_espectral", "Epico", -1, 1.9 }, { "martelo_magma", "Lendario", -1, 7.6 },
+		{ "lanca_magma", "Lendario", 1, 1.9 }, { "arco_luto", "Epico", 1, 7.6 },
+	}
+	for _, entry in displays do
+		local side, z = entry[3], entry[4]
+		-- -Z da placa aponta para dentro da sala
+		local wall = inside * CFrame.new(side * 6.07, 3.6, z) * CFrame.Angles(0, math.rad(side * 90), 0)
+		part(model, { Name = "Placa", Size = Vector3.new(2.2, 4.4, 0.25), CFrame = wall, Color = Color3.fromRGB(60, 40, 30), Material = M.WoodPlanks })
+		part(model, { Name = "Moldura", Size = Vector3.new(2.5, 0.25, 0.35), CFrame = wall * CFrame.new(0, 2.2, 0), Color = Color3.fromRGB(90, 55, 120), Material = M.Wood })
+		for _, hookX in { -0.6, 0.6 } do
+			part(model, { Name = "Gancho", Size = Vector3.new(0.12, 0.12, 0.35), CFrame = wall * CFrame.new(hookX, 0.6, -0.25), Color = Color3.fromRGB(40, 40, 45), Material = M.Metal })
+		end
+		showcase(model, entry[1], entry[2], wall * CFrame.new(0, 0, -0.45) * CFrame.Angles(0, 0, math.rad(-12)), 3.8)
+	end
+	-- manequim com a armadura do conjunto da Cripta
+	local stand = inside * CFrame.new(4.4, 0, 12.6) * CFrame.Angles(0, math.rad(200), 0)
+	part(model, { Name = "BaseManequim", Size = Vector3.new(1.8, 0.3, 1.8), CFrame = stand * CFrame.new(0, 0.15, 0), Color = Color3.fromRGB(55, 38, 30), Material = M.Wood })
+	part(model, { Name = "Haste", Size = Vector3.new(0.25, 2.4, 0.25), CFrame = stand * CFrame.new(0, 1.5, 0), Color = Color3.fromRGB(55, 38, 30), Material = M.Wood })
+	showcase(model, "mortalha_cripta", "Epico", stand * CFrame.new(0, 3.6, 0), 3.2)
+	showcase(model, "elmo_vigia", "Epico", stand * CFrame.new(0, 5.6, 0), 1.3)
+	-- baú de saque aberto com ouro
+	local chest = inside * CFrame.new(-4.6, 0, 11.8) * CFrame.Angles(0, math.rad(20), 0)
+	part(model, { Name = "Bau", Size = Vector3.new(2.4, 1.2, 1.5), CFrame = chest * CFrame.new(0, 0.6, 0), Color = Color3.fromRGB(80, 50, 30), Material = M.WoodPlanks })
+	part(model, { Name = "Tampa", Size = Vector3.new(2.5, 0.25, 1.6), CFrame = chest * CFrame.new(0, 1.55, 0.9) * CFrame.Angles(math.rad(-70), 0, 0), Color = C.Gold, Material = M.Metal })
+	for i = 0, 5 do
+		Props.ball(model, (chest * CFrame.new(-0.8 + (i % 3) * 0.8, 1.25 + math.floor(i / 3) * 0.15, -0.2 + math.floor(i / 3) * 0.3)).Position, 0.5, C.Gold, M.Metal, { CanCollide = false })
+	end
+	-- cristal de portal num pedestal (lembra as masmorras)
+	local crystalBase = inside * CFrame.new(2.4, 0, 12.6)
+	Props.column(model, crystalBase, 1.2, 1.8, Color3.fromRGB(60, 56, 66), M.Slate)
+	local crystal = part(model, { Name = "CristalPortal", Size = Vector3.new(0.9, 1.6, 0.9), CFrame = crystalBase * CFrame.new(0, 2.3, 0) * CFrame.Angles(0, math.rad(45), 0), Color = Color3.fromRGB(170, 120, 255), Material = M.Neon, CanCollide = false })
+	Props.light(crystal, Color3.fromRGB(170, 120, 255), 16, 1.6, true)
+	CollectionService:AddTag(crystal, "Spin")
+	-- estandartes das três masmorras pendurados no teto, perto da entrada
+	for i, color in { Color3.fromRGB(150, 110, 60), Color3.fromRGB(90, 70, 130), Color3.fromRGB(170, 60, 30) } do
+		Props.banner(model, inside * CFrame.new(-3 + (i - 1) * 3, 8.4, 3), color)
+	end
+	Props.rug(model, cf * CFrame.new(0, 0, 4), 5, 4, Color3.fromRGB(80, 40, 100), Color3.fromRGB(220, 180, 90))
+	-- placa pendurada na frente
+	part(model, { Name = "Braco", Size = Vector3.new(0.2, 0.2, 2.2), CFrame = cf * CFrame.new(3.6, 8.6, -1.1), Color = Color3.fromRGB(40, 40, 45), Material = M.Metal })
+	local sign = part(model, { Name = "Placa", Size = Vector3.new(0.25, 1.6, 2.2), CFrame = cf * CFrame.new(3.6, 7.6, -1.6), Color = Color3.fromRGB(70, 45, 95), Material = M.WoodPlanks })
+	part(model, { Name = "Simbolo", Size = Vector3.new(0.3, 0.8, 0.8), CFrame = cf * CFrame.new(3.6, 7.6, -1.6) * CFrame.Angles(math.rad(45), 0, 0), Color = Color3.fromRGB(255, 200, 90), Material = M.Neon })
+	Props.billboard(sign, "COVIL DO MERCADOR", Color3.fromRGB(200, 150, 255), 3)
 	return model
 end
 
@@ -699,8 +754,6 @@ function Town.build(parent, rng)
 			local model, board = builders.board(folder, npc)
 			Props.scaleModel(model, npcFrame(npc), K)
 			boardPart = board
-		elseif npc.stall and builders.dungeonStall then
-			Props.scaleModel(builders.dungeonStall(folder, npc), npcFrame(npc), K)
 		end
 		Placement.reserve(npc.x, npc.z, 3 * K, "npc")
 	end

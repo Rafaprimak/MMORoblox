@@ -52,7 +52,8 @@ function Sky.init()
 	end)
 	refreshLamps()
 	RunService.RenderStepped:Connect(function()
-		if workspace:GetAttribute("DayEpoch") then
+		-- nas masmorras quem cuida da luz é o DungeonAtmosphere
+		if workspace:GetAttribute("DayEpoch") and not game:GetService("Players").LocalPlayer:GetAttribute("Dungeon") then
 			Lighting.ClockTime = DayNight.now()
 		end
 	end)

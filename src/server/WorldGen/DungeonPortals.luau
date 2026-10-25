@@ -53,9 +53,19 @@ local function build(parent, dungeon)
 		Props.fire(model, (brazier * CFrame.new(0, 3.8, 0)).Position, 1)
 	end
 	-- verga com pedra-chave e o nome gravado
-	part(model, { Name = "Verga", Size = Vector3.new(16.5, 2.2, 3.4), CFrame = cf * CFrame.new(0, floorY + 16.3, 0), Color = theme.stone, Material = theme.material })
-	part(model, { Name = "PedraChave", Size = Vector3.new(2.6, 3, 3.8), CFrame = cf * CFrame.new(0, floorY + 16.6, 0), Color = theme.stone:Lerp(Color3.new(1, 1, 1), 0.15), Material = theme.material })
-	local gem = part(model, { Name = "Gema", Size = Vector3.new(1.2, 1.2, 1.2), CFrame = cf * CFrame.new(0, floorY + 16.6, -2) * CFrame.Angles(math.rad(45), 0, math.rad(45)), Color = theme.glow, Material = M.Neon, CanCollide = false })
+	-- arco de pedra (aduelas em semicírculo apoiadas nos capitéis) com pedra-chave e runas
+	local springY = floorY + 15.2
+	local radius = 6.5
+	for i = 0, 10 do
+		local angle = math.pi * (i + 0.5) / 11
+		local stone = if i % 2 == 0 then theme.stone else theme.stone:Lerp(Color3.new(0, 0, 0), 0.12)
+		part(model, { Name = "Aduela", Size = Vector3.new(2.0, 2.4, 3.4), CFrame = cf * CFrame.new(math.cos(angle) * radius, springY + math.sin(angle) * radius, 0) * CFrame.Angles(0, 0, angle - math.pi / 2), Color = stone, Material = theme.material })
+		if i % 3 == 1 then
+			part(model, { Name = "RunaArco", Size = Vector3.new(0.6, 0.6, 0.12), CFrame = cf * CFrame.new(math.cos(angle) * radius, springY + math.sin(angle) * radius, -1.76) * CFrame.Angles(0, 0, math.rad(45)), Color = theme.glow, Material = M.Neon, CanCollide = false })
+		end
+	end
+	part(model, { Name = "PedraChave", Size = Vector3.new(2.4, 3.2, 3.9), CFrame = cf * CFrame.new(0, springY + radius + 0.3, 0), Color = theme.stone:Lerp(Color3.new(1, 1, 1), 0.15), Material = theme.material })
+	local gem = part(model, { Name = "Gema", Size = Vector3.new(1.2, 1.2, 1.2), CFrame = cf * CFrame.new(0, springY + radius + 0.3, -2.1) * CFrame.Angles(math.rad(45), 0, math.rad(45)), Color = theme.glow, Material = M.Neon, CanCollide = false })
 	CollectionService:AddTag(gem, "Spin")
 	-- redemoinho de luz dentro do arco
 	local swirl = part(model, {

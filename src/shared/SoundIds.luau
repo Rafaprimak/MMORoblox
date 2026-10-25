@@ -79,6 +79,29 @@ SoundIds.Combat = {
 	padrao = "rbxassetid://1836102188",
 }
 
+-- Trilhas das masmorras (APMOfficial). Lá dentro NÃO toca nada do mundo aberto: explorar = music,
+-- lutando = combat, perto do chefe = boss; ambience = som de fundo em loop (gotas, eco).
+SoundIds.Dungeon = {
+	toca = {
+		music = "rbxassetid://1840607730", -- Crystal Caves
+		combat = "rbxassetid://1839807778", -- Villains Cave
+		boss = "rbxassetid://1845385776", -- Dungeons Of Despair
+		ambience = "rbxassetid://75232856473344", -- gotas pingando
+	},
+	cripta = {
+		music = "rbxassetid://1846435541", -- Crypt And Atrium
+		combat = "rbxassetid://1837383383", -- Deep in the Crypt
+		boss = "rbxassetid://1837814794", -- Dungeon Darkness
+		ambience = "rbxassetid://75232856473344",
+	},
+	abismo = {
+		music = "rbxassetid://1844214992", -- Molten Lava
+		combat = "rbxassetid://1847724387", -- Dangerous Lava Flow
+		boss = "rbxassetid://1839139324", -- Metal Lava
+		ambience = "rbxassetid://1841178483", -- The Cavernous Deep (fundo grave)
+	},
+}
+
 -- qual ambiente cada região usa
 SoundIds.RegionAmbience = {
 	["Vila Aurora"] = "vila",

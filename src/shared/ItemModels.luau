@@ -514,48 +514,84 @@ function weapon.spear(b, look, rarity)
 	return 6.3, 4.4
 end
 
+-- peça reta ligando dois pontos (para curvas feitas de segmentos sem buracos)
+local function segment(b, p1, p2, width, thickness, color, material, glow)
+	local length = (p2 - p1).Magnitude
+	local cf = CFrame.lookAt((p1 + p2) / 2, p2) * CFrame.Angles(math.rad(-90), 0, 0)
+	return b.add(Vector3.new(width, length + thickness * 0.6, thickness), cf, color, material, { glow = glow })
+end
+
+-- Arco de verdade: punho grosso no meio, dois braços curvos e afinando (feitos de segmentos que se
+-- encostam), pontas recurvadas e a corda reta ligando as pontas (do lado do arqueiro, +Z).
 function weapon.bow(b, look, rarity)
 	local limb = look.limb or C.wood
 	local style = look.style
-	local reach = if look.long then 1.95 else 1.7
+	local reach = if look.long then 2.25 else 1.95
+	local bend = if style == "simple" then 0.45 else 0.55
+	local recurve = if style == "simple" or style == "root" then 0 else 0.9
 	local accent = glowColor(look, rarity)
-	for _, side in { -1, 1 } do
-		for i = 0, 3 do
-			local t = i / 3
-			local y = side * (0.45 + t * reach)
-			local z = -0.15 - t * t * 0.55
-			local size = if style == "root" then Vector3.new(0.26, 0.66, 0.26) else Vector3.new(0.2, 0.64, 0.22)
-			b.add(size, CFrame.new(0, y, z) * CFrame.Angles(math.rad(side * (8 + t * 30)), 0, math.rad(if style == "root" then (i % 2) * 8 else 0)), limb, if style == "bone" then M.SmoothPlastic else M.Wood)
-			if style == "elven" and i > 0 then
-				b.add(Vector3.new(0.06, 0.5, 0.24), CFrame.new(0, y, z - 0.02) * CFrame.Angles(math.rad(side * (8 + t * 30)), 0, 0), look.tips or C.gold, M.Metal)
-			elseif style == "bone" and i % 2 == 1 then
-				b.ball(0.3, CFrame.new(0, y, z), C.bone:Lerp(Color3.new(1, 1, 1), 0.2), M.SmoothPlastic)
-			end
+	local material = if style == "bone" or style == "spider" then M.SmoothPlastic else M.Wood
+	local steps = 9
+	local function point(sign, t)
+		local y = sign * (0.55 + t * reach)
+		local z = bend * math.sin(t * math.pi * 0.5)
+		if t > 0.78 then
+			z -= (t - 0.78) * recurve
 		end
-		local tipY, tipZ = side * (0.45 + reach + 0.4), -0.75
-		b.add(Vector3.new(0.26, 0.4, 0.26), CFrame.new(0, tipY, tipZ), look.tips or accent, if look.glow or rarity.order >= 4 then M.Neon else M.Metal, { glow = true })
+		return Vector3.new(0, y, z)
+	end
+	local tips = {}
+	for _, sign in { -1, 1 } do
+		local previous = point(sign, 0)
+		for i = 1, steps do
+			local t = i / steps
+			local current = point(sign, t)
+			local taper = 1 - t * 0.5
+			segment(b, previous, current, 0.24 * taper, 0.2 * taper + 0.04, limb, material)
+			-- detalhes por estilo ao longo do braço
+			if style == "elven" and i % 3 == 0 then
+				segment(b, previous + Vector3.new(0, 0, -0.08), current + Vector3.new(0, 0, -0.08), 0.06, 0.08, look.tips or C.gold, M.Metal)
+			elseif style == "bone" and i % 3 == 1 then
+				b.ball(0.26 * taper + 0.08, CFrame.new(current), C.bone:Lerp(Color3.new(1, 1, 1), 0.2), M.SmoothPlastic)
+			elseif style == "root" and i % 2 == 0 then
+				b.add(Vector3.new(0.1, 0.35, 0.1), CFrame.new(current) * CFrame.Angles(math.rad(sign * 40), 0, math.rad(30)) * CFrame.new(0, 0.15, 0), limb:Lerp(Color3.new(0, 0, 0), 0.2), M.Wood)
+			elseif style == "spider" and (i == 3 or i == 6) then
+				-- patas de aranha saindo do braço
+				for _, k in { -1, 1 } do
+					b.add(Vector3.new(0.08, 0.7, 0.08), CFrame.new(current) * CFrame.Angles(math.rad(sign * 50), 0, math.rad(k * 35)) * CFrame.new(0, 0.32, 0), limb, M.SmoothPlastic)
+				end
+			end
+			if (rarity.order >= 4 or look.glow) and i == math.floor(steps / 2) then
+				segment(b, previous + Vector3.new(0, 0, -0.1), current + Vector3.new(0, 0, -0.1), 0.05, 0.06, accent, M.Neon, true)
+			end
+			previous = current
+		end
+		tips[sign] = previous
+		-- ponteira onde a corda prende
+		b.ball(0.2, CFrame.new(previous), look.tips or accent, if look.glow or rarity.order >= 4 then M.Neon else M.Metal, true)
 		if style == "phoenix" then
-			-- penas de fogo saindo das pontas
 			for k = 0, 2 do
-				b.wedge(Vector3.new(0.06, 0.7, 0.4), CFrame.new(0, tipY - side * k * 0.4, tipZ - 0.25) * CFrame.Angles(math.rad(side * (30 + k * 20)), 0, 0), if k == 0 then look.glow else limb:Lerp(look.glow, 0.5), M.Neon, true)
-			end
-		elseif style == "spider" then
-			-- patas de aranha
-			for k = 1, 2 do
-				b.add(Vector3.new(0.1, 0.9, 0.1), CFrame.new(0, side * (0.6 + k * 0.55), -0.45 - k * 0.15) * CFrame.Angles(math.rad(side * 60), 0, 0), limb, M.SmoothPlastic)
+				b.wedge(Vector3.new(0.06, 0.7 - k * 0.15, 0.4), CFrame.new(previous) * CFrame.Angles(math.rad(sign * (25 + k * 25)), 0, 0) * CFrame.new(0, sign * 0.25, -0.15), if k == 0 then look.glow else limb:Lerp(look.glow, 0.5), M.Neon, true)
 			end
 		end
 	end
-	b.add(Vector3.new(0.3, 0.9, 0.3), CFrame.new(0, 0, -0.08), look.grip or C.darkLeather, M.Fabric)
-	b.gem(0.22, CFrame.new(0, 0, -0.28))
-	if style == "bone" or style == "spider" then
-		b.ball(0.5, CFrame.new(0, 0.55, -0.25), if style == "bone" then C.bone else Color3.fromRGB(60, 40, 70), M.SmoothPlastic)
-		b.ball(0.12, CFrame.new(0.1, 0.6, -0.48), accent, M.Neon, true)
-		b.ball(0.12, CFrame.new(-0.1, 0.6, -0.48), accent, M.Neon, true)
+	-- punho: madeira grossa, couro enrolado, apoio da flecha e gema
+	b.add(Vector3.new(0.34, 1.3, 0.36), CFrame.new(0, 0, 0.02), limb:Lerp(Color3.new(0, 0, 0), 0.15), material)
+	for i = 0, 3 do
+		b.add(Vector3.new(0.38, 0.14, 0.4), CFrame.new(0, -0.3 + i * 0.2, 0.02) * CFrame.Angles(0, math.rad(45 * (i % 2)), 0), look.grip or C.darkLeather, M.Fabric)
 	end
-	local stringLength = (0.45 + reach + 0.4) * 2
-	b.add(Vector3.new(0.04, stringLength, 0.04), CFrame.new(0, 0, 0.3), if look.glow then look.glow else Color3.fromRGB(235, 235, 235), if look.glow then M.Neon else M.SmoothPlastic)
-	return 2.3, -2.3
+	b.wedge(Vector3.new(0.14, 0.12, 0.2), CFrame.new(0.12, 0.42, 0.1), C.darkLeather, M.Leather)
+	b.gem(0.2, CFrame.new(0, 0.55, -0.16))
+	if style == "bone" or style == "spider" then
+		b.ball(0.46, CFrame.new(0, 0.62, -0.12), if style == "bone" then C.bone else Color3.fromRGB(60, 40, 70), M.SmoothPlastic)
+		for _, k in { -1, 1 } do
+			b.ball(0.1, CFrame.new(k * 0.09, 0.66, -0.33), accent, M.Neon, true)
+		end
+	end
+	-- corda reta entre as pontas
+	local top, bottom = tips[1], tips[-1]
+	segment(b, bottom, top, 0.035, 0.035, if look.glow then look.glow else Color3.fromRGB(235, 232, 220), if look.glow then M.Neon else M.SmoothPlastic)
+	return top.Y, bottom.Y
 end
 
 function weapon.staff(b, look, rarity)
