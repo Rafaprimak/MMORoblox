@@ -8,6 +8,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Items = require(Shared.Items)
 local Rarities = require(Shared.Rarities)
+local ItemModels = require(Shared.ItemModels)
 local Classes = require(Shared.Classes)
 local Perks = require(Shared.Perks)
 local Skills = require(Shared.Skills)
@@ -520,131 +521,34 @@ local function gearPart(model, attachTo, size, offset, color, material, rarity, 
 	return p
 end
 
-local GEAR_VISUALS = {}
+-- Partes do corpo que recebem equipamento
+local BODY_PARTS = { "Head", "UpperTorso", "LowerTorso", "LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "RightHand", "LeftLowerLeg", "RightLowerLeg", "LeftFoot", "RightFoot" }
 
-function GEAR_VISUALS.armor(character, item, rarity, base, model)
-	local torso = character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")
-	local lower = character:FindFirstChild("LowerTorso")
-	if not torso then
-		return
-	end
-	local s = torso.Size
-	local accentMaterial = if rarity.order >= 4 then Enum.Material.Neon else Enum.Material.Metal
-	local isRobe = base.bonus and base.bonus.mana ~= nil
-	local isLeather = base.bonus and base.bonus.stamina ~= nil
-	local function plate(size, offset, color, material, shape)
-		return gearPart(model, torso, size, offset, color, material, rarity, shape)
-	end
-	if isRobe then
-		local cloth = Color3.fromRGB(60, 50, 110):Lerp(rarity.color, 0.25)
-		plate(s + Vector3.new(0.15, 0.05, 0.15), CFrame.new(), cloth, Enum.Material.Fabric)
-		plate(Vector3.new(0.35, s.Y, 0.12), CFrame.new(0, 0, -(s.Z / 2 + 0.1)), rarity.color, accentMaterial)
-		plate(Vector3.new(s.X + 0.3, 0.3, s.Z + 0.3), CFrame.new(0, s.Y / 2 - 0.1, 0), rarity.color:Lerp(Color3.new(1, 1, 1), 0.3), Enum.Material.Fabric) -- gola
-		if lower then
-			-- saia do manto
-			gearPart(model, lower, Vector3.new(lower.Size.X + 0.3, 1.6, lower.Size.Z + 0.3), CFrame.new(0, -0.6, 0), cloth, Enum.Material.Fabric, rarity)
-			gearPart(model, lower, Vector3.new(0.3, 1.6, 0.1), CFrame.new(0, -0.6, -(lower.Size.Z / 2 + 0.16)), rarity.color, accentMaterial, rarity)
-		end
-	else
-		local metal = if isLeather then Color3.fromRGB(110, 75, 50) else Color3.fromRGB(95, 95, 108):Lerp(rarity.color, 0.15)
-		local material = if isLeather then Enum.Material.Fabric else Enum.Material.Metal
-		plate(s + Vector3.new(0.2, 0.05, 0.2), CFrame.new(), metal, material)
-		-- peitoral em camadas
-		plate(Vector3.new(s.X * 0.75, s.Y * 0.55, 0.15), CFrame.new(0, 0.15, -(s.Z / 2 + 0.15)), metal:Lerp(Color3.new(1, 1, 1), 0.15), material)
-		plate(Vector3.new(s.X * 0.45, s.Y * 0.3, 0.17), CFrame.new(0, 0.2, -(s.Z / 2 + 0.22)), rarity.color, accentMaterial)
-		-- cinto com fivela
-		plate(Vector3.new(s.X + 0.25, 0.28, s.Z + 0.25), CFrame.new(0, -s.Y / 2 + 0.15, 0), Color3.fromRGB(60, 40, 28), Enum.Material.Fabric)
-		plate(Vector3.new(0.35, 0.3, 0.1), CFrame.new(0, -s.Y / 2 + 0.15, -(s.Z / 2 + 0.17)), Color3.fromRGB(220, 180, 70), Enum.Material.Metal)
-		-- rebites
-		for _, x in { -1, 1 } do
-			plate(Vector3.one * 0.14, CFrame.new(x * s.X * 0.32, 0.45, -(s.Z / 2 + 0.25)), Color3.fromRGB(220, 180, 70), Enum.Material.Metal, Enum.PartType.Ball)
-		end
-	end
-	-- ombreiras
-	if rarity.order >= 2 then
-		for _, side in { -1, 1 } do
-			local shoulder = plate(Vector3.new(1.05, 0.45, 1.35), CFrame.new(side * (s.X / 2 + 0.25), s.Y / 2 - 0.05, 0) * CFrame.Angles(0, 0, math.rad(-side * 12)), if isRobe then rarity.color else Color3.fromRGB(100, 100, 115):Lerp(rarity.color, 0.4), if isRobe then Enum.Material.Fabric else Enum.Material.Metal)
-			local _sh = shoulder
-			if rarity.order >= 4 then
-				plate(Vector3.new(1.1, 0.12, 1.4), CFrame.new(side * (s.X / 2 + 0.27), s.Y / 2 + 0.2, 0) * CFrame.Angles(0, 0, math.rad(-side * 12)), rarity.color, Enum.Material.Neon)
-			end
-		end
-	end
-	-- capa (Lendário+)
-	if rarity.order >= 5 then
-		local cape = plate(Vector3.new(s.X * 0.95, 3.4, 0.12), CFrame.new(0, -1.15, s.Z / 2 + 0.2) * CFrame.Angles(math.rad(-6), 0, 0), rarity.color:Lerp(Color3.new(0, 0, 0), 0.35), Enum.Material.Fabric)
-		local _c = cape
-		plate(Vector3.new(s.X * 0.95, 0.15, 0.14), CFrame.new(0, -2.8, s.Z / 2 + 0.38) * CFrame.Angles(math.rad(-6), 0, 0), rarity.color, Enum.Material.Neon)
-	end
-end
-
-function GEAR_VISUALS.helmet(character, item, rarity, base, model)
-	local head = character:FindFirstChild("Head")
-	if not head then
-		return
-	end
-	local s = head.Size
-	local id = item.base
-	local accentMaterial = if rarity.order >= 4 then Enum.Material.Neon else Enum.Material.Metal
-	local function piece(size, offset, color, material, shape)
-		return gearPart(model, head, size, offset, color, material, rarity, shape)
-	end
-	if id == "capuz_aprendiz" or id == "capuz_sombrio" then
-		local cloth = if id == "capuz_sombrio" then Color3.fromRGB(35, 30, 45) else Color3.fromRGB(90, 70, 130)
-		piece(Vector3.new(s.X + 0.35, s.Y + 0.3, s.Z + 0.4), CFrame.new(0, 0.12, 0.08), cloth, Enum.Material.Fabric)
-		piece(Vector3.new(s.X * 0.6, 0.6, 0.6), CFrame.new(0, 0.1, s.Z / 2 + 0.3) * CFrame.Angles(math.rad(-30), 0, 0), cloth, Enum.Material.Fabric)
-		piece(Vector3.new(s.X + 0.4, 0.12, 0.1), CFrame.new(0, -0.3, -(s.Z / 2 + 0.15)), rarity.color, accentMaterial)
-	elseif id == "coroa_arcana" then
-		piece(Vector3.new(s.X + 0.15, 0.35, s.Z + 0.15), CFrame.new(0, s.Y / 2 + 0.05, 0), Color3.fromRGB(220, 180, 70), Enum.Material.Metal)
-		for i = 0, 4 do
-			local angle = i / 5 * math.pi * 2
-			piece(Vector3.new(0.18, 0.5, 0.18), CFrame.new(0, s.Y / 2 + 0.4, 0) * CFrame.Angles(0, angle, 0) * CFrame.new(0, 0, -(s.Z / 2)), Color3.fromRGB(220, 180, 70), Enum.Material.Metal)
-		end
-		piece(Vector3.one * 0.3, CFrame.new(0, s.Y / 2 + 0.1, -(s.Z / 2 + 0.1)), rarity.color, Enum.Material.Neon, Enum.PartType.Ball)
-	else
-		-- elmo de couro, ferro ou dragão
-		local leather = id == "elmo_couro"
-		local color = if leather then Color3.fromRGB(110, 75, 50) else Color3.fromRGB(110, 110, 122):Lerp(rarity.color, 0.15)
-		local material = if leather then Enum.Material.Fabric else Enum.Material.Metal
-		piece(Vector3.new(s.X + 0.25, s.Y * 0.75, s.Z + 0.25), CFrame.new(0, 0.25, 0), color, material)
-		piece(Vector3.new(s.X + 0.3, 0.18, s.Z + 0.3), CFrame.new(0, -0.05, 0), rarity.color, accentMaterial)
-		if not leather then
-			-- protetor de nariz e laterais
-			piece(Vector3.new(0.18, 0.6, 0.12), CFrame.new(0, -0.15, -(s.Z / 2 + 0.15)), color, material)
-			for _, side in { -1, 1 } do
-				piece(Vector3.new(0.12, 0.7, s.Z * 0.7), CFrame.new(side * (s.X / 2 + 0.12), -0.25, 0.05), color, material)
-			end
-			piece(Vector3.new(0.15, 0.35, s.Z + 0.1), CFrame.new(0, s.Y / 2 + 0.2, 0), rarity.color, accentMaterial) -- crista
-		end
-		if id == "elmo_dragao" then
-			for _, side in { -1, 1 } do
-				piece(Vector3.new(0.22, 0.9, 0.22), CFrame.new(side * 0.55, s.Y / 2 + 0.35, 0.1) * CFrame.Angles(math.rad(-25), 0, math.rad(-side * 30)), Color3.fromRGB(240, 230, 210), Enum.Material.SmoothPlastic)
-				piece(Vector3.new(0.15, 0.5, 0.15), CFrame.new(side * 0.85, s.Y / 2 + 0.85, 0.25) * CFrame.Angles(math.rad(-40), 0, math.rad(-side * 15)), Color3.fromRGB(240, 230, 210), Enum.Material.SmoothPlastic)
+-- Elmo esconde chapéus e cabelos do avatar (e devolve quando tira)
+local function setHeadAccessoriesHidden(character, hidden)
+	for _, accessory in character:GetChildren() do
+		if accessory:IsA("Accessory") then
+			local kind = accessory.AccessoryType
+			if kind == Enum.AccessoryType.Hat or kind == Enum.AccessoryType.Hair then
+				local handle = accessory:FindFirstChild("Handle")
+				if handle and handle:IsA("BasePart") then
+					if hidden then
+						if handle:GetAttribute("TransparenciaOriginal") == nil then
+							handle:SetAttribute("TransparenciaOriginal", handle.Transparency)
+						end
+						handle.Transparency = 1
+					elseif handle:GetAttribute("TransparenciaOriginal") ~= nil then
+						handle.Transparency = handle:GetAttribute("TransparenciaOriginal")
+						handle:SetAttribute("TransparenciaOriginal", nil)
+					end
+				end
 			end
 		end
 	end
 end
 
-function GEAR_VISUALS.boots(character, item, rarity, base, model)
-	local accentMaterial = if rarity.order >= 4 then Enum.Material.Neon else Enum.Material.Metal
-	local leather = item.base == "botas_couro" or item.base == "sandalias_monge" or item.base == "botas_vento"
-	local color = if leather then Color3.fromRGB(95, 65, 45) else Color3.fromRGB(100, 100, 112):Lerp(rarity.color, 0.15)
-	local material = if leather then Enum.Material.Fabric else Enum.Material.Metal
-	for _, side in { "Left", "Right" } do
-		local shin = character:FindFirstChild(side .. "LowerLeg")
-		local foot = character:FindFirstChild(side .. "Foot")
-		if shin then
-			gearPart(model, shin, shin.Size + Vector3.new(0.15, -0.2, 0.15), CFrame.new(0, -0.1, 0), color, material, rarity)
-			gearPart(model, shin, Vector3.new(shin.Size.X + 0.2, 0.15, shin.Size.Z + 0.2), CFrame.new(0, shin.Size.Y / 2 - 0.25, 0), rarity.color, accentMaterial, rarity)
-		end
-		if foot then
-			gearPart(model, foot, foot.Size + Vector3.new(0.12, 0.08, 0.12), CFrame.new(0, 0.02, 0), color:Lerp(Color3.new(0, 0, 0), 0.2), material, rarity)
-		end
-	end
-	local _b = base
-end
-
--- Aplica (ou remove) o visual de um espaço: "armor", "helmet" ou "boots"
+-- Aplica (ou remove) o visual de um espaço vestido (armadura, elmo, botas, amuleto, anel).
+-- O formato vem de ItemModels.worn (o mesmo visual do ícone 3D do item).
 local function applyGearVisual(character, slot, item)
 	local name = "Visual_" .. slot
 	local old = character:FindFirstChild(name)
@@ -657,15 +561,35 @@ local function applyGearVisual(character, slot, item)
 			legacy:Destroy()
 		end
 	end
-	local builder = GEAR_VISUALS[slot]
-	if not item or not builder then
+	if slot == "helmet" then
+		setHeadAccessoriesHidden(character, item ~= nil)
+	end
+	if not item then
 		return
 	end
 	local rarity = Rarities.ById[item.rarity] or Rarities.List[1]
-	local base = Items.Bases[item.base] or {}
+	local sizes, parts = {}, {}
+	for _, partName in BODY_PARTS do
+		local bodyPart = character:FindFirstChild(partName)
+		if bodyPart and bodyPart:IsA("BasePart") then
+			sizes[partName] = bodyPart.Size
+			parts[partName] = bodyPart
+		end
+	end
 	local model = Instance.new("Model")
 	model.Name = name
-	builder(character, item, rarity, base, model)
+	for _, piece in ItemModels.worn(item.base, item.rarity, sizes) do
+		local bodyPart = parts[piece.part]
+		if bodyPart then
+			local p = gearPart(model, bodyPart, piece.size, piece.cf, piece.color, piece.material, rarity, if piece.shape then Enum.PartType[piece.shape] else nil)
+			if piece.transparency then
+				p.Transparency = piece.transparency
+			end
+			if piece.glow and rarity.rainbow then
+				CollectionService:AddTag(p, "Rainbow")
+			end
+		end
+	end
 	model.Parent = character
 end
 
@@ -687,7 +611,7 @@ function PlayerService.refreshCharacter(player, options)
 		WeaponModels.attach(character, PlayerService.getEquipped(player, "weapon"))
 	end
 	if options.armor then
-		for _, slot in { "armor", "helmet", "boots" } do
+		for _, slot in { "armor", "helmet", "boots", "amulet", "ring" } do
 			applyGearVisual(character, slot, PlayerService.getEquipped(player, slot))
 		end
 	end
@@ -863,7 +787,7 @@ function PlayerService.addItem(player, item, options)
 	end
 	if base and not data.equipped[base.slot] then
 		data.equipped[base.slot] = item.uid
-		PlayerService.refreshCharacter(player, { weapon = base.slot == "weapon", armor = base.slot == "armor" or base.slot == "helmet" or base.slot == "boots" })
+		PlayerService.refreshCharacter(player, { weapon = base.slot == "weapon", armor = base.slot ~= "weapon" })
 	end
 	PlayerService.markDirty(player)
 end
@@ -882,7 +806,7 @@ function PlayerService.equip(player, uid)
 		return { ok = true }
 	end
 	data.equipped[base.slot] = uid
-	PlayerService.refreshCharacter(player, { weapon = base.slot == "weapon", armor = base.slot == "armor" or base.slot == "helmet" or base.slot == "boots" })
+	PlayerService.refreshCharacter(player, { weapon = base.slot == "weapon", armor = base.slot ~= "weapon" })
 	PlayerService.QuestHook(player, "equip", nil, 1)
 	PlayerService.markDirty(player)
 	return { ok = true }

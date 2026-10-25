@@ -109,7 +109,7 @@ O botão direito do mouse fica livre para girar a câmera.
 - **Armas:** espada, machado, martelo, lança, katana, adaga, arco e cajado, cada uma com combo e ataque pesado próprios. A maestria da arma sobe com o uso: nível 3 libera o finalizador do combo e nível 5 o ataque pesado.
 - **Raridades:** Comum, Incomum, Raro, Épico, Lendário, Mítico e Secreto, mais os **Únicos**: 8 itens com efeito próprio (Lâmina do Eclipse, Punho do Colosso, Arco da Viúva, Coroa do Rei Goblin, Anel do Lich...) que só caem de chefes, com 1,5% de chance por chefe (o dobro no andar 20).
 - **Conjuntos:** 3 conjuntos de 4 peças (um por masmorra) com bônus ao equipar 2 e 4 peças (o de 4 liga um efeito: Pilhagem, Pacto Espectral, Erupção).
-- **Itens em 3D:** cada item tem o próprio modelo (sem emojis): ele aparece na mão, no chão quando cai, no inventário, na forja, no baú e na loja.
+- **Itens em 3D:** cada item tem o próprio modelo (sem emojis): ele aparece na mão, no chão quando cai, no inventário, na forja, no baú e na loja. O que você equipa aparece vestido no personagem com o mesmo visual (armadura, elmo, botas, amuleto e anel).
 - **Equipamento:** arma, armadura, elmo, botas, amuleto e anel (mais de 70 bases, até o tier 3). Cada item sorteia **perks** próprios pela raridade, no estilo Destiny (Fúria Crescente, Explosão Fatal, Eco, Tempestade, Segunda Chance, Espinhos...). O Bruno reforja os perks.
 - **Pets (tecla G):** seguem você, sobem de nível com os abates e dão bônus. Ovos no Otto, pagos com ouro, com as chances visíveis; ovos raros caem de Elites e chefes.
 - **Jornada (tecla K):** recompensa diária em sequência de 7 dias, Passe do Hunter grátis com 50 tiers, 15 conquistas com títulos e marcos de nível.

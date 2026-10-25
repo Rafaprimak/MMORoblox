@@ -914,6 +914,358 @@ function gear.ring(b, look, rarity)
 	end
 end
 
+-- ===================== NO CORPO (equipamento vestido) =====================
+-- Peças do item vestido, presas nas partes do corpo R15. Cada peça: { part = "UpperTorso", size, cf
+-- (relativo à parte do corpo), color, material, shape, glow, transparency }. O servidor solda.
+-- Usa o mesmo visual (ItemModels.Looks) do ícone, então o que você vê no inventário é o que veste.
+local worn = {}
+
+local function wornList(sizes, rarity)
+	local list = {}
+	local w = {}
+	function w.add(partName, size, cf, color, material, opts)
+		if not sizes[partName] then
+			return
+		end
+		local entry = { part = partName, size = size, cf = cf, color = color, material = material or M.Metal }
+		if opts then
+			entry.shape = opts.shape
+			entry.glow = opts.glow
+			entry.transparency = opts.transparency
+		end
+		table.insert(list, entry)
+	end
+	function w.ball(partName, diameter, cf, color, material, glow)
+		w.add(partName, Vector3.one * diameter, cf, color, material, { shape = "Ball", glow = glow })
+	end
+	function w.wedge(partName, size, cf, color, material, glow)
+		w.add(partName, size, cf, color, material, { shape = "Wedge", glow = glow })
+	end
+	function w.gem(partName, diameter, cf, color)
+		w.ball(partName, diameter, cf, color or rarity.color, if rarity.order >= 3 then M.Neon else M.Glass, true)
+	end
+	w.list = list
+	return w
+end
+
+local SIDES = { Left = -1, Right = 1 }
+
+function worn.armor(w, look, rarity, sizes)
+	local main, trim = look.main or C.steel, look.trim or C.darkSteel
+	local accent = glowColor(look, rarity)
+	local style = look.style or "plate"
+	local fabric = style == "robe"
+	local material = if style == "plate" or style == "dragon" then M.Metal elseif style == "mail" then M.DiamondPlate elseif fabric then M.Fabric else M.Leather
+	local t = sizes.UpperTorso
+	if not t then
+		return
+	end
+	local front = -(t.Z / 2)
+	-- casca do peito, gola e cinto
+	w.add("UpperTorso", t + Vector3.new(0.18, 0.06, 0.18), CFrame.new(), main, material)
+	w.add("UpperTorso", Vector3.new(t.X * 0.62, 0.26, t.Z + 0.26), CFrame.new(0, t.Y / 2 - 0.02, 0), trim, if fabric then M.Fabric else M.Metal)
+	local lower = sizes.LowerTorso
+	if lower then
+		w.add("LowerTorso", lower + Vector3.new(0.2, 0.06, 0.2), CFrame.new(), main:Lerp(Color3.new(0, 0, 0), 0.1), material)
+		w.add("LowerTorso", Vector3.new(lower.X + 0.28, 0.24, lower.Z + 0.28), CFrame.new(0, 0.05, 0), if fabric then trim else C.darkLeather, M.Leather)
+		w.add("LowerTorso", Vector3.new(0.36, 0.3, 0.1), CFrame.new(0, 0.05, -(lower.Z / 2 + 0.17)), C.gold, M.Metal)
+	end
+	-- braços: ombreiras, mangas e braçadeiras
+	for side, sign in SIDES do
+		local upper = sizes[side .. "UpperArm"]
+		local fore = sizes[side .. "LowerArm"]
+		local upperName, foreName = side .. "UpperArm", side .. "LowerArm"
+		if upper then
+			if fabric then
+				w.add(upperName, upper + Vector3.new(0.16, 0.0, 0.16), CFrame.new(0, 0.05, 0), main, M.Fabric)
+				w.add(upperName, Vector3.new(upper.X + 0.35, 0.4, upper.Z + 0.35), CFrame.new(0, upper.Y / 2 - 0.15, 0), main:Lerp(Color3.new(1, 1, 1), 0.08), M.Fabric)
+			elseif style == "plate" or style == "dragon" then
+				local big = if look.heavy then 0.25 else 0
+				w.add(upperName, Vector3.new(upper.X + 0.45 + big, 0.5 + big * 0.5, upper.Z + 0.45 + big), CFrame.new(sign * 0.08, upper.Y / 2 - 0.08, 0) * CFrame.Angles(0, 0, math.rad(-sign * 14)), main:Lerp(Color3.new(1, 1, 1), 0.1), M.Metal)
+				w.add(upperName, Vector3.new(upper.X + 0.5 + big, 0.12, upper.Z + 0.5 + big), CFrame.new(sign * 0.08, upper.Y / 2 - 0.36, 0) * CFrame.Angles(0, 0, math.rad(-sign * 14)), trim, M.Metal)
+				w.add(upperName, upper + Vector3.new(0.12, -0.3, 0.12), CFrame.new(0, -0.15, 0), main:Lerp(Color3.new(0, 0, 0), 0.1), M.Metal)
+				if style == "dragon" or look.heavy then
+					for k = 0, 1 do
+						w.wedge(upperName, Vector3.new(0.14, 0.5, 0.3), CFrame.new(sign * (upper.X / 2 + 0.05), upper.Y / 2 + 0.2, -0.2 + k * 0.4) * CFrame.Angles(0, math.rad(sign * 90), math.rad(-sign * 20)), trim, M.Metal)
+					end
+				end
+				if rarity.order >= 4 or look.glow then
+					w.add(upperName, Vector3.new(upper.X + 0.52 + big, 0.06, 0.12), CFrame.new(sign * 0.08, upper.Y / 2 + 0.02, -(upper.Z / 2 + 0.22 + big / 2)), accent, M.Neon, { glow = true })
+				end
+			elseif style == "mail" then
+				w.add(upperName, upper + Vector3.new(0.12, -0.1, 0.12), CFrame.new(0, 0.05, 0), main, M.DiamondPlate)
+			else
+				w.add(upperName, Vector3.new(upper.X + 0.3, 0.35, upper.Z + 0.3), CFrame.new(0, upper.Y / 2 - 0.12, 0), main:Lerp(Color3.new(0, 0, 0), 0.15), M.Leather)
+			end
+		end
+		if fore then
+			if fabric then
+				-- manga larga que abre no punho
+				w.add(foreName, Vector3.new(fore.X + 0.3, fore.Y * 0.7, fore.Z + 0.3), CFrame.new(0, -fore.Y * 0.1, 0), main, M.Fabric)
+				w.add(foreName, Vector3.new(fore.X + 0.36, 0.16, fore.Z + 0.36), CFrame.new(0, -fore.Y * 0.45, 0), trim, M.Fabric)
+			else
+				w.add(foreName, Vector3.new(fore.X + 0.14, fore.Y * 0.5, fore.Z + 0.14), CFrame.new(0, -fore.Y * 0.12, 0), if style == "leather" then C.darkLeather else main, if style == "leather" then M.Leather else M.Metal)
+				w.add(foreName, Vector3.new(fore.X + 0.18, 0.1, fore.Z + 0.18), CFrame.new(0, fore.Y * 0.12, 0), trim, M.Metal)
+			end
+		end
+	end
+	if fabric then
+		-- faixa central, saia longa do manto, estrelas/rasgos/emblema
+		w.add("UpperTorso", Vector3.new(0.34, t.Y + 0.05, 0.08), CFrame.new(0, 0, front - 0.12), trim, M.Fabric)
+		if lower then
+			w.add("LowerTorso", Vector3.new(lower.X + 0.4, 2.1, lower.Z + 0.4), CFrame.new(0, -1.05, 0.02), main, M.Fabric)
+			w.add("LowerTorso", Vector3.new(0.34, 2.1, 0.08), CFrame.new(0, -1.05, -(lower.Z / 2 + 0.24)), trim, M.Fabric)
+			w.add("LowerTorso", Vector3.new(lower.X + 0.44, 0.14, lower.Z + 0.44), CFrame.new(0, -2.05, 0.02), trim, M.Fabric)
+			if look.tattered then
+				for i = 0, 4 do
+					w.wedge("LowerTorso", Vector3.new(0.36, 0.35, 0.08), CFrame.new(-0.8 + i * 0.4, -2.25, -(lower.Z / 2 + 0.2)) * CFrame.Angles(math.rad(180), 0, 0), main, M.Fabric)
+				end
+			end
+		end
+		if look.stars then
+			for i = 0, 4 do
+				w.ball("UpperTorso", 0.12, CFrame.new(-0.6 + (i % 3) * 0.6, 0.35 - math.floor(i / 3) * 0.6, front - 0.12), accent, M.Neon, true)
+			end
+		end
+		if look.glow or rarity.order >= 4 then
+			w.add("UpperTorso", Vector3.new(0.42, 0.42, 0.06), CFrame.new(0, 0.25, front - 0.17) * CFrame.Angles(0, 0, math.rad(45)), accent, M.Neon, { glow = true })
+		end
+	elseif style == "plate" then
+		for i = 0, 2 do
+			w.add("UpperTorso", Vector3.new(t.X * 0.82 - i * 0.12, t.Y * 0.26, 0.14), CFrame.new(0, t.Y * 0.28 - i * t.Y * 0.27, front - 0.12), main:Lerp(Color3.new(1, 1, 1), 0.14 - i * 0.04), M.Metal)
+			for _, sign in { -1, 1 } do
+				w.ball("UpperTorso", 0.12, CFrame.new(sign * (t.X * 0.36 - i * 0.06), t.Y * 0.28 - i * t.Y * 0.27, front - 0.2), trim, M.Metal)
+			end
+		end
+		w.add("UpperTorso", Vector3.new(0.42, 0.42, 0.08), CFrame.new(0, t.Y * 0.14, front - 0.22) * CFrame.Angles(0, 0, math.rad(45)), accent, glowMaterial(look, rarity), { glow = true })
+		if lower then
+			-- placas de saia (tassets) na frente e atrás
+			for _, z in { -1, 1 } do
+				for _, sign in { -1, 1 } do
+					w.add("LowerTorso", Vector3.new(lower.X * 0.42, 0.75, 0.12), CFrame.new(sign * lower.X * 0.24, -0.45, z * (lower.Z / 2 + 0.16)) * CFrame.Angles(math.rad(z * -8), 0, 0), main:Lerp(Color3.new(1, 1, 1), 0.08), M.Metal)
+				end
+			end
+		end
+		if look.light then
+			for _, sign in { -1, 1 } do
+				w.wedge("UpperTorso", Vector3.new(0.08, 0.9, 0.6), CFrame.new(sign * (t.X / 2 + 0.05), 0.1, t.Z / 2) * CFrame.Angles(0, math.rad(sign * 90), math.rad(sign * -20)), C.silver, M.Metal)
+			end
+		end
+	elseif style == "dragon" then
+		for row = 0, 3 do
+			for col = -2, 2 do
+				w.wedge("UpperTorso", Vector3.new(t.X * 0.17, t.Y * 0.22, 0.12), CFrame.new(col * t.X * 0.18 + (row % 2) * t.X * 0.09, t.Y * 0.32 - row * t.Y * 0.22, front - 0.12) * CFrame.Angles(math.rad(180), 0, 0), main:Lerp(trim, 0.15 * (row % 2)), M.Metal)
+			end
+		end
+		w.add("UpperTorso", Vector3.new(0.4, 0.4, 0.1), CFrame.new(0, -t.Y * 0.38, front - 0.18) * CFrame.Angles(0, 0, math.rad(45)), accent, glowMaterial(look, rarity), { glow = true })
+		for k = 0, 2 do
+			w.wedge("UpperTorso", Vector3.new(0.12, 0.35, 0.3), CFrame.new(0, t.Y * 0.3 - k * 0.45, t.Z / 2 + 0.2), trim, M.Metal)
+		end
+	elseif style == "mail" then
+		for i = 0, 3 do
+			w.add("UpperTorso", Vector3.new(t.X + 0.22, 0.05, t.Z + 0.22), CFrame.new(0, t.Y * 0.35 - i * t.Y * 0.25, 0), main:Lerp(Color3.new(1, 1, 1), 0.3), M.Metal)
+		end
+		w.add("UpperTorso", Vector3.new(t.X * 0.42, t.Y + 0.05, 0.08), CFrame.new(0, 0, front - 0.13), trim, M.Leather)
+		if lower then
+			w.add("LowerTorso", Vector3.new(lower.X * 0.42, 1.0, 0.08), CFrame.new(0, -0.55, -(lower.Z / 2 + 0.15)), trim, M.Leather)
+		end
+	else -- couro
+		for _, sign in { -1, 1 } do
+			w.add("UpperTorso", Vector3.new(0.14, t.Y * 1.25, 0.08), CFrame.new(sign * t.X * 0.18, 0, front - 0.12) * CFrame.Angles(0, 0, math.rad(sign * 22)), trim, M.Leather)
+		end
+		for i = 0, 2 do
+			w.add("UpperTorso", Vector3.new(0.13, 0.13, 0.06), CFrame.new(0, t.Y * 0.3 - i * t.Y * 0.28, front - 0.13), C.iron, M.Metal)
+		end
+		if look.straps then
+			w.add("UpperTorso", Vector3.new(t.X * 1.2, 0.2, t.Z + 0.24), CFrame.new(0, 0, 0) * CFrame.Angles(0, 0, math.rad(32)), C.darkLeather, M.Leather)
+		end
+		if lower then
+			w.add("LowerTorso", Vector3.new(0.45, 0.4, 0.28), CFrame.new(lower.X * 0.32, -0.25, -(lower.Z / 2 + 0.12)), C.leather, M.Leather)
+		end
+		if look.hood then
+			w.add("UpperTorso", Vector3.new(t.X * 0.6, 0.55, 0.5), CFrame.new(0, t.Y / 2 + 0.15, t.Z / 2 + 0.05), main, M.Fabric)
+		end
+	end
+	-- capa nas costas (Lendário para cima e Únicos)
+	if rarity.order >= 5 then
+		local cape = rarity.color:Lerp(Color3.new(0, 0, 0), if rarity.unique then 0.55 else 0.35)
+		w.add("UpperTorso", Vector3.new(t.X * 0.95, 3.4, 0.12), CFrame.new(0, -1.15, t.Z / 2 + 0.22) * CFrame.Angles(math.rad(-6), 0, 0), cape, M.Fabric)
+		w.add("UpperTorso", Vector3.new(t.X * 0.95, 0.15, 0.14), CFrame.new(0, -2.8, t.Z / 2 + 0.4) * CFrame.Angles(math.rad(-6), 0, 0), rarity.color, M.Neon, { glow = true })
+		for _, sign in { -1, 1 } do
+			w.ball("UpperTorso", 0.28, CFrame.new(sign * t.X * 0.38, t.Y / 2 - 0.1, front - 0.1), C.gold, M.Metal)
+		end
+	end
+end
+
+function worn.helmet(w, look, rarity, sizes)
+	local h = sizes.Head
+	if not h then
+		return
+	end
+	local main, trim = look.main or C.iron, look.trim or C.darkSteel
+	local accent = glowColor(look, rarity)
+	local style = look.style or "iron"
+	local front = -(h.Z / 2)
+	if style == "hood" then
+		w.add("Head", h + Vector3.new(0.36, 0.32, 0.42), CFrame.new(0, 0.12, 0.1), main, M.Fabric)
+		w.wedge("Head", Vector3.new(h.X * 0.55, 0.6, 0.7), CFrame.new(0, h.Y / 2 + 0.05, h.Z / 2 + 0.2) * CFrame.Angles(math.rad(-35), 0, 0), main, M.Fabric)
+		w.add("Head", Vector3.new(h.X + 0.42, 0.14, 0.12), CFrame.new(0, h.Y / 2 - 0.12, front - 0.16), trim, M.Fabric)
+		for _, sign in { -1, 1 } do
+			w.add("Head", Vector3.new(0.14, h.Y + 0.1, 0.12), CFrame.new(sign * (h.X / 2 + 0.12), 0, front - 0.12), trim, M.Fabric)
+		end
+		if look.eyes then
+			for _, sign in { -1, 1 } do
+				w.ball("Head", 0.12, CFrame.new(sign * h.X * 0.18, h.Y * 0.05, front - 0.04), look.eyes, M.Neon, true)
+			end
+		end
+		return
+	elseif style == "crown" then
+		local radius = h.X / 2 + (if look.big then 0.14 else 0.06)
+		local y = h.Y / 2 + 0.02
+		for i = 0, 11 do
+			local angle = i / 12 * math.pi * 2
+			local length = 2 * radius * math.tan(math.pi / 12) + 0.02
+			w.add("Head", Vector3.new(length, 0.3, 0.12), CFrame.new(0, y, 0) * CFrame.Angles(0, angle, 0) * CFrame.new(0, 0, -radius), main, M.Foil)
+			if i % 2 == 0 then
+				w.wedge("Head", Vector3.new(0.18, if i % 4 == 0 then 0.55 else 0.35, 0.1), CFrame.new(0, y + 0.3, 0) * CFrame.Angles(0, angle, 0) * CFrame.new(0, if i % 4 == 0 then 0.1 else 0, -radius), main, M.Foil)
+			end
+			if i % 4 == 0 then
+				w.ball("Head", 0.14, CFrame.new(0, y + 0.55, 0) * CFrame.Angles(0, angle, 0) * CFrame.new(0, 0, -radius), accent, M.Neon, true)
+			end
+		end
+		w.gem("Head", 0.24, CFrame.new(0, y, front - 0.1), accent)
+		return
+	end
+	local material = if style == "cap" then M.Leather else M.Metal
+	-- calota + aba
+	w.add("Head", Vector3.new(h.X + 0.24, h.Y * 0.62, h.Z + 0.24), CFrame.new(0, h.Y * 0.24, 0.02), main, material)
+	w.ball("Head", h.X + 0.22, CFrame.new(0, h.Y * 0.42, 0.02), main, material)
+	w.add("Head", Vector3.new(h.X + 0.3, 0.16, h.Z + 0.3), CFrame.new(0, -0.02, 0.02), trim, material)
+	if style == "cap" then
+		for _, sign in { -1, 1 } do
+			w.add("Head", Vector3.new(0.12, h.Y * 0.55, h.Z * 0.45), CFrame.new(sign * (h.X / 2 + 0.1), -h.Y * 0.2, 0.08), main, M.Leather)
+		end
+		w.add("Head", Vector3.new(0.12, 0.5, 0.12), CFrame.new(0, h.Y / 2 + 0.35, 0.1) * CFrame.Angles(math.rad(-25), 0, 0), trim, M.Leather)
+		return
+	end
+	-- protetores: nariz, bochechas e nuca; crista em cima
+	w.add("Head", Vector3.new(0.16, h.Y * 0.5, 0.12), CFrame.new(0, -h.Y * 0.18, front - 0.12), main, M.Metal)
+	for _, sign in { -1, 1 } do
+		w.add("Head", Vector3.new(0.12, h.Y * 0.6, h.Z * 0.62), CFrame.new(sign * (h.X / 2 + 0.11), -h.Y * 0.22, 0.04), main, M.Metal)
+	end
+	w.add("Head", Vector3.new(h.X + 0.1, h.Y * 0.5, 0.14), CFrame.new(0, -h.Y * 0.15, h.Z / 2 + 0.1), main:Lerp(Color3.new(0, 0, 0), 0.1), M.Metal)
+	w.add("Head", Vector3.new(0.16, 0.3, h.Z + 0.3), CFrame.new(0, h.Y / 2 + 0.38, 0.02), trim, M.Metal)
+	if look.glow then
+		w.add("Head", Vector3.new(h.X + 0.32, 0.06, 0.06), CFrame.new(0, 0.06, front - 0.16), accent, M.Neon, { glow = true })
+	else
+		w.gem("Head", 0.2, CFrame.new(0, 0.08, front - 0.16))
+	end
+	if style == "horned" then
+		for _, sign in { -1, 1 } do
+			for k = 0, 2 do
+				w.add("Head", Vector3.new(0.24 - k * 0.05, 0.45, 0.24 - k * 0.05), CFrame.new(sign * (h.X / 2 + 0.1 + k * 0.2), h.Y * 0.3 + k * 0.35, 0.05) * CFrame.Angles(0, 0, math.rad(sign * (-40 + k * 22))), if k == 2 then accent else trim, if k == 2 and look.glow then M.Neon else M.Metal, { glow = k == 2 })
+			end
+		end
+	end
+end
+
+function worn.boots(w, look, rarity, sizes)
+	local main, trim = look.main or C.leather, look.trim or C.darkLeather
+	local accent = glowColor(look, rarity)
+	local style = look.style or "leather"
+	for side, sign in SIDES do
+		local legName, footName = side .. "LowerLeg", side .. "Foot"
+		local l, f = sizes[legName], sizes[footName]
+		if style == "sandal" then
+			if f then
+				w.add(footName, Vector3.new(f.X + 0.1, 0.12, f.Z + 0.2), CFrame.new(0, -f.Y / 2 - 0.02, -0.05), main, M.Wood)
+				for k = 0, 1 do
+					w.add(footName, Vector3.new(f.X + 0.08, 0.08, 0.12), CFrame.new(0, 0, -f.Z * 0.25 + k * f.Z * 0.4), trim, M.Leather)
+				end
+			end
+			if l then
+				for k = 0, 2 do
+					w.add(legName, Vector3.new(l.X + 0.06, 0.08, l.Z + 0.06), CFrame.new(0, -l.Y * 0.4 + k * 0.25, 0) * CFrame.Angles(0, 0, math.rad(if k % 2 == 0 then 12 else -12)), trim, M.Leather)
+				end
+			end
+		else
+			local material = if style == "iron" or style == "dragon" then M.Metal else M.Leather
+			if l then
+				w.add(legName, l + Vector3.new(0.14, -0.15, 0.14), CFrame.new(0, -0.08, 0), main, material)
+				w.add(legName, Vector3.new(l.X + 0.26, 0.2, l.Z + 0.26), CFrame.new(0, l.Y / 2 - 0.2, 0), trim, material)
+				if style == "iron" or style == "dragon" then
+					w.add(legName, Vector3.new(l.X * 0.8, l.Y * 0.75, 0.14), CFrame.new(0, -0.05, -(l.Z / 2 + 0.12)), main:Lerp(Color3.new(1, 1, 1), 0.14), M.Metal)
+					w.ball(legName, l.X * 0.7, CFrame.new(0, l.Y / 2 - 0.05, -(l.Z / 2 + 0.05)), main:Lerp(Color3.new(1, 1, 1), 0.1), M.Metal)
+					if look.glow then
+						w.add(legName, Vector3.new(0.08, l.Y * 0.6, 0.06), CFrame.new(0, -0.05, -(l.Z / 2 + 0.2)), accent, M.Neon, { glow = true })
+					end
+					if style == "dragon" then
+						for k = 0, 2 do
+							w.wedge(legName, Vector3.new(0.12, 0.3, 0.26), CFrame.new(0, l.Y * 0.3 - k * l.Y * 0.28, l.Z / 2 + 0.16), trim, M.Metal)
+						end
+					end
+				elseif style == "wing" then
+					for k = 0, 1 do
+						w.wedge(legName, Vector3.new(0.08, 0.55 - k * 0.15, 0.5), CFrame.new(sign * (l.X / 2 + 0.12), l.Y * 0.1 + k * 0.22, 0.15) * CFrame.Angles(0, 0, math.rad(sign * 25)), if look.glow then accent else trim, if look.glow then M.Neon else M.Metal, k == 0)
+					end
+				else
+					for k = 0, 1 do
+						w.add(legName, Vector3.new(l.X + 0.2, 0.09, l.Z + 0.2), CFrame.new(0, -l.Y * 0.1 - k * l.Y * 0.3, 0), C.darkLeather, M.Leather)
+						w.add(legName, Vector3.new(0.12, 0.12, 0.06), CFrame.new(sign * l.X * 0.2, -l.Y * 0.1 - k * l.Y * 0.3, -(l.Z / 2 + 0.11)), C.iron, M.Metal)
+					end
+				end
+			end
+			if f then
+				w.add(footName, f + Vector3.new(0.14, 0.1, 0.16), CFrame.new(0, 0.02, -0.02), main:Lerp(Color3.new(0, 0, 0), 0.12), material)
+				w.add(footName, Vector3.new(f.X + 0.16, 0.1, f.Z + 0.2), CFrame.new(0, -f.Y / 2 - 0.02, -0.02), C.darkLeather, M.Leather)
+				if style == "iron" or style == "dragon" then
+					for k = 0, 1 do
+						w.add(footName, Vector3.new(f.X + 0.18, 0.08, f.Z * 0.2), CFrame.new(0, f.Y / 2, -f.Z * 0.15 - k * f.Z * 0.25), trim, M.Metal)
+					end
+				end
+			end
+		end
+	end
+end
+
+function worn.amulet(w, look, rarity, sizes)
+	local t = sizes.UpperTorso
+	if not t then
+		return
+	end
+	local main = look.main or C.gold
+	local front = -(t.Z / 2) - 0.12
+	-- corrente em V e o pingente no peito
+	for _, sign in { -1, 1 } do
+		w.add("UpperTorso", Vector3.new(0.06, t.Y * 0.5, 0.06), CFrame.new(sign * t.X * 0.12, t.Y * 0.25, front) * CFrame.Angles(0, 0, math.rad(sign * 25)), look.chain or main, M.Metal)
+	end
+	local cf = CFrame.new(0, -t.Y * 0.02, front - 0.02)
+	w.add("UpperTorso", Vector3.new(0.08, 0.42, 0.42), cf * CFrame.Angles(0, math.rad(90), 0), main, M.Metal, { shape = "Cylinder" })
+	w.gem("UpperTorso", 0.24, cf * CFrame.new(0, 0, -0.05), look.gem)
+end
+
+function worn.ring(w, look, rarity, sizes)
+	local hand = sizes.RightHand
+	if not hand then
+		return
+	end
+	w.add("RightHand", Vector3.new(hand.X + 0.06, 0.1, hand.Z + 0.06), CFrame.new(0, -hand.Y * 0.15, 0), look.band or C.gold, M.Metal)
+	w.gem("RightHand", 0.16, CFrame.new(0, -hand.Y * 0.15, -(hand.Z / 2 + 0.06)), look.gem)
+end
+
+-- Peças do item vestido. sizes = { [nome da parte do corpo] = Vector3 }
+function ItemModels.worn(baseId, rarityId, sizes)
+	local base = Items.Bases[baseId]
+	local rarity = Rarities.ById[rarityId] or Rarities.List[1]
+	local builder = base and worn[base.slot]
+	if not builder then
+		return {}
+	end
+	local w = wornList(sizes, rarity)
+	builder(w, ItemModels.look(baseId), rarity, sizes)
+	return w.list
+end
+
 -- ===================== API =====================
 
 -- visual padrão de uma base sem entrada em Looks (por tipo e tier)

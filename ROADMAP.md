@@ -73,7 +73,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Ciclo de dia e noite (14 + 6 min): inimigos mais fortes e mais Elites à noite, +XP/ouro/drops, postes acesos, relógio no HUD (M)
 - 🧪 Configurações (P): volume, sensibilidade, números de dano, tremida, barra de ritmo, dicas, recomeçar tutorial (P)
 - 🧪 Ícones: itens com modelo 3D próprio (`ItemModels`) em todas as janelas, na mão, no chão e no baú (M)
-  - ⬜ Usar os mesmos modelos de elmo/armadura/botas no personagem (hoje são peças genéricas por raridade)
+  - 🧪 Equipamento vestido no personagem com o mesmo visual do item (`ItemModels.worn`): armadura com ombreiras, braçadeiras e saia de placas ou manto, elmo de cada estilo (esconde chapéu e cabelo do avatar), botas com grevas/joelheiras, amuleto no peito e anel na mão
 
 ## Fase 2 — Conteúdo
 
