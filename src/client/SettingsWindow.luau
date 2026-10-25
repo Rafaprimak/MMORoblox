@@ -75,7 +75,7 @@ local function toggle(parent, order, title, subtitle, key)
 end
 
 function SettingsWindow.init(screen)
-	win = Window.create(screen, { title = "⚙ Configurações", width = 560, height = 530, name = "Configuracoes" })
+	win = Window.create(screen, { title = "⚙ Configurações", width = 560, height = 590, name = "Configuracoes" })
 	local list = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = win.content }, { UI.list(6) })
 	local refreshers = {
 		stepper(list, 1, "Volume dos efeitos", "Golpes, interface e avisos", "volume", 0.1, 0, 1, function(v)
@@ -86,6 +86,9 @@ function SettingsWindow.init(screen)
 		end),
 		stepper(list, 2, "Sensibilidade da câmera", "Velocidade ao girar com o mouse", "sensitivity", 0.1, 0.2, 3, function(v)
 			return ("%.1fx"):format(v)
+		end),
+		stepper(list, 2, "Qualidade gráfica", "Distância do cenário (baixa ajuda no celular)", "quality", 1, 1, 3, function(v)
+			return ({ "Baixa", "Média", "Alta" })[math.clamp(math.floor(v), 1, 3)]
 		end),
 		toggle(list, 3, "Números de dano", "Mostrar o dano em cima dos inimigos", "damageNumbers"),
 		toggle(list, 4, "Tremida de câmera", "Impactos fortes, críticos e aparadas", "shake"),

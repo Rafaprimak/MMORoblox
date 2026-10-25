@@ -21,10 +21,10 @@ Enemies.Defs = {
 		aggro = 0, radius = 1.6, model = "dummy", color = Color3.fromRGB(200, 170, 110), behavior = "dummy", regen = 1,
 	},
 	slime = {
-		name = "Slime", level = 1, hp = 35, damage = 5, speed = 9, attackCooldown = 1.3, attackRange = 4,
+		name = "Slime", level = 1, hp = 35, damage = 4, speed = 9, attackCooldown = 1.6, attackRange = 4,
 		xp = 12, gold = { 2, 5 }, dropChance = 0.12, pool = { "espada_cobre", "adaga_cobre", "arco_curto", "cajado_aprendiz", "elmo_couro", "botas_couro", "anel_cobre" },
 		drops = { { id = "gosma", chance = 0.75, min = 1, max = 2 }, essence(0.02) },
-		aggro = 24, radius = 1.6, model = "slime", color = Color3.fromRGB(110, 230, 120), behavior = "melee",
+		aggro = 18, radius = 1.6, model = "slime", color = Color3.fromRGB(110, 230, 120), behavior = "melee",
 	},
 	lobo = {
 		name = "Lobo", level = 3, hp = 70, damage = 8, speed = 17, attackCooldown = 1.0, attackRange = 4.5,

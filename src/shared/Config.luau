@@ -5,6 +5,11 @@ local Config = {}
 Config.MaxLevel = 60
 Config.BaseHealth = 100
 Config.HealthPerLevel = 12
+-- Fora de combate (sem levar dano por um tempo) a vida volta rápido, para não precisar de poção entre lutas
+Config.OutOfCombatDelay = 5 -- segundos sem levar dano
+Config.OutOfCombatRegen = 0.05 -- fração da vida máxima por segundo
+-- Proteção de iniciante: menos dano recebido nos primeiros níveis (diminui até sumir)
+Config.NewbieProtection = { [1] = 0.35, [2] = 0.25, [3] = 0.15, [4] = 0.05 }
 Config.BaseAttack = 3
 Config.AttackPerLevel = 1
 Config.SkillPointsPerLevel = 1
@@ -135,6 +140,7 @@ Config.DefaultSettings = {
 	shake = true,
 	rhythmBar = true,
 	tips = true,
+	quality = 2, -- 1 baixa, 2 média, 3 alta (distância de desenho do cenário)
 }
 
 return Config

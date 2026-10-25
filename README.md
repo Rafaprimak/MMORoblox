@@ -79,10 +79,10 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Habilidades da classe | **1, 2, 3, 4** | Botões 1–4 |
 | Poções | **Z** vida, **X** mana, **V** vigor | Toque na barra |
 | Montar / desmontar | **H** | Botão 🐴 |
-| Inventário / Personagem / Missões / Mapa / Baús | **I / C / J / M / B** | Botões à esquerda |
+| Inventário / Personagem / Missões / Mapa / Baús | **I / C / J / M / B** | Botões à esquerda (no mapa: roda do mouse = zoom, arrastar = mover) |
 | Jornada (recompensa diária, passe, conquistas, títulos) | **K** | Botão ⭐ |
 | Pets | **G** | Botão 🐾 |
-| Configurações (volume, música, sensibilidade, números de dano...) | **P** | Botão ⚙ |
+| Configurações (volume, música, sensibilidade, qualidade gráfica, números de dano...) | **P** | Botão ⚙ |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
 
 O botão direito do mouse fica livre para girar a câmera.

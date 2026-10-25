@@ -119,6 +119,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `JourneyWindow` | Jornada (tecla K): diário, passe, conquistas, títulos |
 | `Ambience` | Ambiente e música em loop por região/noite/chefe/combate, com crossfade (`Ambience.combatPing()` ao bater/apanhar) |
 | `RevealScene` | Cena 3D (ViewportFrame + WorldModel) com uma cópia do personagem abrindo o baú ou vendo o ovo chocar |
+| `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
 | `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
 | `Controller` | Entrada do jogador (combo, esquiva, corrida, habilidades, celular) |

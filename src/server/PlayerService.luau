@@ -422,7 +422,9 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 	end
 	local defense = stats.defense * (1 + PlayerService.buffValue(player, "defense"))
 	local reduction = defense / (defense + 100)
-	local final = math.max(1, math.floor(amount * (1 - reduction) * (1 - stats.damageReduction)))
+	local level = (DataService.get(player) or {}).level or 1
+	local newbie = Config.NewbieProtection[level] or 0
+	local final = math.max(1, math.floor(amount * (1 - reduction) * (1 - stats.damageReduction) * (1 - newbie)))
 	-- perk Segunda Chance: o golpe fatal deixa com 1 de vida (a cada 90s)
 	if stats.perks.segunda_chance and final >= humanoid.Health and now >= (s.secondChanceAt or 0) then
 		final = math.max(0, math.floor(humanoid.Health) - 1)
@@ -1228,7 +1230,7 @@ end
 
 -- ===================== CONFIGURAÇÕES E TUTORIAL =====================
 
-local SETTING_RANGES = { volume = { 0, 1 }, sensitivity = { 0.2, 3 } }
+local SETTING_RANGES = { volume = { 0, 1 }, sensitivity = { 0.2, 3 }, quality = { 1, 3 } }
 
 -- Salva as configurações do jogador (só as chaves conhecidas, com tipo e faixa validados)
 function PlayerService.saveSettings(player, values)
@@ -1355,6 +1357,10 @@ task.spawn(function()
 				end
 				if stats.regen > 0 then
 					PlayerService.heal(player, stats.maxHealth * stats.regen * dt)
+				end
+				-- fora de combate a vida volta rápido
+				if now - (s.lastDamageAt or 0) > Config.OutOfCombatDelay and humanoid.Health < humanoid.MaxHealth then
+					PlayerService.heal(player, stats.maxHealth * Config.OutOfCombatRegen * dt)
 				end
 				player:SetAttribute("Mana", math.floor(s.mana))
 				player:SetAttribute("Stamina", math.floor(s.stamina))

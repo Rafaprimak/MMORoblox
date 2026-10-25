@@ -42,6 +42,7 @@ local JourneyWindow = require(script.JourneyWindow)
 local Ambience = require(script.Ambience)
 local TownLife = require(script.TownLife)
 local Juice = require(script.Juice)
+local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
 
 local player = Players.LocalPlayer
@@ -79,6 +80,7 @@ Sounds.preload()
 Ambience.init()
 TownLife.init()
 Juice.init()
+DetailCulling.init()
 Auras.init()
 
 local function toggleInventory()
