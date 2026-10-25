@@ -98,6 +98,7 @@ Enemies.Defs = {
 		slam = { radius = 16, windup = 1.2, damage = 55, cooldown = 7 },
 		summon = { enemy = "goblin", count = 3, cooldown = 25 },
 		leash = 140,
+		uniques = { "coroa_rei_goblin" },
 	},
 	-- ===== chefes das masmorras (só aparecem dentro delas; ver Dungeons) =====
 	capitao_goblin = {
@@ -110,6 +111,7 @@ Enemies.Defs = {
 		slam = { radius = 11, windup = 1.2, damage = 28, cooldown = 8 },
 		summon = { enemy = "goblin", count = 2, cooldown = 22 },
 		leash = 90, dungeon = true,
+		uniques = { "adagas_capitao" },
 	},
 	senhor_ossos = {
 		name = "Senhor dos Ossos", level = 12, hp = 6000, damage = 28, speed = 12, attackCooldown = 1.3, attackRange = 7,
@@ -121,6 +123,7 @@ Enemies.Defs = {
 		slam = { radius = 14, windup = 1.2, damage = 46, cooldown = 7 },
 		summon = { enemy = "esqueleto", count = 2, cooldown = 24 },
 		leash = 110, dungeon = true,
+		uniques = { "cajado_vazio" },
 	},
 	rainha_aranha = {
 		name = "Rainha Aranha", level = 10, hp = 5000, damage = 22, speed = 17, attackCooldown = 1.1, attackRange = 7,
@@ -132,6 +135,7 @@ Enemies.Defs = {
 		slam = { radius = 13, windup = 1.0, damage = 34, cooldown = 8 },
 		summon = { enemy = "aranha", count = 2, cooldown = 20 },
 		leash = 110, dungeon = true,
+		uniques = { "arco_viuva" },
 	},
 	guardiao_cripta = {
 		name = "Guardião da Cripta", level = 13, hp = 7000, damage = 32, speed = 9, attackCooldown = 1.8, attackRange = 8,
@@ -143,6 +147,7 @@ Enemies.Defs = {
 		slam = { radius = 16, windup = 1.3, damage = 52, cooldown = 6 },
 		summon = { enemy = "esqueleto", count = 2, cooldown = 26 },
 		leash = 110, dungeon = true,
+		uniques = { "couraca_guardiao" },
 	},
 	rei_lich = {
 		name = "Rei Lich", level = 17, hp = 14000, damage = 36, speed = 12, attackCooldown = 1.2, attackRange = 8,
@@ -154,6 +159,7 @@ Enemies.Defs = {
 		slam = { radius = 17, windup = 1.2, damage = 58, cooldown = 6 },
 		summon = { enemy = "esqueleto_mago", count = 2, cooldown = 20 },
 		leash = 120, dungeon = true,
+		uniques = { "lamina_eclipse", "anel_lich" },
 	},
 	colosso_abismo = {
 		name = "Colosso do Abismo", level = 20, hp = 22000, damage = 44, speed = 9, attackCooldown = 1.7, attackRange = 10,
@@ -165,6 +171,7 @@ Enemies.Defs = {
 		slam = { radius = 20, windup = 1.4, damage = 70, cooldown = 6 },
 		summon = { enemy = "golem", count = 1, cooldown = 30 },
 		leash = 140, dungeon = true,
+		uniques = { "martelo_colosso" },
 	},
 }
 
@@ -195,6 +202,8 @@ Enemies.Camps = {
 }
 
 Enemies.EliteChance = 0.06
+-- Chance de CADA jogador que ajudou a matar o chefe ganhar um dos seus Únicos (no andar 20 das masmorras: dobro)
+Enemies.UniqueChance = 0.015
 
 -- Os centros acima estão em coordenadas de design; converte para studs reais (ver World.Scale)
 local World = require(script.Parent.World)

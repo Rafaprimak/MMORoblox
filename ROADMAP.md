@@ -72,11 +72,14 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Tutorial guiado nos primeiros minutos: 8 dicas que avançam com a ação (andar, missão, feixe, ritmo, aparar, esquiva, inventário, mapa), salvas no servidor (M)
 - 🧪 Ciclo de dia e noite (14 + 6 min): inimigos mais fortes e mais Elites à noite, +XP/ouro/drops, postes acesos, relógio no HUD (M)
 - 🧪 Configurações (P): volume, sensibilidade, números de dano, tremida, barra de ritmo, dicas, recomeçar tutorial (P)
-- ⬜ Ícones: trocar emojis por imagens próprias (M)
+- 🧪 Ícones: itens com modelo 3D próprio (`ItemModels`) em todas as janelas, na mão, no chão e no baú (M)
+  - ⬜ Usar os mesmos modelos de elmo/armadura/botas no personagem (hoje são peças genéricas por raridade)
 
 ## Fase 2 — Conteúdo
 
-- 🧪 **Masmorras instanciadas (endgame)**: Toca dos Goblins (5+), Cripta Esquecida (10+), Abismo de Pedra (15+); grupo de 1 a 4 no portal; 20 andares montados um por vez; chefe a cada 5 andares (8 chefes novos/reusados) com baú por membro e ponto de retorno salvo (`data.dungeons`); força dos inimigos sobe por andar e a vida pelo tamanho do grupo (G)
+- 🧪 **Masmorras instanciadas (endgame)**: Toca dos Goblins (5+), Cripta Esquecida (10+), Abismo de Pedra (15+); grupo de 1 a 4 no portal, começa quando todos dão Pronto; 20 andares em uma corrida só (sem ponto de retorno; `data.dungeons` guarda o recorde); chefe a cada 5 andares com baú por membro; força dos inimigos sobe por andar e a vida pelo tamanho do grupo (G)
+  - 🧪 Itens Únicos (estilo UT): raridade Única fora dos baús, 8 itens com efeito próprio caindo de chefes (1,5%, dobro no andar 20) e anúncio para o servidor
+  - 🧪 Conjuntos: 3 conjuntos de 4 peças com bônus de 2 e 4 peças
   - 🧪 Andares com mecânica sorteada (ondas, alavancas com emboscada, grelhas de fogo), objetivo extra com bônus (tempo, ninguém cair, caçada ao Campeão, relíquias), tijolo solto com baú secreto, baú suspeito (mímico), altar de bênção
   - 🧪 Material e itens exclusivos por masmorra (18 bases) com perk de assinatura; Mercador de Masmorras (Varg) com chaves, poção grande, tônico de pedra e itens exclusivos; 4 conquistas e títulos
   - ⬜ Balancear vida/dano dos andares e dos chefes depois de testar em grupo
@@ -108,7 +111,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Pets com bônus, nível e ovos com chances visíveis (M)
 - 🧪 Jornada: login diário em sequência, Passe do Hunter grátis (50 tiers), 15 conquistas com títulos, marcos de nível (G)
 - ⬜ Subclasses no Rank B (ex.: Guerreiro → Paladino/Berserker) (G)
-- ⬜ Sets de equipamento com bônus por 2/4 peças (capacete, botas e acessórios já existem) (M)
+- 🧪 Sets de equipamento com bônus por 2/4 peças (ver Masmorras) (M)
 - ⬜ Gemas e soquetes (M)
 - ⬜ Pets que coletam os drops sozinhos (o resto dos pets já existe) (P)
 - ⬜ Prestígio/renascimento após o nível máximo, com bônus permanente (M)

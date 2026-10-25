@@ -5,6 +5,7 @@ local Rarities = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("
 
 local UI = require(script.Parent.UI)
 local Fx = require(script.Parent.Fx)
+local ItemIcon = require(script.Parent.ItemIcon)
 local Sounds = require(script.Parent.Sounds)
 
 local ItemGrid = {}
@@ -46,6 +47,16 @@ function ItemGrid.sort(items)
 end
 
 function ItemGrid.render(frame, items, selectedUid, onSelect, filter)
+	-- os ícones 3D custam: só redesenha se algo mudou (itens, seleção ou filtro)
+	local parts = { tostring(selectedUid), tostring(filter) }
+	for _, item in items or {} do
+		table.insert(parts, ("%s:%s:%d:%d:%s:%s"):format(item.uid, item.rarity, item.power, item.upgrade, tostring(item.equipped), item.enchant and item.enchant.id or ""))
+	end
+	local signature = table.concat(parts, "|")
+	if frame:GetAttribute("Assinatura") == signature then
+		return
+	end
+	frame:SetAttribute("Assinatura", signature)
 	UI.clear(frame)
 	for index, item in ItemGrid.sort(items) do
 		if filter and not filter(item) then
@@ -58,7 +69,12 @@ function ItemGrid.render(frame, items, selectedUid, onSelect, filter)
 		if rarity.rainbow and not selected then
 			Fx.registerRainbow(stroke, "Color")
 		end
-		UI.label({ Text = item.icon or "🗡️", Size = UDim2.fromScale(1, 0.42), Position = UDim2.fromScale(0, 0.1), TextXAlignment = Enum.TextXAlignment.Center, Parent = cell })
+		ItemIcon.new(cell, item.base, item.rarity, { Size = UDim2.fromScale(0.72, 0.56), Position = UDim2.fromScale(0.5, 0.02), AnchorPoint = Vector2.new(0.5, 0) })
+		if item.unique then
+			UI.label({ Text = "ÚNICO", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 2), Size = UDim2.fromOffset(46, 13), TextColor3 = rarity.color, TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, ZIndex = 4, Parent = cell }, { UI.textStroke(1) })
+		elseif item.set then
+			UI.label({ Text = "◆", AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -4, 0.58, 0), Size = UDim2.fromOffset(14, 14), TextColor3 = Color3.fromRGB(120, 255, 170), ZIndex = 4, Parent = cell }, { UI.textStroke(1) })
+		end
 		UI.label({ Text = item.name, Size = UDim2.new(1, -6, 0.18, 0), Position = UDim2.new(0, 3, 0.56, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = rarity.color, Parent = cell }, { UI.textStroke(1) })
 		UI.label({ Text = UI.statIcon(item) .. " " .. item.power, Size = UDim2.new(1, -6, 0.16, 0), Position = UDim2.new(0, 3, 0.78, 0), TextXAlignment = Enum.TextXAlignment.Center, Parent = cell }, { UI.textStroke(1) })
 		if item.upgrade > 0 then

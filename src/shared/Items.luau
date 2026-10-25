@@ -111,22 +111,67 @@ Items.Bases = {
 	machado_tunel = { name = "Machado do Túnel", slot = "weapon", weaponType = "axe", power = 17, tier = 2, dungeon = "toca", signature = "saqueador" },
 	arco_tunel = { name = "Arco de Raiz", slot = "weapon", weaponType = "bow", power = 13, tier = 2, dungeon = "toca", signature = "saqueador" },
 	cajado_cristal = { name = "Cajado de Cristal da Toca", slot = "weapon", weaponType = "staff", power = 13, tier = 2, dungeon = "toca", signature = "saqueador" },
-	colete_tunel = { name = "Colete de Túnel", slot = "armor", power = 42, tier = 2, bonus = { stamina = 25 }, dungeon = "toca", signature = "pele_tunel" },
-	anel_saqueador = { name = "Anel do Saqueador", slot = "ring", power = 4, tier = 2, stats = { goldFind = 0.06, crit = 0.01 }, dungeon = "toca", signature = "pele_tunel" },
+	colete_tunel = { name = "Colete de Túnel", slot = "armor", power = 42, tier = 2, bonus = { stamina = 25 }, dungeon = "toca", signature = "pele_tunel", set = "toca" },
+	anel_saqueador = { name = "Anel do Saqueador", slot = "ring", power = 4, tier = 2, stats = { goldFind = 0.06, crit = 0.01 }, dungeon = "toca", signature = "pele_tunel", set = "toca" },
 	-- Cripta Esquecida
 	ceifa_espectral = { name = "Ceifa Espectral", slot = "weapon", weaponType = "sword", power = 21, tier = 3, dungeon = "cripta", signature = "ceifa_alma" },
 	katana_espectral = { name = "Katana do Luto", slot = "weapon", weaponType = "katana", power = 22, tier = 3, dungeon = "cripta", signature = "ceifa_alma" },
 	cetro_ossos = { name = "Cetro de Ossos", slot = "weapon", weaponType = "staff", power = 19, tier = 3, dungeon = "cripta", signature = "ceifa_alma" },
 	arco_luto = { name = "Arco do Lamento", slot = "weapon", weaponType = "bow", power = 19, tier = 3, dungeon = "cripta", signature = "ceifa_alma" },
-	mortalha_cripta = { name = "Mortalha da Cripta", slot = "armor", power = 62, tier = 3, bonus = { mana = 60 }, dungeon = "cripta", signature = "mortalha" },
-	amuleto_alma = { name = "Amuleto de Almas", slot = "amulet", power = 6, tier = 3, stats = { lifesteal = 0.015, damage = 0.03 }, dungeon = "cripta", signature = "mortalha" },
+	mortalha_cripta = { name = "Mortalha da Cripta", slot = "armor", power = 62, tier = 3, bonus = { mana = 60 }, dungeon = "cripta", signature = "mortalha", set = "cripta" },
+	amuleto_alma = { name = "Amuleto de Almas", slot = "amulet", power = 6, tier = 3, stats = { lifesteal = 0.015, damage = 0.03 }, dungeon = "cripta", signature = "mortalha", set = "cripta" },
 	-- Abismo de Pedra
 	martelo_magma = { name = "Martelo de Magma", slot = "weapon", weaponType = "hammer", power = 32, tier = 3, dungeon = "abismo", signature = "coracao_magma" },
 	lanca_magma = { name = "Lança Abissal", slot = "weapon", weaponType = "spear", power = 25, tier = 3, dungeon = "abismo", signature = "coracao_magma" },
 	adagas_brasa = { name = "Adagas de Brasa", slot = "weapon", weaponType = "dagger", power = 19, tier = 3, dungeon = "abismo", signature = "coracao_magma" },
 	cajado_magma = { name = "Cajado do Vulcão", slot = "weapon", weaponType = "staff", power = 23, tier = 3, dungeon = "abismo", signature = "coracao_magma" },
-	casca_abissal = { name = "Couraça Abissal", slot = "armor", power = 90, tier = 3, dungeon = "abismo", signature = "casca_abissal" },
-	anel_magma = { name = "Anel de Magma", slot = "ring", power = 7, tier = 3, stats = { damage = 0.04, critDamage = 0.05 }, dungeon = "abismo", signature = "casca_abissal" },
+	casca_abissal = { name = "Couraça Abissal", slot = "armor", power = 90, tier = 3, dungeon = "abismo", signature = "casca_abissal", set = "abismo" },
+	anel_magma = { name = "Anel de Magma", slot = "ring", power = 7, tier = 3, stats = { damage = 0.04, critDamage = 0.05 }, dungeon = "abismo", signature = "casca_abissal", set = "abismo" },
+	-- peças de conjunto que completam os 4 de cada masmorra
+	capuz_saqueador = { name = "Capuz do Saqueador", slot = "helmet", power = 18, tier = 2, bonus = { stamina = 15 }, dungeon = "toca", signature = "pele_tunel", set = "toca" },
+	botas_tunel = { name = "Botas de Túnel", slot = "boots", power = 15, tier = 2, bonus = { stamina = 20 }, dungeon = "toca", signature = "pele_tunel", set = "toca" },
+	elmo_vigia = { name = "Elmo do Vigia", slot = "helmet", power = 26, tier = 3, dungeon = "cripta", signature = "mortalha", set = "cripta" },
+	grevas_vigia = { name = "Grevas do Vigia", slot = "boots", power = 21, tier = 3, dungeon = "cripta", signature = "mortalha", set = "cripta" },
+	elmo_magma = { name = "Elmo de Magma", slot = "helmet", power = 32, tier = 3, dungeon = "abismo", signature = "casca_abissal", set = "abismo" },
+	botas_brasa = { name = "Botas de Brasa", slot = "boots", power = 26, tier = 3, bonus = { stamina = 20 }, dungeon = "abismo", signature = "casca_abissal", set = "abismo" },
+
+	-- ===== ÚNICOS (raridade Única, efeito próprio; só caem de chefes: Enemies.Defs[x].uniques) =====
+	lamina_eclipse = { name = "Lâmina do Eclipse", slot = "weapon", weaponType = "sword", power = 27, tier = 4, unique = true, signature = "eclipse" },
+	adagas_capitao = { name = "Adagas do Capitão", slot = "weapon", weaponType = "dagger", power = 20, tier = 4, unique = true, signature = "sangria" },
+	martelo_colosso = { name = "Punho do Colosso", slot = "weapon", weaponType = "hammer", power = 38, tier = 4, unique = true, signature = "terremoto" },
+	arco_viuva = { name = "Arco da Viúva", slot = "weapon", weaponType = "bow", power = 24, tier = 4, unique = true, signature = "teia_viuva" },
+	cajado_vazio = { name = "Cajado do Vazio Eterno", slot = "weapon", weaponType = "staff", power = 24, tier = 4, unique = true, signature = "abismo_arcano" },
+	couraca_guardiao = { name = "Couraça do Guardião Eterno", slot = "armor", power = 105, tier = 4, unique = true, signature = "bastiao", bonus = { stamina = 30 } },
+	coroa_rei_goblin = { name = "Coroa do Rei Goblin", slot = "helmet", power = 34, tier = 4, unique = true, signature = "tirania", bonus = { mana = 30 } },
+	anel_lich = { name = "Anel do Lich", slot = "ring", power = 9, tier = 4, unique = true, signature = "filacterio", stats = { critDamage = 0.1, damage = 0.04 } },
+}
+
+-- Conjuntos: peças (base.set = id) e bônus por quantidade equipada (stats somados; perk liga um efeito)
+Items.Sets = {
+	toca = {
+		name = "Saqueador da Toca",
+		pieces = { "capuz_saqueador", "colete_tunel", "botas_tunel", "anel_saqueador" },
+		bonuses = {
+			[2] = { stats = { goldFind = 0.1, crit = 0.04 }, text = "+10% de ouro e +4% de crítico" },
+			[4] = { stats = { dungeonDamage = 0.15, stamina = 0.1 }, perk = "pilhagem", text = "+15% de dano em masmorras, +10% de estamina e Pilhagem (dobro de material)" },
+		},
+	},
+	cripta = {
+		name = "Vigília da Cripta",
+		pieces = { "elmo_vigia", "mortalha_cripta", "grevas_vigia", "amuleto_alma" },
+		bonuses = {
+			[2] = { stats = { health = 0.1, regen = 0.003 }, text = "+10% de vida e 0,3% de vida/s" },
+			[4] = { stats = { dungeonDamage = 0.15, lifesteal = 0.03 }, perk = "pacto_espectral", text = "+15% de dano em masmorras, +3% de roubo de vida e Pacto Espectral (abates curam 5%)" },
+		},
+	},
+	abismo = {
+		name = "Fúria do Abismo",
+		pieces = { "elmo_magma", "casca_abissal", "botas_brasa", "anel_magma" },
+		bonuses = {
+			[2] = { stats = { damage = 0.08, defense = 0.04 }, text = "+8% de dano e +4% de redução de dano" },
+			[4] = { stats = { dungeonDamage = 0.2, heavyDamage = 0.2 }, perk = "erupcao", text = "+20% de dano em masmorras, +20% de golpe pesado e Erupção (abates explodem)" },
+		},
+	},
 }
 
 -- Texto dos stats de acessórios (para a UI)
@@ -398,6 +443,9 @@ function Items.describe(item, equipped)
 		bonus = base.bonus,
 		stats = Items.getStats(item),
 		perks = item.perks or {},
+		set = base.set,
+		unique = base.unique == true,
+		dungeon = base.dungeon,
 		equipped = equipped == true,
 	}
 end

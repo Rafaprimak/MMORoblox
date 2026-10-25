@@ -13,11 +13,28 @@ local Window = require(script.Parent.Window)
 local ItemGrid = require(script.Parent.ItemGrid)
 local Sounds = require(script.Parent.Sounds)
 local Popups = require(script.Parent.Popups)
+local ItemIcon = require(script.Parent.ItemIcon)
 
 local Inventory = {}
 
 local win, grid, details, list, junkButton, statsLabel, slotBar
 local selectedUid = nil
+local detailIcon, detailIconKey = nil, nil -- ícone 3D do item selecionado (fora de "details", que é redesenhado sempre)
+
+local function setDetailIcon(item)
+	local key = if item then item.base .. "|" .. item.rarity else nil
+	if key == detailIconKey then
+		return
+	end
+	detailIconKey = key
+	if detailIcon then
+		detailIcon:Destroy()
+		detailIcon = nil
+	end
+	if item and win then
+		detailIcon = ItemIcon.new(win.content, item.base, item.rarity, { Size = UDim2.fromOffset(104, 104), Position = UDim2.new(1, -119, 0, 2), AnchorPoint = Vector2.new(0.5, 0), spin = true, ZIndex = 5 })
+	end
+end
 local junkConfirm = false
 
 local function equippedIn(slot)
@@ -59,11 +76,32 @@ function Inventory.describeLines(item)
 	if item.enchantText then
 		table.insert(lines, { "✨ " .. item.enchantText, Color3.fromRGB(200, 150, 255), 34 })
 	end
-	-- perks (estilo Destiny): os fortes em dourado
+	-- perks (estilo Destiny): os fortes em dourado, o efeito Único em verde-água
 	for _, perkId in item.perks or {} do
 		local perk = Perks.List[perkId]
 		if perk then
-			table.insert(lines, { ("%s %s: %s"):format(perk.icon, perk.name, perk.text), if perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255), 36 })
+			local color = if perk.exclusive == "unique" then Color3.fromRGB(60, 255, 215) elseif perk.exclusive then Color3.fromRGB(200, 170, 255) elseif perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255)
+			table.insert(lines, { ("%s %s: %s"):format(perk.icon, perk.name, perk.text), color, 36 })
+		end
+	end
+	if item.unique then
+		table.insert(lines, { "✦ ÚNICO: só cai de chefes, muito raro.", Color3.fromRGB(60, 255, 215), 18 })
+	end
+	-- conjunto: peças equipadas e bônus (ativos em verde)
+	local set = item.set and Items.Sets[item.set]
+	if set then
+		local equipped = 0
+		for _, other in State.data and State.data.inventory or {} do
+			if other.equipped and other.set == item.set then
+				equipped += 1
+			end
+		end
+		table.insert(lines, { ("◆ Conjunto %s (%d/%d)"):format(set.name, equipped, #set.pieces), Color3.fromRGB(120, 255, 170), 18 })
+		for _, pieces in { 2, 4 } do
+			local bonus = set.bonuses[pieces]
+			if bonus then
+				table.insert(lines, { ("  %d peças: %s"):format(pieces, bonus.text), if equipped >= pieces then Color3.fromRGB(120, 255, 170) else UI.Colors.SubText, 34 })
+			end
 		end
 	end
 	return lines
@@ -74,14 +112,18 @@ local function renderDetails()
 	local data = State.data
 	local item = data and selectedUid and ItemGrid.find(data.inventory, selectedUid)
 	if not item then
+		setDetailIcon(nil)
 		line(details, 120, "Clique em um item para ver detalhes", UI.Colors.SubText, 40).TextXAlignment = Enum.TextXAlignment.Center
 		return
 	end
 	local rarity = Rarities.ById[item.rarity] or Rarities.List[1]
-	line(details, 0, item.name, rarity.color, 40, Enum.Font.GothamBlack).TextScaled = true
-	line(details, 42, ("%s • Nv. %d • +%d/%d"):format(rarity.name, item.level, item.upgrade, item.maxUpgrade), UI.Colors.SubText)
-	line(details, 62, UI.statIcon(item) .. " " .. UI.formatNumber(item.power), UI.Colors.Text, 34, Enum.Font.GothamBlack).TextScaled = true
-	local y = 100
+	-- modelo 3D girando no topo
+	setDetailIcon(item)
+	local top = 100
+	line(details, top, item.name, rarity.color, 30, Enum.Font.GothamBlack).TextScaled = true
+	line(details, top + 32, ("%s • Nv. %d • +%d/%d"):format(rarity.name, item.level, item.upgrade, item.maxUpgrade), UI.Colors.SubText)
+	line(details, top + 52, UI.statIcon(item) .. " " .. UI.formatNumber(item.power), UI.Colors.Text, 26, Enum.Font.GothamBlack).TextScaled = true
+	local y = top + 82
 	if not item.equipped then
 		local current = equippedIn(item.slot)
 		local diff = item.power - (if current then current.power else 0)
@@ -181,8 +223,12 @@ local function render()
 			local item = equippedIn(slot)
 			local rarity = item and Rarities.ById[item.rarity]
 			local cell = UI.new("TextButton", { Text = "", LayoutOrder = index, Size = UDim2.fromOffset(62, 44), BackgroundColor3 = if rarity then rarity.color:Lerp(Color3.new(0, 0, 0), 0.6) else UI.Colors.Panel, Parent = slotBar }, { UI.corner(8), UI.stroke(if rarity then rarity.color else UI.Colors.Stroke, 1.5) })
-			UI.label({ Text = if item then item.icon else info.icon, Size = UDim2.new(1, 0, 0, 26), TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = if item then 0 else 0.6, Parent = cell })
-			UI.label({ Text = if item then ("+%d"):format(item.upgrade) else info.name, Position = UDim2.fromOffset(0, 26), Size = UDim2.new(1, 0, 0, 14), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, Parent = cell })
+			if item then
+				ItemIcon.new(cell, item.base, item.rarity, { Size = UDim2.new(1, 0, 0, 28), glow = false })
+			else
+				UI.label({ Text = info.name, Size = UDim2.new(1, 0, 0, 26), TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = 0.6, TextColor3 = UI.Colors.SubText, Parent = cell })
+			end
+			UI.label({ Text = if item then ("+%d"):format(item.upgrade) else "vazio", Position = UDim2.fromOffset(0, 28), Size = UDim2.new(1, 0, 0, 14), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, Parent = cell })
 			cell.MouseButton1Click:Connect(function()
 				if item then
 					selectedUid = item.uid
@@ -196,6 +242,7 @@ local function render()
 		end)
 		renderDetails()
 	else
+		setDetailIcon(nil)
 		renderMaterials(if win.tab == "Materiais" then "materials" else "consumables")
 	end
 end

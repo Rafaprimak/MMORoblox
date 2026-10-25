@@ -73,6 +73,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `SoundIds` | Catálogo de áudio (efeitos, ambiente, música): IDs da Creator Store + reserva |
 | `TownPlan` | Traçado da vila (fonte única): ruas, calçadas, praça, becos, lotes das lojas e casas, postes. Usado pelo terreno, NPCs, construção e moradores |
 | `Points` | Locais de interesse (posição achada de forma determinística em chão seco e plano), recompensa e baú |
+| `ItemModels` | Modelo 3D de cada item (visual por base em `ItemModels.Looks`): usado na mão, no chão, no ícone e na cena do baú |
 | `Dungeons` | Masmorras: portais, 20 andares (`floorInfo`, `tier`, `startFloors`), inimigos por faixa, chefes a cada 5 andares, material, chave, loot exclusivo e loja do Mercador |
 | `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
@@ -121,6 +122,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `JourneyWindow` | Jornada (tecla K): diário, passe, conquistas, títulos |
 | `Ambience` | Ambiente e música em loop por região/noite/chefe/combate, com crossfade (`Ambience.combatPing()` ao bater/apanhar) |
 | `RevealScene` | Cena 3D (ViewportFrame + WorldModel) com uma cópia do personagem abrindo o baú ou vendo o ovo chocar |
+| `ItemIcon` | Ícone 3D (ViewportFrame) de item, com modelo guardado por base/raridade e giro opcional |
 | `DungeonWindow` | Janela do portal (grupo e andar inicial), janela do Mercador de Masmorras e painel do andar |
 | `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
@@ -143,7 +145,7 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 
 ### Rede (`src/shared/Remotes.luau`)
 - **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
-- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, dungeonJoin, dungeonLeaveLobby, dungeonStart, dungeonExit, dungeonBuy, dungeonBuyLoot, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
+- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward, dungeonPortal`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
@@ -200,6 +202,13 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - O andar é montado na hora por `DungeonService` em `workspace.Masmorras` (pares e ímpares em lugares diferentes; o anterior é apagado depois do teleporte). Os inimigos usam o `EnemyService` normal com um "acampamento" de sala: `floorY` (piso plano), `bounds` (paredes), `hpMult`, `damageMult`, `levelBonus`, sem `respawn` (não renascem), `dungeonId` e `floor`.
 - Mecânicas (`MECHANICS`) e objetivos extras (`OBJECTIVES`) ficam no topo do `DungeonService`; o texto do painel sai de `mechanicText`/`objectiveText`. Para uma mecânica nova: monte as peças em `buildFloor`, trate no `update` e escreva o texto.
 - `def.boss` agora é calculado em `Enemies` (`behavior == "boss"`). Chefes só de masmorra têm `dungeon = true`.
+- Grupo: cada membro manda `dungeonReady`; com todos prontos, conta 3 s e começa (`launch`). Sempre do andar 1; a chave sai do líder (primeiro do grupo).
+
+### Itens: modelos 3D, Únicos e conjuntos
+- **Nunca use emoji para item.** Item novo = base em `Items.Bases` + visual em `ItemModels.Looks[baseId]` (sem entrada usa um visual padrão pelo tier). Construtores por tipo de arma (`weapon.*`) e por espaço (`gear.*`) no `ItemModels`; armas têm o cabo na origem e a ponta em +Y, equipamentos ficam centrados com a frente em -Z.
+- Na interface, use `ItemIcon.new(pai, baseId, raridade, { Size, Position, spin, glow })`. Telas que redesenham com o `State.Changed` precisam evitar recriar ícones à toa (ver a assinatura em `ItemGrid.render`, `forgeKey` e `renderShop`).
+- **Único:** raridade `Unico` (peso 0: nunca sai de sorteio nem de baú). Base com `unique = true` e `signature` = perk com `exclusive = "unique"`; quem deixa cair: `Enemies.Defs[x].uniques` (chance `Enemies.UniqueChance`). Efeitos dos perks únicos no `PerkService` (golpes/abates) e no `PlayerService.damagePlayer` (defesa).
+- **Conjunto:** `Items.Sets[id]` (peças e bônus por quantidade) + `set = id` nas bases. `PlayerService.getStats` conta as peças, soma os `stats` e liga o `perk` do bônus (perk com `exclusive = "set"`).
 - Eventos de missão/conquista: `dungeonBoss`, `dungeon` (andar 20), `dungeonSecret`, `dungeonObjective`. Atributo do jogador: `Dungeon` (id da masmorra em que está). Bônus `dungeonDamage` (perks de assinatura) é aplicado em `EnemyService.damage`.
 
 ### Vida da vila

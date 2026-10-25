@@ -19,7 +19,7 @@ local states = {}
 local function getState(player)
 	local s = states[player]
 	if not s then
-		s = { furiaStacks = 0, furiaUntil = 0, clipHits = 0, clipUntil = 0, parryUntil = 0, dodgeUntil = 0, combatStart = 0, lastHit = 0 }
+		s = { furiaStacks = 0, furiaUntil = 0, clipHits = 0, clipUntil = 0, parryUntil = 0, dodgeUntil = 0, combatStart = 0, lastHit = 0, hitCount = 0 }
 		states[player] = s
 	end
 	return s
@@ -110,6 +110,41 @@ function PerkService.afterHit(player, rec, dealt, info, stats, crit)
 			end
 		end
 	end
+	-- ===== Únicos =====
+	local s = getState(player)
+	s.hitCount += 1
+	if perks.eclipse and s.hitCount % 5 == 0 then
+		local center = rec.pos
+		Remotes.Fx:FireAllClients("explosion", center, 10, "shadow")
+		for _, other in EnemyService.inRadius(center, 10) do
+			EnemyService.damage(other, stats.attack * stats.damageMult * 1.5, player, { perk = true, element = "shadow", knockback = 5, fromPosition = center })
+		end
+	end
+	if perks.terremoto and s.hitCount % 4 == 0 then
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local center = if root then root.Position - Vector3.new(0, 2.5, 0) else rec.pos
+		Remotes.Fx:FireAllClients("explosion", center, 12, "earth")
+		for _, other in EnemyService.inRadius(center, 12) do
+			EnemyService.damage(other, stats.attack * stats.damageMult * 1.1, player, { perk = true, element = "earth", posture = 25, knockback = 6, fromPosition = center })
+		end
+	end
+	if perks.sangria then
+		EnemyService.applyDot(rec, player, dealt * 0.1, 3, "burn")
+	end
+	if perks.teia_viuva then
+		EnemyService.applyDot(rec, player, dealt * 0.06, 4, "poison")
+		if crit then
+			local count = 0
+			for _, other in EnemyService.inRadius(rec.pos, 16) do
+				if other ~= rec and not other.dead and count < 3 then
+					count += 1
+					Remotes.Fx:FireAllClients("chain", EnemyService.centerOf(rec), EnemyService.centerOf(other))
+					EnemyService.damage(other, dealt * 0.6, player, { perk = true, element = "poison" })
+				end
+			end
+		end
+	end
 	if perks.lamina_toxica and math.random() < 0.25 then
 		EnemyService.applyDot(rec, player, dealt * 0.15, 4, "poison")
 	end
@@ -136,7 +171,28 @@ function PerkService.onKill(player, rec)
 		s.clipHits = 3
 		s.clipUntil = now + 8
 	end
-	local healFraction = (if perks.sanguessuga then 0.06 else 0) + (if perks.recuperacao then 0.03 else 0)
+	local healFraction = (if perks.sanguessuga then 0.06 else 0) + (if perks.recuperacao then 0.03 else 0) + (if perks.pacto_espectral then 0.05 else 0)
+	-- Único Abismo Arcano: mana de volta e vórtice
+	if perks.abismo_arcano then
+		PlayerService.restoreMana(player, 0.15)
+		local center = rec.pos
+		Remotes.Fx:FireAllClients("explosion", center, 10, "arcane")
+		for _, other in EnemyService.inRadius(center, 10) do
+			if other ~= rec and not other.dead then
+				EnemyService.damage(other, stats.attack * stats.damageMult * 1.2, player, { perk = true, element = "arcane", knockback = -6, fromPosition = center })
+			end
+		end
+	end
+	-- conjunto Fúria do Abismo: Erupção
+	if perks.erupcao then
+		local center = rec.pos
+		Remotes.Fx:FireAllClients("explosion", center, 9, "fire")
+		for _, other in EnemyService.inRadius(center, 9) do
+			if other ~= rec and not other.dead then
+				EnemyService.damage(other, stats.attack * stats.damageMult * 0.8, player, { perk = true, element = "fire", knockback = 6, fromPosition = center })
+			end
+		end
+	end
 	if healFraction > 0 then
 		PlayerService.heal(player, stats.maxHealth * healFraction)
 		Remotes.Fx:FireAllClients("heal", player, math.floor(stats.maxHealth * healFraction))

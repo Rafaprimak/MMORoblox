@@ -10,6 +10,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 
 local PetRenderer = require(script.Parent.PetRenderer)
+local ItemModels = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("ItemModels"))
 
 local RevealScene = {}
 RevealScene.__index = RevealScene
@@ -254,7 +255,12 @@ function RevealScene:update()
 		if self.item then
 			local handPos = Vector3.new(0.9, 7.6, 2.4)
 			local pos = Vector3.new(0, 1.6, 0):Lerp(Vector3.new(0, 4.2, 0.6), rise):Lerp(handPos, lift)
-			self.item.CFrame = CFrame.new(pos) * R(now * 120, now * 90, 0)
+			-- o item de verdade gira devagar na mão erguida (ou a gema, se não houver modelo)
+			if self.itemModel then
+				self.itemModel:PivotTo(CFrame.new(pos) * R(0, now * 90, 0) * self.itemTilt * self.itemRelative)
+			else
+				self.item.CFrame = CFrame.new(pos) * R(now * 120, now * 90, 0)
+			end
 			self.halo.CFrame = CFrame.new(pos)
 			self.halo.Size = Vector3.one * (2.2 + math.sin(now * 6) * 0.25)
 		end
@@ -263,13 +269,25 @@ function RevealScene:update()
 end
 
 -- dispara a abertura e espera terminar (~1,6 s)
-function RevealScene:open(color, big)
+function RevealScene:open(color, big, baseId, rarityId)
 	self.phase = "abrindo"
 	self.start = os.clock()
 	self.beam = newPart(self.world, Vector3.new(0.1, 1.4, 1.4), CFrame.new(0, 1.6, 0) * R(0, 0, 90), color, Enum.Material.Neon, Enum.PartType.Cylinder)
 	self.beam.Transparency = 0.25
 	self.flash = newPart(self.world, Vector3.one, CFrame.new(0, 2, 0), Color3.new(1, 1, 1), Enum.Material.Neon, Enum.PartType.Ball)
 	self.item = newPart(self.world, Vector3.one * (if big then 1.1 else 0.9), CFrame.new(0, 1.6, 0), color, Enum.Material.Neon)
+	if baseId then
+		-- modelo 3D do item (encolhido para caber na mão do personagem)
+		local model = ItemModels.build(baseId, rarityId, { anchored = true })
+		local size = model:GetExtentsSize()
+		model:ScaleTo(math.clamp(2.2 / math.max(size.X, size.Y, size.Z), 0.2, 1))
+		local center = model:GetBoundingBox()
+		self.itemRelative = CFrame.new(center.Position):ToObjectSpace(model:GetPivot())
+		self.itemTilt = ItemModels.displayRotation(baseId)
+		model.Parent = self.world
+		self.itemModel = model
+		self.item.Transparency = 1
+	end
 	self.halo = newPart(self.world, Vector3.one * 2.2, CFrame.new(0, 1.6, 0), color, Enum.Material.ForceField, Enum.PartType.Ball)
 	self.viewport.Ambient = color:Lerp(Color3.fromRGB(150, 140, 160), 0.5)
 	task.wait(1.6)

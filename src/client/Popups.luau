@@ -11,6 +11,7 @@ local Classes = require(Shared.Classes)
 
 local UI = require(script.Parent.UI)
 local Fx = require(script.Parent.Fx)
+local ItemIcon = require(script.Parent.ItemIcon)
 local Sounds = require(script.Parent.Sounds)
 
 local Popups = {}
@@ -150,7 +151,7 @@ function Popups.loot(item)
 	local cardStroke = UI.stroke(rarity.color, 2)
 	local card = UI.new("Frame", { Size = UDim2.fromScale(1, 1), Position = UDim2.fromOffset(340, 0), BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.1, Parent = holder }, { UI.corner(10), cardStroke })
 	UI.new("Frame", { Size = UDim2.new(0, 6, 1, -12), Position = UDim2.fromOffset(6, 6), BackgroundColor3 = rarity.color, Parent = card }, { UI.corner(3) })
-	UI.label({ Text = item.icon or "🗡️", Size = UDim2.fromOffset(40, 40), Position = UDim2.fromOffset(18, 9), TextXAlignment = Enum.TextXAlignment.Center, Parent = card })
+	ItemIcon.new(card, item.base, item.rarity, { Size = UDim2.fromOffset(48, 48), Position = UDim2.fromOffset(14, 5) })
 	local name = UI.label({ Text = item.name, TextColor3 = rarity.color, Size = UDim2.new(1, -72, 0, 24), Position = UDim2.fromOffset(64, 6), Parent = card }, { UI.textStroke(1) })
 	UI.label({ Text = ("%s  •  %s %d"):format(rarity.name, UI.statIcon(item), item.power), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, Size = UDim2.new(1, -72, 0, 18), Position = UDim2.fromOffset(64, 32), Parent = card })
 	if rarity.rainbow then

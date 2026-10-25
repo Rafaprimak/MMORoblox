@@ -10,6 +10,7 @@ local Rarities = require(Shared.Rarities)
 local Chests = require(Shared.Chests)
 
 local UI = require(script.Parent.UI)
+local ItemIcon = require(script.Parent.ItemIcon)
 local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Fx = require(script.Parent.Fx)
@@ -40,7 +41,7 @@ local function makeCard(parent, baseId, rarity, index)
 	local stroke = UI.stroke(rarity.color, 3)
 	stroke.Parent = card
 	UI.new("Frame", { AnchorPoint = Vector2.new(0, 1), Position = UDim2.fromScale(0, 1), Size = UDim2.new(1, 0, 0, 8), BackgroundColor3 = rarity.color, Parent = card }, { UI.corner(4) })
-	UI.label({ Text = Items.icon(baseId), Position = UDim2.fromScale(0, 0.08), Size = UDim2.fromScale(1, 0.45), TextXAlignment = Enum.TextXAlignment.Center, Parent = card })
+	ItemIcon.new(card, baseId, rarity.id, { Size = UDim2.fromScale(0.86, 0.5), Position = UDim2.fromScale(0.5, 0.05), AnchorPoint = Vector2.new(0.5, 0) })
 	UI.label({ Text = if base then base.name else "?", Position = UDim2.new(0, 6, 0.56, 0), Size = UDim2.new(1, -12, 0.2, 0), TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = true, Parent = card }, { UI.textStroke(1) })
 	UI.label({ Text = rarity.name, Position = UDim2.new(0, 6, 0.77, 0), Size = UDim2.new(1, -12, 0.13, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = rarity.color, Parent = card }, { UI.textStroke(1) })
 	if rarity.rainbow then
@@ -92,7 +93,7 @@ local function renderWindow()
 	UI.clear(possible)
 	for i, baseId in Items.ChestPool do
 		local cell = UI.new("Frame", { LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.2 }, { UI.corner(8) })
-		UI.label({ Text = Items.icon(baseId), Size = UDim2.fromScale(1, 0.55), TextXAlignment = Enum.TextXAlignment.Center, Parent = cell })
+		ItemIcon.new(cell, baseId, "Comum", { Size = UDim2.fromScale(0.9, 0.58), Position = UDim2.fromScale(0.5, 0), AnchorPoint = Vector2.new(0.5, 0), glow = false })
 		UI.label({ Text = Items.Bases[baseId].name, Position = UDim2.new(0, 3, 0.58, 0), Size = UDim2.new(1, -6, 0.36, 0), TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = true, Parent = cell })
 		cell.Parent = possible
 	end
@@ -184,7 +185,7 @@ function Chest.reveal(item, chestId)
 	-- revelação: a tampa abre, o feixe de luz sobe e o personagem ergue o item
 	local rarity = Rarities.ById[item.rarity] or Rarities.List[1]
 	if currentScene then
-		currentScene:open(rarity.color, rarity.order >= 4)
+		currentScene:open(rarity.color, rarity.order >= 4, item.base, item.rarity)
 	end
 	reelHolder.Visible = false
 	for _, ray in rays do

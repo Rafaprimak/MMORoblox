@@ -9,6 +9,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local World = require(Shared.World)
 local Items = require(Shared.Items)
+local Enemies = require(Shared.Enemies)
 local Remotes = require(Shared.Remotes)
 
 local WorldGen = require(script.WorldGen)
@@ -136,6 +137,16 @@ EnemyService.OnKilled = function(rec, contributors)
 		PetService.addXP(player, math.ceil(def.xp * 0.5) + 1)
 		ProgressionService.onKill(player, rec)
 		PetService.rollDrop(player, rec)
+		-- Únicos: cada jogador que ajudou tem a sua chance (andar 20 das masmorras: dobro)
+		if def.uniques and not rec.summoned then
+			local chance = Enemies.UniqueChance * (if rec.camp and rec.camp.floor == 20 then 2 else 1)
+			if math.random() < chance then
+				local owner = DataService.get(player)
+				local unique = Items.create(def.uniques[math.random(1, #def.uniques)], "Unico", math.max(rec.level, owner and owner.level or 1))
+				LootService.spawnDrop(player, unique, rec.pos)
+				Remotes.Notify:FireAllClients({ kind = "announce", text = ("✦ %s encontrou um item ÚNICO: %s!"):format(player.DisplayName, Items.displayName(unique)), rarity = "Unico" })
+			end
+		end
 		local rolls = (def.equipDrops or 1) + (if rec.elite then 1 else 0)
 		for _ = 1, rolls do
 			if math.random() <= def.dropChance * (if rec.elite then 3 else 1) * (if night then 1 + Config.NightDropBonus else 1) then
@@ -271,8 +282,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return DungeonService.join(player, a)
 	elseif action == "dungeonLeaveLobby" then
 		return DungeonService.leaveLobby(player)
-	elseif action == "dungeonStart" then
-		return DungeonService.start(player, a)
+	elseif action == "dungeonReady" then
+		return DungeonService.setReady(player, a)
 	elseif action == "dungeonExit" then
 		return DungeonService.leave(player, true)
 	elseif action == "dungeonBuy" then

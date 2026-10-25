@@ -10,6 +10,9 @@ Rarities.List = {
 	{ id = "Lendario", name = "Lendário", upper = "LENDÁRIO", order = 5, color = Color3.fromRGB(255, 185, 35), weight = 9000, chestWeight = 18000, mult = 3.6 },
 	{ id = "Mitico", name = "Mítico", upper = "MÍTICO", order = 6, color = Color3.fromRGB(255, 55, 75), weight = 990, chestWeight = 1900, mult = 5.2 },
 	{ id = "Secreto", name = "Secreto", upper = "SECRETO", order = 7, color = Color3.fromRGB(255, 255, 255), weight = 10, chestWeight = 100, mult = 8.0, rainbow = true },
+	-- Único: itens com efeito próprio que só caem de chefes específicos (chance fixa por item, ver
+	-- Enemies.Defs[x].uniques). Nunca sai de baú nem de sorteio de raridade (peso 0).
+	{ id = "Unico", name = "Único", upper = "ÚNICO", order = 8, color = Color3.fromRGB(60, 255, 215), weight = 0, chestWeight = 0, mult = 5.5, unique = true },
 }
 
 Rarities.ById = {}
@@ -36,12 +39,12 @@ function Rarities.roll(weightKey, minOrder)
 	for _, rarity in Rarities.List do
 		if rarity.order >= minOrder then
 			pick -= rarity[weightKey]
-			if pick <= 0 then
+			if pick <= 0 and rarity[weightKey] > 0 then
 				return rarity
 			end
 		end
 	end
-	return Rarities.List[#Rarities.List]
+	return Rarities.ById.Secreto
 end
 
 -- Lista com a porcentagem real de cada raridade (mostrada na UI do baú).
@@ -56,7 +59,7 @@ function Rarities.odds(weightKey, minOrder)
 	end
 	local result = {}
 	for _, rarity in Rarities.List do
-		if rarity.order >= minOrder then
+		if rarity.order >= minOrder and rarity[weightKey] > 0 then
 			table.insert(result, { rarity = rarity, percent = rarity[weightKey] / total * 100 })
 		end
 	end

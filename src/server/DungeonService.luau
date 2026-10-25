@@ -1,8 +1,9 @@
 -- Masmorras de 20 andares (ver o módulo Dungeons). Grupo no portal → cópia própria longe do mapa.
 -- Cada andar é montado na hora: patamar de chegada (com saída) → salão com os inimigos → escada atrás de
 -- uma grade, que sobe quando o salão é limpo. Qualquer membro desce a escada e o grupo inteiro vai junto
--- para o próximo andar (o anterior é desmontado). Chefe a cada 5 andares: baú para cada membro e ponto
--- de retorno salvo (data.dungeons[id] = maior chefe vencido). Inimigos usam o EnemyService com
+-- para o próximo andar (o anterior é desmontado). Chefe a cada 5 andares com baú para cada membro.
+-- Sempre uma corrida só, do andar 1 ao 20 (sem ponto de retorno); data.dungeons[id] guarda o recorde.
+-- O grupo só entra quando TODOS dão "Pronto" no portal. Inimigos usam o EnemyService com
 -- "acampamentos" de sala (piso plano em floorY, paredes em bounds, sem renascer).
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -65,7 +66,10 @@ local BLESSINGS = {
 	{ name = "Bênção da Vida", icon = "💚", heal = true, text = "vida cheia para todo o grupo" },
 }
 
-local lobbies = {} -- [dungeonId] = { player, ... }
+local lobbies = {} -- [dungeonId] = { player, ... } (o primeiro é o líder)
+local ready = {} -- [player] = true quando deu "Pronto"
+local countdowns = {} -- [dungeonId] = hora em que a masmorra começa (todos prontos)
+local COUNTDOWN = 3
 local runs = {} -- execuções ativas
 local runOf = {} -- [player] = run
 local usedSlots = {}
@@ -326,10 +330,15 @@ end
 
 local function removeFromLobby(player)
 	local id, list = lobbyOf(player)
+	ready[player] = nil
 	if list then
 		table.remove(list, table.find(list, player))
+		countdowns[id] = nil
 		for _, other in list do
 			PlayerService.markDirty(other)
+		end
+		if #list == 0 then
+			lobbies[id] = nil
 		end
 	end
 	return id
@@ -757,7 +766,11 @@ function DungeonService.summary(player)
 		for _, member in list do
 			table.insert(names, member.DisplayName)
 		end
-		result.lobby = { id = id, members = names }
+		local flags = {}
+		for _, member in list do
+			table.insert(flags, ready[member] == true)
+		end
+		result.lobby = { id = id, members = names, ready = flags, me = ready[player] == true, startsIn = if countdowns[id] then math.max(0, math.ceil(countdowns[id] - os.clock())) else nil }
 	end
 	local run = runOf[player]
 	if run and run.current then
@@ -855,42 +868,78 @@ function DungeonService.leaveLobby(player)
 	return { ok = true }
 end
 
--- Começa a masmorra com quem está no grupo e perto do portal. startFloor: 1 ou um ponto de retorno
--- liberado para quem aperta (6, 11, 16). A chave da masmorra (se ela pede) sai de quem aperta.
-function DungeonService.start(player, startFloor)
-	local dungeonId, list = lobbyOf(player)
-	local dungeon = dungeonId and Dungeons.ById[dungeonId]
-	local data = DataService.get(player)
-	if not dungeon or not list or not data then
+-- Marca (ou desmarca) "Pronto". Quando todos do grupo estão prontos, a contagem começa sozinha.
+function DungeonService.setReady(player, value)
+	local id, list = lobbyOf(player)
+	if not id or not list then
 		return { ok = false, msg = "Entre no grupo do portal primeiro." }
 	end
-	local floor = tonumber(startFloor) or 1
-	if not table.find(Dungeons.startFloors(data.dungeons[dungeon.id]), floor) then
-		return { ok = false, msg = "Você ainda não liberou esse andar." }
+	ready[player] = value == true or nil
+	if not ready[player] then
+		countdowns[id] = nil
 	end
-	if dungeon.key and (data.materials[dungeon.key] or 0) < 1 then
-		local key = Items.Materials[dungeon.key]
-		return { ok = false, msg = ("Precisa de uma %s (Mercador de Masmorras, na praça)."):format(key and key.name or "chave") }
-	end
-	local group = {}
 	for _, member in list do
-		local humanoid = member.Character and member.Character:FindFirstChildOfClass("Humanoid")
-		if member.Parent == Players and humanoid and humanoid.Health > 0 and nearPortal(member, dungeon, Dungeons.PortalRange + 10) and not runOf[member] then
-			table.insert(group, member)
+		PlayerService.markDirty(member)
+	end
+	return { ok = true }
+end
+
+local function lobbyReady(list)
+	if #list == 0 then
+		return false
+	end
+	for _, member in list do
+		if not ready[member] then
+			return false
 		end
 	end
-	if #group == 0 then
-		return { ok = false, msg = "Ninguém do grupo está perto do portal." }
+	return true
+end
+
+-- Começa a corrida (sempre do andar 1) com todo o grupo. A chave sai do líder (primeiro do grupo).
+local function launch(dungeonId)
+	local list = lobbies[dungeonId]
+	local dungeon = Dungeons.ById[dungeonId]
+	if not list or not dungeon or not lobbyReady(list) then
+		return
 	end
+	local leader = list[1]
+	local leaderData = DataService.get(leader)
+	local function cancel(message)
+		countdowns[dungeonId] = nil
+		for _, member in list do
+			ready[member] = nil
+			Remotes.Notify:FireClient(member, { kind = "message", text = message })
+			PlayerService.markDirty(member)
+		end
+	end
+	if not leaderData then
+		cancel("O líder do grupo saiu.")
+		return
+	end
+	if dungeon.key and (leaderData.materials[dungeon.key] or 0) < 1 then
+		local key = Items.Materials[dungeon.key]
+		cancel(("🗝 %s precisa de uma %s (Mercador de Masmorras, na praça)."):format(leader.DisplayName, key and key.name or "chave"))
+		return
+	end
+	for _, member in list do
+		local humanoid = member.Character and member.Character:FindFirstChildOfClass("Humanoid")
+		if member.Parent ~= Players or not humanoid or humanoid.Health <= 0 or runOf[member] or not nearPortal(member, dungeon, Dungeons.PortalRange + 10) then
+			cancel(("%s não está pronto perto do portal."):format(member.DisplayName))
+			return
+		end
+	end
+	local group = table.clone(list)
 	if dungeon.key then
-		data.materials[dungeon.key] -= 1
-		if data.materials[dungeon.key] <= 0 then
-			data.materials[dungeon.key] = nil
+		leaderData.materials[dungeon.key] -= 1
+		if leaderData.materials[dungeon.key] <= 0 then
+			leaderData.materials[dungeon.key] = nil
 		end
 	end
 	lobbies[dungeonId] = nil
-	for _, member in list do
-		PlayerService.markDirty(member)
+	countdowns[dungeonId] = nil
+	for _, member in group do
+		ready[member] = nil
 	end
 	local slot = 1
 	while usedSlots[slot] do
@@ -908,7 +957,7 @@ function DungeonService.start(player, startFloor)
 		folder = folder,
 		members = {},
 		groupMult = 1 + Dungeons.HpPerExtraPlayer * (#group - 1),
-		floor = floor,
+		floor = 1,
 		started = os.clock(),
 		finished = false,
 	}
@@ -918,22 +967,21 @@ function DungeonService.start(player, startFloor)
 		runOf[member] = run
 		member:SetAttribute("Dungeon", dungeon.id)
 	end
-	local ok, err = pcall(startFloor, run, floor)
+	local ok, err = pcall(startFloor, run, 1)
 	if not ok then
 		warn("[Masmorra] Falha ao montar: " .. tostring(err))
 		for _, member in group do
 			DungeonService.leave(member, true)
 		end
-		return { ok = false, msg = "Não foi possível abrir a masmorra agora." }
+		return
 	end
 	notifyRun(run, {
 		kind = "banner",
 		text = dungeon.icon .. " " .. string.upper(dungeon.name),
-		sub = ("Andar %d de %d  •  %d %s"):format(floor, Dungeons.Floors, #group, if #group == 1 then "jogador" else "jogadores"),
+		sub = ("Andar 1 de %d  •  %d %s  •  uma corrida só: cair fora é recomeçar"):format(Dungeons.Floors, #group, if #group == 1 then "jogador" else "jogadores"),
 		color = Color3.fromRGB(220, 200, 150),
 		duration = 4,
 	})
-	return { ok = true }
 end
 
 -- quem morreu volta para o patamar do andar atual
@@ -966,6 +1014,9 @@ function DungeonService.onEnemyKilled(player, rec)
 		return
 	end
 	local amount = if rec.def.boss then 6 + math.floor(camp.floor / 2) elseif rec.elite then 2 else (if math.random() < 0.6 then 1 else 0)
+	if PlayerService.getStats(player).perks.pilhagem then
+		amount *= 2 -- conjunto Saqueador da Toca
+	end
 	if amount > 0 then
 		PlayerService.addMaterial(player, dungeon.material, amount)
 	end
@@ -1109,6 +1160,13 @@ local function update(run)
 	end
 	state.cleared = true
 	local floor = state.floor
+	-- recorde: maior andar limpo nesta masmorra
+	for player in run.members do
+		local data = DataService.get(player)
+		if data then
+			data.dungeons[run.dungeon.id] = math.max(data.dungeons[run.dungeon.id] or 0, floor)
+		end
+	end
 	-- objetivo extra
 	if state.objective then
 		local done
@@ -1128,12 +1186,7 @@ local function update(run)
 		end
 	end
 	if state.info.boss then
-		-- ponto de retorno salvo para todos do grupo
 		for player in run.members do
-			local data = DataService.get(player)
-			if data then
-				data.dungeons[run.dungeon.id] = math.max(data.dungeons[run.dungeon.id] or 0, floor)
-			end
 			DungeonService.QuestHook(player, "dungeonBoss", run.dungeon.id, 1)
 		end
 		DungeonService.rewardChest(run, state, state.hall * CFrame.new(0, 0, 4), "boss")
@@ -1155,7 +1208,7 @@ local function update(run)
 			notifyRun(run, {
 				kind = "banner",
 				text = "👑 CHEFE DERROTADO!",
-				sub = ("Baú no salão  •  ponto de retorno liberado: andar %d"):format(floor + 1),
+				sub = "Abram o baú no salão e continuem descendo",
 				color = Color3.fromRGB(255, 215, 90),
 				duration = 4,
 			})
@@ -1194,6 +1247,22 @@ function DungeonService.init()
 					end
 				end
 			end
+			-- grupos: todos prontos → contagem → começa
+			for id, list in lobbies do
+				if lobbyReady(list) then
+					if not countdowns[id] then
+						countdowns[id] = os.clock() + COUNTDOWN
+						for _, member in list do
+							Remotes.Notify:FireClient(member, { kind = "banner", text = "⚔ TODOS PRONTOS", sub = ("Entrando em %d segundos..."):format(COUNTDOWN), color = Color3.fromRGB(140, 230, 140), duration = 2 })
+							PlayerService.markDirty(member)
+						end
+					elseif os.clock() >= countdowns[id] then
+						launch(id)
+					end
+				elseif countdowns[id] then
+					countdowns[id] = nil
+				end
+			end
 			-- grupos: tira quem se afastou do portal
 			for id, list in lobbies do
 				local dungeon = Dungeons.ById[id]
@@ -1201,6 +1270,8 @@ function DungeonService.init()
 					local player = list[i]
 					if player.Parent ~= Players or not nearPortal(player, dungeon, Dungeons.PortalRange + 20) then
 						table.remove(list, i)
+						ready[player] = nil
+						countdowns[id] = nil
 						for _, other in list do
 							PlayerService.markDirty(other)
 						end

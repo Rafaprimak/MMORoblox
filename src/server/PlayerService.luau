@@ -142,6 +142,7 @@ function PlayerService.getStats(player)
 	local armorPower, accessoryPower = 0, 0
 	local armorBonus = { mana = 0, stamina = 0 }
 	local bonus = Classes.talentStats(data.class, data.talents)
+	local setCounts = {}
 	for _, slot in Items.SlotOrder do
 		local item = PlayerService.getEquipped(player, slot)
 		local base = item and Items.Bases[item.base]
@@ -158,6 +159,9 @@ function PlayerService.getStats(player)
 				armorBonus.mana += base.bonus.mana or 0
 				armorBonus.stamina += base.bonus.stamina or 0
 			end
+			if base.set then
+				setCounts[base.set] = (setCounts[base.set] or 0) + 1
+			end
 			local itemStats = Items.getStats(item)
 			if itemStats then
 				addBonus(bonus, itemStats)
@@ -167,6 +171,19 @@ function PlayerService.getStats(player)
 				local perk = Perks.List[perkId]
 				if perk and perk.stats then
 					addBonus(bonus, perk.stats)
+				end
+			end
+		end
+	end
+	-- bônus de conjunto (2 e 4 peças)
+	stats.sets = setCounts
+	for setId, count in setCounts do
+		local set = Items.Sets[setId]
+		for pieces, setBonus in if set then set.bonuses else {} do
+			if count >= pieces then
+				addBonus(bonus, setBonus.stats or {})
+				if setBonus.perk then
+					stats.perks[setBonus.perk] = 1
 				end
 			end
 		end
@@ -407,7 +424,10 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 			return "parried"
 		end
 		local blockedDamage = amount * Config.BlockReduction
-		local cost = blockedDamage * Config.BlockStaminaPerDamage * (if stats.perks.muralha then 0.75 else 1)
+		local cost = if stats.perks.bastiao then 0 else blockedDamage * Config.BlockStaminaPerDamage * (if stats.perks.muralha then 0.75 else 1)
+		if stats.perks.bastiao and options.source and not options.ranged then
+			PlayerService.OnThorns(player, options.source, blockedDamage * 0.4)
+		end
 		if s.stamina >= cost then
 			s.stamina -= cost
 			s.staminaBlockUntil = now + Config.StaminaRegenDelay
@@ -424,7 +444,16 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 	local reduction = defense / (defense + 100)
 	local level = (DataService.get(player) or {}).level or 1
 	local newbie = Config.NewbieProtection[level] or 0
-	local final = math.max(1, math.floor(amount * (1 - reduction) * (1 - stats.damageReduction) * (1 - newbie)))
+	local final = math.max(1, math.floor(amount * (1 - reduction) * (1 - stats.damageReduction) * (1 - newbie) * (if stats.perks.tirania then 0.85 else 1)))
+	-- Único Filactério: o golpe fatal faz voltar com 50% da vida (a cada 120 s)
+	if stats.perks.filacterio and final >= humanoid.Health and now >= (s.phylacteryAt or 0) then
+		s.phylacteryAt = now + 120
+		s.iframesUntil = now + 2
+		humanoid.Health = humanoid.MaxHealth * 0.5
+		Remotes.Fx:FireAllClients("heal", player, math.floor(humanoid.MaxHealth * 0.5))
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "💀 FILACTÉRIO!", sub = "Sua alma voltou ao corpo", color = Color3.fromRGB(170, 130, 255), duration = 2.5 })
+		return "evaded"
+	end
 	-- perk Segunda Chance: o golpe fatal deixa com 1 de vida (a cada 90s)
 	if stats.perks.segunda_chance and final >= humanoid.Health and now >= (s.secondChanceAt or 0) then
 		final = math.max(0, math.floor(humanoid.Health) - 1)
@@ -441,6 +470,15 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 	Remotes.Fx:FireClient(player, "hurt", final, sourcePosition)
 	PlayerService.OnDamaged(player)
 	return if s.blocking then "blocked" else "hit"
+end
+
+-- Devolve uma fração da mana máxima
+function PlayerService.restoreMana(player, fraction)
+	local s = state[player]
+	if s then
+		local stats = PlayerService.getStats(player)
+		s.mana = math.min(stats.maxMana, s.mana + stats.maxMana * fraction)
+	end
 end
 
 function PlayerService.heal(player, amount)

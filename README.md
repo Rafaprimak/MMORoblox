@@ -107,7 +107,9 @@ O botão direito do mouse fica livre para girar a câmera.
 - **Classes e papéis (como num MMORPG):** Guerreiro (**tanque**: muita vida, ameaça em dobro e Provocar), Clérigo (**suporte**: curas, escudos e bênçãos para os aliados por perto), Mago (**controle**: área e congelamento), Arqueiro e Assassino (**dano**). Os inimigos atacam quem gera mais ameaça.
 - **Árvore de talentos (tecla C):** 8 habilidades por classe (4 básicas + 4 avançadas que custam 1 ponto); você escolhe quais 4 vão nas teclas 1-4. Passivas em 3 ramos por classe, com tiers. Redistribuir pontos é grátis até o nível 10.
 - **Armas:** espada, machado, martelo, lança, katana, adaga, arco e cajado, cada uma com combo e ataque pesado próprios. A maestria da arma sobe com o uso: nível 3 libera o finalizador do combo e nível 5 o ataque pesado.
-- **Raridades:** Comum, Incomum, Raro, Épico, Lendário, Mítico e Secreto.
+- **Raridades:** Comum, Incomum, Raro, Épico, Lendário, Mítico e Secreto, mais os **Únicos**: 8 itens com efeito próprio (Lâmina do Eclipse, Punho do Colosso, Arco da Viúva, Coroa do Rei Goblin, Anel do Lich...) que só caem de chefes, com 1,5% de chance por chefe (o dobro no andar 20).
+- **Conjuntos:** 3 conjuntos de 4 peças (um por masmorra) com bônus ao equipar 2 e 4 peças (o de 4 liga um efeito: Pilhagem, Pacto Espectral, Erupção).
+- **Itens em 3D:** cada item tem o próprio modelo (sem emojis): ele aparece na mão, no chão quando cai, no inventário, na forja, no baú e na loja.
 - **Equipamento:** arma, armadura, elmo, botas, amuleto e anel (mais de 70 bases, até o tier 3). Cada item sorteia **perks** próprios pela raridade, no estilo Destiny (Fúria Crescente, Explosão Fatal, Eco, Tempestade, Segunda Chance, Espinhos...). O Bruno reforja os perks.
 - **Pets (tecla G):** seguem você, sobem de nível com os abates e dão bônus. Ovos no Otto, pagos com ouro, com as chances visíveis; ovos raros caem de Elites e chefes.
 - **Jornada (tecla K):** recompensa diária em sequência de 7 dias, Passe do Hunter grátis com 50 tiers, 15 conquistas com títulos e marcos de nível.
@@ -115,8 +117,8 @@ O botão direito do mouse fica livre para girar a câmera.
 - **NPCs:** Bruno (forja, aprimoramento e reforja), Elric (encantar e desmontar), Mira (poções), Otto (loja, baús e ovos de pet), Kael (classes), Pedro (cavalo), Varg (Mercador de Masmorras), Quadro de Recompensas (contratos diários) e NPCs espalhados pelo mapa. A forja, a alquimia, a torre do Elric e o empório do Otto são construções com interior: entre para falar com eles.
 - **Missões:** 15 da história e 10 secundárias (caçar, coletar, entregar, explorar, ativar pedras, forjar, encantar, montar, aparar, esquivar no tempo certo...), mais 3 contratos diários sorteados de uma lista.
 - **Inimigos:** slimes, lobos, javalis (investida), caranguejos, goblins e arqueiros, aranhas, esqueletos e magos, golems (pancada em área), versões **Elite** e o chefe **Rei Goblin**.
-- **Masmorras (o endgame):** três portais no mapa — **Toca dos Goblins** (nível 5+), **Cripta Esquecida** (10+) e **Abismo de Pedra** (15+). Grupo de 1 a 4 jogadores, cópia só sua.
-  - **20 andares**, um **chefe a cada 5** (baú com item exclusivo para cada membro) e **ponto de retorno**: venceu o chefe do 5, a próxima entrada pode começar no 6 (e no 11, no 16).
+- **Masmorras (o endgame):** três portais no mapa — **Toca dos Goblins** (nível 5+), **Cripta Esquecida** (10+) e **Abismo de Pedra** (15+). Grupo de 1 a 4 jogadores, cópia só sua; começa quando **todos dão Pronto** no portal.
+  - **20 andares em uma corrida só** (sem ponto de retorno: saiu, recomeça), com um **chefe a cada 5** (baú com item exclusivo para cada membro).
   - Cada andar sorteia uma **mecânica** (exterminar, sobreviver a ondas, puxar 3 alavancas com emboscada, grelhas de fogo no chão) e um **objetivo extra** com bônus (limpar a tempo, ninguém cair, caçar o Campeão antes que fuja, pegar 3 relíquias).
   - **Segredos:** tijolo solto na parede que abre um **baú secreto**, **baú suspeito** (tesouro ou mímico) e **altar de bênção** para o grupo.
   - Cada masmorra tem **material próprio** e **itens exclusivos com perk de assinatura** (+dano dentro das masmorras). O **Mercador de Masmorras** (Varg, na praça) troca o material por chaves da masmorra seguinte, poções grandes, tônicos e itens exclusivos.

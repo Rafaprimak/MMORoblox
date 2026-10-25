@@ -39,6 +39,20 @@ Perks.List = {
 	coracao_magma = { pool = "weapon", exclusive = "abismo", name = "Coração de Magma", icon = "🌋", text = "+25% de dano do golpe pesado, +6% de dano e +20% de dano em masmorras.", stats = { heavyDamage = 0.25, damage = 0.06, dungeonDamage = 0.2 } },
 	casca_abissal = { pool = "gear", exclusive = "abismo", name = "Casca Abissal", icon = "🛡", text = "+5% de redução de dano, +10% de vida e +10% de dano em masmorras.", stats = { defense = 0.05, health = 0.1, dungeonDamage = 0.1 } },
 
+	-- ===== PERKS ÚNICOS (só nos itens Únicos; efeito no PerkService/PlayerService) =====
+	eclipse = { pool = "weapon", exclusive = "unique", name = "Eclipse", icon = "🌑", text = "A cada 5 golpes, uma onda de sombra fere tudo em volta (150% do ataque)." },
+	sangria = { pool = "weapon", exclusive = "unique", name = "Sangria do Capitão", icon = "🩸", text = "Todo golpe faz sangrar (30% do golpe em 3 s) e +40% de dano pelas costas.", stats = { backstab = 0.4 } },
+	terremoto = { pool = "weapon", exclusive = "unique", name = "Terremoto", icon = "🌋", text = "A cada 4 golpes, o chão treme: 110% do ataque em volta e quebra a guarda." },
+	teia_viuva = { pool = "weapon", exclusive = "unique", name = "Beijo da Viúva", icon = "🕷", text = "Todo golpe envenena e os críticos saltam para até 3 inimigos." },
+	abismo_arcano = { pool = "weapon", exclusive = "unique", name = "Abismo Arcano", icon = "🌀", text = "Cada abate devolve 15% da mana e abre um vórtice que fere quem está perto (120%)." },
+	bastiao = { pool = "gear", exclusive = "unique", name = "Bastião", icon = "🛡", text = "Bloquear não gasta estamina e devolve 40% do dano bloqueado ao atacante." },
+	tirania = { pool = "gear", exclusive = "unique", name = "Tirania", icon = "👑", text = "Recebe 15% menos dano e ganha +25% de ouro.", stats = { goldFind = 0.25 } },
+	filacterio = { pool = "gear", exclusive = "unique", name = "Filactério", icon = "💀", text = "Um golpe fatal faz você voltar com 50% da vida (a cada 120 s)." },
+	-- ===== BÔNUS DE CONJUNTO (4 peças; ver Items.Sets) =====
+	pilhagem = { pool = "gear", exclusive = "set", name = "Pilhagem", icon = "💰", text = "Inimigos em masmorras deixam o dobro de material." },
+	pacto_espectral = { pool = "gear", exclusive = "set", name = "Pacto Espectral", icon = "👻", text = "Cada abate cura 5% da vida." },
+	erupcao = { pool = "gear", exclusive = "set", name = "Erupção", icon = "🔥", text = "Inimigos derrotados explodem em lava (80% do ataque em volta)." },
+
 	-- ===== ARMADURAS E ACESSÓRIOS =====
 	espinhos = { pool = "gear", name = "Espinhos", icon = "🌵", text = "Devolve 25% do dano corpo a corpo recebido." },
 	segunda_chance = { pool = "gear", major = true, name = "Segunda Chance", icon = "😇", text = "Um golpe fatal deixa você com 1 de vida (a cada 90s)." },

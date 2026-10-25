@@ -11,6 +11,7 @@ local World = require(Shared.World)
 local Items = require(Shared.Items)
 local Rarities = require(Shared.Rarities)
 local Remotes = require(Shared.Remotes)
+local ItemModels = require(Shared.ItemModels)
 
 local PlayerService = require(script.Parent.PlayerService)
 
@@ -45,16 +46,35 @@ function LootService.spawnDrop(player, item, position)
 	local angle = math.random() * math.pi * 2
 	local distance = 2 + math.random() * 3
 	local x, z = position.X + math.cos(angle) * distance, position.Z + math.sin(angle) * distance
-	local target = Vector3.new(x, math.max(World.height(x, z), World.SeaLevel) + 1, z)
+	-- fora do mapa (masmorras) o chão é o da sala, não o do relevo
+	local outside = math.abs(position.X) > World.Half or math.abs(position.Z) > World.Half
+	local groundY = if outside then position.Y else math.max(World.height(x, z), World.SeaLevel)
+	local target = Vector3.new(x, groundY + 1, z)
 
 	local model = Instance.new("Model")
 	model.Name = "Drop_" .. player.Name
 	local gem = effectPart(model, {
 		Name = "Gema",
-		Size = Vector3.new(1.2, 1.2, 1.2),
+		Size = Vector3.new(0.6, 0.6, 0.6),
 		Color = rarity.color,
-		CFrame = CFrame.new(position + Vector3.new(0, 3, 0)) * CFrame.Angles(math.rad(45), 0, math.rad(45)),
+		Transparency = 1,
+		CFrame = CFrame.new(position + Vector3.new(0, 3, 0)),
 	})
+	-- o próprio item (mesmo modelo da mão e do ícone), deitado de lado e um pouco acima do chão
+	local itemModel = ItemModels.build(item.base, item.rarity, { anchored = true })
+	itemModel.Name = "ItemNoChao"
+	local itemSize = itemModel:GetExtentsSize()
+	local fit = math.clamp(2.6 / math.max(itemSize.X, itemSize.Y, itemSize.Z), 0.25, 1)
+	itemModel:ScaleTo(fit)
+	-- posição do pivô em relação ao centro do item (medida uma vez, antes de girar)
+	local tilt = ItemModels.displayRotation(item.base)
+	local center = itemModel:GetBoundingBox()
+	local relative = CFrame.new(center.Position):ToObjectSpace(itemModel:GetPivot())
+	local lift = math.max(itemSize.X, itemSize.Y, itemSize.Z) * fit * 0.5 + 0.3
+	local function placeItem(at)
+		itemModel:PivotTo(CFrame.new(at + Vector3.new(0, lift, 0)) * tilt * relative)
+	end
+	itemModel.Parent = model
 	local beamHeight = 4 + rarity.order * 4
 	local beamWidth = 0.5 + rarity.order * 0.12
 	local beam = effectPart(model, {
@@ -84,7 +104,7 @@ function LootService.spawnDrop(player, item, position)
 	label.Font = Enum.Font.GothamBlack
 	label.TextScaled = true
 	label.TextColor3 = rarity.color
-	label.Text = ("%s %s [%s]"):format(Items.icon(item.base), Items.displayName(item), rarity.name)
+	label.Text = ("%s [%s]"):format(Items.displayName(item), rarity.name)
 	label.Parent = gui
 	local stroke = Instance.new("UIStroke")
 	stroke.Thickness = 1.5
@@ -96,8 +116,18 @@ function LootService.spawnDrop(player, item, position)
 	end
 	model.Parent = folder
 	TweenService:Create(gem, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-		CFrame = CFrame.new(target) * CFrame.Angles(math.rad(45), 0, math.rad(45)),
+		CFrame = CFrame.new(target),
 	}):Play()
+	-- o item faz um arco do inimigo até o chão
+	placeItem(position + Vector3.new(0, 2, 0))
+	task.spawn(function()
+		local from = position + Vector3.new(0, 2, 0)
+		for step = 1, 9 do
+			task.wait(0.05)
+			local t = step / 9
+			placeItem(from:Lerp(target - Vector3.new(0, 1, 0), t) + Vector3.new(0, math.sin(t * math.pi) * 2.5, 0))
+		end
+	end)
 
 	Remotes.Fx:FireClient(player, "drop", target, item.rarity)
 	table.insert(drops, {

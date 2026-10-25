@@ -9,6 +9,7 @@ local Rarities = require(Shared.Rarities)
 local Perks = require(Shared.Perks)
 
 local UI = require(script.Parent.UI)
+local ItemIcon = require(script.Parent.ItemIcon)
 local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local ItemGrid = require(script.Parent.ItemGrid)
@@ -59,11 +60,33 @@ end
 -- ===================== FORJA =====================
 local forge = {}
 
+-- assinatura do que a forja mostra (ouro, materiais, itens): evita recriar os ícones 3D à toa
+local function forgeKey(data)
+	local parts = { tostring(forge.win.tab), tostring(forge.recipe), tostring(forge.selected), tostring(data.gold), tostring(State.skillLevel("ferraria")) }
+	local materialIds = {}
+	for id in data.materials or {} do
+		table.insert(materialIds, id)
+	end
+	table.sort(materialIds)
+	for _, id in materialIds do
+		table.insert(parts, id .. "=" .. tostring(data.materials[id]))
+	end
+	for _, item in data.inventory or {} do
+		table.insert(parts, ("%s:%d:%s:%d"):format(item.uid, item.upgrade, item.rarity, #(item.perks or {})))
+	end
+	return table.concat(parts, "|")
+end
+
 local function renderForge()
 	local data = State.data
 	if not data then
 		return
 	end
+	local key = forgeKey(data)
+	if forge.lastKey == key then
+		return
+	end
+	forge.lastKey = key
 	UI.clear(forge.list)
 	UI.clear(forge.detail)
 	local ferraria = State.skillLevel("ferraria")
@@ -75,13 +98,19 @@ local function renderForge()
 			local base = Items.Bases[recipe.result]
 			local locked = ferraria < recipe.skill
 			local button = UI.button({
-				Text = ("%s %s%s"):format(Items.icon(recipe.result), base.name, if locked then ("  🔒%d"):format(recipe.skill) else ""),
-				Size = UDim2.new(1, -4, 0, 32),
+				Text = ("%s%s"):format(base.name, if locked then ("  🔒%d"):format(recipe.skill) else ""),
+				Size = UDim2.new(1, -4, 0, 36),
 				LayoutOrder = i,
 				TextXAlignment = Enum.TextXAlignment.Left,
 				BackgroundColor3 = if forge.recipe == i then UI.Colors.Accent elseif locked then UI.Colors.Dark else UI.Colors.Panel,
 				Parent = forge.list,
 			})
+			-- miniatura 3D do item à esquerda do nome
+			ItemIcon.new(button, recipe.result, "Comum", { Size = UDim2.fromOffset(30, 30), Position = UDim2.new(0, -4, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), glow = false, ZIndex = button.ZIndex + 1 })
+			local padding = button:FindFirstChildOfClass("UIPadding")
+			if padding then
+				padding.PaddingLeft = UDim.new(0, 34)
+			end
 			button.MouseButton1Click:Connect(function()
 				forge.recipe = i
 				renderForge()
@@ -93,7 +122,8 @@ local function renderForge()
 			return
 		end
 		local base = Items.Bases[recipe.result]
-		text(forge.detail, { Text = Items.icon(recipe.result) .. " " .. base.name, Size = UDim2.new(1, 0, 0, 26), TextSize = 22, Font = Enum.Font.GothamBlack, Parent = forge.detail })
+		text(forge.detail, { Text = base.name, Size = UDim2.new(1, -110, 0, 26), TextSize = 22, Font = Enum.Font.GothamBlack, Parent = forge.detail })
+		ItemIcon.new(forge.detail, recipe.result, "Raro", { Size = UDim2.fromOffset(100, 100), Position = UDim2.new(1, -4, 0, 0), AnchorPoint = Vector2.new(1, 0), spin = true })
 		local kind = if base.slot ~= "weapon" then (Items.Slots[base.slot] or {}).name or "Equipamento" else (Items.WeaponTypes[base.weaponType] or {}).name or "Arma"
 		text(forge.detail, { Text = ("%s  •  Poder base %d  •  Ferraria %d"):format(kind, base.power, recipe.skill), Position = UDim2.fromOffset(0, 30), TextColor3 = UI.Colors.SubText, Parent = forge.detail })
 		local ok = costLines(forge.detail, { gold = recipe.gold, materials = recipe.materials }, 60)

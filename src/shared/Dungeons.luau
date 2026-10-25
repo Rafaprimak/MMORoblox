@@ -1,7 +1,7 @@
 -- Masmorras instanciadas (o endgame): cada grupo de 1 a 4 jogadores ganha uma cópia só sua, longe do mapa.
 -- Cada masmorra tem 20 andares; o andar é montado na hora (um por vez). Limpou o andar, a escada abre e o
--- grupo desce junto. A cada 5 andares há um chefe com baú de recompensa e um ponto de retorno: depois de
--- vencer o chefe do andar 5, a próxima entrada pode começar no 6 (e no 11 e no 16).
+-- grupo desce junto. A cada 5 andares há um chefe com baú de recompensa. É sempre uma corrida só (do
+-- andar 1 ao 20, sem ponto de retorno) e o grupo só entra quando todos dão "Pronto".
 -- Os inimigos ficam mais fortes a cada andar e a vida cresce com o tamanho do grupo (tanque, suporte e
 -- dano fazem diferença; ver Classes: role).
 -- Cada masmorra tem material próprio (cai de todo inimigo lá dentro), itens exclusivos com perk de
@@ -43,7 +43,7 @@ local DESIGN = {
 			{ "aranha", "goblin", "goblin_arqueiro", "javali" },
 		},
 		bosses = { [5] = "capitao_goblin", [10] = "rainha_aranha", [15] = "capitao_goblin", [20] = "rei_goblin" },
-		loot = { "faca_saqueador", "machado_tunel", "arco_tunel", "cajado_cristal", "colete_tunel", "anel_saqueador" },
+		loot = { "faca_saqueador", "machado_tunel", "arco_tunel", "cajado_cristal", "capuz_saqueador", "colete_tunel", "botas_tunel", "anel_saqueador" },
 	},
 	{
 		id = "cripta",
@@ -64,7 +64,7 @@ local DESIGN = {
 			{ "esqueleto_mago", "esqueleto", "golem" },
 		},
 		bosses = { [5] = "senhor_ossos", [10] = "guardiao_cripta", [15] = "senhor_ossos", [20] = "rei_lich" },
-		loot = { "ceifa_espectral", "katana_espectral", "cetro_ossos", "arco_luto", "mortalha_cripta", "amuleto_alma" },
+		loot = { "ceifa_espectral", "katana_espectral", "cetro_ossos", "arco_luto", "elmo_vigia", "mortalha_cripta", "grevas_vigia", "amuleto_alma" },
 	},
 	{
 		id = "abismo",
@@ -85,7 +85,7 @@ local DESIGN = {
 			{ "golem", "golem", "esqueleto_mago", "esqueleto" },
 		},
 		bosses = { [5] = "rainha_aranha", [10] = "guardiao_cripta", [15] = "rei_lich", [20] = "colosso_abismo" },
-		loot = { "martelo_magma", "lanca_magma", "adagas_brasa", "cajado_magma", "casca_abissal", "anel_magma" },
+		loot = { "martelo_magma", "lanca_magma", "adagas_brasa", "cajado_magma", "elmo_magma", "casca_abissal", "botas_brasa", "anel_magma" },
 	},
 }
 
@@ -122,15 +122,6 @@ function Dungeons.floorInfo(dungeon, floor)
 		-- raridade mínima do item que o chefe deixa (andar 5 Incomum ... andar 20 Lendário)
 		minRarity = Dungeons.tier(floor) + 1,
 	}
-end
-
--- Andares em que dá para começar, pelo maior chefe vencido (0, 5, 10, 15 ou 20)
-function Dungeons.startFloors(best)
-	local floors = { 1 }
-	for floor = Dungeons.BossEvery, math.min(best or 0, Dungeons.Floors - 1), Dungeons.BossEvery do
-		table.insert(floors, floor + 1)
-	end
-	return floors
 end
 
 Dungeons.List = {}
