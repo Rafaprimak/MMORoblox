@@ -42,6 +42,7 @@ local JourneyWindow = require(script.JourneyWindow)
 local Ambience = require(script.Ambience)
 local TownLife = require(script.TownLife)
 local Juice = require(script.Juice)
+local DungeonWindow = require(script.DungeonWindow)
 local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
 
@@ -73,6 +74,7 @@ MapWindow.init(screen)
 SettingsWindow.init(screen)
 PetsWindow.init(screen)
 JourneyWindow.init(screen)
+DungeonWindow.init(screen)
 PetRenderer.init()
 ClassSelect.init()
 Sky.init()
@@ -153,6 +155,7 @@ Dialog.services = {
 	end,
 	chest = Chest.open,
 	pets = PetsWindow.openEggs,
+	dungeon = DungeonWindow.openShop,
 	classes = function()
 		Window.closeAll()
 		ClassSelect.open(true)
@@ -173,6 +176,8 @@ end)
 Remotes.Notify.OnClientEvent:Connect(function(notification)
 	if notification.kind == "chest" then
 		Chest.reveal(notification.item, notification.chest)
+	elseif notification.kind == "dungeonPortal" then
+		DungeonWindow.openPortal(notification.id)
 	elseif notification.kind == "pet" then
 		PetsWindow.announce(notification)
 	elseif notification.kind == "passTier" or notification.kind == "achievement" or notification.kind == "reward" then

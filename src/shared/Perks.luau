@@ -31,6 +31,14 @@ Perks.List = {
 	afiacao = { pool = "weapon", name = "Afiação", icon = "🗡️", text = "+4% de crítico.", stats = { crit = 0.04 } },
 	pesado = { pool = "weapon", name = "Peso Extra", icon = "⚖️", text = "+20% de dano do golpe pesado.", stats = { heavyDamage = 0.2 } },
 
+	-- ===== PERKS DE ASSINATURA (só nos itens exclusivos das masmorras; nunca sorteados) =====
+	saqueador = { pool = "weapon", exclusive = "toca", name = "Saqueador da Toca", icon = "💰", text = "+5% de crítico, +15% de ouro e +10% de dano em masmorras.", stats = { crit = 0.05, goldFind = 0.15, dungeonDamage = 0.1 } },
+	pele_tunel = { pool = "gear", exclusive = "toca", name = "Pele de Túnel", icon = "🕳", text = "+12% de estamina, +5% de vida e +5% de dano em masmorras.", stats = { stamina = 0.12, health = 0.05, dungeonDamage = 0.05 } },
+	ceifa_alma = { pool = "weapon", exclusive = "cripta", name = "Ceifa Espectral", icon = "👻", text = "+4% de roubo de vida, +10% de dano crítico e +15% de dano em masmorras.", stats = { lifesteal = 0.04, critDamage = 0.1, dungeonDamage = 0.15 } },
+	mortalha = { pool = "gear", exclusive = "cripta", name = "Mortalha", icon = "⚰", text = "+8% de vida, regenera 0,3% da vida/s e +8% de dano em masmorras.", stats = { health = 0.08, regen = 0.003, dungeonDamage = 0.08 } },
+	coracao_magma = { pool = "weapon", exclusive = "abismo", name = "Coração de Magma", icon = "🌋", text = "+25% de dano do golpe pesado, +6% de dano e +20% de dano em masmorras.", stats = { heavyDamage = 0.25, damage = 0.06, dungeonDamage = 0.2 } },
+	casca_abissal = { pool = "gear", exclusive = "abismo", name = "Casca Abissal", icon = "🛡", text = "+5% de redução de dano, +10% de vida e +10% de dano em masmorras.", stats = { defense = 0.05, health = 0.1, dungeonDamage = 0.1 } },
+
 	-- ===== ARMADURAS E ACESSÓRIOS =====
 	espinhos = { pool = "gear", name = "Espinhos", icon = "🌵", text = "Devolve 25% do dano corpo a corpo recebido." },
 	segunda_chance = { pool = "gear", major = true, name = "Segunda Chance", icon = "😇", text = "Um golpe fatal deixa você com 1 de vida (a cada 90s)." },
@@ -54,6 +62,9 @@ Perks.ByPool = { weapon = {}, gear = {} }
 Perks.MajorByPool = { weapon = {}, gear = {} }
 for id, perk in Perks.List do
 	perk.id = id
+	if perk.exclusive then
+		continue -- perk de assinatura: vem fixo no item exclusivo, não entra no sorteio
+	end
 	table.insert(Perks.ByPool[perk.pool], id)
 	if perk.major then
 		table.insert(Perks.MajorByPool[perk.pool], id)

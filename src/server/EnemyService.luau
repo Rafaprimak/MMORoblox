@@ -49,8 +49,21 @@ local function lookOf(rec)
 	return Vector3.new(-math.sin(rec.yaw), 0, -math.cos(rec.yaw))
 end
 
-local function groundAt(x, z)
+-- altura do chão: no mundo vem do relevo; nas salas de masmorra o acampamento tem piso plano (floorY)
+local function groundAt(x, z, camp)
+	if camp and camp.floorY then
+		return camp.floorY
+	end
 	return World.height(x, z)
+end
+
+-- salas de masmorra têm paredes: o inimigo não sai do retângulo (bounds = { minX, maxX, minZ, maxZ })
+local function keepInside(camp, position)
+	local bounds = camp and camp.bounds
+	if not bounds then
+		return position
+	end
+	return Vector3.new(math.clamp(position.X, bounds[1], bounds[2]), position.Y, math.clamp(position.Z, bounds[3], bounds[4]))
 end
 
 local function setAction(rec, action)
@@ -72,7 +85,7 @@ local function randomPointInCamp(camp, fraction)
 	local distance = math.sqrt(math.random()) * camp.radius * (fraction or 0.85)
 	local x = camp.center.X + math.cos(angle) * distance
 	local z = camp.center.Y + math.sin(angle) * distance
-	return Vector3.new(x, groundAt(x, z), z)
+	return keepInside(camp, Vector3.new(x, groundAt(x, z, camp), z))
 end
 
 function EnemyService.spawn(camp, enemyId, options)
@@ -82,11 +95,11 @@ function EnemyService.spawn(camp, enemyId, options)
 		return nil
 	end
 	local canBeElite = not def.boss and def.behavior ~= "dummy" and not options.summoned
-	local elite = canBeElite and math.random() < Enemies.EliteChance * (if isNight() then Config.NightEliteMultiplier else 1)
+	local elite = options.forceElite == true or (canBeElite and math.random() < Enemies.EliteChance * (if isNight() then Config.NightEliteMultiplier else 1))
 	local height = EnemyModels.height(def, elite)
 	local radius = def.radius * (if elite then 1.35 else 1)
-	local hp = math.floor(def.hp * (if elite then 3 else 1))
-	local level = def.level + (if elite then 2 else 0)
+	local hp = math.floor(def.hp * (if elite then 3 else 1) * (options.hpMult or 1))
+	local level = def.level + (if elite then 2 else 0) + (options.levelBonus or 0)
 	local pos = options.position or randomPointInCamp(camp)
 
 	local root = Instance.new("Part")
@@ -122,7 +135,8 @@ function EnemyService.spawn(camp, enemyId, options)
 		radius = radius,
 		elite = elite,
 		level = level,
-		damageMult = if elite then 1.5 else 1,
+		damageMult = (if elite then 1.5 else 1) * (options.damageMult or 1),
+		rewardMult = options.rewardMult or 1, -- masmorras: andares mais fundos dão mais XP e ouro
 		damageBy = {},
 		threat = {},
 		tauntBy = nil,
@@ -153,6 +167,9 @@ function EnemyService.spawn(camp, enemyId, options)
 end
 
 local function respawnLater(camp, enemyId)
+	if not camp.respawn then
+		return -- masmorras não renascem inimigos
+	end
 	task.delay(camp.respawn, function()
 		local rec = EnemyService.spawn(camp, enemyId)
 		if rec and rec.def.boss then
@@ -176,7 +193,7 @@ local function kill(rec, killer)
 	task.delay(0.1, function()
 		rec.root:Destroy()
 	end)
-	if rec.def.boss then
+	if rec.def.boss and rec.camp.respawn then
 		Remotes.Notify:FireAllClients({ kind = "announce", text = ("👑 O %s foi derrotado!"):format(rec.def.name), sub = ("Volta em %d segundos"):format(rec.camp.respawn) })
 	end
 	if not rec.summoned then
@@ -250,6 +267,13 @@ end
 -- info: { crit, knockback, stun, fromPosition, color, dot, posture }
 -- Retorna o dano causado e se foi contra-ataque
 function EnemyService.damage(rec, amount, player, info)
+	-- perks de assinatura das masmorras: +dano dentro delas
+	if player and rec.camp and rec.camp.dungeon and amount > 0 then
+		local bonus = PlayerService.getStats(player).bonus.dungeonDamage
+		if bonus and bonus > 0 then
+			amount = math.floor(amount * (1 + bonus) + 0.5)
+		end
+	end
 	if rec.dead then
 		return 0
 	end
@@ -286,8 +310,8 @@ function EnemyService.damage(rec, amount, player, info)
 	if info.knockback and info.fromPosition and not immovable then
 		local push = flat(rec.pos - info.fromPosition)
 		if push.Magnitude > 0.01 then
-			local target = rec.pos + push.Unit * info.knockback * 0.35
-			local y = groundAt(target.X, target.Z)
+			local target = keepInside(rec.camp, rec.pos + push.Unit * info.knockback * 0.35)
+			local y = groundAt(target.X, target.Z, rec.camp)
 			if y > World.SeaLevel - 1 then
 				rec.pos = Vector3.new(target.X, y, target.Z)
 			end
@@ -423,8 +447,8 @@ local function moveToward(rec, direction, speed, dt)
 		return
 	end
 	local step = direction.Unit * speed * dt
-	local target = rec.pos + step
-	local y = groundAt(target.X, target.Z)
+	local target = keepInside(rec.camp, rec.pos + step)
+	local y = groundAt(target.X, target.Z, rec.camp)
 	if y < World.SeaLevel - (if rec.id == "caranguejo" then 3 else 0.3) then
 		return
 	end
@@ -527,8 +551,8 @@ local function separate(rec)
 			local d = offset.Magnitude
 			if d > 0.01 and d < minDistance then
 				local push = offset.Unit * (minDistance - d) * 0.5
-				local target = rec.pos + push
-				rec.pos = Vector3.new(target.X, groundAt(target.X, target.Z), target.Z)
+				local target = keepInside(rec.camp, rec.pos + push)
+				rec.pos = Vector3.new(target.X, groundAt(target.X, target.Z, rec.camp), target.Z)
 			end
 		end
 	end
@@ -698,11 +722,12 @@ local function updateEnemy(rec, now, targets)
 				local angle = i / def.summon.count * math.pi * 2
 				local x = rec.pos.X + math.cos(angle) * 10
 				local z = rec.pos.Z + math.sin(angle) * 10
-				EnemyService.spawn(rec.camp, def.summon.enemy, { summoned = true, position = Vector3.new(x, groundAt(x, z), z) })
+				local spot = keepInside(rec.camp, Vector3.new(x, groundAt(x, z, rec.camp), z))
+				EnemyService.spawn(rec.camp, def.summon.enemy, { summoned = true, position = spot, hpMult = rec.camp.hpMult, damageMult = rec.camp.damageMult, levelBonus = rec.camp.levelBonus })
 			end
 			setAction(rec, "roar")
 			Remotes.Fx:FireAllClients("explosion", rec.pos, 10, "summon")
-			Remotes.Notify:FireAllClients({ kind = "banner", text = "👑 O Rei Goblin chama reforços!", color = Color3.fromRGB(255, 120, 60), duration = 2.5, nearby = { position = rec.pos, radius = 150 } })
+			Remotes.Notify:FireAllClients({ kind = "banner", text = ("👑 O %s chama reforços!"):format(def.name), color = Color3.fromRGB(255, 120, 60), duration = 2.5, nearby = { position = rec.pos, radius = 150 } })
 		end
 
 		if def.behavior == "ranged" then
@@ -782,6 +807,38 @@ local function updateEnemy(rec, now, targets)
 	end
 	separate(rec)
 	place(rec)
+end
+
+-- Inimigos vivos de um acampamento (inclui os invocados)
+function EnemyService.aliveInCamp(camp)
+	local count = 0
+	for _, rec in active do
+		if rec.camp == camp and not rec.dead then
+			count += 1
+		end
+	end
+	return count
+end
+
+-- Tira um inimigo do mundo sem recompensa (ex.: campeão que fugiu)
+function EnemyService.despawn(rec)
+	if rec and not rec.dead then
+		rec.dead = true
+		byRoot[rec.root] = nil
+		Remotes.Fx:FireAllClients("blink", rec.root.Position)
+		rec.root:Destroy()
+	end
+end
+
+-- Tira os inimigos de um acampamento sem recompensa (masmorra fechada)
+function EnemyService.clearCamp(camp)
+	for _, rec in active do
+		if rec.camp == camp and not rec.dead then
+			rec.dead = true
+			byRoot[rec.root] = nil
+			rec.root:Destroy()
+		end
+	end
 end
 
 function EnemyService.start()

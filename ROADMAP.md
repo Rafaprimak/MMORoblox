@@ -76,7 +76,12 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 ## Fase 2 — Conteúdo
 
-- ⬜ **Dungeons instanciadas** (portais com andares, sala do chefe, baú final) para 1 a 4 jogadores, pensadas para grupo com tanque, suporte e dano (G)
+- 🧪 **Masmorras instanciadas (endgame)**: Toca dos Goblins (5+), Cripta Esquecida (10+), Abismo de Pedra (15+); grupo de 1 a 4 no portal; 20 andares montados um por vez; chefe a cada 5 andares (8 chefes novos/reusados) com baú por membro e ponto de retorno salvo (`data.dungeons`); força dos inimigos sobe por andar e a vida pelo tamanho do grupo (G)
+  - 🧪 Andares com mecânica sorteada (ondas, alavancas com emboscada, grelhas de fogo), objetivo extra com bônus (tempo, ninguém cair, caçada ao Campeão, relíquias), tijolo solto com baú secreto, baú suspeito (mímico), altar de bênção
+  - 🧪 Material e itens exclusivos por masmorra (18 bases) com perk de assinatura; Mercador de Masmorras (Varg) com chaves, poção grande, tônico de pedra e itens exclusivos; 4 conquistas e títulos
+  - ⬜ Balancear vida/dano dos andares e dos chefes depois de testar em grupo
+  - ⬜ Mais mecânicas (proteger cristal, plataformas, salas escuras), modificadores semanais e ranking de tempo
+- 🧪 Corrigido: o chefe nunca era marcado como chefe (`def.boss`), então a barra do chefe e a música de chefe não apareciam
 - ⬜ Novas regiões e níveis 20–40: Pântano Venenoso, Deserto de Âmbar, Pico Vulcânico, cada uma com 3 inimigos, 1 chefe e recursos tier 3 (G)
 - ⬜ World boss com horário e anúncio global, com recompensa por participação (M)
 - ⬜ Eventos sazonais com skins temporárias (Halloween, Natal), seguindo a ideia da "camada de meme rotativa" (M)

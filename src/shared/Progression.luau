@@ -80,6 +80,10 @@ Progression.Achievements = {
 	{ id = "explorador", name = "Explorador", icon = "🧭", event = "poi", tiers = { 3, 6, 9 }, title = "desbravador", text = "Descubra locais de interesse" },
 	{ id = "cacador_tesouros", name = "Caça ao Tesouro", icon = "🗝", event = "poiChest", tiers = { 2, 5, 9 }, title = "achador", text = "Abra baús escondidos nos locais" },
 	{ id = "perfeccionista", name = "Perfeccionista", icon = "⬆", event = "upgradeTo", mode = "max", tiers = { 5, 8, 10 }, title = "perfeccionista", text = "Aprimore um item" },
+	{ id = "masmorreiro", name = "Senhor das Profundezas", icon = "🏰", event = "dungeonBoss", tiers = { 1, 12, 60 }, title = "senhor_profundezas", text = "Derrote chefes de masmorra" },
+	{ id = "conquistador", name = "Conquistador", icon = "🏆", event = "dungeon", tiers = { 1, 3, 10 }, title = "conquistador", text = "Chegue ao fim dos 20 andares" },
+	{ id = "segredos", name = "Olho Atento", icon = "🗝", event = "dungeonSecret", tiers = { 1, 10, 40 }, title = "olho_atento", text = "Ache baús secretos nas masmorras" },
+	{ id = "desafiante", name = "Desafiante", icon = "⭐", event = "dungeonObjective", tiers = { 5, 30, 120 }, title = "desafiante", text = "Cumpra objetivos extras nas masmorras" },
 }
 
 Progression.AchievementById = {}
@@ -116,6 +120,10 @@ Progression.Titles = {
 	lenda_trilha = { name = "Lenda da Trilha", color = Color3.fromRGB(255, 200, 60) },
 	exterminador = { name = "Exterminador", color = Color3.fromRGB(255, 80, 70) },
 	regicida = { name = "Regicida", color = Color3.fromRGB(255, 210, 80) },
+	senhor_profundezas = { name = "Senhor das Profundezas", color = Color3.fromRGB(180, 120, 255) },
+	conquistador = { name = "Conquistador de Masmorras", color = Color3.fromRGB(255, 120, 60) },
+	olho_atento = { name = "Olho Atento", color = Color3.fromRGB(150, 230, 255) },
+	desafiante = { name = "Desafiante", color = Color3.fromRGB(255, 230, 120) },
 	muralha = { name = "Muralha Viva", color = Color3.fromRGB(140, 180, 255) },
 	intocavel = { name = "Intocável", color = Color3.fromRGB(120, 230, 255) },
 	quebra_guardas = { name = "Quebra-Guardas", color = Color3.fromRGB(255, 160, 60) },

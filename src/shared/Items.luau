@@ -104,6 +104,29 @@ Items.Bases = {
 	anel_guardiao = { name = "Anel do Guardião", slot = "ring", power = 2, tier = 2, stats = { defense = 0.03, threat = 0.1 } },
 	anel_tempestade = { name = "Anel da Tempestade", slot = "ring", power = 5, tier = 3, stats = { attackSpeed = 0.05 } },
 	anel_rei = { name = "Anel do Rei", slot = "ring", power = 6, tier = 3, stats = { xpGain = 0.08, goldFind = 0.08 } },
+
+	-- ===== EXCLUSIVOS DAS MASMORRAS (dungeon = id; signature = perk de assinatura, sempre presente) =====
+	-- Toca dos Goblins
+	faca_saqueador = { name = "Faca do Saqueador", slot = "weapon", weaponType = "dagger", power = 12, tier = 2, dungeon = "toca", signature = "saqueador" },
+	machado_tunel = { name = "Machado do Túnel", slot = "weapon", weaponType = "axe", power = 17, tier = 2, dungeon = "toca", signature = "saqueador" },
+	arco_tunel = { name = "Arco de Raiz", slot = "weapon", weaponType = "bow", power = 13, tier = 2, dungeon = "toca", signature = "saqueador" },
+	cajado_cristal = { name = "Cajado de Cristal da Toca", slot = "weapon", weaponType = "staff", power = 13, tier = 2, dungeon = "toca", signature = "saqueador" },
+	colete_tunel = { name = "Colete de Túnel", slot = "armor", power = 42, tier = 2, bonus = { stamina = 25 }, dungeon = "toca", signature = "pele_tunel" },
+	anel_saqueador = { name = "Anel do Saqueador", slot = "ring", power = 4, tier = 2, stats = { goldFind = 0.06, crit = 0.01 }, dungeon = "toca", signature = "pele_tunel" },
+	-- Cripta Esquecida
+	ceifa_espectral = { name = "Ceifa Espectral", slot = "weapon", weaponType = "sword", power = 21, tier = 3, dungeon = "cripta", signature = "ceifa_alma" },
+	katana_espectral = { name = "Katana do Luto", slot = "weapon", weaponType = "katana", power = 22, tier = 3, dungeon = "cripta", signature = "ceifa_alma" },
+	cetro_ossos = { name = "Cetro de Ossos", slot = "weapon", weaponType = "staff", power = 19, tier = 3, dungeon = "cripta", signature = "ceifa_alma" },
+	arco_luto = { name = "Arco do Lamento", slot = "weapon", weaponType = "bow", power = 19, tier = 3, dungeon = "cripta", signature = "ceifa_alma" },
+	mortalha_cripta = { name = "Mortalha da Cripta", slot = "armor", power = 62, tier = 3, bonus = { mana = 60 }, dungeon = "cripta", signature = "mortalha" },
+	amuleto_alma = { name = "Amuleto de Almas", slot = "amulet", power = 6, tier = 3, stats = { lifesteal = 0.015, damage = 0.03 }, dungeon = "cripta", signature = "mortalha" },
+	-- Abismo de Pedra
+	martelo_magma = { name = "Martelo de Magma", slot = "weapon", weaponType = "hammer", power = 32, tier = 3, dungeon = "abismo", signature = "coracao_magma" },
+	lanca_magma = { name = "Lança Abissal", slot = "weapon", weaponType = "spear", power = 25, tier = 3, dungeon = "abismo", signature = "coracao_magma" },
+	adagas_brasa = { name = "Adagas de Brasa", slot = "weapon", weaponType = "dagger", power = 19, tier = 3, dungeon = "abismo", signature = "coracao_magma" },
+	cajado_magma = { name = "Cajado do Vulcão", slot = "weapon", weaponType = "staff", power = 23, tier = 3, dungeon = "abismo", signature = "coracao_magma" },
+	casca_abissal = { name = "Couraça Abissal", slot = "armor", power = 90, tier = 3, dungeon = "abismo", signature = "casca_abissal" },
+	anel_magma = { name = "Anel de Magma", slot = "ring", power = 7, tier = 3, stats = { damage = 0.04, critDamage = 0.05 }, dungeon = "abismo", signature = "casca_abissal" },
 }
 
 -- Texto dos stats de acessórios (para a UI)
@@ -111,6 +134,7 @@ Items.StatNames = {
 	damage = "de dano", health = "de vida", crit = "de crítico", critDamage = "de dano crítico", attackSpeed = "de velocidade de ataque",
 	defense = "de redução de dano", lifesteal = "de roubo de vida", manaRegen = "de mana/s", healPower = "de cura", threat = "de ameaça",
 	xpGain = "de XP", goldFind = "de ouro", cooldown = "de recarga", stamina = "de estamina", mana = "de mana", regen = "de vida/s",
+	dungeonDamage = "de dano em masmorras",
 }
 
 -- Itens que podem sair dos baús
@@ -145,6 +169,13 @@ Items.Materials = {
 	nucleo_golem = { name = "Núcleo de Golem", icon = "🔶", sell = 20 },
 	essencia = { name = "Essência Mágica", icon = "✨", sell = 10 },
 	coroa_goblin = { name = "Fragmento da Coroa", icon = "👑", sell = 100 },
+	-- materiais das masmorras (caem de todo inimigo lá dentro; moeda do Mercador de Masmorras)
+	saque_toca = { name = "Saque da Toca", icon = "💰", sell = 4, dungeon = "toca" },
+	fragmento_alma = { name = "Fragmento de Alma", icon = "👻", sell = 8, dungeon = "cripta" },
+	brasa_abissal = { name = "Brasa Abissal", icon = "🌋", sell = 14, dungeon = "abismo" },
+	-- chaves (o líder gasta uma ao começar a masmorra)
+	chave_cripta = { name = "Chave da Cripta", icon = "🗝", sell = 1, key = "cripta" },
+	chave_abismo = { name = "Chave do Abismo", icon = "🗝", sell = 1, key = "abismo" },
 }
 
 Items.Consumables = {
@@ -152,8 +183,11 @@ Items.Consumables = {
 	pocao_mana = { name = "Poção de Mana", icon = "💙", mana = 0.5, cooldown = 6, price = 40, key = "X" },
 	pocao_vigor = { name = "Poção de Vigor", icon = "💛", stamina = 1, cooldown = 6, price = 50, key = "V" },
 	elixir_forca = { name = "Elixir de Força", icon = "🔥", damageBuff = 0.2, buffTime = 60, cooldown = 30 },
+	-- vendidos pelo Mercador de Masmorras
+	pocao_grande = { name = "Poção Grande de Vida", icon = "💖", heal = 0.75, cooldown = 10 },
+	tonico_pedra = { name = "Tônico de Pedra", icon = "🗿", defenseBuff = 0.35, buffTime = 90, cooldown = 30 },
 }
-Items.ConsumableOrder = { "pocao_vida", "pocao_mana", "pocao_vigor", "elixir_forca" }
+Items.ConsumableOrder = { "pocao_vida", "pocao_mana", "pocao_vigor", "elixir_forca", "pocao_grande", "tonico_pedra" }
 
 -- Encantamentos: valor por tier (I a V)
 Items.Enchants = {
@@ -202,13 +236,22 @@ local rng = Random.new()
 function Items.create(baseId, rarityId, level)
 	local base = Items.Bases[baseId]
 	local rarity = Rarities.ById[rarityId]
+	local perks = if base and rarity then Perks.roll(base.slot, rarity.order, rng) else {}
+	-- item exclusivo de masmorra: o perk de assinatura vem sempre, no lugar do primeiro sorteado
+	if base and base.signature then
+		if #perks > 0 then
+			perks[1] = base.signature
+		else
+			perks = { base.signature }
+		end
+	end
 	return {
 		uid = HttpService:GenerateGUID(false),
 		base = baseId,
 		rarity = rarityId,
 		level = level or 1,
 		upgrade = 0,
-		perks = if base and rarity then Perks.roll(base.slot, rarity.order, rng) else {},
+		perks = perks,
 	}
 end
 

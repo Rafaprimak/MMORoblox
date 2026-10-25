@@ -73,6 +73,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `SoundIds` | Catálogo de áudio (efeitos, ambiente, música): IDs da Creator Store + reserva |
 | `TownPlan` | Traçado da vila (fonte única): ruas, calçadas, praça, becos, lotes das lojas e casas, postes. Usado pelo terreno, NPCs, construção e moradores |
 | `Points` | Locais de interesse (posição achada de forma determinística em chão seco e plano), recompensa e baú |
+| `Dungeons` | Masmorras: portais, 20 andares (`floorInfo`, `tier`, `startFloors`), inimigos por faixa, chefes a cada 5 andares, material, chave, loot exclusivo e loja do Mercador |
 | `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
 
@@ -99,6 +100,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DayNightService` | Ciclo de dia e noite: `workspace.Night`, luz do ambiente, avisos, `skip()` para teste |
 | `PerkService` | Gatilhos dos perks no combate (`modify`, `afterHit`, `onKill`, `onParry`, `onPerfectDodge`, `onFullCharge`) |
 | `PetService` | Ovos, equipar/soltar pets, XP do pet, bônus (`ExtraBonus`), drops raros |
+| `DungeonService` | Grupo no portal, cópia da masmorra longe do mapa (x ≈ 6000), um andar por vez com mecânica, objetivo extra, segredos e altar; chefes, baús, pontos de retorno, Mercador de Masmorras |
 | `ExploreService` | Descoberta dos locais de interesse e baús escondidos (prompt `BauLocal`) |
 | `ProgressionService` | Conta tudo pelos ganchos de missão: conquistas, passe, login diário, títulos, marcos de nível |
 | `WeaponModels` | Arma presa na mão (com rastro) |
@@ -119,6 +121,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `JourneyWindow` | Jornada (tecla K): diário, passe, conquistas, títulos |
 | `Ambience` | Ambiente e música em loop por região/noite/chefe/combate, com crossfade (`Ambience.combatPing()` ao bater/apanhar) |
 | `RevealScene` | Cena 3D (ViewportFrame + WorldModel) com uma cópia do personagem abrindo o baú ou vendo o ovo chocar |
+| `DungeonWindow` | Janela do portal (grupo e andar inicial), janela do Mercador de Masmorras e painel do andar |
 | `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
 | `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
@@ -140,14 +143,14 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 
 ### Rede (`src/shared/Remotes.luau`)
 - **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
-- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
+- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, dungeonJoin, dungeonLeaveLobby, dungeonStart, dungeonExit, dungeonBuy, dungeonBuyLoot, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
-- **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward`. Tratado em `Popups.handle`.
+- **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward, dungeonPortal`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
 - **Tabelas pela rede:** só arrays puros ou dicionários com chave string. Nada de chaves misturadas.
 
 ### Atributos e tags
-- **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted, Pet, PetLevel, Title, TitleId`.
+- **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted, Pet, PetLevel, Title, TitleId, Dungeon`.
 - **Raiz de inimigo** (pasta `workspace.Inimigos`): `Type, Elite, Level, Hp, MaxHp, Posture, MaxPosture, Staggered, Action ("tipo:contador"), Dot, Dead`.
 - **Workspace:** `WorldReady, WorldStatus, WorldProgress, DayEpoch, Night`.
 - **Tags:** `Rainbow` (cor arco-íris), `Spin` (gira), `ResourceNode`, `Waystone`, `NPC`, `NightLight` (peça que acende à noite; use `Props.nightLight(part)`).
@@ -191,6 +194,13 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - A câmera usa **Invisicam** (`DevCameraOcclusionMode`): paredes ficam transparentes em vez de puxar a câmera.
 - NPCs `indoor` procuram o chão abaixo do telhado (`NPCService.groundHeight(x, z, startY)`).
 - **Peças não podem se atravessar com faces no mesmo plano** (o Roblox pisca/"treme" a textura). Em vãos de porta, cada peça ocupa a sua faixa: vão | batente | parede, com a verga apoiada nos batentes e a parede acima começando no topo da verga (ver `Props.house` e `Props.building`). Enfeites encostam na parede (face com face), não entram nela. Janela de fachada pronta: `Props.facadeWindow(model, face, largura, altura, { shutters, rng })`, com `face` na superfície externa e -Z para fora.
+
+### Masmorras
+- Tudo é dado em `src/shared/Dungeons.luau`. Masmorra nova = entrada em `DESIGN` (posição de projeto do portal, `pools` por faixa de andares, `bosses` nos andares 5/10/15/20, `material`, `key`, `loot`) + tema em `DungeonService.THEMES` (se for novo) + material/chave em `Items.Materials` + bases exclusivas em `Items.Bases` (`dungeon`, `signature`) + perk de assinatura em `Perks.List` (`exclusive`, nunca sorteado).
+- O andar é montado na hora por `DungeonService` em `workspace.Masmorras` (pares e ímpares em lugares diferentes; o anterior é apagado depois do teleporte). Os inimigos usam o `EnemyService` normal com um "acampamento" de sala: `floorY` (piso plano), `bounds` (paredes), `hpMult`, `damageMult`, `levelBonus`, sem `respawn` (não renascem), `dungeonId` e `floor`.
+- Mecânicas (`MECHANICS`) e objetivos extras (`OBJECTIVES`) ficam no topo do `DungeonService`; o texto do painel sai de `mechanicText`/`objectiveText`. Para uma mecânica nova: monte as peças em `buildFloor`, trate no `update` e escreva o texto.
+- `def.boss` agora é calculado em `Enemies` (`behavior == "boss"`). Chefes só de masmorra têm `dungeon = true`.
+- Eventos de missão/conquista: `dungeonBoss`, `dungeon` (andar 20), `dungeonSecret`, `dungeonObjective`. Atributo do jogador: `Dungeon` (id da masmorra em que está). Bônus `dungeonDamage` (perks de assinatura) é aplicado em `EnemyService.damage`.
 
 ### Vida da vila
 - Moradores e animais **não existem no servidor**: `Townsfolk` calcula a posição a partir de `workspace:GetServerTimeNow()`, então todos os clientes veem a mesma cena sem rede. Morador novo = entrada em `Townsfolk.Villagers` com `route` (pontos de `Townsfolk.point(ângulo, raio)` que não atravessem construções).

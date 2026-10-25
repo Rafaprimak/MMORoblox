@@ -99,7 +99,79 @@ Enemies.Defs = {
 		summon = { enemy = "goblin", count = 3, cooldown = 25 },
 		leash = 140,
 	},
+	-- ===== chefes das masmorras (só aparecem dentro delas; ver Dungeons) =====
+	capitao_goblin = {
+		name = "Capitão Goblin", level = 8, hp = 2600, damage = 16, speed = 13, attackCooldown = 1.3, attackRange = 6,
+		xp = 700, gold = { 80, 140 }, dropChance = 1, equipDrops = 1, minRarity = 2,
+		pool = { "espada_cobre", "machado_lenhador", "lanca_cacador", "katana_errante", "presas_gemeas", "colete_couro", "elmo_couro", "botas_vento", "amuleto_lua" },
+		drops = { { id = "pano", chance = 1, min = 2, max = 4 }, essence(0.6) },
+		aggro = 60, radius = 3, model = "goblinKing", color = Color3.fromRGB(150, 110, 60), behavior = "boss", scale = 1.8,
+		charge = { speed = 50, time = 0.7, windup = 1.0, damage = 24, cooldown = 8 },
+		slam = { radius = 11, windup = 1.2, damage = 28, cooldown = 8 },
+		summon = { enemy = "goblin", count = 2, cooldown = 22 },
+		leash = 90, dungeon = true,
+	},
+	senhor_ossos = {
+		name = "Senhor dos Ossos", level = 12, hp = 6000, damage = 28, speed = 12, attackCooldown = 1.3, attackRange = 7,
+		xp = 2400, gold = { 220, 380 }, dropChance = 1, equipDrops = 2, minRarity = 3,
+		pool = { "lamina_guardiao", "machado_berserker", "cajado_arcano", "manto_arcano", "cetro_luz", "coroa_arcana", "elmo_ferro", "anel_guardiao", "amuleto_sabio", "katana_sombria" },
+		drops = { { id = "osso", chance = 1, min = 3, max = 6 }, { id = "essencia", chance = 1, min = 2, max = 4 } },
+		aggro = 70, radius = 3.4, model = "skeletonMage", color = Color3.fromRGB(190, 200, 235), behavior = "boss", scale = 2.4,
+		charge = { speed = 55, time = 0.7, windup = 1.0, damage = 36, cooldown = 9 },
+		slam = { radius = 14, windup = 1.2, damage = 46, cooldown = 7 },
+		summon = { enemy = "esqueleto", count = 2, cooldown = 24 },
+		leash = 110, dungeon = true,
+	},
+	rainha_aranha = {
+		name = "Rainha Aranha", level = 10, hp = 5000, damage = 22, speed = 17, attackCooldown = 1.1, attackRange = 7,
+		xp = 1400, gold = { 140, 240 }, dropChance = 1, equipDrops = 1, minRarity = 3,
+		pool = { "presas_gemeas", "katana_sombria", "couraca_sombria", "capuz_sombrio", "anel_vampiro", "botas_vento" },
+		drops = { { id = "seda", chance = 1, min = 3, max = 6 }, essence(0.8) },
+		aggro = 70, radius = 4, model = "spider", color = Color3.fromRGB(70, 30, 80), behavior = "boss", scale = 2.1,
+		charge = { speed = 65, time = 0.6, windup = 0.8, damage = 30, cooldown = 7 },
+		slam = { radius = 13, windup = 1.0, damage = 34, cooldown = 8 },
+		summon = { enemy = "aranha", count = 2, cooldown = 20 },
+		leash = 110, dungeon = true,
+	},
+	guardiao_cripta = {
+		name = "Guardião da Cripta", level = 13, hp = 7000, damage = 32, speed = 9, attackCooldown = 1.8, attackRange = 8,
+		xp = 2000, gold = { 180, 320 }, dropChance = 1, equipDrops = 1, minRarity = 3,
+		pool = { "martelo_gigante", "armadura_placas", "elmo_ferro", "botas_ferro", "anel_guardiao", "grevas_dragao" },
+		drops = { { id = "nucleo_golem", chance = 1, min = 1, max = 2 }, { id = "essencia", chance = 1, min = 2, max = 3 } },
+		aggro = 70, radius = 4.6, model = "golem", color = Color3.fromRGB(95, 90, 120), behavior = "boss", scale = 1.7, defense = 0.25,
+		charge = { speed = 45, time = 0.8, windup = 1.2, damage = 40, cooldown = 10 },
+		slam = { radius = 16, windup = 1.3, damage = 52, cooldown = 6 },
+		summon = { enemy = "esqueleto", count = 2, cooldown = 26 },
+		leash = 110, dungeon = true,
+	},
+	rei_lich = {
+		name = "Rei Lich", level = 17, hp = 14000, damage = 36, speed = 12, attackCooldown = 1.2, attackRange = 8,
+		xp = 4200, gold = { 400, 650 }, dropChance = 1, equipDrops = 2, minRarity = 4,
+		pool = { "cajado_estelar", "manto_estelar", "coroa_arcana", "espada_runica", "katana_lua", "adagas_vazio", "amuleto_dragao", "anel_tempestade" },
+		drops = { { id = "osso", chance = 1, min = 4, max = 8 }, { id = "essencia", chance = 1, min = 3, max = 6 } },
+		aggro = 80, radius = 3.8, model = "skeletonMage", color = Color3.fromRGB(150, 110, 230), behavior = "boss", scale = 3,
+		charge = { speed = 60, time = 0.7, windup = 0.9, damage = 44, cooldown = 8 },
+		slam = { radius = 17, windup = 1.2, damage = 58, cooldown = 6 },
+		summon = { enemy = "esqueleto_mago", count = 2, cooldown = 20 },
+		leash = 120, dungeon = true,
+	},
+	colosso_abismo = {
+		name = "Colosso do Abismo", level = 20, hp = 22000, damage = 44, speed = 9, attackCooldown = 1.7, attackRange = 10,
+		xp = 7000, gold = { 700, 1100 }, dropChance = 1, equipDrops = 3, minRarity = 4,
+		pool = { "martelo_trovao", "machado_tempestade", "armadura_dragao", "elmo_dragao", "grevas_dragao", "amuleto_dragao", "anel_rei", "lanca_celestial", "arco_fenix" },
+		drops = { { id = "nucleo_golem", chance = 1, min = 2, max = 4 }, { id = "minerio_mitril", chance = 1, min = 2, max = 5 }, { id = "essencia", chance = 1, min = 4, max = 8 } },
+		aggro = 90, radius = 6, model = "golem", color = Color3.fromRGB(110, 45, 35), behavior = "boss", scale = 2.6, defense = 0.3,
+		charge = { speed = 50, time = 0.9, windup = 1.2, damage = 55, cooldown = 9 },
+		slam = { radius = 20, windup = 1.4, damage = 70, cooldown = 6 },
+		summon = { enemy = "golem", count = 1, cooldown = 30 },
+		leash = 140, dungeon = true,
+	},
 }
+
+-- comportamento "boss" = chefe (barra no topo, música de chefe, não vira Elite, não é empurrado)
+for _, def in Enemies.Defs do
+	def.boss = def.behavior == "boss"
+end
 
 -- center = X,Z; spawns = { tipo = quantidade }
 Enemies.Camps = {

@@ -31,6 +31,7 @@ local PerkService = require(script.PerkService)
 local PetService = require(script.PetService)
 local ProgressionService = require(script.ProgressionService)
 local ExploreService = require(script.ExploreService)
+local DungeonService = require(script.DungeonService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -67,6 +68,7 @@ TravelService.QuestHook = questHook
 NPCService.QuestHook = questHook
 PetService.QuestHook = questHook
 ExploreService.QuestHook = questHook
+DungeonService.QuestHook = questHook
 PetService.init()
 PlayerService.ExtraSync = function(player, payload)
 	local data = DataService.get(player)
@@ -75,6 +77,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.progress = ProgressionService.summary(player)
 		payload.poi = data.poi
 		payload.poiChests = data.poiChests
+		payload.dungeon = DungeonService.summary(player)
 	end
 end
 EnemyService.FireProjectile = ProjectileService.fire
@@ -109,7 +112,7 @@ EnemyService.OnKilled = function(rec, contributors)
 		end
 	end
 	local night = DayNightService.isNight()
-	local rewardMult = if night then 1 + Config.NightRewardBonus else 1
+	local rewardMult = (if night then 1 + Config.NightRewardBonus else 1) * (rec.rewardMult or 1)
 	for player in contributors do
 		local bonus = PlayerService.getStats(player).bonus
 		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.xpGain or 0)))
@@ -129,6 +132,7 @@ EnemyService.OnKilled = function(rec, contributors)
 		questHook(player, "kill", rec.id, 1)
 
 		LootService.rollMaterials(player, def.drops, if rec.elite then 2 else 1)
+		DungeonService.onEnemyKilled(player, rec)
 		PetService.addXP(player, math.ceil(def.xp * 0.5) + 1)
 		ProgressionService.onKill(player, rec)
 		PetService.rollDrop(player, rec)
@@ -263,6 +267,18 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return TravelService.buyMount(player)
 	elseif action == "settings" then
 		return PlayerService.saveSettings(player, a)
+	elseif action == "dungeonJoin" then
+		return DungeonService.join(player, a)
+	elseif action == "dungeonLeaveLobby" then
+		return DungeonService.leaveLobby(player)
+	elseif action == "dungeonStart" then
+		return DungeonService.start(player, a)
+	elseif action == "dungeonExit" then
+		return DungeonService.leave(player, true)
+	elseif action == "dungeonBuy" then
+		return DungeonService.buy(player, a)
+	elseif action == "dungeonBuyLoot" then
+		return DungeonService.buyLoot(player, a)
 	elseif action == "tutorial" then
 		return PlayerService.tutorial(player, a)
 	elseif action == "dev" and RunService:IsStudio() then
@@ -291,6 +307,7 @@ local function onPlayerAdded(player)
 	ProgressionService.onPlayerReady(player)
 	player.CharacterAdded:Connect(function(character)
 		player:SetAttribute("Mounted", false)
+		DungeonService.onCharacterAdded(player, character)
 		local humanoid = character:WaitForChild("Humanoid", 10)
 		if humanoid then
 			humanoid.Died:Connect(function()
@@ -311,6 +328,7 @@ for _, player in Players:GetPlayers() do
 end
 
 Players.PlayerRemoving:Connect(function(player)
+	DungeonService.onPlayerRemoving(player)
 	TravelService.dismount(player)
 	PlayerService.onPlayerRemoving(player)
 	DataService.release(player)
@@ -359,6 +377,7 @@ safely("Dia e noite", DayNightService.start)
 safely("Inimigos", EnemyService.start)
 safely("Viagem", TravelService.init, built.horse)
 safely("Locais de interesse", ExploreService.start)
+safely("Masmorras", DungeonService.init)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

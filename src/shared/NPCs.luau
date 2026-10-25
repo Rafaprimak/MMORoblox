@@ -1,6 +1,8 @@
 -- NPCs: posição, aparência, falas e serviços.
 -- services: forge (criar/aprimorar), enchant (encantar/desmontar), alchemy (poções), shop (loja),
---           classes (trocar classe), stable (montaria), board (missões diárias), chest (baús)
+--           classes (trocar classe), stable (montaria), board (missões diárias), chest (baús),
+--           dungeon (Mercador de Masmorras: chaves, consumíveis e itens exclusivos)
+-- stall = barraca montada atrás do NPC na praça (WorldGen/Town)
 local World = require(script.Parent.World)
 local TownPlan = require(script.Parent.TownPlan)
 
@@ -123,6 +125,19 @@ NPCs.List = {
 		services = { "stable" },
 		building = "stable",
 		greeting = "Um bom cavalo vale mais que mil passos. Quer um?",
+	}),
+	-- na praça, do lado oeste da fonte, olhando para ela
+	at(-21, 2, -90, {
+		id = "varg",
+		name = "Varg",
+		title = "Mercador de Masmorras",
+		skin = Color3.fromRGB(160, 110, 80),
+		shirt = Color3.fromRGB(60, 40, 70),
+		pants = Color3.fromRGB(40, 35, 40),
+		hat = "hood",
+		services = { "dungeon" },
+		stall = "dungeon",
+		greeting = "Desceu nas masmorras e voltou com saque? Eu troco por chaves, poções e armas que você não acha em lugar nenhum.",
 	}),
 	service("quadro", {
 		name = "Quadro de Recompensas",

@@ -34,6 +34,7 @@ function DataService.defaultData()
 		pets = {},
 		poi = {},
 		poiChests = {},
+		dungeons = {}, -- [masmorraId] = maior andar de chefe vencido (ponto de retorno)
 		progress = {
 			counters = {},
 			achievements = {},

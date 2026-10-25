@@ -1133,6 +1133,9 @@ function PlayerService.useConsumable(player, id)
 	if def.damageBuff then
 		PlayerService.addBuff(player, "elixir", { damage = def.damageBuff }, def.buffTime)
 	end
+	if def.defenseBuff then
+		PlayerService.addBuff(player, "tonico", { defense = def.defenseBuff }, def.buffTime)
+	end
 	data.consumables[id] -= 1
 	if data.consumables[id] <= 0 then
 		data.consumables[id] = nil

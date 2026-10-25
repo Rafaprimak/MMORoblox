@@ -54,6 +54,9 @@ local function resolve(x, z)
 	return x, z
 end
 
+-- usado também pelos portais das masmorras
+Points.resolve = resolve
+
 Points.List = {}
 Points.ById = {}
 for _, def in DESIGN do

@@ -274,6 +274,41 @@ function builders.emporium(parent, npc, rng)
 	return model
 end
 
+-- Barraca do Mercador de Masmorras: toldo roxo-escuro, balcão com chaves, crânio e baú, estandarte
+-- com o símbolo das masmorras. Montada atrás do NPC (ele fica na frente do balcão).
+function builders.dungeonStall(parent, npc)
+	local cf = npcFrame(npc) * CFrame.new(0, 0, 3.2) -- atrás do NPC
+	local model = Instance.new("Model")
+	model.Name = "BarracaMasmorras"
+	local dark = Color3.fromRGB(45, 35, 50)
+	for _, x in { -2.6, 2.6 } do
+		for _, z in { -1, 1.6 } do
+			part(model, { Name = "Poste", Size = Vector3.new(0.35, 5.6, 0.35), CFrame = cf * CFrame.new(x, 2.8, z), Color = C.DarkWood, Material = M.Wood })
+		end
+	end
+	part(model, { Name = "Balcao", Size = Vector3.new(5, 1.6, 1.2), CFrame = cf * CFrame.new(0, 0.8, -1), Color = dark, Material = M.WoodPlanks })
+	part(model, { Name = "Tampo", Size = Vector3.new(5.4, 0.2, 1.5), CFrame = cf * CFrame.new(0, 1.7, -1), Color = Color3.fromRGB(110, 70, 140), Material = M.Wood })
+	-- toldo listrado
+	for i = 0, 5 do
+		part(model, { Name = "Toldo", Size = Vector3.new(1, 0.2, 3.6), CFrame = cf * CFrame.new(-2.5 + i * 1, 5.7, 0.3) * CFrame.Angles(math.rad(14), 0, 0), Color = if i % 2 == 0 then Color3.fromRGB(70, 40, 90) else Color3.fromRGB(30, 25, 35), Material = M.Fabric })
+	end
+	-- mercadorias: chaves, crânio, baú, frascos e uma brasa
+	for i, color in { Color3.fromRGB(150, 220, 255), Color3.fromRGB(255, 120, 60) } do
+		part(model, { Name = "Chave", Size = Vector3.new(0.9, 0.18, 0.25), CFrame = cf * CFrame.new(-1.8 + i * 0.5, 1.9, -1.1) * CFrame.Angles(0, 0.3 * i, 0), Color = color, Material = M.Neon })
+	end
+	Props.ball(model, (cf * CFrame.new(0.2, 2.15, -1)).Position, 0.6, Color3.fromRGB(235, 230, 210), M.SmoothPlastic)
+	part(model, { Name = "Bau", Size = Vector3.new(1.3, 0.8, 0.9), CFrame = cf * CFrame.new(1.6, 2.2, -1), Color = C.DarkWood, Material = M.Wood })
+	part(model, { Name = "TampaBau", Size = Vector3.new(1.4, 0.3, 1), CFrame = cf * CFrame.new(1.6, 2.75, -1), Color = C.Gold, Material = M.Metal })
+	local glow = part(model, { Name = "Brasa", Size = Vector3.one * 0.5, CFrame = cf * CFrame.new(-0.6, 2.05, -0.9), Color = Color3.fromRGB(255, 110, 40), Material = M.Neon, Shape = Enum.PartType.Ball })
+	Props.light(glow, Color3.fromRGB(200, 120, 255), 12, 1.2)
+	-- estandarte atrás
+	part(model, { Name = "Fundo", Size = Vector3.new(5, 3.4, 0.15), CFrame = cf * CFrame.new(0, 3.7, 1.7), Color = Color3.fromRGB(60, 35, 80), Material = M.Fabric })
+	part(model, { Name = "Simbolo", Size = Vector3.new(1.4, 1.4, 0.1), CFrame = cf * CFrame.new(0, 3.8, 1.6) * CFrame.Angles(0, 0, math.rad(45)), Color = Color3.fromRGB(255, 200, 90), Material = M.Neon })
+	model.Parent = parent
+	Props.billboard(glow, "🏰 MERCADOR DE MASMORRAS", Color3.fromRGB(200, 150, 255), 5)
+	return model
+end
+
 -- Pátio de treino cercado (os bonecos são inimigos do tipo "boneco")
 function builders.training(parent, npc)
 	local model = Instance.new("Model")
@@ -664,6 +699,8 @@ function Town.build(parent, rng)
 			local model, board = builders.board(folder, npc)
 			Props.scaleModel(model, npcFrame(npc), K)
 			boardPart = board
+		elseif npc.stall and builders.dungeonStall then
+			Props.scaleModel(builders.dungeonStall(folder, npc), npcFrame(npc), K)
 		end
 		Placement.reserve(npc.x, npc.z, 3 * K, "npc")
 	end

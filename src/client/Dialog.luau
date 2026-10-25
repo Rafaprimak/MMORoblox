@@ -28,6 +28,7 @@ local SERVICE_LABELS = {
 	pets = "🐾 Ovos de Pet",
 	classes = "🧙 Classes",
 	stable = "🐴 Montaria",
+	dungeon = "🏰 Mercado das Masmorras",
 }
 
 local function objectiveText(objective)

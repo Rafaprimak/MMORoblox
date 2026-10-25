@@ -6,6 +6,7 @@ local Town = require(script.Town)
 local Landmarks = require(script.Landmarks)
 local Scatter = require(script.Scatter)
 local PointsOfInterest = require(script.PointsOfInterest)
+local DungeonPortals = require(script.DungeonPortals)
 
 local WorldGen = {}
 
@@ -92,6 +93,9 @@ function WorldGen.build(onProgress)
 	end) or {}
 	step("Marcando locais de interesse", 0.81, function()
 		return PointsOfInterest.build(folder, rng)
+	end)
+	step("Abrindo as masmorras", 0.83, function()
+		return DungeonPortals.build(folder)
 	end)
 	step("Espalhando minérios e plantas", 0.84, function()
 		return Scatter.resources(folder, rng)

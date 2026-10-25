@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local World = require(Shared.World)
 local SoundIds = require(Shared.SoundIds)
+local Dungeons = require(Shared.Dungeons)
 
 local Sounds = require(script.Parent.Sounds)
 local Prefs = require(script.Parent.Prefs)
@@ -84,11 +85,13 @@ function Ambience.init()
 			task.wait(0.5)
 			local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 			if root then
-				local region = World.regionName(root.Position.X, root.Position.Z)
+				local dungeonId = player:GetAttribute("Dungeon")
+				local inDungeon = dungeonId ~= nil and Dungeons.ById[dungeonId] ~= nil
+				local region = if inDungeon then "Masmorra" else World.regionName(root.Position.X, root.Position.Z)
 				local night = workspace:GetAttribute("Night") == true
 				local ambienceKey = SoundIds.RegionAmbience[region] or "campo"
-				setChannel("ambience", Sounds.loopId("Ambience", ambienceKey))
-				setChannel("night", if night then Sounds.loopId("Ambience", "noite") else nil)
+				setChannel("ambience", if inDungeon then nil else Sounds.loopId("Ambience", ambienceKey))
+				setChannel("night", if night and not inDungeon then Sounds.loopId("Ambience", "noite") else nil)
 				-- música: combate (pelo tipo do inimigo) > chefe > noite > vila > exploração
 				local musicKey
 				local enemy, enemyDistance = nearestEnemy(root.Position, 45)
@@ -105,8 +108,8 @@ function Ambience.init()
 					musicKey = "combate"
 				elseif EnemyRenderer.nearestBoss(root.Position, 130) then
 					musicKey = "chefe"
-				elseif night then
-					musicKey = "noite"
+				elseif night or inDungeon then
+					musicKey = "noite" -- nas masmorras, a música calma e escura entre as lutas
 				elseif region == "Vila Aurora" then
 					musicKey = "vila"
 				else
