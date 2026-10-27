@@ -6,7 +6,7 @@ local World = require(script.Parent.World)
 
 local Townsfolk = {}
 
-local S = World.Scale
+local S = World.PropScale -- a vila tem a escala dela
 local CX, CZ = World.TownCenter.X, World.TownCenter.Z
 local GROUND = World.TownHeight + 0.3 -- em cima do calçamento (peças de ~0,3 sobre o chão)
 

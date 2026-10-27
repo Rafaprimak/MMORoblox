@@ -19,7 +19,7 @@ local C = Props.Colors
 local part = Props.part
 local Y = World.TownHeight
 -- Construções são desenhadas em tamanho "de design" e ampliadas por K (proporcional ao personagem)
-local K = World.Scale
+local K = World.PropScale
 
 local function npcFrame(npc)
 	return CFrame.new(npc.x, Y, npc.z) * CFrame.Angles(0, npc.yaw, 0)

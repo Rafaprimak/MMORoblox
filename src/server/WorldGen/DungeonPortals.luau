@@ -103,7 +103,7 @@ local function build(parent, dungeon)
 
 	Props.billboard(gem, ("%s\nnível recomendado %d"):format(string.upper(dungeon.name), dungeon.level), theme.glow, 4, 200)
 	model.Parent = parent
-	Placement.reserve(position.X, position.Z, 16 * World.Scale, "masmorra")
+	Placement.reserve(position.X, position.Z, 16 * World.PropScale, "masmorra")
 	return model
 end
 

@@ -182,7 +182,7 @@ end
 
 -- center = X,Z; spawns = { tipo = quantidade }
 Enemies.Camps = {
-	{ id = "treino", center = Vector2.new(0, 205), radius = 7, spawns = { boneco = 3 }, respawn = 1 },
+	{ id = "treino", town = true, center = Vector2.new(0, 55), radius = 7, spawns = { boneco = 3 }, respawn = 1 },
 	{ id = "slimes_a", center = Vector2.new(60, 32), radius = 30, spawns = { slime = 6 }, respawn = 5 },
 	{ id = "slimes_b", center = Vector2.new(-65, 50), radius = 30, spawns = { slime = 6 }, respawn = 5 },
 	{ id = "slimes_c", center = Vector2.new(75, -60), radius = 28, spawns = { slime = 5 }, respawn = 5 },
@@ -208,7 +208,8 @@ Enemies.UniqueChance = 0.015
 -- Os centros acima estão em coordenadas de design; converte para studs reais (ver World.Scale)
 local World = require(script.Parent.World)
 for _, camp in Enemies.Camps do
-	camp.center = camp.center * World.Scale
+	-- town = true: centro relativo à praça, na escala da vila
+	camp.center = if camp.town then Vector2.new(World.TownCenter.X, World.TownCenter.Z) + camp.center * World.PropScale else camp.center * World.Scale
 	if camp.id ~= "treino" then
 		camp.radius = camp.radius * 1.25
 	end

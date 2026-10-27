@@ -4,7 +4,9 @@
 --     a cada meio segundo só os MAX_OUTLINES mais perto da câmera ganham contorno (configuração "outlines");
 --   * vinheta suave nas bordas da tela (moldura "de pintura");
 --   * gradação de cor pela hora do dia: dourada no amanhecer/entardecer, azulada à noite
---     (um ColorCorrection próprio, somado ao do servidor; desliga dentro das masmorras, que têm o seu).
+--     (um ColorCorrection próprio, somado ao do servidor; desliga dentro das masmorras, que têm o seu);
+--   * névoa leve dentro da mata: a Atmosphere fica mais densa conforme o peso de floresta onde a câmera está
+--     (parte do valor que o servidor definiu, que é guardado e respeitado).
 local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -12,6 +14,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local DayNight = require(Shared.DayNight)
+local World = require(Shared.World)
 
 local UI = require(script.Parent.UI)
 local Prefs = require(script.Parent.Prefs)
@@ -154,6 +157,29 @@ local function gradeAt(clock)
 	return GRADE[1][2], GRADE[1][3], GRADE[1][4]
 end
 
+-- névoa da mata: guarda a densidade/neblina do servidor e soma um pouco conforme a floresta
+local mist = { base = nil, haze = nil, written = nil, writtenHaze = nil, amount = 0 }
+local function updateMist(inDungeon)
+	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
+	local camera = workspace.CurrentCamera
+	if not atmosphere or not camera then
+		return
+	end
+	-- o servidor (ou a masmorra) mudou o valor: esse vira a nova base
+	if mist.written == nil or math.abs(atmosphere.Density - mist.written) > 0.001 then
+		mist.base, mist.haze = atmosphere.Density, atmosphere.Haze
+	end
+	local target = 0
+	if not inDungeon then
+		local position = camera.CFrame.Position
+		target = World.weights(position.X, position.Z).forest
+	end
+	mist.amount += (target - mist.amount) * 0.25
+	atmosphere.Density = math.clamp(mist.base + mist.amount * 0.12, 0, 1)
+	atmosphere.Haze = math.clamp(mist.haze + mist.amount * 1.2, 0, 10)
+	mist.written, mist.writtenHaze = atmosphere.Density, atmosphere.Haze
+end
+
 function ArtStyle.init()
 	local grade = Instance.new("ColorCorrectionEffect")
 	grade.Name = "EstiloHora"
@@ -168,6 +194,7 @@ function ArtStyle.init()
 		elapsed = 0
 		refreshOutlines()
 		local inDungeon = DungeonAtmosphere.inDungeon()
+		updateMist(inDungeon)
 		grade.Enabled = not inDungeon
 		if not inDungeon then
 			local tint, saturation, contrast = gradeAt(DayNight.now() % 24)

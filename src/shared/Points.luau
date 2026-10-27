@@ -24,7 +24,7 @@ local DESIGN = {
 -- chão bom: seco, abaixo das montanhas, plano e longe das estradas
 local function goodSpot(x, z)
 	local h = World.height(x, z)
-	if h < World.SeaLevel + 1.5 or h > 90 then
+	if h < World.SeaLevel + 1.5 or World.designHeight(h) > 90 then
 		return false
 	end
 	local step = 7
@@ -68,6 +68,8 @@ for _, def in DESIGN do
 	local entry = table.clone(def)
 	entry.x, entry.z = x, z
 	entry.radius = def.radius * S
+	-- chão plano em volta do local (o relevo desce/sobe em rampa até o natural)
+	World.addPad(x, z, entry.radius * 0.55, entry.radius * 0.45)
 	table.insert(Points.List, entry)
 	Points.ById[entry.id] = entry
 end

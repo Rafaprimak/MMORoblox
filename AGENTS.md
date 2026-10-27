@@ -183,8 +183,13 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O cliente (`EnemyRenderer`) constrói o modelo de `EnemyModels`, suaviza o movimento, anima pernas/braços pelo `role`, encaixa os pés no terreno e faz o efeito de morte. **Nunca crie partes visuais de inimigo no servidor.**
 
 ### Escala do mundo
-- `World.Scale` (1.5) multiplica tudo do mapa. As posições em `World`, `NPCs.List` e `Enemies.Camps` são escritas em **coordenadas de projeto** e convertidas por `× World.Scale` no próprio módulo. Escreva posições novas nesse mesmo espaço.
-- Construções e objetos são montados no tamanho base e depois escalados com `Props.scaleModel(model, pivot, fator)` (em volta de um ponto no chão). O raio de `Placement.reserve` também vai `× World.Scale`.
+- **Escala realista, três números em `World`:**
+  - `World.Scale` (3) = tamanho do **mapa**. Posições do mapa em `World`, `Points`, `Dungeons`, `Enemies.Camps` e NPCs fora da vila são escritas em **coordenadas de projeto** (mapa de -512 a 512) e convertidas por `× World.Scale` no próprio módulo.
+  - `World.PropScale` (1,5) = tamanho das **coisas** em relação ao personagem: construções, móveis, a vila inteira (`TownPlan`, NPCs da vila com `at`/`service`, `Townsfolk`, acampamentos com `town = true`) e espaçamentos dentro de uma estrutura. Construções usam `Props.scaleModel(model, pivot, World.PropScale)`; o raio de `Placement.reserve` de uma estrutura também.
+  - `World.HeightScale` (1,8) = o relevo é esticado em volta do nível do mar. Limiares de altura (neve, pinheiro, "alto demais") comparam `World.designHeight(h)` com o valor de projeto.
+  - Estrutura que precisa acompanhar o mapa (portão do norte cobrindo a passagem, anel da cratera) usa `World.Scale`.
+- **Chão plano:** `World.addPad(x, z, raio, rampa)` aplaina o relevo em volta de um ponto (registrado na carga dos módulos: marcos em `World`, locais em `Points`, portais em `Dungeons`). Pad novo = registrar no módulo compartilhado, nunca só no servidor (o cliente calcula a mesma altura).
+- **Natureza em camadas** (`Scatter.nature`): árvores adultas (`TREE_SCALE` 3) reservam só o tronco, árvores jovens, sub-bosque (arbustos, samambaias, troncos caídos, tocos), clareiras por ruído; o `ArtStyle` engrossa a névoa dentro da mata.
 - Distâncias do servidor (perto do NPC, descoberta de pedra, barreira) já consideram a escala; em checagens novas, use studs reais.
 - NPCs são apoiados no chão por raycast (`NPCService.groundHeight`), não pela altura calculada do terreno.
 

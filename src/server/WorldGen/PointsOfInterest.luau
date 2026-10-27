@@ -1,5 +1,6 @@
 -- Constrói os locais de interesse (módulo Points): cada um tem cenário próprio e um baú escondido.
--- Montados em tamanho de projeto em volta do ponto no chão e ampliados por World.Scale.
+-- Montados em tamanho de projeto em volta do ponto no chão e ampliados por SIZE (um pouco maiores que as
+-- construções da vila: são marcos da paisagem). O chão em volta é aplainado pelo módulo Points.
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -16,6 +17,7 @@ local M = Enum.Material
 local C = Props.Colors
 local part = Props.part
 local S = World.Scale
+local SIZE = World.PropScale * 1.35
 
 local STONE = Color3.fromRGB(150, 145, 135)
 local OLD_STONE = Color3.fromRGB(120, 118, 110)
@@ -401,8 +403,8 @@ function PointsOfInterest.build(parent, rng)
 			end
 			treasureChest(model, chestFrame, poi)
 			model.Parent = folder
-			Props.scaleModel(model, cf, S)
-			Placement.reserve(poi.x, poi.z, 16 * S, "local")
+			Props.scaleModel(model, cf, SIZE)
+			Placement.reserve(poi.x, poi.z, poi.radius * 0.6, "local")
 		end
 	end
 end

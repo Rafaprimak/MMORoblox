@@ -15,17 +15,24 @@ local function facingTown(x, z)
 	return math.atan2(-(TOWN_X - x), -(TOWN_Z - z))
 end
 
-local function make(def)
+-- townRelative: x, z relativos à praça, na escala da vila (World.PropScale); senão, coordenadas de
+-- design do mapa (× World.Scale)
+local function make(def, townRelative)
 	def.yaw = def.yaw or facingTown(def.x, def.z)
+	local P = World.PropScale
+	local x, z
+	if townRelative then
+		x, z = World.TownCenter.X + def.x * P, World.TownCenter.Z + def.z * P
+	else
+		x, z = def.x * World.Scale, def.z * World.Scale
+	end
 	-- NPC dentro da construção: a porta fica na posição original, o NPC "indoor" unidades para dentro
 	if def.indoor then
-		def.doorX = def.x * World.Scale
-		def.doorZ = def.z * World.Scale
-		def.x += math.sin(def.yaw) * def.indoor
-		def.z += math.cos(def.yaw) * def.indoor
+		def.doorX, def.doorZ = x, z
+		x += math.sin(def.yaw) * def.indoor * P
+		z += math.cos(def.yaw) * def.indoor * P
 	end
-	def.x *= World.Scale
-	def.z *= World.Scale
+	def.x, def.z = x, z
 	return def
 end
 
@@ -33,9 +40,9 @@ end
 -- 0 = norte (-Z, rumo ao portal), 180 = sul, -90 = leste (+X), 90 = oeste (-X).
 -- As construções da vila (WorldGen/Town) seguem estas mesmas posições.
 local function at(x, z, facing, def)
-	def.x, def.z = TOWN_X + x, TOWN_Z + z
+	def.x, def.z = x, z
 	def.yaw = math.rad(facing)
-	return make(def)
+	return make(def, true)
 end
 
 -- NPC da vila na posição do traçado (TownPlan.Services)

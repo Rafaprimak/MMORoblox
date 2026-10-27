@@ -104,7 +104,7 @@ local function regionAmbient(position)
 	local h = World.height(position.X, position.Z)
 	if w.crater > 0.3 then
 		return "cinzas"
-	elseif w.mountain > 0.5 or h > 110 then
+	elseif w.mountain > 0.5 or World.designHeight(h) > 110 then
 		return "montanha"
 	elseif w.forest > 0.45 then
 		return "bosque"

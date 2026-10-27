@@ -11,8 +11,10 @@ local Placement = require(script.Parent.Placement)
 
 local Landmarks = {}
 
--- Estruturas desenhadas em tamanho "de design" e ampliadas por K (proporcional ao personagem)
-local K = World.Scale
+-- Estruturas desenhadas em tamanho "de design" e ampliadas por K (proporcional ao personagem);
+-- posições no mapa usam S (o portão do norte e a cratera acompanham o tamanho do mapa)
+local K = World.PropScale
+local S = World.Scale
 
 local M = Enum.Material
 local C = Props.Colors
@@ -241,7 +243,7 @@ end
 local function pier(parent)
 	local model = Instance.new("Model")
 	model.Name = "Pier"
-	local x0, z0 = 45 * K, 292 * K
+	local x0, z0 = 45 * S, 292 * S
 	local deckY = World.SeaLevel + 2.2
 	for i = 0, 11 do
 		local z = z0 + i * 3.4
@@ -279,8 +281,8 @@ local function passGate(parent)
 	barrier:SetAttribute("Barrier", true)
 	Props.billboard(barrier, "PORTÃO SELADO • Nível 10", Color3.fromRGB(220, 170, 255), 15, 120)
 	model.Parent = parent
-	Props.scaleModel(model, center, K)
-	Placement.reserve(0, z, 30 * K, "portao")
+	Props.scaleModel(model, center, S)
+	Placement.reserve(0, z, 30 * S, "portao")
 	return barrier
 end
 
@@ -301,7 +303,7 @@ local function crater(parent, rng)
 	Props.scaleModel(throneModel, throne, K)
 	for i = 0, 9 do
 		local a = i / 10 * math.pi * 2
-		local x, z = c.X + math.cos(a) * 58 * K, c.Z + math.sin(a) * 58 * K
+		local x, z = c.X + math.cos(a) * 58 * S, c.Z + math.sin(a) * 58 * S
 		local base = ground(x, z, a, 1)
 		local h = rng:NextNumber(10, 16) * K
 		part(model, { Name = "Pilar", Size = Vector3.new(3 * K, h, 3 * K), CFrame = base * CFrame.new(0, h / 2, 0), Color = Color3.fromRGB(70, 65, 60), Material = M.Basalt })
@@ -309,14 +311,14 @@ local function crater(parent, rng)
 	end
 	for _ = 1, 8 do
 		local a = rng:NextNumber() * math.pi * 2
-		local r = rng:NextNumber(20, 50) * K
+		local r = rng:NextNumber(20, 50) * S
 		local base = ground(c.X + math.cos(a) * r, c.Z + math.sin(a) * r, rng:NextNumber() * 3, 0)
 		for _ = 1, 4 do
 			part(model, { Name = "Osso", Size = Vector3.new(0.4, 0.4, rng:NextNumber(1.5, 3)), CFrame = base * CFrame.new(rng:NextNumber(-1, 1), 0.2, rng:NextNumber(-1, 1)) * CFrame.Angles(0, rng:NextNumber() * 3, 0), Color = Color3.fromRGB(230, 225, 205), CanCollide = false })
 		end
 	end
 	model.Parent = parent
-	Placement.reserve(c.X, c.Z, 60 * K, "cratera")
+	Placement.reserve(c.X, c.Z, 60 * S, "cratera")
 end
 
 function Landmarks.build(parent, rng)

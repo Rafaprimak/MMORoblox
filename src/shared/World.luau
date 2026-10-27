@@ -6,15 +6,24 @@
 -- montanhas ao norte e nas laterais, oceano ao sul. A cratera do chefe fica nas montanhas do norte,
 -- acessível por uma passagem.
 --
--- ESCALA: todas as fórmulas trabalham no "espaço de design" (mapa de -512 a 512) e o resultado é
--- ampliado por World.Scale. Assim dá para aumentar o mundo inteiro mudando um número só.
+-- ESCALAS (escala "realista": mundo grande em volta do personagem):
+--   * World.Scale (3): tamanho do MAPA. As fórmulas trabalham no "espaço de design" (mapa de -512 a 512)
+--     e as distâncias são ampliadas por ele (locais, acampamentos, estradas, relevo, masmorras).
+--   * World.PropScale (1,5): tamanho das COISAS em relação ao personagem: construções, móveis, a vila
+--     inteira (TownPlan), NPCs dentro dela e espaçamentos. Não muda quando o mapa cresce.
+--   * World.HeightScale (1,8): o relevo é esticado em volta do nível do mar (onde era terra continua
+--     terra, onde era água continua água); limiares de altura usam World.designHeight(h).
 -- Coordenadas expostas (TownCenter, Locations, Waystones, estradas) já estão em studs reais.
 local TownPlan = require(script.Parent.TownPlan)
 
 local World = {}
 
-World.Scale = 1.5
+World.Scale = 3
+World.PropScale = 1.5
+World.HeightScale = 1.8
 local S = World.Scale
+local P = World.PropScale
+local HS = World.HeightScale
 
 World.Half = 512 * S -- o mapa vai de -Half a +Half
 World.SeaLevel = 4
@@ -22,7 +31,7 @@ World.TownCenter = Vector3.new(0, 0, 150 * S)
 -- múltiplo de 4 a partir de MIN_Y (-24) do TerrainGen: o voxel fica cheio e o chão sai exatamente nessa altura
 World.TownHeight = 20
 World.CraterCenter = Vector3.new(0, 0, -445 * S)
-World.CraterHeight = 44
+World.CraterHeight = 4 + (44 - 4) * HS
 World.PassGateZ = -330 * S
 World.RoadWidth = 6
 
@@ -73,8 +82,27 @@ function World.weights(x, z)
 	w.corridor = (1 - smoothstep(16, 42, math.abs(dx + fbm(dx, dz, 1, 120, SEED + 61) * 12))) * smoothstep(-205, -240, dz)
 	w.ocean = smoothstep(270, 370, dz - warp * 0.3)
 	w.lake = 1 - smoothstep(28, 62, distance(dx, dz, -170, 160) + warp * 0.15)
-	w.town = 1 - smoothstep(TownPlan.Radius, TownPlan.Radius + 30, distance(dx, dz, 0, 150))
+	-- a vila é medida na escala dela (PropScale), não na do mapa
+	local townDistance = distance(x, z, World.TownCenter.X, World.TownCenter.Z) / P
+	w.town = 1 - smoothstep(TownPlan.Radius, TownPlan.Radius + 60, townDistance)
 	return w
+end
+
+-- altura "de design" (antes de esticar o relevo): use para comparar com limiares de altura
+function World.designHeight(h)
+	return World.SeaLevel + (h - World.SeaLevel) / HS
+end
+
+-- ===================== TERRENO APLAINADO =====================
+-- Locais de interesse, portais e construções do mapa registram uma "base" plana: o relevo vai
+-- suavemente até a altura do centro. Registradas na carga dos módulos (World, Points, Dungeons), na
+-- mesma ordem no servidor e no cliente.
+local pads = {}
+-- radius = raio plano (studs); blend = largura da rampa até o relevo natural
+function World.addPad(x, z, radius, blend)
+	local h = World.height(x, z)
+	table.insert(pads, { x = x, z = z, radius = radius, blend = blend or radius, h = h })
+	return h
 end
 
 function World.heightWithWeights(x, z, w)
@@ -85,12 +113,20 @@ function World.heightWithWeights(x, z, w)
 	local ridge = 1 - math.abs(fbm(dx, dz, 4, 160, SEED + 23)) * 2
 	h += w.mountain * (1 - w.corridor) * (1 - w.crater) * (70 + ridge * 110)
 	-- passagem: sobe suave da planície até a cratera
-	local corridorHeight = lerp(22, World.CraterHeight, smoothstep(-235, -400, dz)) + fbm(dx, dz, 2, 40, SEED + 31) * 2
+	local corridorHeight = lerp(22, 44, smoothstep(-235, -400, dz)) + fbm(dx, dz, 2, 40, SEED + 31) * 2
 	h = lerp(h, corridorHeight, w.corridor)
-	h = lerp(h, World.CraterHeight + fbm(dx, dz, 2, 30, SEED + 41) * 1.5, w.crater)
+	h = lerp(h, 44 + fbm(dx, dz, 2, 30, SEED + 41) * 1.5, w.crater)
 	h = lerp(h, -16, w.ocean)
 	h = lerp(h, -4, w.lake)
+	-- estica o relevo em volta do nível do mar (escala realista)
+	h = World.SeaLevel + (h - World.SeaLevel) * HS
 	h = lerp(h, World.TownHeight, w.town)
+	for _, pad in pads do
+		local d = distance(x, z, pad.x, pad.z)
+		if d < pad.radius + pad.blend then
+			h = lerp(h, pad.h, 1 - smoothstep(pad.radius, pad.radius + pad.blend, d))
+		end
+	end
 	return h
 end
 
@@ -103,8 +139,8 @@ local DESIGN_ROADS = {
 	{ { 0, 150 }, { 0, 70 }, { 0, 10 }, { 6, -110 }, { 0, -235 }, { 0, -330 } },
 	{ { 0, 10 }, { 90, -15 }, { 185, -38 } },
 	{ { 0, 10 }, { -90, -15 }, { -185, -38 } },
-	{ { 75, 150 }, { 95, 210 }, { 112, 280 } },
-	{ { -75, 150 }, { -92, 160 }, { -108, 166 } },
+	{ { 50, 150 }, { 80, 210 }, { 112, 280 } },
+	{ { -50, 150 }, { -80, 160 }, { -108, 166 } },
 }
 World.Roads = {}
 for i, road in DESIGN_ROADS do
@@ -156,7 +192,7 @@ function World.surfaceMaterial(x, z, h, slope, w)
 	-- dentro da vila: embaixo das ruas, praça e becos, chão sem grama (a grama animada atravessaria o
 	-- calçamento, que são peças finas); no resto, grama dos jardins
 	if w.town > 0.5 then
-		local paving = TownPlan.pavingAt((x - World.TownCenter.X) / S, (z - World.TownCenter.Z) / S, 2)
+		local paving = TownPlan.pavingAt((x - World.TownCenter.X) / P, (z - World.TownCenter.Z) / P, 2)
 		if paving == "beco" then
 			return M.Ground
 		elseif paving then
@@ -168,7 +204,7 @@ function World.surfaceMaterial(x, z, h, slope, w)
 	if road < World.RoadWidth then
 		return if w.town > 0.5 then M.Cobblestone else M.Ground
 	end
-	if h > 135 then
+	if World.designHeight(h) > 135 then
 		return M.Snow
 	end
 	if slope > 1.05 then
@@ -237,6 +273,11 @@ World.Locations = {}
 for id, loc in DESIGN_LOCATIONS do
 	World.Locations[id] = { name = loc[1], x = loc[2] * S, z = loc[3] * S, radius = loc[4] * S }
 end
+-- construções do mapa ficam em chão plano
+for _, id in { "templo_ruinas", "mina", "santuario_lago", "farol" } do
+	local loc = World.Locations[id]
+	World.addPad(loc.x, loc.z, 18 * P, 16 * P)
+end
 
 -- Pedras de viagem rápida (descobertas ao chegar perto)
 local DESIGN_WAYSTONES = {
@@ -252,6 +293,11 @@ World.Waystones = {}
 World.WaystoneById = {}
 for i, stone in DESIGN_WAYSTONES do
 	local entry = { id = stone[1], name = stone[2], x = stone[3] * S, z = stone[4] * S }
+	if stone[1] == "vila" then
+		-- a pedra da vila fica no traçado da vila (escala da vila, não do mapa)
+		entry.x = World.TownCenter.X + (stone[3] - 0) * P
+		entry.z = World.TownCenter.Z + (stone[4] - 150) * P
+	end
 	World.Waystones[i] = entry
 	World.WaystoneById[entry.id] = entry
 end

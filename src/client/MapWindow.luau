@@ -88,7 +88,7 @@ local function cellColor(x, z)
 	if w.town > 0.6 then
 		return Color3.fromRGB(175, 165, 150)
 	end
-	if h > 115 then
+	if World.designHeight(h) > 115 then
 		return Color3.fromRGB(235, 240, 245)
 	end
 	if w.mountain > 0.55 or w.crater > 0.5 then
@@ -140,7 +140,7 @@ local function draw()
 		end
 	end
 	-- ruas, praça e becos da vila (aparecem melhor com zoom)
-	local K = World.Scale
+	local K = World.PropScale
 	for _, strip in TownPlan.Paving do
 		local x1, z1 = World.TownCenter.X + strip[1] * K, World.TownCenter.Z + strip[2] * K
 		local x2, z2 = World.TownCenter.X + strip[3] * K, World.TownCenter.Z + strip[4] * K

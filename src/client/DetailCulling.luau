@@ -8,7 +8,7 @@ local Prefs = require(script.Parent.Prefs)
 local DetailCulling = {}
 
 -- distância de desenho (studs) por qualidade: 1 baixa, 2 média, 3 alta
-local DISTANCE = { 340, 560, 900 }
+local DISTANCE = { 450, 800, 1300 } -- mundo em escala realista: árvores enormes aparecem de longe
 -- coisas pequenas somem antes (fração da distância)
 local SMALL_FRACTION = 0.45
 local BATCH = 250 -- modelos conferidos por quadro
@@ -25,10 +25,10 @@ local function register(model)
 	if model:IsA("Model") then
 		local cf, size = model:GetBoundingBox()
 		position = cf.Position
-		small = size.Magnitude < 9
+		small = size.Magnitude < 14
 	else
 		position = model.Position
-		small = model.Size.Magnitude < 9
+		small = model.Size.Magnitude < 14
 	end
 	table.insert(entries, { model = model, position = position, small = small, hidden = false })
 end

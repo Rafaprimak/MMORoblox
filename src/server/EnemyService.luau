@@ -848,7 +848,7 @@ function EnemyService.start()
 				local options = nil
 				if Enemies.Defs[enemyId].behavior == "dummy" then
 					-- bonecos lado a lado, em posições fixas
-					local x = camp.center.X + (i - (count + 1) / 2) * 7 * World.Scale
+					local x = camp.center.X + (i - (count + 1) / 2) * 7 * World.PropScale
 					local z = camp.center.Y
 					options = { position = Vector3.new(x, groundAt(x, z), z) }
 				end

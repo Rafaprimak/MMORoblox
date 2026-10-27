@@ -420,7 +420,7 @@ spawn.Duration = 0
 spawn.CanCollide = false
 spawn.Transparency = 1
 spawn.Size = Vector3.new(6, 1, 6)
-spawn.CFrame = CFrame.new(World.TownCenter.X, World.TownHeight + 0.5, World.TownCenter.Z + 16 * World.Scale)
+spawn.CFrame = CFrame.new(World.TownCenter.X, World.TownHeight + 0.5, World.TownCenter.Z + 16 * World.PropScale)
 spawn.Parent = workspace
 
 local function safely(name, fn, ...)

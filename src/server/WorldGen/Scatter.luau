@@ -12,10 +12,12 @@ local Placement = require(script.Parent.Placement)
 
 local Scatter = {}
 
--- Escala do mapa (posições) e tamanho dos objetos em relação ao personagem
+-- Escala do mapa (posições) e tamanho dos objetos em relação ao personagem (escala realista:
+-- árvores adultas com 10x a altura do personagem, pedras grandes)
 local S = World.Scale
-local TREE_SCALE = 1.45
-local ROCK_SCALE = 1.35
+local P = World.PropScale
+local TREE_SCALE = 3.0
+local ROCK_SCALE = 2.4
 local NODE_SCALE = 1.35
 
 local M = Enum.Material
@@ -145,10 +147,10 @@ end
 
 -- Regras de onde cada recurso aparece
 local NODE_RULES = {
-	{ type = "cobre", count = 70, radius = 4, test = function(w, x, z)
+	{ type = "cobre", count = 140, radius = 4, test = function(w, x, z)
 		return w.forest < 0.4 and w.ruins < 0.6 and w.mountain < 0.2 and w.town < 0.05 and w.ocean < 0.05 and w.lake < 0.1
 	end },
-	{ type = "ferro", count = 32, radius = 4, test = function(w)
+	{ type = "ferro", count = 64, radius = 4, test = function(w)
 		return w.ruins > 0.45 and w.mountain < 0.4
 	end },
 	{ type = "ferro", count = 8, radius = 4, test = function(_w, x, z)
@@ -156,22 +158,22 @@ local NODE_RULES = {
 		local d = math.sqrt((x - loc.x) ^ 2 + (z - loc.z) ^ 2)
 		return d > 14 * S and d < 40 * S
 	end },
-	{ type = "mitril", count = 14, radius = 4, test = function(w, _x, z)
+	{ type = "mitril", count = 28, radius = 4, test = function(w, _x, z)
 		return w.corridor > 0.25 and z < -250 * S and z > -400 * S
 	end },
-	{ type = "erva", count = 85, radius = 2.5, test = function(w)
+	{ type = "erva", count = 170, radius = 2.5, test = function(w)
 		return w.forest < 0.7 and w.ruins < 0.5 and w.mountain < 0.2 and w.town < 0.1 and w.ocean < 0.05 and w.lake < 0.2
 	end },
-	{ type = "cogumelo", count = 45, radius = 2.5, test = function(w)
+	{ type = "cogumelo", count = 90, radius = 2.5, test = function(w)
 		return w.forest > 0.5 and w.mountain < 0.4
 	end },
-	{ type = "flor_lunar", count = 24, radius = 2.5, test = function(w)
+	{ type = "flor_lunar", count = 48, radius = 2.5, test = function(w)
 		return w.ruins > 0.5 and w.mountain < 0.4
 	end },
-	{ type = "arvore", count = 60, radius = 6, test = function(w)
+	{ type = "arvore", count = 120, radius = 6, test = function(w)
 		return w.town < 0.05 and w.ocean < 0.05 and w.mountain < 0.3 and w.ruins < 0.4 and w.lake < 0.1
 	end },
-	{ type = "arvore_antiga", count = 20, radius = 8, test = function(w)
+	{ type = "arvore_antiga", count = 40, radius = 8, test = function(w)
 		return w.forest > 0.65 and w.mountain < 0.3
 	end },
 }
@@ -225,68 +227,145 @@ local function ruinPiece(parent, cf, rng)
 	return model
 end
 
+-- Sub-bosque (peças simples, embaixo das copas): tronco caído, toco com cogumelos, samambaia
+local function fallenLog(parent, cf, scale, rng)
+	local model = Instance.new("Model")
+	model.Name = "TroncoCaido"
+	local length = rng:NextNumber(7, 12) * scale
+	local diameter = rng:NextNumber(1.4, 2.2) * scale
+	local bark = Props.Colors.Wood:Lerp(Props.Colors.DarkWood, rng:NextNumber(0.3, 0.8))
+	part(model, { Name = "Tronco", Shape = Enum.PartType.Cylinder, Size = Vector3.new(length, diameter, diameter), CFrame = cf * CFrame.new(0, diameter * 0.35, 0) * CFrame.Angles(0, 0, math.rad(rng:NextNumber(-4, 4))), Color = bark, Material = M.Wood })
+	part(model, { Name = "Musgo", Size = Vector3.new(length * 0.6, 0.2, diameter * 0.7), CFrame = cf * CFrame.new(rng:NextNumber(-1, 1) * scale, diameter * 0.83, 0), Color = Color3.fromRGB(80, 125, 60), Material = M.Grass, CanCollide = false })
+	for _, side in { -1, 1 } do
+		if rng:NextNumber() < 0.6 then
+			part(model, { Name = "Galho", Size = Vector3.new(0.35, 0.35, 2.4) * scale, CFrame = cf * CFrame.new(side * length * 0.25, diameter * 0.6, diameter * 0.6) * CFrame.Angles(math.rad(-30), rng:NextNumber(-0.6, 0.6), 0), Color = bark, Material = M.Wood, CanCollide = false })
+		end
+	end
+	model.Parent = parent
+	return model
+end
+
+local function stump(parent, cf, scale, rng)
+	local model = Instance.new("Model")
+	model.Name = "Toco"
+	local diameter = rng:NextNumber(1.8, 2.8) * scale
+	local height = rng:NextNumber(0.9, 1.6) * scale
+	Props.column(model, cf * CFrame.new(0, -0.3, 0), height + 0.3, diameter, Props.Colors.Wood:Lerp(Props.Colors.DarkWood, 0.5), M.Wood)
+	Props.column(model, cf * CFrame.new(0, height, 0), 0.08, diameter * 0.8, Color3.fromRGB(190, 150, 100), M.Wood, { CanCollide = false })
+	for _ = 1, rng:NextInteger(1, 3) do
+		local a = rng:NextNumber() * math.pi * 2
+		local spot = cf * CFrame.new(math.cos(a) * diameter * 0.6, 0, math.sin(a) * diameter * 0.6)
+		Props.column(model, spot, 0.45 * scale, 0.18 * scale, Color3.fromRGB(235, 225, 205), M.SmoothPlastic, { CanCollide = false })
+		Props.column(model, spot * CFrame.new(0, 0.45 * scale, 0), 0.18 * scale, 0.6 * scale, Color3.fromRGB(200, 60, 50), M.SmoothPlastic, { CanCollide = false })
+	end
+	model.Parent = parent
+	return model
+end
+
+local function fern(parent, cf, scale, rng)
+	local model = Instance.new("Model")
+	model.Name = "Samambaia"
+	local green = Color3.fromRGB(55, 115, 50):Lerp(Color3.fromRGB(95, 150, 60), rng:NextNumber())
+	local fronds = rng:NextInteger(5, 7)
+	for i = 1, fronds do
+		local a = i / fronds * math.pi * 2 + rng:NextNumber(-0.2, 0.2)
+		part(model, { Name = "Folha", Size = Vector3.new(0.6, 0.1, 2.6) * scale, CFrame = cf * CFrame.Angles(0, a, 0) * CFrame.new(0, 0.55 * scale, -1.1 * scale) * CFrame.Angles(math.rad(28), 0, 0), Color = green, Material = M.Grass, CanCollide = false })
+	end
+	model.Parent = parent
+	return model
+end
+
+-- Floresta em camadas, para dar profundidade:
+--   * árvores adultas enormes (reservam só o tronco: a copa fica lá em cima e o sub-bosque cresce embaixo);
+--   * árvores jovens entre elas;
+--   * sub-bosque: arbustos, samambaias, troncos caídos, tocos com cogumelos;
+--   * densidade por ruído: miolo fechado, bordas ralas e clareiras (com flores);
+-- Fora das florestas: bosques nos campos, pinheiros nas montanhas, palmeiras na praia, árvores secas nas ruínas.
 function Scatter.nature(parent, rng)
 	local folder = Instance.new("Folder")
 	folder.Name = "Natureza"
 	folder.Parent = parent
-	local budget = { tree = 1150, rock = 480, bush = 560, flowers = 330, ruin = 70 }
-	local counts = { tree = 0, rock = 0, bush = 0, flowers = 0, ruin = 0 }
+	local budget = { tree = 2600, young = 1500, rock = 1100, bush = 2200, under = 1500, flowers = 900, ruin = 160 }
+	local counts = { tree = 0, young = 0, rock = 0, bush = 0, under = 0, flowers = 0, ruin = 0 }
 
-	for attempt = 1, 34000 do
+	for attempt = 1, 150000 do
 		local x = rng:NextNumber(-500, 500) * S
 		local z = rng:NextNumber(-500, 360) * S
 		local w = World.weights(x, z)
 		local h = World.heightWithWeights(x, z, w)
 		if h > World.SeaLevel + 1 and w.town < 0.2 and w.crater < 0.25 then
+			local dh = World.designHeight(h)
 			local plains = (1 - w.forest) * (1 - w.ruins) * (1 - w.mountain) * (1 - w.ocean)
 			local grove = World.fbm(x, z, 2, 110, 999) > 0.12
-			local beach = w.ocean > 0.06 and h < World.SeaLevel + 7
-			local treeChance = w.forest * 0.6 + plains * (if grove then 0.3 else 0.015) + w.mountain * (if h < 140 then 0.12 else 0) + w.ruins * 0.05 + (if beach then 0.05 else 0)
-			local rockChance = 0.02 + w.ruins * 0.06 + w.mountain * 0.09
-			local bushChance = w.forest * 0.12 + plains * 0.05
-			local flowerChance = plains * 0.05 + w.lake * 0.1
+			local beach = w.ocean > 0.06 and dh < World.SeaLevel + 7
+			-- densidade da floresta: -1 (clareira) a 1 (mata fechada)
+			local density = World.fbm(x, z, 3, 55, 4343)
+			local clearing = w.forest > 0.5 and density < -0.32
+			local thick = w.forest * World.smoothstep(-0.3, 0.35, density)
+			local treeChance = (if clearing then 0 else 0.1 + thick * 0.45) * w.forest + plains * (if grove then 0.22 else 0.012) + w.mountain * (if dh < 140 then 0.12 else 0) + w.ruins * 0.05 + (if beach then 0.05 else 0)
+			local youngChance = (if clearing then 0.015 else 0.06 + thick * 0.2) * w.forest + plains * (if grove then 0.07 else 0.004)
+			local underChance = (if clearing then 0.03 else 0.1 + thick * 0.22) * w.forest + w.ruins * 0.01
+			local bushChance = w.forest * (if clearing then 0.06 else 0.18) + plains * 0.05
+			local rockChance = 0.02 + w.ruins * 0.06 + w.mountain * 0.09 + w.forest * 0.015
+			local flowerChance = plains * 0.05 + w.lake * 0.1 + (if clearing then 0.3 else 0)
 			local ruinChance = w.ruins * 0.02
+			local chances = {
+				{ "tree", treeChance }, { "young", youngChance }, { "under", underChance }, { "bush", bushChance },
+				{ "rock", rockChance }, { "flowers", flowerChance }, { "ruin", ruinChance },
+			}
 			local roll = rng:NextNumber()
 			local kind = nil
-			if roll < treeChance then
-				kind = "tree"
-			elseif roll < treeChance + rockChance then
-				kind = "rock"
-			elseif roll < treeChance + rockChance + bushChance then
-				kind = "bush"
-			elseif roll < treeChance + rockChance + bushChance + flowerChance then
-				kind = "flowers"
-			elseif roll < treeChance + rockChance + bushChance + flowerChance + ruinChance then
-				kind = "ruin"
+			for _, entry in chances do
+				if roll < entry[2] then
+					kind = entry[1]
+					break
+				end
+				roll -= entry[2]
 			end
 			if kind and counts[kind] < budget[kind] then
-				local radius = (if kind == "tree" then 5 * TREE_SCALE elseif kind == "rock" then 3.5 * ROCK_SCALE elseif kind == "ruin" then 6 * S else 2.5)
+				local scale = rng:NextNumber(0.8, 1.3)
+				-- raio reservado: árvores só o tronco (copas se cruzam, como numa floresta de verdade)
+				local radius = if kind == "tree" then 2.6 * TREE_SCALE * scale
+					elseif kind == "young" then 1.4 * TREE_SCALE * scale
+					elseif kind == "rock" then 3.5 * ROCK_SCALE
+					elseif kind == "ruin" then 6 * P * 1.8
+					elseif kind == "under" then 3.5 * P
+					else 2.5
 				local slope = Placement.slope(x, z)
 				local slopeLimit = if kind == "rock" then 2 else 0.8
-				if slope < slopeLimit and Placement.canPlace(x, z, radius, if kind == "flowers" then 1 else 3) then
+				if slope < slopeLimit and Placement.canPlace(x, z, radius, if kind == "flowers" or kind == "under" then 1 else 3) then
 					local cf = groundCf(x, z, rng:NextNumber() * math.pi * 2, if kind == "rock" then 0.6 else 0.2)
-					local scale = rng:NextNumber(0.8, 1.3)
-					if kind == "tree" then
-						scale *= TREE_SCALE
+					if kind == "tree" or kind == "young" then
+						scale *= TREE_SCALE * (if kind == "young" then 0.45 else 1)
 						if beach then
 							Props.palm(folder, cf, scale, rng)
 						elseif w.mountain > 0.4 then
-							Props.pine(folder, cf, scale * 1.1, rng, h > 110)
+							Props.pine(folder, cf, scale * 1.1, rng, dh > 110)
 						elseif w.ruins > 0.5 and rng:NextNumber() < 0.6 then
 							Props.deadTree(folder, cf, scale, rng)
-						elseif w.forest > 0.5 and rng:NextNumber() < 0.45 then
-							Props.pine(folder, cf, scale * 1.2, rng, false)
+						elseif w.forest > 0.5 and rng:NextNumber() < 0.4 then
+							-- no miolo da mata as árvores são as mais altas
+							Props.pine(folder, cf, scale * (1.15 + thick * 0.35), rng, false)
 						else
-							Props.oak(folder, cf, scale * (if w.forest > 0.5 then 1.25 else 1), rng)
+							Props.oak(folder, cf, scale * (if w.forest > 0.5 then 1.15 + thick * 0.3 else 1), rng)
+						end
+					elseif kind == "under" then
+						local pick = rng:NextNumber()
+						if pick < 0.45 then
+							Props.scaleModel(fern(folder, cf, 1, rng), cf, P * rng:NextNumber(0.9, 1.4))
+						elseif pick < 0.75 then
+							Props.scaleModel(fallenLog(folder, cf, 1, rng), cf, P * rng:NextNumber(0.9, 1.3))
+						else
+							Props.scaleModel(stump(folder, cf, 1, rng), cf, P * rng:NextNumber(0.9, 1.3))
 						end
 					elseif kind == "rock" then
 						Props.rock(folder, cf, scale * ROCK_SCALE * (if w.mountain > 0.5 then 1.8 else 1), rng)
 					elseif kind == "bush" then
-						Props.bush(folder, cf, scale * ROCK_SCALE, rng)
+						Props.bush(folder, cf, scale * ROCK_SCALE * (if w.forest > 0.5 then 1.2 else 1), rng)
 					elseif kind == "flowers" then
-						Props.scaleModel(Props.flowers(folder, cf, rng), cf, 1.3)
+						Props.scaleModel(Props.flowers(folder, cf, rng), cf, 1.6)
 					else
-						Props.scaleModel(ruinPiece(folder, cf, rng), cf, S)
+						Props.scaleModel(ruinPiece(folder, cf, rng), cf, P * 1.8)
 					end
 					Placement.reserve(x, z, radius, kind)
 					counts[kind] += 1

@@ -147,7 +147,9 @@ end
 
 for _, def in DESIGN do
 	local x, z = Points.resolve(def.x * S, def.z * S, clearSpot)
-	def.position = Vector3.new(x, World.height(x, z), z)
+	-- chão plano para o portal (degraus e braseiros não ficam no ar nem enterrados)
+	local floorY = World.addPad(x, z, 16 * World.PropScale, 12 * World.PropScale)
+	def.position = Vector3.new(x, floorY, z)
 	table.insert(Dungeons.List, def)
 	Dungeons.ById[def.id] = def
 	Dungeons.ByMaterial[def.material] = def

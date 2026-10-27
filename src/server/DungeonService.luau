@@ -30,7 +30,7 @@ local DungeonService = {}
 DungeonService.QuestHook = function(_player, _kind, _target, _amount) end
 
 local M = Enum.Material
-local ORIGIN = Vector3.new(8000, 300, 8000) -- longe do mapa (que vai até ~770 studs)
+local ORIGIN = Vector3.new(8000, 300, 8000) -- longe do mapa (que vai até ~1540 studs)
 local SLOT_SPACING = 5000 -- cada grupo tem o seu espaço
 local FLOOR_SPACING = 3000 -- andares pares e ímpares em lugares diferentes (monta o novo antes de apagar o velho)
 local WALL_HEIGHT = DungeonBuilder.WallHeight
