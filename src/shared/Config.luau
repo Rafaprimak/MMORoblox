@@ -112,15 +112,17 @@ function Config.getRankByName(name)
 end
 
 -- XP para passar do nível atual para o próximo (curva mais íngreme: subir de nível leva tempo)
+-- Curva bem íngreme (subir é uma conquista): nível 5 ≈ 3,8 mil XP, 10 ≈ 17 mil, 20 ≈ 75 mil,
+-- 40 ≈ 330 mil, 59 ≈ 760 mil (antes: 1 mil / 3,4 mil / 11 mil / 38 mil / 75 mil)
 function Config.xpToNext(level)
-	return math.floor(60 * level ^ 1.75)
+	return math.floor(120 * level ^ 2.15)
 end
 
 -- Inimigos bem abaixo do seu nível quase não dão XP (não compensa farmar slime no nível 20):
--- até 3 níveis abaixo = XP cheio; depois perde 15% por nível, até sobrar 10%
-Config.XpLevelGapFree = 3
-Config.XpLevelGapPenalty = 0.15
-Config.XpLevelGapMin = 0.1
+-- até 2 níveis abaixo = XP cheio; depois perde 20% por nível, até sobrar 5%
+Config.XpLevelGapFree = 2
+Config.XpLevelGapPenalty = 0.2
+Config.XpLevelGapMin = 0.05
 function Config.xpLevelFactor(playerLevel, enemyLevel)
 	local gap = playerLevel - enemyLevel - Config.XpLevelGapFree
 	if gap <= 0 then

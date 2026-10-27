@@ -57,6 +57,8 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Estilo artístico: contorno de anime nos personagens/NPCs/inimigos/pets próximos, vinheta e gradação de cor pela hora do dia (M)
 - 🧪 Sons de cinema da biblioteca licenciada APM: crítico, aparar, metal, nível, teleporte, carga do golpe pesado, quebra de guarda e bônus (os estilo anime foram testados e removidos: não combinaram) (P)
 - 🧪 Folhas de ícones enviadas ao Roblox (IDs em `Icons.Sheets`) (P)
+- 🧪 Torre do mago (Elric) refeita: pedestal, salão em fiadas com contrafortes, porta em arco, sacada, fuste com estandartes, chapéu de bruxo de ponta torta, cristal com auréola, lustre por dentro (M)
+- 🧪 Subir de nível muito mais difícil: XP para o próximo nível = 120 × nível^2,15 (≈5× no nível 10, ≈10× no fim) e inimigos fracos dão menos XP (P)
 - 🧪 Animações todas procedurais e mais trabalhadas: `Animate` padrão desligado; parado com respiração/troca de peso/olhar, ciclo de passo andar→correr, andar de lado e de costas, pulo/queda/aterrissagem, nado, golpes com antecipação e impacto seco (`snap`), hit-stop no acerto, tremor ao carregar, rolamento novo, pés planos no chão (M)
 - 🧪 Travar a mira no inimigo (T / botão do meio), estilo souls; barras de ritmo e carga no retículo (M)
 - 🧪 Modelagem caprichada: armas detalhadas por tipo, armadura/elmo/botas visíveis (capa no Lendário+), árvores, pedras e inimigos com mais detalhe (G)

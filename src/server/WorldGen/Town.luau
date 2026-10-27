@@ -164,52 +164,173 @@ function builders.alchemy(parent, npc, rng)
 	return model
 end
 
--- Torre do encantador: salão redondo com vão de porta, chão de mármore com círculo mágico, estantes,
--- mesa de encantar (na altura da cintura) e orbe flutuante
+-- Torre do encantador (Elric): torre de mago em três partes.
+--   Base: pedestal em degraus, salão redondo em fiadas de pedra de dois tons, contrafortes, porta em arco
+--   com batentes e pedra-chave dourada, janelas com peitoril, lanternas, runas no chão e hera.
+--   Meio: cornija com sacada de balaústres, fuste mais estreito com janelas em fenda e estandartes.
+--   Topo: "chapéu de bruxo" em gomos com a ponta torta, faixa dourada e cristal flutuante com auréola.
+--   Dentro (salão): chão de mármore com círculo mágico, estantes, mesa de encantar e orbe flutuante.
+-- Peças vizinhas nunca dividem a mesma face (sem tremido): cada camada é um pouco maior ou menor.
 function builders.tower(parent, npc, rng)
 	local cf = doorFrame(npc)
 	local radius = 9
 	local center = cf * CFrame.new(0, 0, radius)
 	local model = Instance.new("Model")
 	model.Name = "TorreEncantador"
-	Props.column(model, center, 1, radius * 2 + 2, C.DarkStone, M.Slate)
-	part(model, { Name = "Degrau", Size = Vector3.new(6, 0.5, 2), CFrame = cf * CFrame.new(0, 0.25, -1.6), Color = C.Stone, Material = M.Cobblestone })
+	local stoneA = Color3.fromRGB(132, 122, 156)
+	local stoneB = Color3.fromRGB(108, 99, 132)
+	local trim = Color3.fromRGB(72, 60, 96)
+	local roofA = Color3.fromRGB(82, 48, 142)
+	local roofB = Color3.fromRGB(64, 36, 116)
+	local gold = Color3.fromRGB(226, 186, 96)
+	local glass = Color3.fromRGB(200, 150, 255)
+
+	-- ===== pedestal e piso =====
+	Props.column(model, center * CFrame.new(0, -0.6, 0), 1.0, radius * 2 + 2.6, C.DarkStone, M.Slate)
+	Props.column(model, center * CFrame.new(0, 0.4, 0), 0.6, radius * 2 + 1.4, trim, M.Slate)
+	part(model, { Name = "Degrau", Size = Vector3.new(6.4, 0.5, 2.2), CFrame = cf * CFrame.new(0, 0.25, -1.7), Color = C.Stone, Material = M.Cobblestone })
+	part(model, { Name = "DegrauAlto", Size = Vector3.new(5.6, 0.45, 1.2), CFrame = cf * CFrame.new(0, 0.72, -0.9), Color = C.Stone:Lerp(Color3.new(1, 1, 1), 0.08), Material = M.Cobblestone })
 	part(model, { Name = "Piso", Size = Vector3.new(0.3, radius * 2 - 1, radius * 2 - 1), Shape = Enum.PartType.Cylinder, CFrame = center * CFrame.new(0, 1.05, 0) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(225, 220, 235), Material = M.Marble })
-	-- paredes em segmentos (o segmento da frente vira a porta)
-	local segments = 18
+
+	-- ===== salão: paredes em 3 fiadas (a frente vira o vão da porta) =====
+	local segments = 20
 	local wallHeight = 12
+	local course = wallHeight / 3
+	local doorHeight = 8
+	local width = 2 * radius * math.tan(math.pi / segments) + 0.3
 	for i = 0, segments - 1 do
 		local angle = (i + 0.5) / segments * math.pi * 2
 		local frame = center * CFrame.Angles(0, angle, 0) * CFrame.new(0, 0, -radius)
 		local isDoor = i == 0 or i == segments - 1
-		local width = 2 * radius * math.tan(math.pi / segments) + 0.3
-		if isDoor then
-			part(model, { Name = "Verga", Size = Vector3.new(width, wallHeight - 7, 1), CFrame = frame * CFrame.new(0, 1 + 7 + (wallHeight - 7) / 2, 0), Color = Color3.fromRGB(120, 110, 140), Material = M.Brick })
-		else
-			part(model, { Name = "Parede", Size = Vector3.new(width, wallHeight, 1), CFrame = frame * CFrame.new(0, 1 + wallHeight / 2, 0), Color = Color3.fromRGB(120, 110, 140), Material = M.Brick })
+		for c = 0, 2 do
+			local bottom = 1 + c * course
+			if not (isDoor and bottom < doorHeight) then
+				part(model, { Name = "Parede", Size = Vector3.new(width, course, 1), CFrame = frame * CFrame.new(0, bottom + course / 2, 0), Color = if (c + i) % 2 == 0 then stoneA else stoneB, Material = M.Brick })
+			end
 		end
-		if i % 4 == 2 then
-			Props.nightWindow(part(model, { Name = "Janela", Size = Vector3.new(1.6, 3, 1.2), CFrame = frame * CFrame.new(0, 8, 0), Color = Color3.fromRGB(200, 150, 255), Material = M.Neon }))
+		-- janelas com peitoril e vidro mágico (acendem à noite)
+		if i == 5 or i == 9 or i == 10 or i == 14 then
+			local glassPart = part(model, { Name = "Janela", Size = Vector3.new(1.5, 2.8, 0.2), CFrame = frame * CFrame.new(0, 7.6, -0.55), Color = glass, Material = M.Neon })
+			Props.nightWindow(glassPart)
+			part(model, { Name = "Peitoril", Size = Vector3.new(2.3, 0.35, 1.2), CFrame = frame * CFrame.new(0, 6.0, -0.8), Color = trim, Material = M.Slate })
+			part(model, { Name = "VergaJanela", Size = Vector3.new(2.1, 0.5, 1.1), CFrame = frame * CFrame.new(0, 9.25, -0.75), Color = trim, Material = M.Slate })
+		end
+		-- hera subindo em alguns pontos
+		if not isDoor and rng:NextNumber() < 0.3 then
+			for leaf = 1, rng:NextInteger(2, 4) do
+				part(model, { Name = "Hera", Size = Vector3.new(rng:NextNumber(0.8, 1.6), rng:NextNumber(0.8, 1.4), 0.12), CFrame = frame * CFrame.new(rng:NextNumber(-0.6, 0.6), 1.2 + leaf * rng:NextNumber(0.8, 1.3), -0.58), Color = Color3.fromRGB(60, 110, 55):Lerp(Color3.fromRGB(90, 140, 60), rng:NextNumber()), Material = M.Grass, CanCollide = false })
+			end
 		end
 	end
-	Props.column(model, center * CFrame.new(0, 1 + wallHeight, 0), 1.2, radius * 2 + 1.5, Color3.fromRGB(80, 60, 110), M.Slate)
-	Props.column(model, center * CFrame.new(0, 2.2 + wallHeight, 0), 8, radius * 1.6, Color3.fromRGB(120, 110, 140), M.Brick)
-	for i = 1, 4 do
-		Props.column(model, center * CFrame.new(0, 10.2 + wallHeight + (i - 1) * 2.2, 0), 2.2, radius * 1.7 - i * 3, Color3.fromRGB(90, 50, 160), M.Slate)
+	-- contrafortes (fora da porta), com sapata mais larga embaixo
+	for _, degrees in { 54, 108, 162, 198, 252, 306 } do
+		local frame = center * CFrame.Angles(0, math.rad(degrees), 0) * CFrame.new(0, 0, -(radius + 0.55))
+		part(model, { Name = "Contraforte", Size = Vector3.new(1.3, wallHeight - 1, 1.3), CFrame = frame * CFrame.new(0, 1 + (wallHeight - 1) / 2, 0), Color = trim, Material = M.Slate })
+		part(model, { Name = "Sapata", Size = Vector3.new(1.8, 2.4, 1.9), CFrame = frame * CFrame.new(0, 2.2, -0.1), Color = C.DarkStone, Material = M.Slate })
 	end
-	local crystal = part(model, { Name = "Cristal", Size = Vector3.new(2.4, 2.4, 2.4), CFrame = center * CFrame.new(0, 23 + wallHeight, 0) * CFrame.Angles(math.rad(45), 0, math.rad(45)), Color = Color3.fromRGB(190, 120, 255), Material = M.Neon, CanCollide = false })
-	Props.light(crystal, Color3.fromRGB(190, 120, 255), 30, 2)
+	-- porta: batentes, arco de aduelas e pedra-chave dourada; runa brilhando em cima
+	local doorWall = cf * CFrame.new(0, 0, 0.2)
+	local opening = width * 2 - 0.6
+	for _, side in { -1, 1 } do
+		part(model, { Name = "Batente", Size = Vector3.new(0.9, doorHeight - 1, 1.6), CFrame = doorWall * CFrame.new(side * (opening / 2 + 0.45), 1 + (doorHeight - 1) / 2, 0), Color = trim, Material = M.Slate })
+		-- lanterna dos dois lados
+		local lantern = part(model, { Name = "Lanterna", Size = Vector3.new(0.7, 1.0, 0.7), CFrame = doorWall * CFrame.new(side * (opening / 2 + 1.6), 5.6, -1.0), Color = Color3.fromRGB(255, 200, 120), Material = M.Neon })
+		Props.nightLight(lantern)
+		part(model, { Name = "BracoLanterna", Size = Vector3.new(0.2, 0.2, 2.2), CFrame = doorWall * CFrame.new(side * (opening / 2 + 1.6), 6.2, 0), Color = Color3.fromRGB(40, 36, 44), Material = M.Metal })
+		part(model, { Name = "TampaLanterna", Size = Vector3.new(0.9, 0.25, 0.9), CFrame = doorWall * CFrame.new(side * (opening / 2 + 1.6), 6.2, -1.0), Color = Color3.fromRGB(40, 36, 44), Material = M.Metal })
+		-- runa no chão, ao lado da entrada
+		part(model, { Name = "RunaChao", Size = Vector3.new(1.1, 0.06, 1.1), CFrame = cf * CFrame.new(side * 4.2, 0.03, -2.2) * CFrame.Angles(0, math.rad(45), 0), Color = glass, Material = M.Neon, Transparency = 0.25, CanCollide = false })
+	end
+	for k = 0, 6 do
+		local a = math.pi * k / 6
+		local r = opening / 2 + 0.45
+		part(model, { Name = "AduelaPorta", Size = Vector3.new(0.9, 0.8, 1.6), CFrame = doorWall * CFrame.new(math.cos(a) * r, doorHeight + math.sin(a) * 0.9, 0) * CFrame.Angles(0, 0, a - math.pi / 2), Color = if k == 3 then gold else trim, Material = if k == 3 then M.Metal else M.Slate })
+	end
+	local rune = part(model, { Name = "RunaPorta", Size = Vector3.new(0.9, 0.9, 0.12), CFrame = doorWall * CFrame.new(0, doorHeight + 2.3, -0.86) * CFrame.Angles(0, 0, math.rad(45)), Color = glass, Material = M.Neon })
+	Props.light(rune, glass, 10, 1)
+
+	-- ===== cornija e sacada (vira o teto do salão) =====
+	local top = 1 + wallHeight
+	Props.column(model, center * CFrame.new(0, top, 0), 0.7, radius * 2 + 1.8, trim, M.Slate)
+	Props.column(model, center * CFrame.new(0, top + 0.7, 0), 0.5, radius * 2 + 2.6, C.DarkStone, M.Slate)
+	local deck = top + 1.2
+	local posts = 24
+	for i = 0, posts - 1 do
+		local angle = i / posts * math.pi * 2
+		local frame = center * CFrame.Angles(0, angle, 0) * CFrame.new(0, 0, -(radius + 0.9))
+		part(model, { Name = "Balaustre", Size = Vector3.new(0.35, 1.4, 0.35), CFrame = frame * CFrame.new(0, deck + 0.7, 0), Color = stoneA, Material = M.Slate })
+		part(model, { Name = "Corrimao", Size = Vector3.new(2 * (radius + 0.9) * math.tan(math.pi / posts) + 0.2, 0.3, 0.5), CFrame = center * CFrame.Angles(0, angle + math.pi / posts, 0) * CFrame.new(0, deck + 1.55, -(radius + 0.9) * math.cos(math.pi / posts)), Color = trim, Material = M.Slate })
+	end
+
+	-- ===== fuste (parte de cima da torre) =====
+	local shaftRadius = 6
+	local shaftHeight = 14
+	local bands = 4
+	for b = 0, bands - 1 do
+		local h = shaftHeight / bands
+		Props.column(model, center * CFrame.new(0, deck + b * h, 0), h, shaftRadius * 2 + (if b % 2 == 0 then 0 else -0.2), if b % 2 == 0 then stoneA else stoneB, M.Brick)
+	end
+	-- janelas em fenda no fuste
+	for _, degrees in { 0, 120, 240 } do
+		local frame = center * CFrame.Angles(0, math.rad(degrees), 0) * CFrame.new(0, 0, -shaftRadius)
+		Props.nightWindow(part(model, { Name = "Fenda", Size = Vector3.new(0.9, 3.4, 0.25), CFrame = frame * CFrame.new(0, deck + 8, -0.05), Color = glass, Material = M.Neon }))
+		part(model, { Name = "MolduraFenda", Size = Vector3.new(1.5, 0.35, 0.8), CFrame = frame * CFrame.new(0, deck + 9.9, -0.2), Color = trim, Material = M.Slate })
+	end
+	-- estandartes roxos com estrela dourada, pendurados no fuste
+	for _, degrees in { -55, 55 } do
+		local frame = center * CFrame.Angles(0, math.rad(degrees), 0) * CFrame.new(0, 0, -(shaftRadius + 0.12))
+		part(model, { Name = "Estandarte", Size = Vector3.new(2.2, 5.2, 0.12), CFrame = frame * CFrame.new(0, deck + 6.2, 0), Color = Color3.fromRGB(96, 46, 150), Material = M.Fabric })
+		part(model, { Name = "BarraEstandarte", Size = Vector3.new(2.8, 0.25, 0.25), CFrame = frame * CFrame.new(0, deck + 8.9, -0.1), Color = gold, Material = M.Metal })
+		part(model, { Name = "EstrelaEstandarte", Size = Vector3.new(0.9, 0.9, 0.08), CFrame = frame * CFrame.new(0, deck + 6.6, -0.1) * CFrame.Angles(0, 0, math.rad(45)), Color = gold, Material = M.Neon })
+		part(model, { Name = "PontaEstandarte", Size = Vector3.new(1.1, 1.1, 0.12), CFrame = frame * CFrame.new(0, deck + 3.6, 0) * CFrame.Angles(0, 0, math.rad(45)), Color = Color3.fromRGB(96, 46, 150), Material = M.Fabric })
+	end
+	-- mísulas segurando o chapéu
+	local hatBase = deck + shaftHeight
+	Props.column(model, center * CFrame.new(0, hatBase, 0), 0.8, shaftRadius * 2 + 1.4, trim, M.Slate)
+
+	-- ===== chapéu de bruxo: aba, gomos afinando e ponta torta =====
+	Props.column(model, center * CFrame.new(0, hatBase + 0.8, 0), 0.7, shaftRadius * 2 + 4.6, roofB, M.Slate)
+	Props.column(model, center * CFrame.new(0, hatBase + 1.52, 0), 0.6, shaftRadius * 2 + 3.8, gold, M.Metal)
+	local frame = center * CFrame.new(0, hatBase + 1.55, 0) * CFrame.Angles(0, rng:NextNumber(0, math.pi * 2), 0)
+	local layers = 11
+	for i = 1, layers do
+		local t = (i - 1) / layers
+		local diameter = (shaftRadius * 2 + 2.4) * (1 - t) ^ 1.15 + 0.7
+		Props.column(model, frame, 1.9, diameter, if i % 2 == 0 then roofA else roofB, M.Slate)
+		local bend = if i > 6 then (i - 6) * 5 else 0
+		frame = frame * CFrame.new(0, 1.75, 0) * CFrame.Angles(math.rad(bend), 0, 0)
+	end
+	-- cristal flutuando sobre a ponta, com auréola girando
+	local crystal = part(model, { Name = "Cristal", Size = Vector3.new(1.8, 1.8, 1.8), CFrame = frame * CFrame.new(0, 2.2, 0) * CFrame.Angles(math.rad(45), 0, math.rad(45)), Color = glass, Material = M.Neon, CanCollide = false })
+	Props.light(crystal, Color3.fromRGB(190, 120, 255), 34, 2)
 	CollectionService:AddTag(crystal, "Spin")
+	local halo = part(model, { Name = "Aureola", Size = Vector3.new(0.12, 3.6, 3.6), Shape = Enum.PartType.Cylinder, CFrame = frame * CFrame.new(0, 2.2, 0) * CFrame.Angles(0, 0, math.rad(90)), Color = gold, Material = M.Neon, Transparency = 0.35, CanCollide = false })
+	CollectionService:AddTag(halo, "Spin")
+
+	-- ===== interior =====
 	local inside = center * CFrame.new(0, 1.2, 0)
 	for _, angle in { 70, 110, 250, 290 } do
 		Props.shelf(model, inside * CFrame.Angles(0, math.rad(angle), 0) * CFrame.new(0, 0, -(radius - 1.2)) * CFrame.Angles(0, math.rad(180), 0), 4, 3, "books", rng)
 	end
 	part(model, { Name = "Circulo", Size = Vector3.new(0.1, 8, 8), Shape = Enum.PartType.Cylinder, CFrame = inside * CFrame.new(0, 0.02, 0) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(180, 120, 255), Material = M.Neon, Transparency = 0.5, CanCollide = false })
+	part(model, { Name = "CirculoInterno", Size = Vector3.new(0.12, 5, 5), Shape = Enum.PartType.Cylinder, CFrame = inside * CFrame.new(0, 0.03, 0) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(60, 40, 90), Material = M.Marble, CanCollide = false })
 	Props.table(model, inside * CFrame.new(0, 0, 3), 3.6, 2.2, 1.9, Color3.fromRGB(70, 50, 90))
 	part(model, { Name = "Livro", Size = Vector3.new(1.4, 0.25, 1), CFrame = inside * CFrame.new(0, 2.2, 3) * CFrame.Angles(0, math.rad(15), 0), Color = Color3.fromRGB(120, 40, 60) })
+	part(model, { Name = "Vela", Size = Vector3.new(0.2, 0.5, 0.2), CFrame = inside * CFrame.new(1.3, 2.32, 2.6), Color = Color3.fromRGB(240, 230, 210) })
+	Props.light(part(model, { Name = "ChamaVela", Size = Vector3.new(0.14, 0.22, 0.14), CFrame = inside * CFrame.new(1.3, 2.68, 2.6), Color = C.Fire, Material = M.Neon, CanCollide = false }), C.Fire, 8, 1)
 	local orb = part(model, { Name = "Orbe", Size = Vector3.one * 1.0, Shape = Enum.PartType.Ball, CFrame = inside * CFrame.new(0, 3.4, 3), Color = Color3.fromRGB(200, 150, 255), Material = M.Neon, CanCollide = false })
 	Props.light(orb, Color3.fromRGB(190, 130, 255), 22, 2, true)
 	CollectionService:AddTag(orb, "Spin")
+	-- lustre de velas no meio do salão (pendurado no teto)
+	part(model, { Name = "Corrente", Size = Vector3.new(0.12, 4.1, 0.12), CFrame = inside * CFrame.new(0, wallHeight - 2.22, 0), Color = Color3.fromRGB(40, 36, 44), Material = M.Metal, CanCollide = false })
+	Props.column(model, inside * CFrame.new(0, wallHeight - 4.3, 0), 0.25, 3, Color3.fromRGB(50, 44, 54), M.Metal, { CanCollide = false })
+	for k = 0, 4 do
+		local a = k / 5 * math.pi * 2
+		local flame = part(model, { Name = "VelaLustre", Size = Vector3.new(0.18, 0.4, 0.18), CFrame = inside * CFrame.new(math.cos(a) * 1.3, wallHeight - 4.05 + 0.2, math.sin(a) * 1.3), Color = C.Fire, Material = M.Neon, CanCollide = false })
+		if k == 0 then
+			Props.light(flame, C.Fire, 16, 1.2)
+		end
+	end
 	model.Parent = parent
 	Props.billboard(crystal, "ENCANTAMENTOS", Color3.fromRGB(200, 150, 255), 3)
 	return model
