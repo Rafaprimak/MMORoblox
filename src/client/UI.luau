@@ -340,6 +340,19 @@ function UI.setIcon(holder, name, color, transparency)
 	reserve.TextTransparency = fade
 end
 
+-- Ícone de uma camada só (ImageLabel), para quando precisa girar (Rotation) ou é bem pequeno
+function UI.iconImage(name, props)
+	local image, offset, size = Icons.get(name)
+	local label = UI.new("ImageLabel", { BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Image = image or "", ImageRectOffset = offset or Vector2.zero, ImageRectSize = size or Vector2.zero, ImageColor3 = props.Color or UI.Colors.Icon })
+	for key, value in props do
+		if key ~= "Color" and key ~= "Parent" then
+			label[key] = value
+		end
+	end
+	label.Parent = props.Parent
+	return label
+end
+
 function UI.icon(name, props)
 	props = props or {}
 	local holder = UI.new("Frame", { Name = "Icone", BackgroundTransparency = 1, Size = props.Size or UDim2.fromOffset(32, 32) })
@@ -353,7 +366,7 @@ function UI.icon(name, props)
 	UI.new("ImageLabel", { Name = "Imagem", BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Size = UDim2.fromScale(1, 1), ZIndex = zIndex, Parent = holder }, {
 		UI.new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(190, 180, 165)), Rotation = 90 }),
 	})
-	UI.new("TextLabel", { Name = "Reserva", Text = "◆", BackgroundTransparency = 1, TextScaled = true, Font = Enum.Font.GothamBold, Size = UDim2.fromScale(0.6, 0.6), Position = UDim2.fromScale(0.2, 0.2), Visible = false, ZIndex = zIndex, Parent = holder })
+	UI.new("TextLabel", { Name = "Reserva", Text = "•", BackgroundTransparency = 1, TextScaled = true, Font = Enum.Font.GothamBold, Size = UDim2.fromScale(0.6, 0.6), Position = UDim2.fromScale(0.2, 0.2), Visible = false, ZIndex = zIndex, Parent = holder })
 	UI.setIcon(holder, name, props.Color, props.Transparency)
 	holder.Parent = props.Parent
 	return holder

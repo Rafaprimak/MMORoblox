@@ -74,8 +74,9 @@ local DESIGN = {
 		minLevel = 15,
 		level = 16,
 		theme = "abismo",
-		x = -150,
-		z = -215,
+		-- a oeste da Mina Abandonada (antes ficava dentro dela)
+		x = -200,
+		z = -195,
 		material = "brasa_abissal",
 		key = "chave_abismo",
 		pools = {
@@ -127,8 +128,25 @@ end
 Dungeons.List = {}
 Dungeons.ById = {}
 Dungeons.ByMaterial = {}
+-- portal precisa de espaço: longe das construções do mapa (mina, templo, farol...) e dos locais de interesse
+local LANDMARKS = { "templo_ruinas", "mina", "santuario_lago", "farol", "passagem", "portao_norte" }
+local function clearSpot(x, z)
+	for _, id in LANDMARKS do
+		local loc = World.Locations[id]
+		if loc and (Vector2.new(x, z) - Vector2.new(loc.x, loc.z)).Magnitude < loc.radius + 20 * S then
+			return false
+		end
+	end
+	for _, poi in Points.List do
+		if (Vector2.new(x, z) - Vector2.new(poi.x, poi.z)).Magnitude < 32 * S then
+			return false
+		end
+	end
+	return true
+end
+
 for _, def in DESIGN do
-	local x, z = Points.resolve(def.x * S, def.z * S)
+	local x, z = Points.resolve(def.x * S, def.z * S, clearSpot)
 	def.position = Vector3.new(x, World.height(x, z), z)
 	table.insert(Dungeons.List, def)
 	Dungeons.ById[def.id] = def

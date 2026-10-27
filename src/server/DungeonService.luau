@@ -637,7 +637,7 @@ local function objectiveText(state)
 	if not objective then
 		return nil
 	end
-	local mark = if state.objectiveDone == true then "✔ " elseif state.objectiveDone == false then "✖ " else ""
+	local mark = if state.objectiveDone == true then "(feito) " elseif state.objectiveDone == false then "(falhou) " else ""
 	if objective == "rapido" then
 		local left = math.max(0, math.floor((state.deadline or 0) - os.clock()))
 		return mark .. ("Extra: limpe o andar a tempo (%d s)"):format(left)
@@ -698,7 +698,7 @@ function DungeonService.descend(run)
 		return
 	end
 	run.descending = true
-	notifyRun(run, { kind = "banner", text = ("▼ DESCENDO PARA O ANDAR %d"):format(run.floor + 1), sub = "Preparem-se...", color = Color3.fromRGB(220, 200, 150), duration = 2.5 })
+	notifyRun(run, { kind = "banner", text = ("DESCENDO PARA O ANDAR %d"):format(run.floor + 1), sub = "Preparem-se...", color = Color3.fromRGB(220, 200, 150), duration = 2.5 })
 	task.delay(2.5, function()
 		if table.find(runs, run) then
 			startFloor(run, run.floor + 1)

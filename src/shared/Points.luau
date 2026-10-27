@@ -35,9 +35,13 @@ local function goodSpot(x, z)
 	return maxDiff < 3.5 and World.roadDistance(x, z) > World.RoadWidth + 14
 end
 
--- procura em espiral um ponto bom perto do pedido (mesmo resultado nos dois lados)
-local function resolve(x, z)
-	if goodSpot(x, z) then
+-- procura em espiral um ponto bom perto do pedido (mesmo resultado nos dois lados).
+-- accept (opcional): regra extra, ex. ficar longe de construções (portais das masmorras)
+local function resolve(x, z, accept)
+	local function ok(px, pz)
+		return goodSpot(px, pz) and (not accept or accept(px, pz))
+	end
+	if ok(x, z) then
 		return x, z
 	end
 	for ring = 1, 10 do
@@ -46,7 +50,7 @@ local function resolve(x, z)
 		for i = 0, count - 1 do
 			local a = i / count * math.pi * 2
 			local px, pz = x + math.cos(a) * radius, z + math.sin(a) * radius
-			if goodSpot(px, pz) then
+			if ok(px, pz) then
 				return px, pz
 			end
 		end

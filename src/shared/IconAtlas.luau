@@ -146,5 +146,9 @@ return {
 		["bottled-bolt"] = { 3, 10 },
 		["heart-bottle"] = { 3, 11 },
 		["magic-potion"] = { 3, 12 },
+		["angry-eyes"] = { 3, 13 },
+		["ice-spell-cast"] = { 3, 14 },
+		["magic-shield"] = { 3, 15 },
+		["shouting"] = { 3, 16 },
 	},
 }

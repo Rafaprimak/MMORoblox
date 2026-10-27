@@ -100,7 +100,7 @@ local function refresh()
 	for _, row in rows do
 		local left = row.reward.minutes * 60 - PlaytimeWindow.elapsed()
 		if row.claimed then
-			row.button.Text = "✔ Pego"
+			row.button.Text = "Pego"
 			row.button.BackgroundColor3 = UI.Colors.Dark
 			row.button.Active = false
 		elseif left <= 0 then

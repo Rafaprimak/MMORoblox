@@ -35,7 +35,7 @@ end
 local function stepper(parent, order, title, subtitle, key, step, min, max, format)
 	local frame = row(parent, order, title, subtitle)
 	local value = UI.label({ Text = "", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -52, 0.5, 0), Size = UDim2.fromOffset(80, 24), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = UI.Colors.Gold, Parent = frame }, { UI.textStroke(1) })
-	local minus = UI.button({ Text = "−", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -136, 0.5, 0), Size = UDim2.fromOffset(36, 32), BackgroundColor3 = UI.Colors.Dark, Parent = frame })
+	local minus = UI.button({ Text = "-", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -136, 0.5, 0), Size = UDim2.fromOffset(36, 32), BackgroundColor3 = UI.Colors.Dark, Parent = frame })
 	local plus = UI.button({ Text = "+", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(36, 32), BackgroundColor3 = UI.Colors.Dark, Parent = frame })
 	local function refresh()
 		value.Text = format(Prefs.get(key))

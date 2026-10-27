@@ -29,7 +29,7 @@ local SERVICE_LABELS = {
 	classes = "Classes",
 	stable = "Montaria",
 	dungeon = "Mercado das Masmorras",
-	fusion = "Fusão de equipamentos (9 → 1)",
+	fusion = "Fusão de equipamentos (9 em 1)",
 }
 local SERVICE_ICONS = {
 	forge = "anvil-impact",
@@ -79,14 +79,14 @@ local function showQuest(qid)
 	table.insert(lines, "Recompensa: " .. Quests.rewardText(def.reward))
 	text.Text = def.name .. "\n\n" .. table.concat(lines, "\n")
 	text:SetAttribute("LendoMissao", true)
-	option("✔ Aceitar missão", UI.Colors.Green, 1, function()
+	option("Aceitar missão", UI.Colors.Green, 1, function()
 		local result = State.request("acceptQuest", qid)
 		if result and result.ok then
 			Sounds.play("ping", 1.4, 0.5)
 			showMain()
 		end
 	end)
-	option("↩ Voltar", nil, 2, showMain)
+	option("Voltar", nil, 2, showMain)
 end
 
 function showMain()

@@ -275,7 +275,7 @@ function Chest.init(screen)
 	reelHolder = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.82), Size = UDim2.new(0.9, 0, 0, 170), BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.1, ClipsDescendants = true, ZIndex = 3, Parent = overlay }, { UI.corner(14), UI.stroke(UI.Colors.Gold, 3) })
 	reel = UI.new("Frame", { Position = UDim2.fromOffset(0, 10), Size = UDim2.fromOffset(REEL_LENGTH * (CARD_W + CARD_GAP), 150), BackgroundTransparency = 1, ZIndex = 4, Parent = reelHolder })
 	UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.new(0, 4, 1, 0), BackgroundColor3 = UI.Colors.Gold, ZIndex = 6, Parent = reelHolder })
-	UI.label({ Text = "▼", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 0.82, -88), Size = UDim2.fromOffset(40, 30), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, ZIndex = 6, Parent = overlay }, { UI.textStroke(2) })
+	UI.iconImage("plain-arrow", { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 0.82, -88), Size = UDim2.fromOffset(34, 30), Color = UI.Colors.Gold, ZIndex = 6, Parent = overlay })
 
 	resultPanel = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0.72, 0), Size = UDim2.fromOffset(520, 150), BackgroundTransparency = 1, ZIndex = 7, Visible = false, Parent = overlay })
 	UI.new("UIScale", { Parent = resultPanel })

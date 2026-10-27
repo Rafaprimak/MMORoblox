@@ -247,13 +247,13 @@ function Popups.handle(notification)
 		local ability = Classes.Abilities[notification.ability]
 		if ability then
 			if notification.learn then
-				Popups.banner("✦ Habilidade avançada disponível: " .. ability.name, "Aprenda com 1 ponto de talento (tecla C → Habilidades)", Color3.fromRGB(255, 220, 140), 5)
+				Popups.banner("Habilidade avançada disponível: " .. ability.name, "Aprenda com 1 ponto de talento (tecla C, aba Habilidades)", Color3.fromRGB(255, 220, 140), 5)
 			else
 				Popups.burst("NOVA HABILIDADE!", Color3.fromRGB(150, 220, 255), ability.name)
 			end
 		end
 	elseif kind == "quest" then
-		Popups.banner("✔ " .. (QUEST_LABELS[notification.category] or "MISSÃO") .. " COMPLETA: " .. notification.title, notification.reward, UI.Colors.Green, 4.5)
+		Popups.banner((QUEST_LABELS[notification.category] or "MISSÃO") .. " COMPLETA: " .. notification.title, notification.reward, UI.Colors.Green, 4.5)
 		Sounds.play("quest", 1, 0.6)
 		task.delay(0.15, Sounds.play, "ping", 1.6, 0.4)
 	elseif kind == "questAccepted" then

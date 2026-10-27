@@ -30,7 +30,7 @@ local function renderAbilities(data)
 		return
 	end
 	header(data, class)
-	UI.label({ Text = "Básicas vêm de graça no nível. Avançadas (✦) custam 1 ponto para aprender. Escolha quais 4 levar nas teclas 1-4.", Size = UDim2.new(1, -10, 0, 18), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, LayoutOrder = 1, Parent = body })
+	UI.label({ Text = "Básicas vêm de graça no nível. Avançadas (marcadas como avançada) custam 1 ponto para aprender. Escolha quais 4 levar nas teclas 1-4.", Size = UDim2.new(1, -10, 0, 18), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, LayoutOrder = 1, Parent = body })
 	for order, info in data.tree or {} do
 		local ability = Classes.Abilities[info.id]
 		if ability then
@@ -38,7 +38,7 @@ local function renderAbilities(data)
 			local available = data.level >= info.unlock
 			local row = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 92), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.25, LayoutOrder = 10 + order, Parent = body }, { UI.corner(10), UI.stroke(if info.slot > 0 then UI.Colors.Gold elseif learned then UI.Colors.Mana else UI.Colors.Stroke, 1.5) })
 			UI.icon(ability.icon, { Position = UDim2.fromOffset(10, 12), Size = UDim2.fromOffset(52, 52), Transparency = if learned then 0 else 0.55, Parent = row })
-			UI.label({ Text = (if info.advanced then "✦ " else "") .. ability.name, Position = UDim2.fromOffset(72, 6), Size = UDim2.new(1, -300, 0, 22), Font = Enum.Font.GothamBlack, TextColor3 = if info.advanced then Color3.fromRGB(255, 220, 140) else UI.Colors.Text, Parent = row }, { UI.textStroke(1) })
+			UI.label({ Text = ability.name .. (if info.advanced then "  (avançada)" else ""), Position = UDim2.fromOffset(72, 6), Size = UDim2.new(1, -300, 0, 22), Font = Enum.Font.GothamBlack, TextColor3 = if info.advanced then Color3.fromRGB(255, 220, 140) else UI.Colors.Text, Parent = row }, { UI.textStroke(1) })
 			local status
 			if learned then
 				status = ("Rank %d/%d  •  %d mana  •  recarga %.1fs"):format(info.rank, Classes.MaxAbilityRank, ability.mana, Classes.rankCooldown(ability, info.rank))
@@ -172,7 +172,7 @@ local function renderStats(data)
 		{ "Classe", if class then class.name else "—" },
 		{ "Nível / Rank", ("%d  •  Rank %s"):format(data.level, Config.getRank(data.level).name) },
 		{ "Arma", ("%s %s (maestria %d)"):format(weaponType and weaponType.icon or "", weaponType and weaponType.name or "", stats.masteryLevel) },
-		{ "Afinidade de classe", if stats.affinity then "✔ +15% de dano" else "✘ arma de outra classe" },
+		{ "Afinidade de classe", if stats.affinity then "Sim: +15% de dano" else "Não: arma de outra classe" },
 		{ "Ataque", UI.formatNumber(stats.attack) },
 		{ "Vida máxima", UI.formatNumber(stats.maxHealth) },
 		{ "Mana máxima", UI.formatNumber(stats.maxMana) },

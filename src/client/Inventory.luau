@@ -61,7 +61,7 @@ function Inventory.describeLines(item)
 		local data = State.data
 		local class = data and Classes.List[data.class]
 		if class and class.weapons[item.weaponType] then
-			table.insert(lines, { "★ Arma da sua classe (+15% de dano)", UI.Colors.Green })
+			table.insert(lines, { "» Arma da sua classe (+15% de dano)", UI.Colors.Green })
 		end
 	else
 		local slotInfo = Items.Slots[item.slot]
@@ -77,7 +77,7 @@ function Inventory.describeLines(item)
 		table.insert(lines, { text, Color3.fromRGB(255, 220, 140) })
 	end
 	if item.enchantText then
-		table.insert(lines, { "✦ " .. item.enchantText, Color3.fromRGB(200, 150, 255), 34 })
+		table.insert(lines, { "» " .. item.enchantText, Color3.fromRGB(200, 150, 255), 34 })
 	end
 	-- perks (estilo Destiny): os fortes em dourado, o efeito Único em verde-água
 	for _, perkId in item.perks or {} do
@@ -88,7 +88,7 @@ function Inventory.describeLines(item)
 		end
 	end
 	if item.unique then
-		table.insert(lines, { "✦ ÚNICO: só cai de chefes, muito raro.", Color3.fromRGB(60, 255, 215), 18 })
+		table.insert(lines, { "» ÚNICO: só cai de chefes, muito raro.", Color3.fromRGB(60, 255, 215), 18 })
 	end
 	-- conjunto: peças equipadas e bônus (ativos em verde)
 	local set = item.set and Items.Sets[item.set]
@@ -99,7 +99,7 @@ function Inventory.describeLines(item)
 				equipped += 1
 			end
 		end
-		table.insert(lines, { ("◆ Conjunto %s (%d/%d)"):format(set.name, equipped, #set.pieces), Color3.fromRGB(120, 255, 170), 18 })
+		table.insert(lines, { ("» Conjunto %s (%d/%d)"):format(set.name, equipped, #set.pieces), Color3.fromRGB(120, 255, 170), 18 })
 		for _, pieces in { 2, 4 } do
 			local bonus = set.bonuses[pieces]
 			if bonus then
@@ -130,9 +130,9 @@ local function renderDetails()
 	if not item.equipped then
 		local current = equippedIn(item.slot)
 		local diff = item.power - (if current then current.power else 0)
-		line(details, y, (if diff >= 0 then "▲ +" else "▼ ") .. diff .. " comparado ao equipado", if diff >= 0 then UI.Colors.Green else UI.Colors.Red)
+		line(details, y, (if diff >= 0 then "+" else "") .. diff .. " comparado ao equipado", if diff >= 0 then UI.Colors.Green else UI.Colors.Red)
 	else
-		line(details, y, "✔ Equipado", UI.Colors.Green)
+		line(details, y, "Equipado", UI.Colors.Green)
 	end
 	y += 20
 	-- lista rolável para caber perks e stats sem cobrir os botões
@@ -259,7 +259,7 @@ function Inventory.init(screen)
 	list = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Visible = false, Parent = win.content }, { UI.list(6) })
 	junkButton = UI.button({ Text = "Vender Comuns e Incomuns", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.fromOffset(260, 36), BackgroundColor3 = Color3.fromRGB(110, 60, 60), Parent = win.content })
 	-- fusão: 9 itens da mesma raridade viram 1 de raridade maior
-	local fusionButton = UI.button({ Text = "Fundir itens (9 → 1)", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 268, 1, 0), Size = UDim2.fromOffset(220, 36), BackgroundColor3 = Color3.fromRGB(120, 70, 170), Parent = win.content })
+	local fusionButton = UI.button({ Text = "Fundir itens (9 em 1)", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 268, 1, 0), Size = UDim2.fromOffset(220, 36), BackgroundColor3 = Color3.fromRGB(120, 70, 170), Parent = win.content })
 	fusionButton.MouseButton1Click:Connect(function()
 		if Inventory.onFusion then
 			Inventory.onFusion()

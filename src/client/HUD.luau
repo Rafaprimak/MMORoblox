@@ -43,11 +43,11 @@ local BUFF_INFO = {
 	elixir = { icon = "flame", color = Color3.fromRGB(255, 150, 40) },
 	furia = { icon = "enrage", color = Color3.fromRGB(255, 70, 50) },
 	foco = { icon = "eyeball", color = Color3.fromRGB(255, 220, 100) },
-	escudo = { icon = "checked-shield", color = Color3.fromRGB(170, 120, 255) },
-	frenesi = { icon = "enrage", color = Color3.fromRGB(220, 80, 200) },
+	escudo = { icon = "magic-shield", color = Color3.fromRGB(170, 120, 255) },
+	frenesi = { icon = "angry-eyes", color = Color3.fromRGB(220, 80, 200) },
 	escudo_fe = { icon = "shield-reflect", color = Color3.fromRGB(150, 210, 255) },
 	bencao = { icon = "star-swirl", color = Color3.fromRGB(255, 230, 120) },
-	provocar = { icon = "enrage", color = Color3.fromRGB(255, 120, 90) },
+	provocar = { icon = "shouting", color = Color3.fromRGB(255, 120, 90) },
 	furia_crescente = { icon = "flame", color = Color3.fromRGB(255, 90, 40) },
 }
 
@@ -373,7 +373,7 @@ end
 
 local function objectiveLine(parent, order, text, progress, amount, done)
 	UI.label({
-		Text = (if done then "✔ " else "• ") .. text .. (if amount > 1 and not done then ("  %s/%s"):format(UI.formatNumber(progress), UI.formatNumber(amount)) else ""),
+		Text = "• " .. text .. (if done then "  (feito)" elseif amount > 1 then ("  %s/%s"):format(UI.formatNumber(progress), UI.formatNumber(amount)) else ""),
 		Size = UDim2.new(1, 0, 0, 16),
 		TextColor3 = if done then UI.Colors.Green else UI.Colors.Text,
 		LayoutOrder = order,
@@ -422,7 +422,7 @@ local function updateTracker(data)
 			local otherDef = Quests.ById[entry.id]
 			if otherDef then
 				others += 1
-				UI.label({ Text = (if entry.ready then "! " else "◦ ") .. otherDef.name, Size = UDim2.new(1, 0, 0, 15), TextColor3 = if entry.ready then UI.Colors.Gold else UI.Colors.SubText, Font = Enum.Font.Gotham, LayoutOrder = order, Parent = tracker })
+				UI.label({ Text = (if entry.ready then "! " else "• ") .. otherDef.name, Size = UDim2.new(1, 0, 0, 15), TextColor3 = if entry.ready then UI.Colors.Gold else UI.Colors.SubText, Font = Enum.Font.Gotham, LayoutOrder = order, Parent = tracker })
 				order += 1
 			end
 		end
@@ -490,7 +490,7 @@ function HUD.update(data)
 	if auto then
 		local player = game:GetService("Players").LocalPlayer
 		local on = player:GetAttribute("AutoFarm") == true
-		auto.button.Text = auto.text .. (if on then "  ✔" elseif not player:GetAttribute("Vip") then "  VIP" else "")
+		auto.button.Text = auto.text .. (if on then "  (ligado)" elseif not player:GetAttribute("Vip") then "  VIP" else "")
 		auto.button.BackgroundColor3 = if on then Color3.fromRGB(40, 110, 60) else UI.Colors.PanelLight
 	end
 	-- aviso de recompensa para resgatar na Jornada

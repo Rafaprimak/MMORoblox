@@ -81,7 +81,7 @@ local function render(force)
 		goldBox.Text = tostring(trade.mine.gold)
 	end
 	theirGold.Text = ("%s ouro"):format(UI.formatNumber(trade.theirs.gold))
-	theirStatus.Text = if trade.theirConfirm then "✔ Confirmou" elseif trade.theirReady then "✔ Pronto" else "… montando a oferta"
+	theirStatus.Text = if trade.theirConfirm then "Confirmou" elseif trade.theirReady then "Pronto" else "… montando a oferta"
 	theirStatus.TextColor3 = if trade.theirReady then UI.Colors.Green else UI.Colors.SubText
 	-- seu inventário (clique para colocar na oferta)
 	UI.clear(inventoryGrid)

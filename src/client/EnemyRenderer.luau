@@ -57,7 +57,7 @@ local function createHealthGui(rec)
 	local nameColor = if boss then Color3.fromRGB(255, 90, 70) elseif rec.elite then UI.Colors.Gold else WHITE
 	local level = rec.root:GetAttribute("Level") or def.level
 	rec.nameLabel = UI.label({
-		Text = ("%s%s  Nv.%d"):format(if rec.elite then "★ Elite " else "", def.name, level),
+		Text = ("%s%s  Nv.%d"):format(if rec.elite then "Elite " else "", def.name, level),
 		Size = UDim2.fromScale(1, 0.44),
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextColor3 = nameColor,
@@ -148,7 +148,7 @@ local function onAction(rec)
 	if action == "windup" then
 		showWarning(rec, "!", Color3.fromRGB(255, 220, 60), if rec.def.behavior == "dummy" then 0.95 else 0.6)
 	elseif action == "chargeWindup" or action == "slamWindup" then
-		showWarning(rec, "‼", Color3.fromRGB(255, 60, 50), 1.3)
+		showWarning(rec, "!!", Color3.fromRGB(255, 60, 50), 1.3)
 	elseif action == "attack" or action == "stun" or action == "stagger" or action == "idle" then
 		rec.warnGui.Enabled = false
 	end

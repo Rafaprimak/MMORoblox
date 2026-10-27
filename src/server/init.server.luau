@@ -155,7 +155,7 @@ EnemyService.OnKilled = function(rec, contributors)
 				local owner = DataService.get(player)
 				local unique = Items.create(def.uniques[math.random(1, #def.uniques)], "Unico", math.max(rec.level, owner and owner.level or 1))
 				LootService.spawnDrop(player, unique, rec.pos)
-				Remotes.Notify:FireAllClients({ kind = "announce", text = ("✦ %s encontrou um item ÚNICO: %s!"):format(player.DisplayName, Items.displayName(unique)), rarity = "Unico" })
+				Remotes.Notify:FireAllClients({ kind = "announce", text = ("%s encontrou um item ÚNICO: %s!"):format(player.DisplayName, Items.displayName(unique)), rarity = "Unico" })
 			end
 		end
 		local rolls = (def.equipDrops or 1) + (if rec.elite then 1 else 0)

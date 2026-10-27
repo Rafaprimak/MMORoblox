@@ -185,9 +185,9 @@ local function renderForge()
 			return
 		end
 		local nextPower = math.floor(item.power * (1 + 0.12 * (item.upgrade + 1)) / (1 + 0.12 * item.upgrade))
-		text(forge.detail, { Text = ("+%d → +%d   •   %s %d → %d"):format(item.upgrade, item.upgrade + 1, UI.statWord(item), item.power, nextPower), Position = UDim2.fromOffset(0, 32), TextColor3 = UI.Colors.Green, Parent = forge.detail })
+		text(forge.detail, { Text = ("+%d para +%d   •   %s %d para %d"):format(item.upgrade, item.upgrade + 1, UI.statWord(item), item.power, nextPower), Position = UDim2.fromOffset(0, 32), TextColor3 = UI.Colors.Green, Parent = forge.detail })
 		local ok = costLines(forge.detail, { gold = item.upgradeGold, materials = item.upgradeMaterials }, 60)
-		local button = UI.button({ Text = "▲ APRIMORAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(220, 150, 30) else UI.Colors.Dark, Parent = forge.detail })
+		local button = UI.button({ Text = "APRIMORAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(220, 150, 30) else UI.Colors.Dark, Parent = forge.detail })
 		button.MouseButton1Click:Connect(function()
 			local result = State.request("upgrade", item.uid)
 			if result and result.ok then

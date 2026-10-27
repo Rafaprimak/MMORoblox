@@ -178,7 +178,7 @@ local function draw()
 			local data = State.data
 			local found = data and data.poi and data.poi[poi.id]
 			local opened = data and data.poiChests and data.poiChests[poi.id]
-			info.Text = if found then ("%s%s"):format(poi.name, if opened then " — baú aberto ✔" else " — o baú escondido ainda está lá!") else "? Local desconhecido. Vá até lá para descobrir."
+			info.Text = if found then ("%s%s"):format(poi.name, if opened then " — baú já aberto" else " — o baú escondido ainda está lá!") else "? Local desconhecido. Vá até lá para descobrir."
 		end)
 	end
 	refreshPois()
@@ -265,7 +265,7 @@ function MapWindow.init(screen)
 		local button = UI.button({ Text = spec[1], Position = UDim2.new(1, -40, 0, 8 + (i - 1) * 38), Size = UDim2.fromOffset(32, 32), BackgroundColor3 = UI.Colors.PanelLight, ZIndex = 8, Parent = mapFrame })
 		button.MouseButton1Click:Connect(spec[2])
 	end
-	playerArrow = UI.label({ Text = "▲", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(22, 22), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = Color3.fromRGB(255, 240, 80), ZIndex = 6, Parent = markers }, { UI.textStroke(2) })
+	playerArrow = UI.iconImage("plain-arrow", { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(22, 22), Color = Color3.fromRGB(255, 240, 80), ZIndex = 6, Parent = markers })
 	info = UI.label({ Text = "Seta amarela = você. Caveira = inimigos (nível), coroa = chefe, ? = local a descobrir. Roda do mouse = zoom.", Position = UDim2.fromOffset(0, SIZE + 8), Size = UDim2.new(1, 0, 0, 20), TextColor3 = UI.Colors.SubText, Parent = win.content })
 	win.onOpen = function()
 		task.spawn(draw)
@@ -284,7 +284,7 @@ function MapWindow.init(screen)
 			local mx, mz = toMap(root.Position.X, root.Position.Z)
 			playerArrow.Position = at(mx, mz)
 			local look = root.CFrame.LookVector
-			playerArrow.Rotation = math.deg(math.atan2(look.X, -look.Z))
+			playerArrow.Rotation = math.deg(math.atan2(look.X, -look.Z)) + 180 -- a seta do ícone aponta para baixo
 		end
 	end)
 end

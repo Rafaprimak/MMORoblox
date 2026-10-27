@@ -257,7 +257,8 @@ local function lightAttack()
 	lockUntil = now + duration
 	lastMoveEnd = lockUntil
 	Animator.play(character, move.pose, duration, true)
-	Sounds.play(if move.pose == "bow" then "bow" else "swing", 0.9 + math.random() * 0.25, 0.3)
+	-- golpe do combo: som curto e baixo, com tom variando (não cansa no clique repetido)
+	Sounds.play(if move.pose == "bow" then "bow" else "swing", 0.95 + math.random() * 0.3, if move.pose == "bow" then 0.3 else 0.2)
 	Controller.onAttack(duration)
 	State.action("attack", comboIndex, aim)
 end

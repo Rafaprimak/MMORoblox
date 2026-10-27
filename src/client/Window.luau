@@ -75,7 +75,7 @@ function Window.create(screen, options)
 		UI.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = ribbon })
 		UI.icon(options.icon, { Size = UDim2.fromOffset(26, 26), LayoutOrder = 1, Color = Color3.fromRGB(255, 226, 150), ZIndex = 7, Parent = ribbon })
 	end
-	local close = UI.button({ Text = "✕", Position = UDim2.new(1, -48, 0, 12), Size = UDim2.fromOffset(34, 32), BackgroundColor3 = Color3.fromRGB(150, 40, 45), ZIndex = 6, Parent = win.frame })
+	local close = UI.button({ Text = "X", Position = UDim2.new(1, -48, 0, 12), Size = UDim2.fromOffset(34, 32), BackgroundColor3 = Color3.fromRGB(150, 40, 45), ZIndex = 6, Parent = win.frame })
 	close.MouseButton1Click:Connect(function()
 		win:close()
 	end)

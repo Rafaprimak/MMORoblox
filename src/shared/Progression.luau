@@ -170,7 +170,7 @@ function Progression.rewardText(reward, items, pets, chests)
 		table.insert(parts, "price-tag" .. (if title then title.name else reward.title))
 	end
 	if reward.passXp then
-		table.insert(parts, ("✦ %d XP do passe"):format(reward.passXp))
+		table.insert(parts, ("%d XP do passe"):format(reward.passXp))
 	end
 	return table.concat(parts, "  ")
 end

@@ -117,7 +117,7 @@ Classes.Abilities = {
 	flecha_explosiva = { name = "Flecha Explosiva", icon = "dynamite", unlock = 10, cooldown = 12, mana = 30, kind = "projectile", dmg = 2.8, aoe = 10, speed = 130, range = 110, radius = 1.6, style = "fire", pose = "bow", description = "Flecha que explode ao acertar." },
 	-- Mago
 	bola_fogo = { name = "Bola de Fogo", icon = "flame", unlock = 1, cooldown = 4, mana = 18, kind = "projectile", dmg = 2.0, aoe = 7, speed = 100, range = 95, radius = 1.8, style = "fire", pose = "cast", description = "Projétil que explode em chamas." },
-	nova_gelida = { name = "Nova Gélida", icon = "snowflake-1", unlock = 3, cooldown = 12, mana = 30, kind = "nova", radius = 14, dmg = 1.2, stun = 2.0, style = "ice", pose = "castBig", description = "Congela todos ao redor por 2 segundos." },
+	nova_gelida = { name = "Nova Gélida", icon = "ice-spell-cast", unlock = 3, cooldown = 12, mana = 30, kind = "nova", radius = 14, dmg = 1.2, stun = 2.0, style = "ice", pose = "castBig", description = "Congela todos ao redor por 2 segundos." },
 	teleporte = { name = "Teleporte", icon = "sparkles", unlock = 6, cooldown = 8, mana = 20, kind = "blink", distance = 26, pose = "cast", description = "Teleporta-se para a direção mirada." },
 	meteoro = { name = "Meteoro", icon = "comet-spark", unlock = 10, cooldown = 20, mana = 45, kind = "meteor", radius = 16, dmg = 4.0, delay = 1.2, range = 75, pose = "castBig", description = "Invoca um meteoro gigante no ponto mirado." },
 	-- Assassino
@@ -135,7 +135,7 @@ Classes.Abilities = {
 	explosao_sagrada = { name = "Explosão Sagrada", icon = "sun", unlock = 13, cooldown = 14, mana = 30, kind = "holynova", radius = 13, dmg = 1.5, heal = 0.08, pose = "roar", style = "holy", advanced = true, description = "Fere os inimigos ao redor e cura os aliados ao mesmo tempo." },
 	milagre = { name = "Milagre", icon = "dove", unlock = 16, cooldown = 60, mana = 60, kind = "heal", radius = 40, heal = 0.6, iframes = 1.5, pose = "castBig", style = "holy", advanced = true, description = "Cura 60% da vida de todos por perto e os protege por 1,5s." },
 	-- Guerreiro (tanque)
-	provocar = { name = "Provocar", icon = "enrage", unlock = 4, cooldown = 12, mana = 15, kind = "taunt", radius = 18, time = 6, defense = 0.3, pose = "roar", style = "roar", advanced = true, description = "Força os inimigos próximos a atacarem você por 6s e ganha +30% de defesa." },
+	provocar = { name = "Provocar", icon = "shouting", unlock = 4, cooldown = 12, mana = 15, kind = "taunt", radius = 18, time = 6, defense = 0.3, pose = "roar", style = "roar", advanced = true, description = "Força os inimigos próximos a atacarem você por 6s e ganha +30% de defesa." },
 	-- Avançadas (árvore): custam 1 ponto para aprender
 	lamina_giratoria = { name = "Lâmina Giratória", icon = "battle-axe", unlock = 8, cooldown = 7, mana = 18, kind = "projectile", dmg = 1.5, speed = 90, range = 50, radius = 2.5, style = "slash", pose = "slashB", advanced = true, description = "Arremessa uma onda cortante que atravessa a linha." },
 	furia = { name = "Fúria", icon = "enrage", unlock = 13, cooldown = 30, mana = 30, kind = "buff", buffId = "furia", damage = 0.5, defense = 0, time = 6, pose = "roar", advanced = true, description = "+50% de dano por 6 segundos." },
@@ -146,11 +146,11 @@ Classes.Abilities = {
 	chuva_fogo = { name = "Chuva de Fogo", icon = "falling-star", unlock = 16, cooldown = 20, mana = 45, kind = "rain", radius = 14, ticks = 8, interval = 0.3, dmg = 0.8, range = 80, style = "fire", pose = "bowUp", advanced = true, description = "Flechas em chamas caem sobre a área." },
 	raio_arcano = { name = "Raio Arcano", icon = "lightning-helix", unlock = 4, cooldown = 3, mana = 14, kind = "projectile", dmg = 1.6, aoe = 4, speed = 180, range = 110, radius = 1.4, style = "arcane", pose = "cast", advanced = true, description = "Disparo arcano rápido e barato." },
 	anel_fogo = { name = "Anel de Fogo", icon = "circle", unlock = 8, cooldown = 10, mana = 28, kind = "nova", radius = 13, dmg = 1.8, stun = 0.4, style = "fire", pose = "castBig", advanced = true, description = "Explode em chamas ao seu redor." },
-	escudo_arcano = { name = "Escudo Arcano", icon = "checked-shield", unlock = 13, cooldown = 24, mana = 30, kind = "buff", buffId = "escudo", damage = 0.1, defense = 0.5, time = 8, pose = "cast", advanced = true, description = "+50% de defesa e +10% de dano por 8 segundos." },
+	escudo_arcano = { name = "Escudo Arcano", icon = "magic-shield", unlock = 13, cooldown = 24, mana = 30, kind = "buff", buffId = "escudo", damage = 0.1, defense = 0.5, time = 8, pose = "cast", advanced = true, description = "+50% de defesa e +10% de dano por 8 segundos." },
 	nevasca = { name = "Nevasca", icon = "snowing", unlock = 16, cooldown = 22, mana = 50, kind = "rain", radius = 16, ticks = 8, interval = 0.35, dmg = 0.9, range = 75, style = "ice", pose = "castBig", advanced = true, description = "Uma tempestade de gelo na área mirada." },
 	estrelas_sombrias = { name = "Estrelas Sombrias", icon = "spinning-sword", unlock = 4, cooldown = 6, mana = 14, kind = "multishot", count = 3, spread = 10, dmg = 1.3, speed = 150, range = 60, radius = 1.2, style = "shadow", pose = "slashA", advanced = true, description = "Três estrelas sombrias certeiras." },
 	nevoa_toxica = { name = "Névoa Tóxica", icon = "cloudy-fork", unlock = 8, cooldown = 14, mana = 22, kind = "nova", radius = 10, dmg = 1.0, stun = 1.0, style = "shadow", pose = "roar", advanced = true, description = "Solta uma névoa que atordoa quem está perto." },
-	frenesi = { name = "Frenesi", icon = "enrage", unlock = 13, cooldown = 24, mana = 25, kind = "buff", buffId = "frenesi", damage = 0.35, defense = 0, time = 8, pose = "roar", advanced = true, description = "+35% de dano por 8 segundos." },
+	frenesi = { name = "Frenesi", icon = "angry-eyes", unlock = 13, cooldown = 24, mana = 25, kind = "buff", buffId = "frenesi", damage = 0.35, defense = 0, time = 8, pose = "roar", advanced = true, description = "+35% de dano por 8 segundos." },
 	danca_laminas = { name = "Dança das Lâminas", icon = "tornado", unlock = 16, cooldown = 16, mana = 35, kind = "whirl", radius = 9, ticks = 6, interval = 0.2, dmg = 0.7, style = "shadow", pose = "spin", advanced = true, description = "Gira como um furacão de lâminas." },
 }
 

@@ -67,7 +67,7 @@ local function renderPortal()
 	local names = {}
 	if inLobby then
 		for i, name in lobby.members do
-			table.insert(names, (if lobby.ready[i] then "✔ " else "… ") .. name .. (if i == 1 then " (líder)" else ""))
+			table.insert(names, (if lobby.ready[i] then "[pronto] " else "… ") .. name .. (if i == 1 then " (líder)" else ""))
 		end
 	end
 	local members = if inLobby then table.concat(names, "   ") else "você ainda não entrou no grupo"
@@ -169,7 +169,7 @@ local function renderShop(force)
 				local row = shopRow(shop.list, order, 58)
 				order += 1
 				ItemIcon.new(row, baseId, "Raro", { Size = UDim2.fromOffset(52, 52), Position = UDim2.fromOffset(2, 3) })
-				local setName = base.set and Items.Sets[base.set] and ("  •  ◆ " .. Items.Sets[base.set].name) or ""
+				local setName = base.set and Items.Sets[base.set] and ("  •  conjunto " .. Items.Sets[base.set].name) or ""
 				text(row, { Text = ("%s  •  %s%s"):format(base.name, if base.weaponType then Items.WeaponTypes[base.weaponType].name else Items.Slots[base.slot].name, setName), Position = UDim2.fromOffset(58, 5), Size = UDim2.new(1, -214, 0, 18), Parent = row })
 				text(row, { Text = ("%s: %s"):format(perk.name, perk.text), Position = UDim2.fromOffset(58, 24), Size = UDim2.new(1, -214, 0, 30), TextSize = 12, TextColor3 = Color3.fromRGB(200, 180, 255), Parent = row })
 				local button = UI.button({ Text = ("%d %s"):format(price.material, Items.Materials[dungeon.material].name), AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(140, 38), BackgroundColor3 = Color3.fromRGB(120, 70, 170), Parent = row })
@@ -191,13 +191,13 @@ local function renderShop(force)
 			text(row, { Text = dungeon.text, Position = UDim2.fromOffset(12, 28), Size = UDim2.new(1, -24, 0, 34), TextSize = 12, TextColor3 = UI.Colors.SubText, Parent = row })
 			local bosses = {}
 			for floor = Dungeons.BossEvery, Dungeons.Floors, Dungeons.BossEvery do
-				table.insert(bosses, (if reached >= floor then "✔" else "•") .. " " .. floor)
+				table.insert(bosses, floor .. (if reached >= floor then " (feito)" else ""))
 			end
 			text(row, { Text = ("Chefes nos andares %s   •   %s"):format(table.concat(bosses, "  "), if dungeon.key then "precisa de " .. materialName(dungeon.key) else "entrada livre"), Position = UDim2.fromOffset(12, 66), Size = UDim2.new(1, -24, 0, 18), TextSize = 13, Parent = row })
 		end
 		-- conjuntos
 		local order = #Dungeons.List + 1
-		text(shop.list, { Text = "◆ CONJUNTOS (bônus com 2 e 4 peças equipadas)", LayoutOrder = order, TextColor3 = Color3.fromRGB(120, 255, 170), Parent = shop.list })
+		text(shop.list, { Text = "CONJUNTOS (bônus com 2 e 4 peças equipadas)", LayoutOrder = order, TextColor3 = Color3.fromRGB(120, 255, 170), Parent = shop.list })
 		for _, dungeon in Dungeons.List do
 			local set = Items.Sets[dungeon.id]
 			if set then
@@ -212,7 +212,7 @@ local function renderShop(force)
 		end
 		-- únicos
 		order += 1
-		text(shop.list, { Text = ("✦ ÚNICOS (%.1f%% por chefe, o dobro no andar 20)"):format(Enemies.UniqueChance * 100), LayoutOrder = order, TextColor3 = Color3.fromRGB(60, 255, 215), Parent = shop.list })
+		text(shop.list, { Text = ("ÚNICOS (%.1f%% por chefe, o dobro no andar 20)"):format(Enemies.UniqueChance * 100), LayoutOrder = order, TextColor3 = Color3.fromRGB(60, 255, 215), Parent = shop.list })
 		for enemyId, def in Enemies.Defs do
 			for _, baseId in def.uniques or {} do
 				local base = Items.Bases[baseId]
@@ -243,12 +243,12 @@ local function renderTracker()
 	if run.finished then
 		table.insert(lines, ("Concluída! Fecha em %d s"):format(run.closesIn or 0))
 	elseif run.cleared then
-		table.insert(lines, if run.floor < run.floors then "✔ Andar limpo: desçam a escada" else "✔ Andar limpo")
+		table.insert(lines, if run.floor < run.floors then "Andar limpo: desçam a escada" else "Andar limpo")
 	else
 		table.insert(lines, ("%s  •  inimigos: %d"):format(run.mechanic or "", run.enemies))
 	end
 	if run.objective then
-		table.insert(lines, "★ " .. run.objective)
+		table.insert(lines, "» " .. run.objective)
 	end
 	if run.canClaim then
 		table.insert(lines, "Abra o baú do chefe!")

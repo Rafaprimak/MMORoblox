@@ -73,7 +73,7 @@ function ItemGrid.render(frame, items, selectedUid, onSelect, filter)
 		if item.unique then
 			UI.label({ Text = "ÚNICO", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 2), Size = UDim2.fromOffset(46, 13), TextColor3 = rarity.color, TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, ZIndex = 4, Parent = cell }, { UI.textStroke(1) })
 		elseif item.set then
-			UI.label({ Text = "◆", AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -4, 0.58, 0), Size = UDim2.fromOffset(14, 14), TextColor3 = Color3.fromRGB(120, 255, 170), ZIndex = 4, Parent = cell }, { UI.textStroke(1) })
+			UI.iconImage("emerald", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -4, 0.58, 0), Size = UDim2.fromOffset(14, 14), Color = Color3.fromRGB(120, 255, 170), ZIndex = 4, Parent = cell }, { UI.textStroke(1) })
 		end
 		UI.label({ Text = item.name, Size = UDim2.new(1, -6, 0.18, 0), Position = UDim2.new(0, 3, 0.56, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = rarity.color, Parent = cell }, { UI.textStroke(1) })
 		local statRow = UI.new("Frame", { Size = UDim2.new(1, -6, 0.16, 0), Position = UDim2.new(0, 3, 0.78, 0), BackgroundTransparency = 1, Parent = cell })

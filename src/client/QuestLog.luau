@@ -37,7 +37,7 @@ local function renderDetail(data)
 	for i, objective in def.objectives do
 		local progress = entry.objectives[i]
 		local done = progress.progress >= progress.amount
-		table.insert(lines, (if done then "✔ " else "◦ ") .. objective.text .. (if progress.amount > 1 then ("  (%d/%d)"):format(progress.progress, progress.amount) else ""))
+		table.insert(lines, "• " .. objective.text .. (if done then "  (feito)" elseif progress.amount > 1 then ("  (%d/%d)"):format(progress.progress, progress.amount) else ""))
 	end
 	table.insert(lines, "")
 	table.insert(lines, "Entregar para: " .. (if def.turnIn then npcName(def.turnIn) else "automático"))
@@ -112,12 +112,12 @@ local function render()
 		local def = Quests.ById[qid]
 		if def then
 			order += 1
-			local status = if daily.done[qid] then "✔ " else "◦ "
+			local status = if daily.done[qid] then "(feito) " else "• "
 			UI.label({ Text = status .. def.name, Size = UDim2.new(1, -8, 0, 18), TextColor3 = if daily.done[qid] then UI.Colors.Green else UI.Colors.SubText, LayoutOrder = order, Parent = listFrame })
 		end
 	end
 	order += 1
-	UI.label({ Text = if daily.bonusClaimed then "✔ Bônus do dia recebido" else "Pegue no Quadro de Recompensas da vila", Size = UDim2.new(1, -8, 0, 16), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, LayoutOrder = order, Parent = listFrame })
+	UI.label({ Text = if daily.bonusClaimed then "Bônus do dia recebido" else "Pegue no Quadro de Recompensas da vila", Size = UDim2.new(1, -8, 0, 16), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, LayoutOrder = order, Parent = listFrame })
 	renderDetail(data)
 end
 
