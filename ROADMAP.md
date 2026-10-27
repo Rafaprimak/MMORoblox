@@ -51,6 +51,8 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - ⬜ Animações reais (Animation Editor) para golpes, magias e inimigos, mantendo o `Animator` procedural como reserva (G)
   - 🧪 Animator procedural reescrito: crossfade, smootherstep, quadros com antecipação/acompanhamento, postura de combate por arma, respiração, inclinação ao correr, tranco ao levar dano
 - 🧪 Montaria animada: cavalo novo com juntas (pernas, cabeça e cauda galopando) (M)
+  - 🧪 Cavaleiro não "corre" mais em cima do cavalo: pose sentada no estribo com rédeas, corpo acompanhando o balanço; cavalo com passo de 4 tempos e galope transverso; passos mudos montado
+- 🧪 Animações todas procedurais e mais trabalhadas: `Animate` padrão desligado; parado com respiração/troca de peso/olhar, ciclo de passo andar→correr, andar de lado e de costas, pulo/queda/aterrissagem, nado, golpes com antecipação e impacto seco (`snap`), hit-stop no acerto, tremor ao carregar, rolamento novo, pés planos no chão (M)
 - 🧪 Travar a mira no inimigo (T / botão do meio), estilo souls; barras de ritmo e carga no retículo (M)
 - 🧪 Modelagem caprichada: armas detalhadas por tipo, armadura/elmo/botas visíveis (capa no Lendário+), árvores, pedras e inimigos com mais detalhe (G)
 - 🧪 Forja, alquimia, torre do encantador e empório viram construções com interior (NPCs lá dentro); câmera Invisicam (M)
@@ -146,6 +148,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - ⬜ Publicar o jogo; ligar *Enable Studio Access to API Services* e testar o salvamento real (P)
 - 🧪 Salvamento robusto: trava de sessão no próprio registro (um servidor por vez abre o perfil; trava velha de servidor que caiu expira em 5 min), gravação só com `UpdateAsync` que nunca sobrescreve perfil de outro servidor, novas tentativas, cópia de segurança a cada saída, espera a saída gravar antes de reabrir no mesmo servidor; saves antigos migram sozinhos (M)
 - 🧪 Anti-exploit: limite de pedidos por segundo em `Action`/`Request` (abuso contínuo desconecta), checagem de velocidade/teleporte a cada 0,5 s com volta ao último lugar válido; teleportes do servidor liberados por `AntiCheat.allowTeleport` (M)
+  - 🧪 Anti-trapaça completo: argumentos forjados recusados, forja/loja/encantador/alquimista/mercador e conversa só perto do NPC, atravessar paredes (noclip), voo/pulo infinito/super pulo/flutuar, arremesso (jogadores não colidem; giro absurdo zerado), personagem sem Humanoid recriado; muitas infrações em 1 min desconectam (fora do Studio)
   - ⬜ Detectar voo parado no ar (fly hack) e checar alcance dos golpes de longe
 - ⬜ Analytics: retenção, funil da história, onde os jogadores morrem/desistem (M)
 - ⬜ Tradução para inglês (LocalizationService) (M)

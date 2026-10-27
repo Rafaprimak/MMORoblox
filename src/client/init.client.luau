@@ -215,10 +215,14 @@ Remotes.Notify.OnClientEvent:Connect(function(notification)
 end)
 
 local FX_HANDLERS = {
-	hit = function(root, amount, crit, attacker, ...)
-		Fx.hit(root, amount, crit, attacker, ...)
+	hit = function(root, amount, crit, attacker, color, tag, element)
+		Fx.hit(root, amount, crit, attacker, color, tag, element)
 		if attacker == player then
 			Ambience.combatPing()
+		end
+		-- impacto: a pose de quem bateu trava por um instante (mais no crítico)
+		if typeof(attacker) == "Instance" and attacker:IsA("Player") and element ~= "dot" then
+			Animator.hitstop(attacker.Character, if crit then 0.085 else 0.05)
 		end
 	end,
 	death = Fx.death,

@@ -85,7 +85,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `init.server` | Ordem de inicialização, ganchos entre serviços, handlers de `Action` e `Request`, spawn dos jogadores |
 | `WorldGen/` | `TerrainGen` (voxels), `Town`, `Landmarks`, `Scatter` (natureza + recursos), `Props` (biblioteca de peças), `Placement` (anti-sobreposição) |
 | `DataService` | Carregar/salvar (DataStore) com trava de sessão (`{ format = 3, data, lock = { jobId, time } }`), `UpdateAsync`, novas tentativas e cópia de segurança; `release` na saída, `releaseAll` no fechamento |
-| `AntiCheat` | Limite de pedidos por canal (`AntiCheat.allow`) e checagem de velocidade/teleporte do personagem |
+| `AntiCheat` | Limite de pedidos por canal (`AntiCheat.allow`), argumentos válidos (`validArgs`), serviços de NPC só por perto (`ServiceActions`/`nearService`/`nearNpc`) e movimento 20x/s: velocidade/teleporte, atravessar parede, voo/pulo infinito/flutuar, giro de arremesso, personagem sem Humanoid; jogadores não colidem entre si (grupo `Jogadores`) |
 | `PlayerService` | Atributos, recursos (mana/estamina), dano no jogador, inventário, materiais, classe, ranks, poções, sincronização com o cliente |
 | `SkillService` | XP de maestrias e profissões |
 | `CombatService` | Combos, ataque pesado, esquiva, cálculo de dano (`dealDamage`) |
@@ -140,7 +140,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
 | `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
 | `Controller` | Entrada do jogador (combo, esquiva, corrida, habilidades, celular) |
-| `Animator` | Animações procedurais (gira `Motor6D.Transform` em `RunService.Stepped`) |
+| `Animator` | TODAS as animações dos jogadores, procedurais (escreve `Motor6D.Transform` em `RunService.Stepped`; o `Animate` padrão do Roblox é desligado): locomoção, montaria, golpes, hit-stop |
 | `EnemyRenderer` | Desenha/anima inimigos a partir das raízes do servidor |
 | `WorldMarkers` | ❗/❓ nos NPCs e o feixe do objetivo |
 | `Inventory`, `Character`, `QuestLog`, `Dialog`, `Services`, `Chest`, `MapWindow`, `ClassSelect`, `Loading` | Janelas |
@@ -162,7 +162,9 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward, dungeonPortal, tradeInvite, tradeOpen`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
 - **Tabelas pela rede:** só arrays puros ou dicionários com chave string. Nada de chaves misturadas.
-- **Teleporte feito pelo servidor** (`character:PivotTo` num jogador): chame `AntiCheat.allowTeleport(player, segundos)` antes, senão o anti-trapaça devolve o personagem para trás.
+- **Teleporte feito pelo servidor** (`character:PivotTo` num jogador): chame `AntiCheat.allowTeleport(player, segundos)` antes, senão o anti-trapaça devolve o personagem para trás. Lançou o jogador para o alto (pulo de habilidade): `AntiCheat.allowAir(player, segundos)`.
+- **Pedido novo de serviço de NPC** (só funciona perto dele): adicione em `AntiCheat.ServiceActions` com o serviço de `NPCs.List`. Argumentos de `Action`/`Request` passam por `AntiCheat.validArgs` (sem Instance/CFrame; tabelas até 64 chaves e 3 níveis; textos até 200).
+- **Parede que não pode ser atravessada:** peça ancorada, `CanCollide`, de pé e com mais de 6 studs de largura (peças menores o anti-trapaça ignora).
 - **Save:** nunca use `SetAsync` no perfil; grave só por `DataService` (ele respeita a trava de sessão). Para gravar na hora (troca, compra), use `DataService.save(player)`.
 
 ### Atributos e tags
@@ -239,7 +241,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - Janelas que acendem à noite: `Props.nightWindow(part)` (cor de dia em `OffColor`).
 
 ### Animação e áudio
-- `Animator` faz crossfade entre poses (`play`, `hold`, `stop`), tem camadas de postura por arma (`STANCES`), respiração, inclinação e `flinch`. Pose nova = quadros `{ t, juntas }` em `POSES`.
+- `Animator` faz TODAS as animações dos jogadores (o script `Animate` do Roblox é desligado no personagem local e as juntas são escritas direto, não somadas). Camadas: locomoção (`locomotion`: parado, andar/correr por ciclo de passo, quadril virando para andar de lado/de costas, pulo, queda, aterrissagem, nado) ou cavaleiro (`riderPose` + galope em `animateHorse`), postura por arma (`STANCES`), golpe somado por cima (andando/montado só da cintura para cima), `flinch`, `hitstop` e tornozelos automáticos. Pose nova = quadros `{ t, juntas, curva }` em `POSES` (curva `snap` no quadro do golpe, `slowIn` em antecipação pesada; padrão `smooth`).
 - O cavalo da montaria tem grupos (`PernaFL`..., `Cabeca`, `Cauda`) ligados ao `Corpo` por Motor6D criados em `TravelService.mount`; o cliente anima as juntas `Junta*`.
 - Som novo: adicione em `SoundIds.Effects` (com `reserva`) e toque com `Sounds.play(nome)`. Ambiente/música: `SoundIds.Ambience/Music` + `SoundIds.RegionAmbience`. Música de combate: `SoundIds.Combat[tipoDoInimigo]` (inimigo novo sem entrada usa `padrao`); músicas licenciadas da conta APMOfficial (`creatorTargetId=7462718749`). Os IDs atuais são da biblioteca oficial da conta "Roblox" (ID 1); para achar mais, a API pública `apis.roblox.com/toolbox-service/v1/marketplace/3?keyword=...&creatorTargetId=1&creatorType=1` lista áudios oficiais e `.../items/details?assetIds=...` mostra os nomes.
 - **Interface:** tema azul-noite e dourado. Janelas e painéis usam `UI.ornate(frame)` (borda dupla e losangos), títulos usam `UI.TitleFont` (Merriweather) em `FontFace`, botões já vêm com degradê, borda dourada e sons de clique/hover.
