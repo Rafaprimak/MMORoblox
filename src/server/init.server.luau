@@ -171,7 +171,7 @@ end
 
 -- ===================== AÇÕES DO CLIENTE =====================
 Remotes.Action.OnServerEvent:Connect(function(player, action, a, b, c)
-	if typeof(action) ~= "string" or not DataService.get(player) or not AntiCheat.allow(player, "action") then
+	if typeof(action) ~= "string" or not DataService.get(player) or not AntiCheat.allow(player, "action") or not AntiCheat.validArgs(a, b, c) then
 		return
 	end
 	if action == "attack" then
@@ -193,7 +193,9 @@ Remotes.Action.OnServerEvent:Connect(function(player, action, a, b, c)
 	elseif action == "mount" then
 		TravelService.toggleMount(player)
 	elseif action == "talk" then
-		NPCService.talk(player, a)
+		if AntiCheat.nearNpc(player, a) then
+			NPCService.talk(player, a)
+		end
 	end
 end)
 
@@ -226,8 +228,13 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 	if not AntiCheat.allow(player, "request") then
 		return { ok = false, msg = "Calma! Muitos pedidos seguidos." }
 	end
-	if typeof(action) ~= "string" or not DataService.get(player) then
+	if typeof(action) ~= "string" or not DataService.get(player) or not AntiCheat.validArgs(a, b) then
 		return { ok = false }
+	end
+	-- serviços de NPC só funcionam perto dele
+	local service = AntiCheat.ServiceActions[action]
+	if service and not AntiCheat.nearService(player, service) then
+		return { ok = false, msg = "Chegue mais perto do NPC para usar este serviço." }
 	end
 	if action == "sync" then
 		PlayerService.markDirty(player)

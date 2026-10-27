@@ -120,6 +120,7 @@ function executors.buff(player, ability, mult)
 end
 
 function executors.slam(player, ability, mult)
+	AntiCheat.allowAir(player, ability.windup + 1.5)
 	Remotes.Fx:FireClient(player, "selfJump", 45)
 	task.wait(ability.windup)
 	local _, root = characterParts(player)
