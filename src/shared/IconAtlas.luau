@@ -143,5 +143,8 @@ return {
 		["wind-slap"] = { 3, 7 },
 		["wizard-face"] = { 3, 8 },
 		["wolf-head"] = { 3, 9 },
+		["bottled-bolt"] = { 3, 10 },
+		["heart-bottle"] = { 3, 11 },
+		["magic-potion"] = { 3, 12 },
 	},
 }

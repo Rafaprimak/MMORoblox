@@ -11,3 +11,6 @@ Thumbs.db
 desktop.ini
 .DS_Store
 scripts/icones/cache/
+
+# modelos de terceiros da Creator Store (gerados no Studio, ver README); fora do repositório público
+assets/modelos/*.rbxm

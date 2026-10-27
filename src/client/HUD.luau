@@ -114,7 +114,8 @@ function HUD.init(screen, callbacks)
 	for i, id in { "pocao_vida", "pocao_mana", "pocao_vigor" } do
 		local def = Items.Consumables[id]
 		local s = slot(bar, 5 + i, def.key, 52)
-		UI.setIcon(s.icon, def.icon)
+		-- cada poção na cor do recurso que ela enche
+		UI.setIcon(s.icon, def.icon, ({ pocao_vida = UI.Colors.Health, pocao_mana = UI.Colors.Mana, pocao_vigor = UI.Colors.Stamina })[id])
 		s.iconName = def.icon
 		potionSlots[id] = s
 		s.button.MouseButton1Click:Connect(function()

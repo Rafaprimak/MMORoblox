@@ -238,12 +238,12 @@ Items.Materials = {
 }
 
 Items.Consumables = {
-	pocao_vida = { name = "Poção de Vida", icon = "heart-plus", heal = 0.4, cooldown = 6, price = 40, key = "Z" },
-	pocao_mana = { name = "Poção de Mana", icon = "heart-plus", mana = 0.5, cooldown = 6, price = 40, key = "X" },
-	pocao_vigor = { name = "Poção de Vigor", icon = "heart-plus", stamina = 1, cooldown = 6, price = 50, key = "V" },
+	pocao_vida = { name = "Poção de Vida", icon = "heart-bottle", heal = 0.4, cooldown = 6, price = 40, key = "Z" },
+	pocao_mana = { name = "Poção de Mana", icon = "magic-potion", mana = 0.5, cooldown = 6, price = 40, key = "X" },
+	pocao_vigor = { name = "Poção de Vigor", icon = "bottled-bolt", stamina = 1, cooldown = 6, price = 50, key = "V" },
 	elixir_forca = { name = "Elixir de Força", icon = "flame", damageBuff = 0.2, buffTime = 60, cooldown = 30 },
 	-- vendidos pelo Mercador de Masmorras
-	pocao_grande = { name = "Poção Grande de Vida", icon = "glass-heart", heal = 0.75, cooldown = 10 },
+	pocao_grande = { name = "Poção Grande de Vida", icon = "heart-bottle", heal = 0.75, cooldown = 10 },
 	tonico_pedra = { name = "Tônico de Pedra", icon = "moai", defenseBuff = 0.35, buffTime = 90, cooldown = 30 },
 }
 Items.ConsumableOrder = { "pocao_vida", "pocao_mana", "pocao_vigor", "elixir_forca", "pocao_grande", "tonico_pedra" }
