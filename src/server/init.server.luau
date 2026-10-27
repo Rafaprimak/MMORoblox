@@ -14,6 +14,7 @@ local Remotes = require(Shared.Remotes)
 
 local WorldGen = require(script.WorldGen)
 local DataService = require(script.DataService)
+local AntiCheat = require(script.AntiCheat)
 local SkillService = require(script.SkillService)
 local PlayerService = require(script.PlayerService)
 local EnemyService = require(script.EnemyService)
@@ -170,7 +171,7 @@ end
 
 -- ===================== AÇÕES DO CLIENTE =====================
 Remotes.Action.OnServerEvent:Connect(function(player, action, a, b, c)
-	if typeof(action) ~= "string" or not DataService.get(player) then
+	if typeof(action) ~= "string" or not DataService.get(player) or not AntiCheat.allow(player, "action") then
 		return
 	end
 	if action == "attack" then
@@ -222,6 +223,9 @@ local function devGift(player, kind)
 end
 
 Remotes.Request.OnServerInvoke = function(player, action, a, b)
+	if not AntiCheat.allow(player, "request") then
+		return { ok = false, msg = "Calma! Muitos pedidos seguidos." }
+	end
 	if typeof(action) ~= "string" or not DataService.get(player) then
 		return { ok = false }
 	end
@@ -352,6 +356,7 @@ local function onPlayerAdded(player)
 	ProgressionService.onPlayerReady(player)
 	player.CharacterAdded:Connect(function(character)
 		player:SetAttribute("Mounted", false)
+		AntiCheat.onCharacterAdded(player)
 		DungeonService.onCharacterAdded(player, character)
 		VipService.onCharacterAdded(player, character)
 		local humanoid = character:WaitForChild("Humanoid", 10)
@@ -389,10 +394,9 @@ task.spawn(function()
 	end
 end)
 
+-- servidor fechando: grava e solta todos os perfis (e espera terminar)
 game:BindToClose(function()
-	for _, player in Players:GetPlayers() do
-		DataService.save(player)
-	end
+	DataService.releaseAll()
 end)
 
 -- ===================== MUNDO =====================
@@ -427,6 +431,7 @@ safely("Viagem", TravelService.init, built.horse)
 safely("Locais de interesse", ExploreService.start)
 safely("Masmorras", DungeonService.init)
 safely("Robux", MonetizationService.init)
+safely("Anti-trapaça", AntiCheat.start)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

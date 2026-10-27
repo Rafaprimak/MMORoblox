@@ -15,6 +15,7 @@ local Config = require(Shared.Config)
 
 local PlayerService = require(script.Parent.PlayerService)
 local DataService = require(script.Parent.DataService)
+local AntiCheat = require(script.Parent.AntiCheat)
 local World = require(Shared.World)
 
 local VipService = {}
@@ -66,6 +67,7 @@ function VipService.onCharacterAdded(player, character)
 	if (player:GetAttribute("AutoFarm") or player:GetAttribute("ResumeAutoFarm")) and validAnchor(anchor) and not player:GetAttribute("Dungeon") then
 		task.delay(0.6, function()
 			if character.Parent and character:FindFirstChild("HumanoidRootPart") then
+				AntiCheat.allowTeleport(player, 3)
 				character:PivotTo(CFrame.new(anchor + Vector3.new(0, 4, 0)))
 			end
 		end)

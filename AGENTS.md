@@ -84,7 +84,8 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 |---|---|
 | `init.server` | Ordem de inicialização, ganchos entre serviços, handlers de `Action` e `Request`, spawn dos jogadores |
 | `WorldGen/` | `TerrainGen` (voxels), `Town`, `Landmarks`, `Scatter` (natureza + recursos), `Props` (biblioteca de peças), `Placement` (anti-sobreposição) |
-| `DataService` | Carregar/salvar (DataStore) |
+| `DataService` | Carregar/salvar (DataStore) com trava de sessão (`{ format = 3, data, lock = { jobId, time } }`), `UpdateAsync`, novas tentativas e cópia de segurança; `release` na saída, `releaseAll` no fechamento |
+| `AntiCheat` | Limite de pedidos por canal (`AntiCheat.allow`) e checagem de velocidade/teleporte do personagem |
 | `PlayerService` | Atributos, recursos (mana/estamina), dano no jogador, inventário, materiais, classe, ranks, poções, sincronização com o cliente |
 | `SkillService` | XP de maestrias e profissões |
 | `CombatService` | Combos, ataque pesado, esquiva, cálculo de dano (`dealDamage`) |
@@ -161,6 +162,8 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward, dungeonPortal, tradeInvite, tradeOpen`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
 - **Tabelas pela rede:** só arrays puros ou dicionários com chave string. Nada de chaves misturadas.
+- **Teleporte feito pelo servidor** (`character:PivotTo` num jogador): chame `AntiCheat.allowTeleport(player, segundos)` antes, senão o anti-trapaça devolve o personagem para trás.
+- **Save:** nunca use `SetAsync` no perfil; grave só por `DataService` (ele respeita a trava de sessão). Para gravar na hora (troca, compra), use `DataService.save(player)`.
 
 ### Atributos e tags
 - **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted, Pet, PetLevel, Title, TitleId, Dungeon, Vip, AutoFarm, AutoAnchor` (ponto de caça do Auto Caçar).

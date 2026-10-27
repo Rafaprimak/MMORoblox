@@ -1263,8 +1263,8 @@ end
 
 function PlayerService.onPlayerAdded(player)
 	local data = DataService.load(player)
-	if not player.Parent then
-		return nil
+	if not data or not player.Parent then
+		return nil -- perfil ocupado em outro servidor (jogador foi avisado e saiu)
 	end
 	for slot, uid in data.equipped do
 		if not data.inventory[uid] then

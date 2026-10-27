@@ -10,6 +10,7 @@ local Remotes = require(Shared.Remotes)
 
 local DataService = require(script.Parent.DataService)
 local PlayerService = require(script.Parent.PlayerService)
+local AntiCheat = require(script.Parent.AntiCheat)
 
 local TravelService = {}
 
@@ -179,6 +180,7 @@ function TravelService.travel(player, stoneId)
 	TravelService.dismount(player)
 	local x, z = stone.x + 6, stone.z + 6
 	local y = World.height(x, z)
+	AntiCheat.allowTeleport(player, 3)
 	character:PivotTo(CFrame.new(x, math.max(y, World.SeaLevel) + 4, z))
 	Remotes.Fx:FireAllClients("blink", Vector3.new(stone.x, y, stone.z), Vector3.new(x, y + 3, z), "travel")
 	TravelService.QuestHook(player, "travel", stoneId, 1)
@@ -207,6 +209,7 @@ local function discoveryLoop()
 				local gateZ = World.PassGateZ
 				if root.Position.Z < gateZ - 1 and root.Position.Z > gateZ - 60 * World.Scale and math.abs(root.Position.X) < 60 * World.Scale and data.level < PASS_LEVEL then
 					local x, z = root.Position.X, gateZ + 14
+					AntiCheat.allowTeleport(player, 3)
 					player.Character:PivotTo(CFrame.new(x, World.height(x, z) + 4, z))
 					Remotes.Notify:FireClient(player, { kind = "message", text = ("A barreira te repele! Precisa de Nível %d (Rank C)."):format(PASS_LEVEL) })
 				end

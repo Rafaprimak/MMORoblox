@@ -19,6 +19,7 @@ local Remotes = require(Shared.Remotes)
 local DataService = require(script.Parent.DataService)
 local PlayerService = require(script.Parent.PlayerService)
 local EnemyService = require(script.Parent.EnemyService)
+local AntiCheat = require(script.Parent.AntiCheat)
 local TravelService = require(script.Parent.TravelService)
 local LootService = require(script.Parent.LootService)
 local Props = require(script.Parent.WorldGen.Props)
@@ -137,6 +138,7 @@ local function teleport(player, cframe)
 	local character = player.Character
 	if character and character.PrimaryPart then
 		TravelService.dismount(player)
+		AntiCheat.allowTeleport(player, 3)
 		character:PivotTo(cframe)
 	end
 end
@@ -990,6 +992,7 @@ function DungeonService.onCharacterAdded(player, character)
 	task.defer(function()
 		character:WaitForChild("HumanoidRootPart", 5)
 		if runOf[player] == run and run.current then
+			AntiCheat.allowTeleport(player, 3)
 			character:PivotTo(run.current.arrival)
 		end
 	end)

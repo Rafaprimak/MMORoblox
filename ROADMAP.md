@@ -144,8 +144,9 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 ## Fase 6 — Lançamento
 
 - ⬜ Publicar o jogo; ligar *Enable Studio Access to API Services* e testar o salvamento real (P)
-- ⬜ Salvamento robusto: session locking (ProfileStore/ProfileService ou equivalente), retentativas, backup (M)
-- ⬜ Anti-exploit: limite de taxa nos remotes, validação de distância/velocidade, checagem de teleporte (M)
+- 🧪 Salvamento robusto: trava de sessão no próprio registro (um servidor por vez abre o perfil; trava velha de servidor que caiu expira em 5 min), gravação só com `UpdateAsync` que nunca sobrescreve perfil de outro servidor, novas tentativas, cópia de segurança a cada saída, espera a saída gravar antes de reabrir no mesmo servidor; saves antigos migram sozinhos (M)
+- 🧪 Anti-exploit: limite de pedidos por segundo em `Action`/`Request` (abuso contínuo desconecta), checagem de velocidade/teleporte a cada 0,5 s com volta ao último lugar válido; teleportes do servidor liberados por `AntiCheat.allowTeleport` (M)
+  - ⬜ Detectar voo parado no ar (fly hack) e checar alcance dos golpes de longe
 - ⬜ Analytics: retenção, funil da história, onde os jogadores morrem/desistem (M)
 - ⬜ Tradução para inglês (LocalizationService) (M)
 - ⬜ Otimização para celular: StreamingEnabled, menos partes, UI testada em telas pequenas (G)
