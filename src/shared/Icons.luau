@@ -10,9 +10,9 @@ local Icons = {}
 
 -- "rbxassetid://..." de cada folha (folha1.png, folha2.png, ...)
 Icons.Sheets = {
-	"",
-	"",
-	"",
+	"rbxassetid://128765421939314", -- folha1.png
+	"rbxassetid://95019878449171", -- folha2.png
+	"rbxassetid://87916820599702", -- folha3.png
 }
 
 -- true se o nome é um ícone do atlas (os dados guardam o nome do ícone em `icon`)

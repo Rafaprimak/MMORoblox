@@ -167,7 +167,7 @@ Para trocar ou adicionar um ícone: escreva o nome do game-icons.net no código 
 Árvores, pinheiros, palmeiras, árvores secas, pedras e arbustos usam modelos **low-poly gratuitos da Creator Store**, listados em `src/server/WorldGen/ExternalModels.luau`. Para vê-los **no Studio** (e no jogo publicado), salve-os uma vez dentro do projeto:
 
 1. Abra o jogo no Studio (o `MMOTESTE.rbxlx` gerado pelo Rojo), modo de edição (sem apertar Play).
-2. Abra a **Barra de comandos** (*Exibir → Barra de comandos*), cole a linha única que está no topo de `scripts/studio/baixar_modelos.lua` e aperte **Enter**. Os 13 modelos aparecem em `ServerStorage → Natureza`.
+2. Abra a **Barra de comandos** (*Exibir → Barra de comandos*), cole a linha única que está no topo de `scripts/studio/baixar_modelos.lua` e aperte **Ctrl+Enter** (ou clique em **Correr**, à direita da barra). Só Enter pula linha e não executa. Os 13 modelos aparecem em `ServerStorage → Natureza`.
 3. No Explorer, botão direito em **Natureza** → **Salvar em arquivo...** → salve como **`MMOTESTE\assets\modelos\Natureza.rbxm`**.
 4. Gere o jogo de novo (passo 4) e abra. As árvores novas aparecem no Play.
 

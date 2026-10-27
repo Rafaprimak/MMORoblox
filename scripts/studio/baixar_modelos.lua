@@ -1,5 +1,6 @@
 -- Baixa os modelos 3D da natureza (IDs em ExternalModels.Catalog) para ServerStorage.Natureza, no Studio.
--- Uso: no Studio, Exibir → Barra de comandos, cole a LINHA ÚNICA abaixo e aperte Enter.
+-- Uso: no Studio, Exibir → Barra de comandos, cole a LINHA ÚNICA abaixo e aperte Ctrl+Enter (ou o botão
+-- "Correr" à direita). Só Enter pula linha e NÃO executa.
 -- Depois: no Explorer, ServerStorage → Natureza → botão direito → "Salvar em arquivo..." e salve como
 -- MMOTESTE/assets/modelos/Natureza.rbxm. Gere o jogo de novo (Rojo) e os modelos aparecem no Play.
 --
