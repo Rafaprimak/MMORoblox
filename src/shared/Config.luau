@@ -138,10 +138,28 @@ Config.VipGamePassId = 0
 -- Crie cada produto no Creator Hub (Monetização → Developer Products) e cole o ID aqui. Com id = 0 o
 -- produto ainda não está à venda (no Studio dá para testar de graça pelo botão "Testar").
 -- robux = preço mostrado enquanto o ID não existe (o preço de verdade é o do Creator Hub).
+-- (os dois custam ~R$ 10 em reais; o preço que vale é o que estiver no Creator Hub)
 Config.Products = {
-	chest_celestial = { id = 0, robux = 199, kind = "chest", target = "celestial" },
-	egg_celestial = { id = 0, robux = 249, kind = "egg", target = "celestial" },
+	chest_celestial = { id = 0, robux = 159, kind = "chest", target = "celestial" },
+	egg_celestial = { id = 0, robux = 159, kind = "egg", target = "celestial" },
 }
+
+-- ===== Fusão de equipamentos (como o cubo do Task Bar Hero) =====
+-- count itens da MESMA raridade viram 1 item pelo menos uma raridade acima; jumps = chance de subir
+-- 1, 2 ou 3 raridades (somando 1). Ajuste aqui se quiser outras chances.
+Config.Fusion = {
+	count = 9,
+	jumps = {
+		{ jump = 1, chance = 0.91 },
+		{ jump = 2, chance = 0.08 },
+		{ jump = 3, chance = 0.01 },
+	},
+}
+
+-- ===== Troca entre jogadores =====
+Config.TradeMinLevel = 5 -- os dois precisam ter pelo menos este nível
+Config.TradeRange = 30 -- studs: distância para convidar e manter a troca aberta
+Config.TradeMaxItems = 9 -- itens por lado
 
 -- ===== Presentes por tempo no servidor =====
 -- Contam só o tempo seguido no MESMO servidor (trocou de servidor, recomeça). minutes = quando libera.

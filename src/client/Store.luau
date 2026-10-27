@@ -16,7 +16,7 @@ local Store = {}
 
 local prices = {} -- [chave] = preço real (lido do Roblox quando o produto existe)
 
--- texto do preço: "R$ 199" (Robux)
+-- texto do preço: "159 Robux"
 function Store.priceText(key)
 	local product = Config.Products[key]
 	if not product then
@@ -33,7 +33,7 @@ function Store.priceText(key)
 			end
 		end)
 	end
-	return ("R$ %d"):format(prices[key] or product.robux)
+	return ("%d Robux"):format(prices[key] or product.robux)
 end
 
 function Store.buy(key)

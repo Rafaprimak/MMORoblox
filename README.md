@@ -85,6 +85,8 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Configurações (volume, música, sensibilidade, qualidade gráfica, números de dano...) | **P** | Botão ⚙ |
 | Presentes por tempo no servidor | **U** | Botão 🎁 Presentes |
 | Auto Caçar (só VIP; pode ficar 100% AFK; mover o personagem desliga) | **N** | Botão ⚔ Auto Caçar |
+| Trocar com outro jogador (nível 5+) | **E** perto dele | Botão "Trocar" em cima do jogador |
+| Fusão (9 itens da mesma raridade → 1 maior) | — | Inventário → ⚗ Fundir, ou o Bruno |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
 
 O botão direito do mouse fica livre para girar a câmera.

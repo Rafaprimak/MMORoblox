@@ -166,7 +166,9 @@ task.spawn(function()
 			local character = drop.owner.Character
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			local near = root and (root.Position - drop.position).Magnitude <= Config.LootPickupRange
-			if near or now >= drop.expire then
+			-- VIP: o loot vem sozinho assim que cai no chão (dá tempo de ver o feixe)
+			local vip = drop.owner:GetAttribute("Vip") == true and now >= drop.ready + 0.6
+			if near or vip or now >= drop.expire then
 				table.remove(drops, i)
 				drop.model:Destroy()
 				PlayerService.addItem(drop.owner, drop.item)

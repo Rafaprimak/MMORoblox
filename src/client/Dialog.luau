@@ -29,6 +29,7 @@ local SERVICE_LABELS = {
 	classes = "🧙 Classes",
 	stable = "🐴 Montaria",
 	dungeon = "🏰 Mercado das Masmorras",
+	fusion = "⚗ Fusão de equipamentos (9 → 1)",
 }
 
 local function objectiveText(objective)

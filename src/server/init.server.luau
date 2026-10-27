@@ -36,6 +36,8 @@ local DungeonService = require(script.DungeonService)
 local VipService = require(script.VipService)
 local PlaytimeService = require(script.PlaytimeService)
 local MonetizationService = require(script.MonetizationService)
+local FusionService = require(script.FusionService)
+local TradeService = require(script.TradeService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -73,6 +75,7 @@ NPCService.QuestHook = questHook
 PetService.QuestHook = questHook
 ExploreService.QuestHook = questHook
 DungeonService.QuestHook = questHook
+FusionService.QuestHook = questHook
 PetService.init()
 PlayerService.ExtraSync = function(player, payload)
 	local data = DataService.get(player)
@@ -83,6 +86,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.poiChests = data.poiChests
 		payload.dungeon = DungeonService.summary(player)
 		payload.playtime = PlaytimeService.summary(player)
+		payload.trade = TradeService.summary(player)
 	end
 end
 EnemyService.FireProjectile = ProjectileService.fire
@@ -288,6 +292,20 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return DungeonService.join(player, a)
 	elseif action == "dungeonLeaveLobby" then
 		return DungeonService.leaveLobby(player)
+	elseif action == "fuse" then
+		return FusionService.fuse(player, a)
+	elseif action == "tradeInvite" then
+		return TradeService.invite(player, a)
+	elseif action == "tradeRespond" then
+		return TradeService.respond(player, a, b)
+	elseif action == "tradeOffer" then
+		return TradeService.setOffer(player, a)
+	elseif action == "tradeReady" then
+		return TradeService.setReady(player, a)
+	elseif action == "tradeConfirm" then
+		return TradeService.confirm(player)
+	elseif action == "tradeCancel" then
+		return TradeService.cancel(player)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
@@ -356,6 +374,7 @@ for _, player in Players:GetPlayers() do
 end
 
 Players.PlayerRemoving:Connect(function(player)
+	TradeService.onPlayerRemoving(player)
 	PlaytimeService.onPlayerRemoving(player)
 	DungeonService.onPlayerRemoving(player)
 	TravelService.dismount(player)

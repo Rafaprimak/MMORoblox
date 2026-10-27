@@ -74,6 +74,9 @@ local function cloneCharacter(worldModel, rootCFrame)
 		humanoid.RequiresNeck = false
 		humanoid.BreakJointsOnDeath = false
 		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+		-- sem máquina de estados: o Humanoid da cópia não morre, não cai e não some dentro da cena
+		humanoid.EvaluateStateMachine = false
+		humanoid.Health = humanoid.MaxHealth
 	end)
 	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
 	local height = humanoid.HipHeight + root.Size.Y / 2
@@ -116,6 +119,7 @@ local function cloneCharacter(worldModel, rootCFrame)
 		end
 	end
 	root.CFrame = rootGoal
+	copy.PrimaryPart = root
 	copy.Parent = worldModel
 	return { model = copy, root = root, rootCFrame = rootGoal, edges = edges }
 end
@@ -160,7 +164,8 @@ end
 local STAND = {}
 local KNEEL = { RT = CFrame.new(0, -1.1, 0) * R(-12), RH = R(70), RK = R(-80), LH = R(-10), LK = R(-75), RS = R(25), LS = R(25), N = R(-15) }
 local REACH = { RT = CFrame.new(0, -1.1, 0) * R(-22), RH = R(70), RK = R(-80), LH = R(-10), LK = R(-75), RS = R(75, 0, 10), LS = R(75, 0, -10), RE = R(25), LE = R(25), N = R(-20) }
-local LIFT = { RS = R(175, 0, 8), RE = R(10), LS = R(30, 0, -20), N = R(18), RT = R(4) }
+-- mostrando o item: as duas mãos para a frente, na altura do peito
+local LIFT = { RS = R(95, 0, 18), RE = R(25), LS = R(95, 0, -18), LE = R(25), N = R(-6), RT = R(2) }
 local CHEER = { RS = R(160, 0, 35), LS = R(160, 0, -35), N = R(15), RT = CFrame.new(0, 0.3, 0) }
 local LEAN = { RT = R(-14), RS = R(50, 0, 15), LS = R(50, 0, -15), RE = R(40), LE = R(40), N = R(-12) }
 
@@ -208,6 +213,7 @@ function RevealScene.chest(parent, chestColor)
 	self.viewport, self.world, self.camera = stage(parent)
 	self.chest = makeChest(self.world, chestColor or Color3.fromRGB(205, 130, 70))
 	self.actor = cloneCharacter(self.world, CFrame.new(0, 0, 2.6))
+	pose(self.actor, {}) -- já aparece em pé antes do primeiro quadro
 	self.camera.CFrame = CFrame.lookAt(Vector3.new(5.5, 4.2, -9), Vector3.new(0, 2.2, 1))
 	self.start = os.clock()
 	self.phase = "antecipacao"
@@ -253,7 +259,7 @@ function RevealScene:update()
 		local joints = blend(blend(REACH, STAND, stand), LIFT, lift)
 		pose(self.actor, joints)
 		if self.item then
-			local handPos = Vector3.new(0.9, 7.6, 2.4)
+			local handPos = Vector3.new(0, 4.6, 1.2) -- entre as mãos, na frente do peito
 			local pos = Vector3.new(0, 1.6, 0):Lerp(Vector3.new(0, 4.2, 0.6), rise):Lerp(handPos, lift)
 			-- o item de verdade gira devagar na mão erguida (ou a gema, se não houver modelo)
 			if self.itemModel then
@@ -264,7 +270,7 @@ function RevealScene:update()
 			self.halo.CFrame = CFrame.new(pos)
 			self.halo.Size = Vector3.one * (2.2 + math.sin(now * 6) * 0.25)
 		end
-		self.camera.CFrame = CFrame.lookAt(Vector3.new(4.8, 4.4 + lift * 0.8, -8.4), Vector3.new(0, 2.6 + lift * 1.8, 1))
+		self.camera.CFrame = CFrame.lookAt(Vector3.new(4.8, 4.4, -8.4), Vector3.new(0, 2.6 + lift * 1.2, 1))
 	end
 end
 
@@ -299,6 +305,7 @@ function RevealScene.egg(parent, eggColor, petId)
 	local self = setmetatable({}, RevealScene)
 	self.viewport, self.world, self.camera = stage(parent)
 	self.actor = cloneCharacter(self.world, CFrame.new(0, 0, 3))
+	pose(self.actor, {})
 	self.camera.CFrame = CFrame.lookAt(Vector3.new(4.5, 3.8, -8.5), Vector3.new(0, 2.2, 1))
 	local egg = newPart(self.world, Vector3.new(2.2, 2.8, 2.2), CFrame.new(0, 1.4, 0), eggColor, Enum.Material.SmoothPlastic, Enum.PartType.Ball)
 	local spots = {}
@@ -371,7 +378,8 @@ function RevealScene.egg(parent, eggColor, petId)
 			end
 			if pet then
 				local hop = math.abs(math.sin(k * 7)) * math.max(0, 1 - k * 0.6) * 1.2
-				local base = CFrame.new(0, hop + (if pet.def.fly then 1.6 else 0), 0) * R(0, 180 + math.sin(k * 2) * 25, 0)
+				-- o pet já é montado olhando para -Z (para a câmera): só balança um pouco de lado
+				local base = CFrame.new(0, hop + (if pet.def.fly then 1.6 else 0), 0) * R(0, 20 + math.sin(k * 2) * 25, 0)
 				for _, entry in pet.pieces do
 					entry.part.CFrame = base * entry.offset
 				end

@@ -98,7 +98,10 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 - ⬜ Grupos (party): XP e loot compartilhados, marcador dos colegas no mapa (M)
 - ⬜ Guildas: criação, cargos, chat, banco da guilda e missões de guilda (G)
-- ⬜ Troca entre jogadores com confirmação dupla e registro (M)
+- 🧪 Troca entre jogadores (equipamentos e ouro): botão "Trocar" em cima do outro jogador, convite, Pronto → Confirmar dos dois, mudar a oferta tira o Pronto, servidor confere tudo de novo e salva; registro das últimas 20 trocas; nível mínimo 5 (M)
+- 🧪 Fusão de equipamentos (estilo Task Bar Hero): 9 da mesma raridade → 1 pelo menos uma raridade acima (91% +1, 8% +2, 1% +3 em `Config.Fusion`), no inventário e no Bruno (M)
+- 🧪 Pets com modelos novos e muito mais detalhados (formas arredondadas, orelhas, patinhas, asas em penas, chifres, crina, listras, coleira...) (M)
+- 🧪 VIP: loot recolhido sozinho assim que cai
 - ⬜ Leilão/mercado global (com DataStore/MemoryStore) (G)
 - ⬜ Rankings: nível, poder de equipamento, kills do chefe, por semana (M)
 - ⬜ Arena PvP opcional (duelo 1v1 e 3v3) com rank próprio (G)

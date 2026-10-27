@@ -17,6 +17,9 @@ local ItemIcon = require(script.Parent.ItemIcon)
 
 local Inventory = {}
 
+-- preenchido pelo init: abre a janela de Fusão
+Inventory.onFusion = function() end
+
 local win, grid, details, list, junkButton, statsLabel, slotBar
 local selectedUid = nil
 local detailIcon, detailIconKey = nil, nil -- ícone 3D do item selecionado (fora de "details", que é redesenhado sempre)
@@ -255,6 +258,13 @@ function Inventory.init(screen)
 	details = UI.new("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 0, 0, 0), Size = UDim2.new(0, 238, 1, -2), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, Parent = win.content }, { UI.corner(10), UI.padding(10) })
 	list = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Visible = false, Parent = win.content }, { UI.list(6) })
 	junkButton = UI.button({ Text = "🗑 Vender Comuns e Incomuns", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.fromOffset(260, 36), BackgroundColor3 = Color3.fromRGB(110, 60, 60), Parent = win.content })
+	-- fusão: 9 itens da mesma raridade viram 1 de raridade maior
+	local fusionButton = UI.button({ Text = "⚗ Fundir itens (9 → 1)", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 268, 1, 0), Size = UDim2.fromOffset(220, 36), BackgroundColor3 = Color3.fromRGB(120, 70, 170), Parent = win.content })
+	fusionButton.MouseButton1Click:Connect(function()
+		if Inventory.onFusion then
+			Inventory.onFusion()
+		end
+	end)
 	junkButton.MouseButton1Click:Connect(function()
 		if not junkConfirm then
 			junkConfirm = true

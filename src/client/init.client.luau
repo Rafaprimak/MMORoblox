@@ -46,6 +46,8 @@ local DungeonWindow = require(script.DungeonWindow)
 local DungeonAtmosphere = require(script.DungeonAtmosphere)
 local AutoHunt = require(script.AutoHunt)
 local PlaytimeWindow = require(script.PlaytimeWindow)
+local FusionWindow = require(script.FusionWindow)
+local TradeWindow = require(script.TradeWindow)
 local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
 
@@ -81,6 +83,11 @@ DungeonWindow.init(screen)
 DungeonAtmosphere.init()
 AutoHunt.init(screen)
 PlaytimeWindow.init(screen)
+FusionWindow.init(screen)
+Inventory.onFusion = function()
+	FusionWindow.open()
+end
+TradeWindow.init(screen)
 PetRenderer.init()
 ClassSelect.init()
 Sky.init()
@@ -171,6 +178,7 @@ Dialog.services = {
 	chest = Chest.open,
 	pets = PetsWindow.openEggs,
 	dungeon = DungeonWindow.openShop,
+	fusion = FusionWindow.open,
 	classes = function()
 		Window.closeAll()
 		ClassSelect.open(true)
@@ -191,6 +199,10 @@ end)
 Remotes.Notify.OnClientEvent:Connect(function(notification)
 	if notification.kind == "chest" then
 		Chest.reveal(notification.item, notification.chest)
+	elseif notification.kind == "tradeInvite" then
+		TradeWindow.invite(notification)
+	elseif notification.kind == "tradeOpen" then
+		TradeWindow.open()
 	elseif notification.kind == "dungeonPortal" then
 		DungeonWindow.openPortal(notification.id)
 	elseif notification.kind == "pet" then
