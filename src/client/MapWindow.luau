@@ -112,8 +112,8 @@ local function refreshPois()
 		local poi = Points.ById[id]
 		local found = data and data.poi and data.poi[id]
 		local opened = data and data.poiChests and data.poiChests[id]
-		label.Text = if found then poi.icon .. (if opened then "✔" else "") else "❓"
-		label.TextTransparency = if found then 0 else 0.2
+		-- descoberto: ícone do local (verde quando o baú já foi aberto); senão, interrogação
+		UI.setIcon(label:FindFirstChild("Icone"), if found then poi.icon else "help", if opened then UI.Colors.Green elseif found then UI.Colors.Icon else Color3.new(1, 1, 1), if found then 0 else 0.2)
 	end
 end
 
@@ -162,31 +162,36 @@ local function draw()
 			for enemyId in camp.spawns do
 				level = math.max(level, Enemies.Defs[enemyId].level)
 			end
-			UI.label({ Text = (if camp.boss then "👑" else "💀") .. level, AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz), Size = UDim2.fromOffset(34, 14), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = if camp.boss then Color3.fromRGB(255, 90, 70) else Color3.fromRGB(255, 200, 190), ZIndex = 3, Parent = markers }, { UI.textStroke(1.5) })
+			local color = if camp.boss then Color3.fromRGB(255, 90, 70) else Color3.fromRGB(255, 200, 190)
+			local holder = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz), Size = UDim2.fromOffset(40, 16), BackgroundTransparency = 1, ZIndex = 3, Parent = markers })
+			UI.icon(if camp.boss then "crown" else "skull-crack", { Size = UDim2.fromOffset(15, 15), Color = color, ZIndex = 3, Parent = holder })
+			UI.label({ Text = tostring(level), Position = UDim2.fromOffset(16, 1), Size = UDim2.fromOffset(24, 14), TextColor3 = color, ZIndex = 3, Parent = holder }, { UI.textStroke(1.5) })
 		end
 	end
-	-- locais de interesse (❓ até descobrir; ✔ quando o baú foi aberto)
+	-- locais de interesse ( até descobrir; ✔ quando o baú foi aberto)
 	for _, poi in Points.List do
 		local mx, mz = toMap(poi.x, poi.z)
-		local label = UI.new("TextButton", { Text = "❓", AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz), Size = UDim2.fromOffset(24, 24), BackgroundTransparency = 1, TextScaled = true, Font = Enum.Font.GothamBlack, TextColor3 = Color3.new(1, 1, 1), ZIndex = 4, Parent = markers }, { UI.textStroke(1.5) })
+		local label = UI.new("TextButton", { Text = "", AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz), Size = UDim2.fromOffset(24, 24), BackgroundTransparency = 1, TextScaled = true, Font = Enum.Font.GothamBlack, TextColor3 = Color3.new(1, 1, 1), ZIndex = 4, Parent = markers }, { UI.textStroke(1.5) })
+		UI.icon("help", { Size = UDim2.fromScale(1, 1), ZIndex = 4, Parent = label })
 		poiLabels[poi.id] = label
 		label.MouseEnter:Connect(function()
 			local data = State.data
 			local found = data and data.poi and data.poi[poi.id]
 			local opened = data and data.poiChests and data.poiChests[poi.id]
-			info.Text = if found then ("%s %s%s"):format(poi.icon, poi.name, if opened then " — baú aberto ✔" else " — o baú escondido ainda está lá!") else "❓ Local desconhecido. Vá até lá para descobrir."
+			info.Text = if found then ("%s%s"):format(poi.name, if opened then " — baú aberto ✔" else " — o baú escondido ainda está lá!") else "? Local desconhecido. Vá até lá para descobrir."
 		end)
 	end
 	refreshPois()
 	-- pedras de viagem
 	for _, stone in World.Waystones do
 		local mx, mz = toMap(stone.x, stone.z)
-		local button = UI.button({ Text = "🌀", AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz), Size = UDim2.fromOffset(28, 28), BackgroundColor3 = UI.Colors.Dark, ZIndex = 4, Parent = markers })
+		local button = UI.button({ Text = "", AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz), Size = UDim2.fromOffset(28, 28), BackgroundColor3 = UI.Colors.Dark, ZIndex = 4, Parent = markers })
+		UI.icon("vortex", { Size = UDim2.fromScale(0.8, 0.8), Position = UDim2.fromScale(0.1, 0.1), Color = Color3.fromRGB(150, 215, 255), ZIndex = 5, Parent = button })
 		stoneButtons[stone.id] = button
 		button.MouseButton1Click:Connect(function()
 			local data = State.data
 			if not data or not data.discovered[stone.id] then
-				info.Text = "🔒 " .. stone.name .. ": chegue perto dessa pedra para ativá-la."
+				info.Text = stone.name .. ": chegue perto dessa pedra para ativá-la."
 				return
 			end
 			local result = State.request("travel", stone.id)
@@ -196,7 +201,7 @@ local function draw()
 			end
 		end)
 		button.MouseEnter:Connect(function()
-			info.Text = "🌀 " .. stone.name .. (if State.data and State.data.discovered[stone.id] then " — clique para viajar" else " — não ativada")
+			info.Text = stone.name .. (if State.data and State.data.discovered[stone.id] then " — clique para viajar" else " — não ativada")
 		end)
 	end
 end
@@ -211,7 +216,7 @@ local function refreshStones()
 end
 
 function MapWindow.init(screen)
-	win = Window.create(screen, { name = "Mapa", title = "🗺️ MAPA  •  clique numa 🌀 ativada para viajar", width = SIZE + 40, height = SIZE + 110, accent = Color3.fromRGB(140, 210, 255) })
+	win = Window.create(screen, { icon = "treasure-map", name = "Mapa", title = "MAPA  •  clique numa pedra de viagem ativada para viajar", width = SIZE + 40, height = SIZE + 110, accent = Color3.fromRGB(140, 210, 255) })
 	mapFrame = UI.new("Frame", { Size = UDim2.fromOffset(SIZE, SIZE), BackgroundColor3 = Color3.fromRGB(30, 70, 110), ClipsDescendants = true, Active = true, Parent = win.content }, { UI.corner(8) })
 	canvas = UI.new("Frame", { Size = UDim2.fromOffset(SIZE, SIZE), BackgroundTransparency = 1, Parent = mapFrame })
 	markers = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ZIndex = 3, Parent = canvas })
@@ -261,7 +266,7 @@ function MapWindow.init(screen)
 		button.MouseButton1Click:Connect(spec[2])
 	end
 	playerArrow = UI.label({ Text = "▲", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(22, 22), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = Color3.fromRGB(255, 240, 80), ZIndex = 6, Parent = markers }, { UI.textStroke(2) })
-	info = UI.label({ Text = "Seta amarela = você. 💀 inimigos (nível), 👑 chefe, ❓ local a descobrir. Roda do mouse = zoom.", Position = UDim2.fromOffset(0, SIZE + 8), Size = UDim2.new(1, 0, 0, 20), TextColor3 = UI.Colors.SubText, Parent = win.content })
+	info = UI.label({ Text = "Seta amarela = você. Caveira = inimigos (nível), coroa = chefe, ? = local a descobrir. Roda do mouse = zoom.", Position = UDim2.fromOffset(0, SIZE + 8), Size = UDim2.new(1, 0, 0, 20), TextColor3 = UI.Colors.SubText, Parent = win.content })
 	win.onOpen = function()
 		task.spawn(draw)
 		refreshStones()

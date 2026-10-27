@@ -68,7 +68,7 @@ function PetService.give(player, petId, source, force)
 	local rarity = Rarities.ById[def.rarity]
 	Remotes.Notify:FireClient(player, { kind = "pet", pet = petId, source = source })
 	if rarity and rarity.order >= 5 then
-		Remotes.Notify:FireAllClients({ kind = "announce", text = ("🐾 %s conseguiu o pet %s %s!"):format(player.DisplayName, def.icon, def.name), rarity = def.rarity })
+		Remotes.Notify:FireAllClients({ kind = "announce", text = ("%s conseguiu o pet %s!"):format(player.DisplayName, def.name), rarity = def.rarity })
 	end
 	PetService.QuestHook(player, "pet", petId, 1)
 	PlayerService.markDirty(player)
@@ -157,7 +157,7 @@ function PetService.addXP(player, amount)
 	end
 	if leveled then
 		local def = Pets.List[entry.id]
-		Remotes.Notify:FireClient(player, { kind = "banner", text = ("%s %s subiu para o nível %d!"):format(def.icon, def.name, entry.level), sub = "Os bônus do pet ficaram mais fortes", color = Color3.fromRGB(150, 255, 200), duration = 3 })
+		Remotes.Notify:FireClient(player, { kind = "banner", text = ("%s subiu para o nível %d!"):format(def.name, entry.level), sub = "Os bônus do pet ficaram mais fortes", color = Color3.fromRGB(150, 255, 200), duration = 3 })
 		applyAttributes(player, data)
 		PlayerService.refreshCharacter(player, {})
 	end

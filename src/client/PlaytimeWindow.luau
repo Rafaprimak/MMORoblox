@@ -29,7 +29,7 @@ end
 local function rewardText(reward)
 	local parts = {}
 	if reward.gold then
-		table.insert(parts, ("💰 %s"):format(UI.formatNumber(reward.gold)))
+		table.insert(parts, ("%s ouro"):format(UI.formatNumber(reward.gold)))
 	end
 	for id, count in reward.consumables or {} do
 		local def = Items.Consumables[id]
@@ -41,7 +41,7 @@ local function rewardText(reward)
 	end
 	if reward.chest then
 		local chest = Chests.List[reward.chest]
-		table.insert(parts, (chest and chest.icon or "🎁") .. " " .. (chest and chest.name or "Baú"))
+		table.insert(parts, chest and chest.name or "Baú")
 	end
 	return table.concat(parts, "  •  ")
 end
@@ -108,16 +108,16 @@ local function refresh()
 			row.button.BackgroundColor3 = UI.Colors.Green
 			row.button.Active = true
 		else
-			row.button.Text = "⏳ " .. formatTime(left)
+			row.button.Text = formatTime(left)
 			row.button.BackgroundColor3 = UI.Colors.PanelLight
 			row.button.Active = false
 		end
 	end
-	win.title.Text = ("🎁 PRESENTES  •  neste servidor há %s"):format(formatTime(PlaytimeWindow.elapsed()))
+	win.title.Text = ("PRESENTES  •  neste servidor há %s"):format(formatTime(PlaytimeWindow.elapsed()))
 end
 
 function PlaytimeWindow.init(screen)
-	win = Window.create(screen, { name = "Presentes", title = "🎁 PRESENTES", width = 560, height = 560, accent = UI.Colors.Gold })
+	win = Window.create(screen, { icon = "sands-of-time", name = "Presentes", title = "PRESENTES", width = 560, height = 560, accent = UI.Colors.Gold })
 	list = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 5, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, { UI.list(8) })
 	win.onOpen = function()
 		lastKey = nil

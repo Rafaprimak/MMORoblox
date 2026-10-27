@@ -16,10 +16,10 @@ local MAX_LEVEL = 5
 -- event: nome do evento que conclui o passo (Tutorial.event); count: quantas vezes
 local STEPS = {
 	{ id = "andar", text = "Ande com W A S D. Segure o botão direito do mouse para girar a câmera.", event = "moved" },
-	{ id = "missao", text = "Fale com a Capitã Lyra (❗ na cabeça): chegue perto e aperte E.", event = "quest" },
+	{ id = "missao", text = "Fale com a Capitã Lyra (! na cabeça): chegue perto e aperte E.", event = "quest" },
 	{ id = "feixe", text = "A coluna de luz amarela sempre aponta o próximo objetivo. Siga-a!", event = "walked" },
 	{ id = "atacar", text = "Clique para atacar. Clique de novo quando a barrinha ficar VERDE: combo no ritmo!", event = "rhythm", count = 2 },
-	{ id = "bloquear", text = "Segure F para bloquear. Aperte F logo antes do golpe (❗ amarelo) para APARAR.", event = "block", count = 2 },
+	{ id = "bloquear", text = "Segure F para bloquear. Aperte F logo antes do golpe (! amarelo) para APARAR.", event = "block", count = 2 },
 	{ id = "esquivar", text = "Aperte Q para esquivar. Golpes com ‼ vermelho não podem ser bloqueados: esquive!", event = "dodge" },
 	{ id = "inventario", text = "Abra o inventário (I) para equipar os itens que você ganhar.", event = "inventory" },
 	{ id = "mapa", text = "Segure Shift para correr. No mapa (M) você viaja entre pedras de viagem ativadas.", event = "map" },

@@ -10,15 +10,15 @@ local S = World.Scale
 
 -- kind = construtor em WorldGen/PointsOfInterest; radius = raio de descoberta (projeto)
 local DESIGN = {
-	{ id = "moinho", name = "Moinho dos Campos", icon = "🌾", kind = "windmill", x = 110, z = 85, radius = 22, xp = 120, gold = 80, chest = "bronze" },
-	{ id = "circulo", name = "Círculo de Pedras", icon = "🗿", kind = "stonecircle", x = -110, z = 40, radius = 20, xp = 150, gold = 90, chest = "bronze" },
-	{ id = "vigia", name = "Torre de Vigia Abandonada", icon = "🏰", kind = "watchtower", x = -90, z = -60, radius = 18, xp = 150, gold = 90, chest = "bronze" },
-	{ id = "estatua", name = "Estátua do Herói Caído", icon = "🗽", kind = "statue", x = 60, z = -150, radius = 18, xp = 200, gold = 120, chest = "bronze" },
-	{ id = "acampamento", name = "Acampamento Abandonado", icon = "⛺", kind = "camp", x = 150, z = -110, radius = 18, xp = 200, gold = 120, chest = "prata" },
-	{ id = "observatorio", name = "Observatório em Ruínas", icon = "🔭", kind = "observatory", x = -200, z = 20, radius = 24, xp = 300, gold = 180, chest = "prata" },
-	{ id = "cemiterio", name = "Cemitério Antigo", icon = "⚰", kind = "graveyard", x = -205, z = -150, radius = 24, xp = 350, gold = 200, chest = "prata" },
-	{ id = "altar", name = "Altar Esquecido", icon = "💎", kind = "altar", x = 300, z = -140, radius = 20, xp = 400, gold = 220, chest = "prata" },
-	{ id = "naufragio", name = "Navio Naufragado", icon = "⚓", kind = "shipwreck", x = 225, z = 305, radius = 26, xp = 300, gold = 250, chest = "real" },
+	{ id = "moinho", name = "Moinho dos Campos", icon = "wheat", kind = "windmill", x = 110, z = 85, radius = 22, xp = 120, gold = 80, chest = "bronze" },
+	{ id = "circulo", name = "Círculo de Pedras", icon = "moai", kind = "stonecircle", x = -110, z = 40, radius = 20, xp = 150, gold = 90, chest = "bronze" },
+	{ id = "vigia", name = "Torre de Vigia Abandonada", icon = "castle", kind = "watchtower", x = -90, z = -60, radius = 18, xp = 150, gold = 90, chest = "bronze" },
+	{ id = "estatua", name = "Estátua do Herói Caído", icon = "obelisk", kind = "statue", x = 60, z = -150, radius = 18, xp = 200, gold = 120, chest = "bronze" },
+	{ id = "acampamento", name = "Acampamento Abandonado", icon = "camping-tent", kind = "camp", x = 150, z = -110, radius = 18, xp = 200, gold = 120, chest = "prata" },
+	{ id = "observatorio", name = "Observatório em Ruínas", icon = "telescope", kind = "observatory", x = -200, z = 20, radius = 24, xp = 300, gold = 180, chest = "prata" },
+	{ id = "cemiterio", name = "Cemitério Antigo", icon = "coffin", kind = "graveyard", x = -205, z = -150, radius = 24, xp = 350, gold = 200, chest = "prata" },
+	{ id = "altar", name = "Altar Esquecido", icon = "cut-diamond", kind = "altar", x = 300, z = -140, radius = 20, xp = 400, gold = 220, chest = "prata" },
+	{ id = "naufragio", name = "Navio Naufragado", icon = "anchor", kind = "shipwreck", x = 225, z = 305, radius = 26, xp = 300, gold = 250, chest = "real" },
 }
 
 -- chão bom: seco, abaixo das montanhas, plano e longe das estradas

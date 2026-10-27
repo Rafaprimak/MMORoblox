@@ -217,7 +217,7 @@ local function execute(session)
 	end
 	pcall(DataService.save, a)
 	pcall(DataService.save, b)
-	close(session, "🤝 Troca concluída!")
+	close(session, "Troca concluída!")
 end
 
 function TradeService.confirm(player)

@@ -36,14 +36,14 @@ local function costLines(parent, cost, y)
 	if cost.gold and cost.gold > 0 then
 		local has = data.gold >= cost.gold
 		ok = ok and has
-		text(parent, { Text = ("💰 Ouro: %s / %s"):format(UI.formatNumber(data.gold), UI.formatNumber(cost.gold)), Position = UDim2.fromOffset(0, y), TextColor3 = if has then UI.Colors.Green else UI.Colors.Red, Parent = parent })
+		text(parent, { Text = ("Ouro: %s / %s"):format(UI.formatNumber(data.gold), UI.formatNumber(cost.gold)), Position = UDim2.fromOffset(0, y), TextColor3 = if has then UI.Colors.Green else UI.Colors.Red, Parent = parent })
 		y += 20
 	end
 	for id, amount in cost.materials or {} do
 		local def = Items.Materials[id]
 		local have = State.materialCount(id)
 		ok = ok and have >= amount
-		text(parent, { Text = ("%s %s: %d / %d"):format(def and def.icon or "", def and def.name or id, have, amount), Position = UDim2.fromOffset(0, y), TextColor3 = if have >= amount then UI.Colors.Green else UI.Colors.Red, Parent = parent })
+		text(parent, { Text = ("%s: %d / %d"):format(def and def.name or id, have, amount), Position = UDim2.fromOffset(0, y), TextColor3 = if have >= amount then UI.Colors.Green else UI.Colors.Red, Parent = parent })
 		y += 20
 	end
 	return ok, y
@@ -90,7 +90,7 @@ local function renderForge()
 	UI.clear(forge.list)
 	UI.clear(forge.detail)
 	local ferraria = State.skillLevel("ferraria")
-	forge.win.title.Text = ("⚒️ FORJA DO BRUNO  •  Ferraria Nv. %d"):format(ferraria)
+	forge.win.title.Text = ("FORJA DO BRUNO  •  Ferraria Nv. %d"):format(ferraria)
 	if forge.win.tab == "Criar" then
 		forge.list.Visible = true
 		forge.grid.Visible = false
@@ -98,7 +98,7 @@ local function renderForge()
 			local base = Items.Bases[recipe.result]
 			local locked = ferraria < recipe.skill
 			local button = UI.button({
-				Text = ("%s%s"):format(base.name, if locked then ("  🔒%d"):format(recipe.skill) else ""),
+				Text = ("%s%s"):format(base.name, if locked then ("  %d"):format(recipe.skill) else ""),
 				Size = UDim2.new(1, -4, 0, 36),
 				LayoutOrder = i,
 				TextXAlignment = Enum.TextXAlignment.Left,
@@ -128,7 +128,7 @@ local function renderForge()
 		text(forge.detail, { Text = ("%s  •  Poder base %d  •  Ferraria %d"):format(kind, base.power, recipe.skill), Position = UDim2.fromOffset(0, 30), TextColor3 = UI.Colors.SubText, Parent = forge.detail })
 		local ok = costLines(forge.detail, { gold = recipe.gold, materials = recipe.materials }, 60)
 		ok = ok and ferraria >= recipe.skill
-		local button = UI.button({ Text = "⚒ FORJAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(220, 130, 40) else UI.Colors.Dark, Parent = forge.detail })
+		local button = UI.button({ Text = "FORJAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(220, 130, 40) else UI.Colors.Dark, Parent = forge.detail })
 		button.MouseButton1Click:Connect(function()
 			local result = State.request("forge", forge.recipe)
 			if result and result.ok then
@@ -165,12 +165,12 @@ local function renderForge()
 			for _, perkId in item.perks do
 				local perk = Perks.List[perkId]
 				if perk then
-					text(forge.detail, { Text = ("%s %s: %s"):format(perk.icon, perk.name, perk.text), Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 0, 36), TextColor3 = if perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255), Parent = forge.detail })
+					text(forge.detail, { Text = ("%s: %s"):format(perk.name, perk.text), Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 0, 36), TextColor3 = if perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255), Parent = forge.detail })
 					y += 38
 				end
 			end
 			local ok = costLines(forge.detail, item.reforgeCost, y + 6)
-			local button = UI.button({ Text = "🎲 REFORJAR PERKS", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(80, 140, 220) else UI.Colors.Dark, Parent = forge.detail })
+			local button = UI.button({ Text = "REFORJAR PERKS", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(80, 140, 220) else UI.Colors.Dark, Parent = forge.detail })
 			button.MouseButton1Click:Connect(function()
 				local result = State.request("reforge", item.uid)
 				if result and result.ok then
@@ -185,9 +185,9 @@ local function renderForge()
 			return
 		end
 		local nextPower = math.floor(item.power * (1 + 0.12 * (item.upgrade + 1)) / (1 + 0.12 * item.upgrade))
-		text(forge.detail, { Text = ("+%d → +%d   •   %s %d → %d"):format(item.upgrade, item.upgrade + 1, UI.statIcon(item), item.power, nextPower), Position = UDim2.fromOffset(0, 32), TextColor3 = UI.Colors.Green, Parent = forge.detail })
+		text(forge.detail, { Text = ("+%d → +%d   •   %s %d → %d"):format(item.upgrade, item.upgrade + 1, UI.statWord(item), item.power, nextPower), Position = UDim2.fromOffset(0, 32), TextColor3 = UI.Colors.Green, Parent = forge.detail })
 		local ok = costLines(forge.detail, { gold = item.upgradeGold, materials = item.upgradeMaterials }, 60)
-		local button = UI.button({ Text = "⬆ APRIMORAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(220, 150, 30) else UI.Colors.Dark, Parent = forge.detail })
+		local button = UI.button({ Text = "▲ APRIMORAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(220, 150, 30) else UI.Colors.Dark, Parent = forge.detail })
 		button.MouseButton1Click:Connect(function()
 			local result = State.request("upgrade", item.uid)
 			if result and result.ok then
@@ -209,7 +209,7 @@ local function renderEnchant()
 	end
 	UI.clear(enchant.detail)
 	local level = State.skillLevel("encantamento")
-	enchant.win.title.Text = ("✨ TORRE DO ELRIC  •  Encantamento Nv. %d"):format(level)
+	enchant.win.title.Text = ("TORRE DO ELRIC  •  Encantamento Nv. %d"):format(level)
 	local disassemble = enchant.win.tab == "Desmontar"
 	ItemGrid.render(enchant.grid, data.inventory, enchant.selected, function(uid)
 		enchant.selected = uid
@@ -220,7 +220,7 @@ local function renderEnchant()
 	local item = enchant.selected and ItemGrid.find(data.inventory, enchant.selected)
 	if not item then
 		text(enchant.detail, {
-			Text = if disassemble then "Desmonte itens que você não usa para conseguir ✨ Essência Mágica." else "Escolha um item para encantar. O encantamento atual é substituído por um novo aleatório.",
+			Text = if disassemble then "Desmonte itens que você não usa para conseguir Essência Mágica." else "Escolha um item para encantar. O encantamento atual é substituído por um novo aleatório.",
 			Size = UDim2.new(1, 0, 0, 80),
 			TextColor3 = UI.Colors.SubText,
 			Parent = enchant.detail,
@@ -234,8 +234,8 @@ local function renderEnchant()
 			text(enchant.detail, { Text = "Desequipe antes de desmontar.", Position = UDim2.fromOffset(0, 34), TextColor3 = UI.Colors.Red, Parent = enchant.detail })
 			return
 		end
-		text(enchant.detail, { Text = ("Rende ✨ %d Essência Mágica"):format(item.disassemble), Position = UDim2.fromOffset(0, 34), TextColor3 = Color3.fromRGB(200, 150, 255), Parent = enchant.detail })
-		local button = UI.button({ Text = "💥 DESMONTAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = Color3.fromRGB(140, 70, 160), Parent = enchant.detail })
+		text(enchant.detail, { Text = ("Rende %d Essência Mágica"):format(item.disassemble), Position = UDim2.fromOffset(0, 34), TextColor3 = Color3.fromRGB(200, 150, 255), Parent = enchant.detail })
+		local button = UI.button({ Text = "DESMONTAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = Color3.fromRGB(140, 70, 160), Parent = enchant.detail })
 		button.MouseButton1Click:Connect(function()
 			if enchant.confirm ~= item.uid then
 				enchant.confirm = item.uid
@@ -259,13 +259,13 @@ local function renderEnchant()
 	end
 	text(enchant.detail, { Text = ("Possíveis: %s\nTier máximo agora: %s (sobe com Encantamento)"):format(table.concat(possible, ", "), Items.roman(maxTier)), Position = UDim2.fromOffset(0, 54), Size = UDim2.new(1, 0, 0, 56), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, Parent = enchant.detail })
 	local ok = costLines(enchant.detail, item.enchantCost, 116)
-	local button = UI.button({ Text = "✨ ENCANTAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(150, 80, 230) else UI.Colors.Dark, Parent = enchant.detail })
+	local button = UI.button({ Text = "ENCANTAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(150, 80, 230) else UI.Colors.Dark, Parent = enchant.detail })
 	button.MouseButton1Click:Connect(function()
 		local result = State.request("enchant", item.uid)
 		if result and result.ok then
 			Sounds.play("ping", 1.5, 0.6)
 			Fx.shake(0.15, 0.25)
-			Popups.burst("✨ ENCANTADO!", Color3.fromRGB(200, 150, 255), result.item.enchantText)
+			Popups.burst("ENCANTADO!", Color3.fromRGB(200, 150, 255), result.item.enchantText)
 		end
 	end)
 end
@@ -280,11 +280,11 @@ local function renderAlchemy()
 	end
 	UI.clear(alchemy.list)
 	local level = State.skillLevel("alquimia")
-	alchemy.win.title.Text = ("⚗️ CALDEIRÃO DA MIRA  •  Alquimia Nv. %d"):format(level)
+	alchemy.win.title.Text = ("CALDEIRÃO DA MIRA  •  Alquimia Nv. %d"):format(level)
 	for i, recipe in Recipes.Alchemy do
 		local def = Items.Consumables[recipe.result]
 		local row = UI.new("Frame", { Size = UDim2.new(1, -8, 0, 92), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, LayoutOrder = i, Parent = alchemy.list }, { UI.corner(10) })
-		UI.label({ Text = def.icon, Position = UDim2.fromOffset(10, 18), Size = UDim2.fromOffset(52, 52), TextXAlignment = Enum.TextXAlignment.Center, Parent = row })
+		UI.icon(def.icon, { Position = UDim2.fromOffset(10, 18), Size = UDim2.fromOffset(52, 52), Parent = row })
 		text(row, { Text = ("%s  x%d   (Alquimia %d)"):format(def.name, recipe.count, recipe.skill), Position = UDim2.fromOffset(72, 8), TextSize = 17, Font = Enum.Font.GothamBlack, TextColor3 = if level >= recipe.skill then UI.Colors.Text else UI.Colors.Red, Parent = row })
 		local holder = UI.new("Frame", { Position = UDim2.fromOffset(72, 30), Size = UDim2.new(1, -220, 0, 60), BackgroundTransparency = 1, Parent = row })
 		local ok = costLines(holder, { gold = recipe.gold, materials = recipe.materials }, 0)
@@ -309,13 +309,13 @@ local function renderShop()
 		return
 	end
 	UI.clear(shop.list)
-	shop.win.title.Text = ("🛒 BARRACA DO OTTO  •  💰 %s"):format(UI.formatNumber(data.gold))
+	shop.win.title.Text = ("BARRACA DO OTTO  •  %s ouro"):format(UI.formatNumber(data.gold))
 	if shop.win.tab == "Comprar" then
 		for i, id in Recipes.Shop do
 			local def = Items.Consumables[id]
 			local row = UI.new("Frame", { Size = UDim2.new(1, -8, 0, 54), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, LayoutOrder = i, Parent = shop.list }, { UI.corner(10) })
-			UI.label({ Text = def.icon, Position = UDim2.fromOffset(10, 8), Size = UDim2.fromOffset(38, 38), TextXAlignment = Enum.TextXAlignment.Center, Parent = row })
-			text(row, { Text = ("%s  •  💰 %d  (você tem %d)"):format(def.name, def.price, data.consumables[id] or 0), Position = UDim2.fromOffset(56, 17), Size = UDim2.new(1, -260, 0, 20), Parent = row })
+			UI.icon(def.icon, { Position = UDim2.fromOffset(10, 8), Size = UDim2.fromOffset(38, 38), Parent = row })
+			text(row, { Text = ("%s  •  %d ouro  (você tem %d)"):format(def.name, def.price, data.consumables[id] or 0), Position = UDim2.fromOffset(56, 17), Size = UDim2.new(1, -260, 0, 20), Parent = row })
 			for j, amount in { 1, 5 } do
 				local button = UI.button({ Text = "x" .. amount, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10 - (2 - j) * 92, 0.5, 0), Size = UDim2.fromOffset(84, 36), BackgroundColor3 = UI.Colors.Green, Parent = row })
 				button.MouseButton1Click:Connect(function()
@@ -326,7 +326,7 @@ local function renderShop()
 				end)
 			end
 		end
-		local chest = UI.button({ Text = "🎁 Ver Baús do Hunter", Size = UDim2.new(1, -8, 0, 44), LayoutOrder = 99, BackgroundColor3 = Color3.fromRGB(220, 150, 40), Parent = shop.list })
+		local chest = UI.button({ Text = "Ver Baús do Hunter", Size = UDim2.new(1, -8, 0, 44), LayoutOrder = 99, BackgroundColor3 = Color3.fromRGB(220, 150, 40), Parent = shop.list })
 		chest.MouseButton1Click:Connect(function()
 			Services.openChest()
 		end)
@@ -345,7 +345,7 @@ local function renderShop()
 		end
 		for i, entry in entries do
 			local row = UI.new("Frame", { Size = UDim2.new(1, -8, 0, 46), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, LayoutOrder = i, Parent = shop.list }, { UI.corner(10) })
-			text(row, { Text = ("%s %s  x%d  •  💰 %d cada"):format(entry.def.icon, entry.def.name, entry.count, entry.def.sell), Position = UDim2.fromOffset(12, 13), Size = UDim2.new(1, -230, 0, 20), Parent = row })
+			text(row, { Text = ("%s  x%d  •  %d ouro cada"):format(entry.def.name, entry.count, entry.def.sell), Position = UDim2.fromOffset(12, 13), Size = UDim2.new(1, -230, 0, 20), Parent = row })
 			for j, amount in { 1, entry.count } do
 				local button = UI.button({ Text = if j == 1 then "Vender 1" else "Vender tudo", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10 - (2 - j) * 104, 0.5, 0), Size = UDim2.fromOffset(98, 32), BackgroundColor3 = Color3.fromRGB(150, 110, 40), Parent = row })
 				button.MouseButton1Click:Connect(function()
@@ -369,43 +369,43 @@ local function renderStable()
 	end
 	UI.clear(stable.body)
 	if data.mount then
-		text(stable.body, { Text = "🐴 Você já tem um cavalo!\n\nAperte H para montar e desmontar. Montado você corre bem mais rápido, mas é derrubado se tomar dano ou atacar.", Size = UDim2.new(1, 0, 0, 140), TextSize = 17, Parent = stable.body })
+		text(stable.body, { Text = "Você já tem um cavalo!\n\nAperte H para montar e desmontar. Montado você corre bem mais rápido, mas é derrubado se tomar dano ou atacar.", Size = UDim2.new(1, 0, 0, 140), TextSize = 17, Parent = stable.body })
 		return
 	end
-	text(stable.body, { Text = ("🐴 Um cavalo fiel deixa você %d%% mais rápido.\n\nPreço: 💰 %d (ou complete a missão \"Uma Montaria Fiel\")."):format(math.floor((Config.MountSpeed / Config.WalkSpeed - 1) * 100), Config.MountPrice), Size = UDim2.new(1, 0, 0, 120), TextSize = 17, Parent = stable.body })
-	local button = UI.button({ Text = ("COMPRAR CAVALO  💰%d"):format(Config.MountPrice), AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 46), BackgroundColor3 = if data.gold >= Config.MountPrice then UI.Colors.Green else UI.Colors.Dark, Parent = stable.body })
+	text(stable.body, { Text = ("Um cavalo fiel deixa você %d%% mais rápido.\n\nPreço: %d ouro (ou complete a missão \"Uma Montaria Fiel\")."):format(math.floor((Config.MountSpeed / Config.WalkSpeed - 1) * 100), Config.MountPrice), Size = UDim2.new(1, 0, 0, 120), TextSize = 17, Parent = stable.body })
+	local button = UI.button({ Text = ("COMPRAR CAVALO  %d ouro"):format(Config.MountPrice), AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 46), BackgroundColor3 = if data.gold >= Config.MountPrice then UI.Colors.Green else UI.Colors.Dark, Parent = stable.body })
 	button.MouseButton1Click:Connect(function()
 		local result = State.request("buyMount")
 		if result and result.ok then
-			Popups.burst("🐴 NOVO CAVALO!", Color3.fromRGB(230, 190, 120), "Aperte H para montar")
+			Popups.burst("NOVO CAVALO!", Color3.fromRGB(230, 190, 120), "Aperte H para montar")
 		end
 	end)
 end
 
 function Services.init(screen)
-	forge.win = Window.create(screen, { name = "Forja", title = "⚒️ FORJA", width = 760, height = 500, tabs = { "Criar", "Aprimorar", "Reforjar" }, accent = Color3.fromRGB(255, 150, 60) })
+	forge.win = Window.create(screen, { icon = "anvil-impact", name = "Forja", title = "FORJA", width = 760, height = 500, tabs = { "Criar", "Aprimorar", "Reforjar" }, accent = Color3.fromRGB(255, 150, 60) })
 	forge.list = sideList(forge.win.content)
 	forge.grid = ItemGrid.create(forge.win.content, { Position = UDim2.fromOffset(0, 0), Size = UDim2.new(0, 300, 1, 0), cell = 66 })
 	forge.detail = detailPanel(forge.win.content)
 	forge.win.onTab = renderForge
 	forge.win.onOpen = renderForge
 
-	enchant.win = Window.create(screen, { name = "Encantador", title = "✨ ENCANTADOR", width = 760, height = 500, tabs = { "Encantar", "Desmontar" }, accent = Color3.fromRGB(190, 130, 255) })
+	enchant.win = Window.create(screen, { icon = "sparkles", name = "Encantador", title = "ENCANTADOR", width = 760, height = 500, tabs = { "Encantar", "Desmontar" }, accent = Color3.fromRGB(190, 130, 255) })
 	enchant.grid = ItemGrid.create(enchant.win.content, { Position = UDim2.fromOffset(0, 0), Size = UDim2.new(0, 300, 1, 0), cell = 66 })
 	enchant.detail = detailPanel(enchant.win.content)
 	enchant.win.onTab = renderEnchant
 	enchant.win.onOpen = renderEnchant
 
-	alchemy.win = Window.create(screen, { name = "Alquimia", title = "⚗️ ALQUIMIA", width = 640, height = 480, accent = Color3.fromRGB(120, 255, 150) })
+	alchemy.win = Window.create(screen, { icon = "bubbling-flask", name = "Alquimia", title = "ALQUIMIA", width = 640, height = 480, accent = Color3.fromRGB(120, 255, 150) })
 	alchemy.list = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 5, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = alchemy.win.content }, { UI.list(8) })
 	alchemy.win.onOpen = renderAlchemy
 
-	shop.win = Window.create(screen, { name = "Loja", title = "🛒 LOJA", width = 640, height = 480, tabs = { "Comprar", "Vender" }, accent = UI.Colors.Gold })
+	shop.win = Window.create(screen, { icon = "shopping-cart", name = "Loja", title = "LOJA", width = 640, height = 480, tabs = { "Comprar", "Vender" }, accent = UI.Colors.Gold })
 	shop.list = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 5, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = shop.win.content }, { UI.list(8) })
 	shop.win.onTab = renderShop
 	shop.win.onOpen = renderShop
 
-	stable.win = Window.create(screen, { name = "Estabulo", title = "🐴 ESTÁBULO DO PEDRO", width = 460, height = 320, accent = Color3.fromRGB(230, 190, 120) })
+	stable.win = Window.create(screen, { icon = "horse-head", name = "Estabulo", title = "ESTÁBULO DO PEDRO", width = 460, height = 320, accent = Color3.fromRGB(230, 190, 120) })
 	stable.body = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = stable.win.content })
 	stable.win.onOpen = renderStable
 

@@ -6,11 +6,11 @@ local Chests = {}
 Chests.Order = { "bronze", "prata", "real", "celestial" }
 
 Chests.List = {
-	bronze = { name = "Baú de Bronze", icon = "🎁", price = 150, minRarity = 1, color = Color3.fromRGB(205, 130, 70) },
-	prata = { name = "Baú de Prata", icon = "🎁", price = 600, minRarity = 2, color = Color3.fromRGB(200, 205, 220) },
-	real = { name = "Baú Real", icon = "👑", price = 2000, minRarity = 3, color = Color3.fromRGB(255, 200, 50) },
+	bronze = { name = "Baú de Bronze", icon = "present", price = 150, minRarity = 1, color = Color3.fromRGB(205, 130, 70) },
+	prata = { name = "Baú de Prata", icon = "present", price = 600, minRarity = 2, color = Color3.fromRGB(200, 205, 220) },
+	real = { name = "Baú Real", icon = "crown", price = 2000, minRarity = 3, color = Color3.fromRGB(255, 200, 50) },
 	celestial = {
-		name = "Baú Celestial", icon = "🌟", robux = true, product = "chest_celestial", minRarity = 5,
+		name = "Baú Celestial", icon = "star-swirl", robux = true, product = "chest_celestial", minRarity = 5,
 		weightKey = "premiumWeight", pool = "premium", color = Color3.fromRGB(120, 225, 255),
 	},
 }

@@ -11,24 +11,24 @@ local Items = {}
 Items.MaxUpgrade = 10
 
 Items.Slots = {
-	weapon = { name = "Arma", icon = "⚔️", order = 1, kind = "attack" },
-	armor = { name = "Armadura", icon = "🛡️", order = 2, kind = "health" },
-	helmet = { name = "Elmo", icon = "⛑️", order = 3, kind = "health" },
-	boots = { name = "Botas", icon = "👢", order = 4, kind = "health" },
-	amulet = { name = "Amuleto", icon = "📿", order = 5, kind = "attack" },
-	ring = { name = "Anel", icon = "💍", order = 6, kind = "attack" },
+	weapon = { name = "Arma", icon = "crossed-swords", order = 1, kind = "attack" },
+	armor = { name = "Armadura", icon = "checked-shield", order = 2, kind = "health" },
+	helmet = { name = "Elmo", icon = "visored-helm", order = 3, kind = "health" },
+	boots = { name = "Botas", icon = "leg-armor", order = 4, kind = "health" },
+	amulet = { name = "Amuleto", icon = "necklace", order = 5, kind = "attack" },
+	ring = { name = "Anel", icon = "ring", order = 6, kind = "attack" },
 }
 Items.SlotOrder = { "weapon", "armor", "helmet", "boots", "amulet", "ring" }
 
 Items.WeaponTypes = {
-	sword = { name = "Espada", icon = "🗡️" },
-	axe = { name = "Machado", icon = "🪓" },
-	hammer = { name = "Martelo", icon = "🔨" },
-	spear = { name = "Lança", icon = "🔱" },
-	katana = { name = "Katana", icon = "⚔️" },
-	dagger = { name = "Adaga", icon = "🔪" },
-	bow = { name = "Arco", icon = "🏹" },
-	staff = { name = "Cajado", icon = "🔮" },
+	sword = { name = "Espada", icon = "broadsword" },
+	axe = { name = "Machado", icon = "battle-axe" },
+	hammer = { name = "Martelo", icon = "hammer-drop" },
+	spear = { name = "Lança", icon = "trident" },
+	katana = { name = "Katana", icon = "crossed-swords" },
+	dagger = { name = "Adaga", icon = "bowie-knife" },
+	bow = { name = "Arco", icon = "high-shot" },
+	staff = { name = "Cajado", icon = "crystal-ball" },
 }
 
 -- power: dano (armas) ou vida extra (armaduras) de um item Comum nível 1
@@ -210,41 +210,41 @@ Items.ChestPool = {
 }
 
 Items.Materials = {
-	minerio_cobre = { name = "Minério de Cobre", icon = "🟠", sell = 3 },
-	minerio_ferro = { name = "Minério de Ferro", icon = "🔩", sell = 6 },
-	minerio_mitril = { name = "Minério de Mitril", icon = "💠", sell = 15 },
-	madeira = { name = "Madeira", icon = "🌲", sell = 2 },
-	madeira_antiga = { name = "Madeira Antiga", icon = "🌳", sell = 8 },
-	erva_verde = { name = "Erva Verde", icon = "🌿", sell = 2 },
-	cogumelo_azul = { name = "Cogumelo Azul", icon = "🍄", sell = 4 },
-	flor_lunar = { name = "Flor Lunar", icon = "🌸", sell = 9 },
-	gosma = { name = "Gosma de Slime", icon = "🟢", sell = 1 },
-	couro = { name = "Couro", icon = "🟫", sell = 3 },
-	presa = { name = "Presa de Lobo", icon = "🦷", sell = 4 },
-	pano = { name = "Retalho de Pano", icon = "🧵", sell = 3 },
-	seda = { name = "Seda de Aranha", icon = "🕸️", sell = 6 },
-	carapaca = { name = "Carapaça", icon = "🦀", sell = 5 },
-	osso = { name = "Osso Antigo", icon = "🦴", sell = 5 },
-	nucleo_golem = { name = "Núcleo de Golem", icon = "🔶", sell = 20 },
-	essencia = { name = "Essência Mágica", icon = "✨", sell = 10 },
-	coroa_goblin = { name = "Fragmento da Coroa", icon = "👑", sell = 100 },
+	minerio_cobre = { name = "Minério de Cobre", icon = "circle", sell = 3 },
+	minerio_ferro = { name = "Minério de Ferro", icon = "gears", sell = 6 },
+	minerio_mitril = { name = "Minério de Mitril", icon = "emerald", sell = 15 },
+	madeira = { name = "Madeira", icon = "pine-tree", sell = 2 },
+	madeira_antiga = { name = "Madeira Antiga", icon = "oak", sell = 8 },
+	erva_verde = { name = "Erva Verde", icon = "herbs-bundle", sell = 2 },
+	cogumelo_azul = { name = "Cogumelo Azul", icon = "mushroom-gills", sell = 4 },
+	flor_lunar = { name = "Flor Lunar", icon = "lotus-flower", sell = 9 },
+	gosma = { name = "Gosma de Slime", icon = "circle", sell = 1 },
+	couro = { name = "Couro", icon = "stone-block", sell = 3 },
+	presa = { name = "Presa de Lobo", icon = "fangs", sell = 4 },
+	pano = { name = "Retalho de Pano", icon = "sewing-string", sell = 3 },
+	seda = { name = "Seda de Aranha", icon = "spider-web", sell = 6 },
+	carapaca = { name = "Carapaça", icon = "crab", sell = 5 },
+	osso = { name = "Osso Antigo", icon = "crossed-bones", sell = 5 },
+	nucleo_golem = { name = "Núcleo de Golem", icon = "crystal-growth", sell = 20 },
+	essencia = { name = "Essência Mágica", icon = "sparkles", sell = 10 },
+	coroa_goblin = { name = "Fragmento da Coroa", icon = "crown", sell = 100 },
 	-- materiais das masmorras (caem de todo inimigo lá dentro; moeda do Mercador de Masmorras)
-	saque_toca = { name = "Saque da Toca", icon = "💰", sell = 4, dungeon = "toca" },
-	fragmento_alma = { name = "Fragmento de Alma", icon = "👻", sell = 8, dungeon = "cripta" },
-	brasa_abissal = { name = "Brasa Abissal", icon = "🌋", sell = 14, dungeon = "abismo" },
+	saque_toca = { name = "Saque da Toca", icon = "two-coins", sell = 4, dungeon = "toca" },
+	fragmento_alma = { name = "Fragmento de Alma", icon = "spectre", sell = 8, dungeon = "cripta" },
+	brasa_abissal = { name = "Brasa Abissal", icon = "volcano", sell = 14, dungeon = "abismo" },
 	-- chaves (o líder gasta uma ao começar a masmorra)
-	chave_cripta = { name = "Chave da Cripta", icon = "🗝", sell = 1, key = "cripta" },
-	chave_abismo = { name = "Chave do Abismo", icon = "🗝", sell = 1, key = "abismo" },
+	chave_cripta = { name = "Chave da Cripta", icon = "key", sell = 1, key = "cripta" },
+	chave_abismo = { name = "Chave do Abismo", icon = "key", sell = 1, key = "abismo" },
 }
 
 Items.Consumables = {
-	pocao_vida = { name = "Poção de Vida", icon = "❤️", heal = 0.4, cooldown = 6, price = 40, key = "Z" },
-	pocao_mana = { name = "Poção de Mana", icon = "💙", mana = 0.5, cooldown = 6, price = 40, key = "X" },
-	pocao_vigor = { name = "Poção de Vigor", icon = "💛", stamina = 1, cooldown = 6, price = 50, key = "V" },
-	elixir_forca = { name = "Elixir de Força", icon = "🔥", damageBuff = 0.2, buffTime = 60, cooldown = 30 },
+	pocao_vida = { name = "Poção de Vida", icon = "heart-plus", heal = 0.4, cooldown = 6, price = 40, key = "Z" },
+	pocao_mana = { name = "Poção de Mana", icon = "heart-plus", mana = 0.5, cooldown = 6, price = 40, key = "X" },
+	pocao_vigor = { name = "Poção de Vigor", icon = "heart-plus", stamina = 1, cooldown = 6, price = 50, key = "V" },
+	elixir_forca = { name = "Elixir de Força", icon = "flame", damageBuff = 0.2, buffTime = 60, cooldown = 30 },
 	-- vendidos pelo Mercador de Masmorras
-	pocao_grande = { name = "Poção Grande de Vida", icon = "💖", heal = 0.75, cooldown = 10 },
-	tonico_pedra = { name = "Tônico de Pedra", icon = "🗿", defenseBuff = 0.35, buffTime = 90, cooldown = 30 },
+	pocao_grande = { name = "Poção Grande de Vida", icon = "glass-heart", heal = 0.75, cooldown = 10 },
+	tonico_pedra = { name = "Tônico de Pedra", icon = "moai", defenseBuff = 0.35, buffTime = 90, cooldown = 30 },
 }
 Items.ConsumableOrder = { "pocao_vida", "pocao_mana", "pocao_vigor", "elixir_forca", "pocao_grande", "tonico_pedra" }
 
@@ -418,14 +418,14 @@ end
 function Items.icon(baseId)
 	local base = Items.Bases[baseId]
 	if not base then
-		return "❔"
+		return "help"
 	end
 	if base.slot ~= "weapon" then
 		local slot = Items.Slots[base.slot]
-		return if slot then slot.icon else "🛡️"
+		return if slot then slot.icon else "checked-shield"
 	end
 	local weaponType = Items.WeaponTypes[base.weaponType]
-	return if weaponType then weaponType.icon else "🗡️"
+	return if weaponType then weaponType.icon else "broadsword"
 end
 
 -- Versão "pronta para a UI" de um item (enviada ao cliente)

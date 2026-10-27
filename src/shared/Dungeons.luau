@@ -28,7 +28,7 @@ local DESIGN = {
 	{
 		id = "toca",
 		name = "Toca dos Goblins",
-		icon = "🕳",
+		icon = "portal",
 		text = "Túneis cavados pelos goblins embaixo das colinas do leste. Lá no fundo, o próprio Rei Goblin guarda o saque roubado da vila.",
 		minLevel = 5,
 		level = 6,
@@ -48,7 +48,7 @@ local DESIGN = {
 	{
 		id = "cripta",
 		name = "Cripta Esquecida",
-		icon = "⚰",
+		icon = "coffin",
 		text = "Embaixo do cemitério antigo, mortos que não descansam guardam o túmulo do Rei Lich.",
 		minLevel = 10,
 		level = 12,
@@ -69,7 +69,7 @@ local DESIGN = {
 	{
 		id = "abismo",
 		name = "Abismo de Pedra",
-		icon = "🌋",
+		icon = "volcano",
 		text = "Uma fenda de lava no coração das montanhas. Golens despertos e o Colosso do Abismo esperam quem descer até o fim.",
 		minLevel = 15,
 		level = 16,

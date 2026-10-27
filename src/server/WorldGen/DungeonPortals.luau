@@ -101,7 +101,7 @@ local function build(parent, dungeon)
 	prompt:SetAttribute("DungeonId", dungeon.id)
 	prompt.Parent = swirl
 
-	Props.billboard(gem, ("%s %s\nnível recomendado %d"):format(dungeon.icon, string.upper(dungeon.name), dungeon.level), theme.glow, 4, 200)
+	Props.billboard(gem, ("%s\nnível recomendado %d"):format(string.upper(dungeon.name), dungeon.level), theme.glow, 4, 200)
 	model.Parent = parent
 	Placement.reserve(position.X, position.Z, 16 * World.Scale, "masmorra")
 	return model

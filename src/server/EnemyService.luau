@@ -173,7 +173,7 @@ local function respawnLater(camp, enemyId)
 	task.delay(camp.respawn, function()
 		local rec = EnemyService.spawn(camp, enemyId)
 		if rec and rec.def.boss then
-			Remotes.Notify:FireAllClients({ kind = "announce", text = ("👑 O %s voltou ao Covil!"):format(rec.def.name), sub = "Passagem do Norte, além do Portão Selado" })
+			Remotes.Notify:FireAllClients({ kind = "announce", text = ("O %s voltou ao Covil!"):format(rec.def.name), sub = "Passagem do Norte, além do Portão Selado" })
 		end
 	end)
 end
@@ -194,7 +194,7 @@ local function kill(rec, killer)
 		rec.root:Destroy()
 	end)
 	if rec.def.boss and rec.camp.respawn then
-		Remotes.Notify:FireAllClients({ kind = "announce", text = ("👑 O %s foi derrotado!"):format(rec.def.name), sub = ("Volta em %d segundos"):format(rec.camp.respawn) })
+		Remotes.Notify:FireAllClients({ kind = "announce", text = ("O %s foi derrotado!"):format(rec.def.name), sub = ("Volta em %d segundos"):format(rec.camp.respawn) })
 	end
 	if not rec.summoned then
 		respawnLater(rec.camp, rec.id)
@@ -727,7 +727,7 @@ local function updateEnemy(rec, now, targets)
 			end
 			setAction(rec, "roar")
 			Remotes.Fx:FireAllClients("explosion", rec.pos, 10, "summon")
-			Remotes.Notify:FireAllClients({ kind = "banner", text = ("👑 O %s chama reforços!"):format(def.name), color = Color3.fromRGB(255, 120, 60), duration = 2.5, nearby = { position = rec.pos, radius = 150 } })
+			Remotes.Notify:FireAllClients({ kind = "banner", text = ("O %s chama reforços!"):format(def.name), color = Color3.fromRGB(255, 120, 60), duration = 2.5, nearby = { position = rec.pos, radius = 150 } })
 		end
 
 		if def.behavior == "ranged" then

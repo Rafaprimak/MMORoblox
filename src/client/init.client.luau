@@ -134,7 +134,7 @@ WorldMarkers.init()
 Tutorial.init(screen)
 SettingsWindow.onRestartTutorial = Tutorial.restart
 Tutorial.onFinished = function()
-	Popups.banner("🎓 Tutorial concluído!", "Agora é com você, Hunter. Boa caçada!", UI.Colors.Gold, 4)
+	Popups.banner("Tutorial concluído!", "Agora é com você, Hunter. Boa caçada!", UI.Colors.Gold, 4)
 end
 
 Controller.isBlocked = function()

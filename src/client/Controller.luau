@@ -22,6 +22,7 @@ local State = require(script.Parent.State)
 local Animator = require(script.Parent.Animator)
 local Sounds = require(script.Parent.Sounds)
 local LockOn = require(script.Parent.LockOn)
+local UI = require(script.Parent.UI)
 
 local Controller = {}
 
@@ -478,24 +479,31 @@ function Controller.init()
 			end
 			return Enum.ContextActionResult.Pass
 		end, true)
-		ContextActionService:SetTitle(name, title)
 		ContextActionService:SetPosition(name, position)
+		-- título curto (número) ou ícone do atlas desenhado dentro do botão
+		local button = ContextActionService:GetButton(name)
+		if button and #title > 2 then
+			ContextActionService:SetTitle(name, "")
+			UI.icon(title, { Size = UDim2.fromScale(0.58, 0.58), Position = UDim2.fromScale(0.21, 0.21), Parent = button })
+		else
+			ContextActionService:SetTitle(name, title)
+		end
 	end
 	if UserInputService.TouchEnabled then
-		touchAction("Atacar", "⚔", UDim2.new(1, -95, 1, -170), lightAttack)
-		touchAction("Pesado", "💥", UDim2.new(1, -160, 1, -130), startHeavy, releaseHeavy)
-		touchAction("Bloquear", "🛡", UDim2.new(1, -225, 1, -150), function()
+		touchAction("Atacar", "crossed-swords", UDim2.new(1, -95, 1, -170), lightAttack)
+		touchAction("Pesado", "explosion-rays", UDim2.new(1, -160, 1, -130), startHeavy, releaseHeavy)
+		touchAction("Bloquear", "checked-shield", UDim2.new(1, -225, 1, -150), function()
 			setBlock(true)
 		end, function()
 			setBlock(false)
 		end)
-		touchAction("Esquivar", "↩", UDim2.new(1, -160, 1, -200), dodge)
-		touchAction("Correr", "🏃", UDim2.new(1, -95, 1, -240), function()
+		touchAction("Esquivar", "wind-slap", UDim2.new(1, -160, 1, -200), dodge)
+		touchAction("Correr", "run", UDim2.new(1, -95, 1, -240), function()
 			setSprint(true)
 		end, function()
 			setSprint(false)
 		end)
-		touchAction("Montar", "🐴", UDim2.new(1, -230, 1, -240), function()
+		touchAction("Montar", "horse-head", UDim2.new(1, -230, 1, -240), function()
 			State.action("mount")
 		end)
 		for slot = 1, 4 do

@@ -27,7 +27,7 @@ local function discover(player, data, poi)
 	PlayerService.addGold(player, poi.gold)
 	Remotes.Notify:FireClient(player, {
 		kind = "banner",
-		text = ("%s Local descoberto: %s"):format(poi.icon, poi.name),
+		text = ("Local descoberto: %s"):format(poi.name),
 		sub = ("+%d XP  •  +%d de ouro  •  procure o baú escondido!"):format(poi.xp, poi.gold),
 		color = Color3.fromRGB(255, 215, 120),
 		duration = 5,

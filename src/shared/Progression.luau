@@ -63,27 +63,27 @@ end
 -- event = tipo do gancho de missão (QuestHook); target filtra o alvo; mode "max" usa o maior valor
 -- recebido (nível, +aprimoramento) em vez de somar.
 Progression.Achievements = {
-	{ id = "cacador", name = "Caçador", icon = "⚔️", event = "kill", tiers = { 50, 500, 5000 }, title = "exterminador", text = "Derrote inimigos" },
-	{ id = "regicida", name = "Regicida", icon = "👑", event = "kill", target = "rei_goblin", tiers = { 1, 10, 50 }, title = "regicida", text = "Derrote o Rei Goblin" },
-	{ id = "guarda", name = "Mestre da Guarda", icon = "✋", event = "parry", tiers = { 10, 100, 1000 }, title = "muralha", text = "Apare golpes" },
-	{ id = "intocavel", name = "Intocável", icon = "💨", event = "perfectDodge", tiers = { 10, 100, 500 }, title = "intocavel", text = "Faça esquivas perfeitas" },
-	{ id = "quebra", name = "Quebra-Guardas", icon = "💥", event = "stagger", tiers = { 10, 100, 1000 }, title = "quebra_guardas", text = "Quebre a guarda dos inimigos" },
-	{ id = "ritmo", name = "No Ritmo", icon = "🥁", event = "rhythm", tiers = { 50, 500, 5000 }, title = "maestro", text = "Acerte golpes no ritmo" },
-	{ id = "coletor", name = "Coletor", icon = "⛏️", event = "gather", tiers = { 50, 500, 3000 }, title = "mao_de_ouro", text = "Colete recursos" },
-	{ id = "artesao", name = "Artesão", icon = "⚒️", event = "craft", tiers = { 5, 50, 300 }, title = "mestre_artesao", text = "Fabrique itens e poções" },
-	{ id = "tesouro", name = "Caçador de Tesouros", icon = "🎁", event = "chest", tiers = { 5, 50, 250 }, title = "sortudo", text = "Abra baús" },
-	{ id = "curandeiro", name = "Curandeiro", icon = "💖", event = "heal", tiers = { 2000, 50000, 500000 }, title = "anjo", text = "Cure vida (sua e dos aliados)" },
-	{ id = "provocador", name = "Provocador", icon = "😤", event = "taunt", tiers = { 20, 300, 3000 }, title = "muro_de_ferro", text = "Provoque inimigos" },
-	{ id = "heroi", name = "Herói", icon = "📜", event = "questDone", tiers = { 10, 50, 200 }, title = "heroi", text = "Complete missões e contratos" },
-	{ id = "ascensao", name = "Ascensão", icon = "⭐", event = "level", mode = "max", tiers = { 10, 25, 50 }, title = "rank_s", text = "Alcance níveis" },
-	{ id = "domador", name = "Domador", icon = "🐾", event = "pet", tiers = { 1, 10, 30 }, title = "domador", text = "Consiga pets" },
-	{ id = "explorador", name = "Explorador", icon = "🧭", event = "poi", tiers = { 3, 6, 9 }, title = "desbravador", text = "Descubra locais de interesse" },
-	{ id = "cacador_tesouros", name = "Caça ao Tesouro", icon = "🗝", event = "poiChest", tiers = { 2, 5, 9 }, title = "achador", text = "Abra baús escondidos nos locais" },
-	{ id = "perfeccionista", name = "Perfeccionista", icon = "⬆", event = "upgradeTo", mode = "max", tiers = { 5, 8, 10 }, title = "perfeccionista", text = "Aprimore um item" },
-	{ id = "masmorreiro", name = "Senhor das Profundezas", icon = "🏰", event = "dungeonBoss", tiers = { 1, 12, 60 }, title = "senhor_profundezas", text = "Derrote chefes de masmorra" },
-	{ id = "conquistador", name = "Conquistador", icon = "🏆", event = "dungeon", tiers = { 1, 3, 10 }, title = "conquistador", text = "Chegue ao fim dos 20 andares" },
-	{ id = "segredos", name = "Olho Atento", icon = "🗝", event = "dungeonSecret", tiers = { 1, 10, 40 }, title = "olho_atento", text = "Ache baús secretos nas masmorras" },
-	{ id = "desafiante", name = "Desafiante", icon = "⭐", event = "dungeonObjective", tiers = { 5, 30, 120 }, title = "desafiante", text = "Cumpra objetivos extras nas masmorras" },
+	{ id = "cacador", name = "Caçador", icon = "crossed-swords", event = "kill", tiers = { 50, 500, 5000 }, title = "exterminador", text = "Derrote inimigos" },
+	{ id = "regicida", name = "Regicida", icon = "crown", event = "kill", target = "rei_goblin", tiers = { 1, 10, 50 }, title = "regicida", text = "Derrote o Rei Goblin" },
+	{ id = "guarda", name = "Mestre da Guarda", icon = "hand", event = "parry", tiers = { 10, 100, 1000 }, title = "muralha", text = "Apare golpes" },
+	{ id = "intocavel", name = "Intocável", icon = "wind-slap", event = "perfectDodge", tiers = { 10, 100, 500 }, title = "intocavel", text = "Faça esquivas perfeitas" },
+	{ id = "quebra", name = "Quebra-Guardas", icon = "explosion-rays", event = "stagger", tiers = { 10, 100, 1000 }, title = "quebra_guardas", text = "Quebre a guarda dos inimigos" },
+	{ id = "ritmo", name = "No Ritmo", icon = "drum", event = "rhythm", tiers = { 50, 500, 5000 }, title = "maestro", text = "Acerte golpes no ritmo" },
+	{ id = "coletor", name = "Coletor", icon = "war-pick", event = "gather", tiers = { 50, 500, 3000 }, title = "mao_de_ouro", text = "Colete recursos" },
+	{ id = "artesao", name = "Artesão", icon = "anvil-impact", event = "craft", tiers = { 5, 50, 300 }, title = "mestre_artesao", text = "Fabrique itens e poções" },
+	{ id = "tesouro", name = "Caçador de Tesouros", icon = "present", event = "chest", tiers = { 5, 50, 250 }, title = "sortudo", text = "Abra baús" },
+	{ id = "curandeiro", name = "Curandeiro", icon = "glass-heart", event = "heal", tiers = { 2000, 50000, 500000 }, title = "anjo", text = "Cure vida (sua e dos aliados)" },
+	{ id = "provocador", name = "Provocador", icon = "enrage", event = "taunt", tiers = { 20, 300, 3000 }, title = "muro_de_ferro", text = "Provoque inimigos" },
+	{ id = "heroi", name = "Herói", icon = "scroll-unfurled", event = "questDone", tiers = { 10, 50, 200 }, title = "heroi", text = "Complete missões e contratos" },
+	{ id = "ascensao", name = "Ascensão", icon = "star-formation", event = "level", mode = "max", tiers = { 10, 25, 50 }, title = "rank_s", text = "Alcance níveis" },
+	{ id = "domador", name = "Domador", icon = "paw-print", event = "pet", tiers = { 1, 10, 30 }, title = "domador", text = "Consiga pets" },
+	{ id = "explorador", name = "Explorador", icon = "compass", event = "poi", tiers = { 3, 6, 9 }, title = "desbravador", text = "Descubra locais de interesse" },
+	{ id = "cacador_tesouros", name = "Caça ao Tesouro", icon = "key", event = "poiChest", tiers = { 2, 5, 9 }, title = "achador", text = "Abra baús escondidos nos locais" },
+	{ id = "perfeccionista", name = "Perfeccionista", icon = "upgrade", event = "upgradeTo", mode = "max", tiers = { 5, 8, 10 }, title = "perfeccionista", text = "Aprimore um item" },
+	{ id = "masmorreiro", name = "Senhor das Profundezas", icon = "castle", event = "dungeonBoss", tiers = { 1, 12, 60 }, title = "senhor_profundezas", text = "Derrote chefes de masmorra" },
+	{ id = "conquistador", name = "Conquistador", icon = "trophy", event = "dungeon", tiers = { 1, 3, 10 }, title = "conquistador", text = "Chegue ao fim dos 20 andares" },
+	{ id = "segredos", name = "Olho Atento", icon = "key", event = "dungeonSecret", tiers = { 1, 10, 40 }, title = "olho_atento", text = "Ache baús secretos nas masmorras" },
+	{ id = "desafiante", name = "Desafiante", icon = "star-formation", event = "dungeonObjective", tiers = { 5, 30, 120 }, title = "desafiante", text = "Cumpra objetivos extras nas masmorras" },
 }
 
 Progression.AchievementById = {}
@@ -147,7 +147,7 @@ Progression.Titles = {
 function Progression.rewardText(reward, items, pets, chests)
 	local parts = {}
 	if reward.gold then
-		table.insert(parts, ("💰 %d"):format(reward.gold))
+		table.insert(parts, ("%d ouro"):format(reward.gold))
 	end
 	for id, count in reward.materials or {} do
 		local def = items and items.Materials[id]
@@ -159,15 +159,15 @@ function Progression.rewardText(reward, items, pets, chests)
 	end
 	if reward.egg then
 		local egg = pets and pets.Eggs[reward.egg]
-		table.insert(parts, if egg then egg.icon .. " " .. egg.name else "Ovo")
+		table.insert(parts, if egg then egg.name else "Ovo")
 	end
 	if reward.chest then
 		local chest = chests and chests.List[reward.chest]
-		table.insert(parts, if chest then chest.icon .. " " .. chest.name else "Baú")
+		table.insert(parts, if chest then chest.name else "Baú")
 	end
 	if reward.title then
 		local title = Progression.Titles[reward.title]
-		table.insert(parts, "🏷 " .. (if title then title.name else reward.title))
+		table.insert(parts, "price-tag" .. (if title then title.name else reward.title))
 	end
 	if reward.passXp then
 		table.insert(parts, ("✦ %d XP do passe"):format(reward.passXp))

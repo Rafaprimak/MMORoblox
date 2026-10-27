@@ -19,8 +19,8 @@ local win, body
 local function header(data, class)
 	local role = Classes.Roles[class.role]
 	local row = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 30), BackgroundTransparency = 1, LayoutOrder = 0, Parent = body })
-	UI.label({ Text = ("%s %s  •  %s %s"):format(class.icon, class.name, role and role.icon or "", role and role.name or ""), Size = UDim2.new(0.6, 0, 1, 0), TextColor3 = class.color, Font = Enum.Font.GothamBlack, Parent = row }, { UI.textStroke(1) })
-	UI.label({ Text = ("⭐ Pontos de talento: %d"):format(data.skillPoints), AnchorPoint = Vector2.new(1, 0), Position = UDim2.fromScale(1, 0), Size = UDim2.new(0.4, 0, 1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = if data.skillPoints > 0 then UI.Colors.Gold else UI.Colors.SubText, Font = Enum.Font.GothamBlack, Parent = row }, { UI.textStroke(1) })
+	UI.label({ Text = ("%s  •  %s"):format(class.name, role and role.name or ""), Size = UDim2.new(0.6, 0, 1, 0), TextColor3 = class.color, Font = Enum.Font.GothamBlack, Parent = row }, { UI.textStroke(1) })
+	UI.label({ Text = ("Pontos de talento: %d"):format(data.skillPoints), AnchorPoint = Vector2.new(1, 0), Position = UDim2.fromScale(1, 0), Size = UDim2.new(0.4, 0, 1, 0), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = if data.skillPoints > 0 then UI.Colors.Gold else UI.Colors.SubText, Font = Enum.Font.GothamBlack, Parent = row }, { UI.textStroke(1) })
 end
 
 local function renderAbilities(data)
@@ -37,7 +37,7 @@ local function renderAbilities(data)
 			local learned = info.rank > 0
 			local available = data.level >= info.unlock
 			local row = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 92), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.25, LayoutOrder = 10 + order, Parent = body }, { UI.corner(10), UI.stroke(if info.slot > 0 then UI.Colors.Gold elseif learned then UI.Colors.Mana else UI.Colors.Stroke, 1.5) })
-			UI.label({ Text = ability.icon, Position = UDim2.fromOffset(10, 12), Size = UDim2.fromOffset(52, 52), TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = if learned then 0 else 0.55, Parent = row })
+			UI.icon(ability.icon, { Position = UDim2.fromOffset(10, 12), Size = UDim2.fromOffset(52, 52), Transparency = if learned then 0 else 0.55, Parent = row })
 			UI.label({ Text = (if info.advanced then "✦ " else "") .. ability.name, Position = UDim2.fromOffset(72, 6), Size = UDim2.new(1, -300, 0, 22), Font = Enum.Font.GothamBlack, TextColor3 = if info.advanced then Color3.fromRGB(255, 220, 140) else UI.Colors.Text, Parent = row }, { UI.textStroke(1) })
 			local status
 			if learned then
@@ -45,7 +45,7 @@ local function renderAbilities(data)
 			elseif available then
 				status = "Disponível para aprender (1 ponto)"
 			else
-				status = ("🔒 Nível %d"):format(info.unlock)
+				status = ("Nível %d"):format(info.unlock)
 			end
 			UI.label({ Text = status, Position = UDim2.fromOffset(72, 28), Size = UDim2.new(1, -300, 0, 16), TextColor3 = if learned then UI.Colors.Mana else UI.Colors.SubText, Parent = row })
 			UI.label({ Text = ability.description, Position = UDim2.fromOffset(72, 46), Size = UDim2.new(1, -300, 0, 40), TextScaled = false, TextSize = 14, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.Gotham, TextColor3 = UI.Colors.SubText, Parent = row })
@@ -93,7 +93,7 @@ local function renderTalents(data)
 	header(data, class)
 	local talents = data.talents or {}
 	local respecPrice = if data.level >= 10 then Classes.RespecPrice else 0
-	local respec = UI.button({ Text = if respecPrice > 0 then ("↺ Redistribuir pontos  💰%d"):format(respecPrice) else "↺ Redistribuir pontos (grátis até o nível 10)", Size = UDim2.new(1, -10, 0, 28), BackgroundColor3 = UI.Colors.Dark, LayoutOrder = 1, Parent = body })
+	local respec = UI.button({ Text = if respecPrice > 0 then ("↺ Redistribuir pontos  %d ouro"):format(respecPrice) else "↺ Redistribuir pontos (grátis até o nível 10)", Size = UDim2.new(1, -10, 0, 28), BackgroundColor3 = UI.Colors.Dark, LayoutOrder = 1, Parent = body })
 	respec.MouseButton1Click:Connect(function()
 		State.request("respec")
 	end)
@@ -101,7 +101,7 @@ local function renderTalents(data)
 	for index, branch in Classes.Branches[data.class] or {} do
 		local spent = Classes.branchPoints(data.class, talents, branch.id)
 		local column = UI.new("Frame", { Size = UDim2.new(1 / 3, -6, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.4, LayoutOrder = index, Parent = columns }, { UI.corner(10), UI.stroke(branch.color, 1.5, 0.3), UI.padding(6), UI.list(6) })
-		UI.label({ Text = ("%s %s  •  %d pts"):format(branch.icon, branch.name, spent), Size = UDim2.new(1, 0, 0, 22), TextColor3 = branch.color, Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = column }, { UI.textStroke(1) })
+		UI.label({ Text = ("%s  •  %d pts"):format(branch.name, spent), Size = UDim2.new(1, 0, 0, 22), TextColor3 = branch.color, Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = column }, { UI.textStroke(1) })
 		UI.label({ Text = branch.text, Size = UDim2.new(1, 0, 0, 16), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, LayoutOrder = 1, Parent = column })
 		local order = 2
 		for _, passive in Classes.Passives[data.class] do
@@ -112,9 +112,9 @@ local function renderTalents(data)
 				local canBuy = unlocked and rank < passive.max and data.skillPoints > 0
 				local card = UI.new("TextButton", { Text = "", AutoButtonColor = canBuy, Size = UDim2.new(1, 0, 0, 74), BackgroundColor3 = if rank >= passive.max then Color3.fromRGB(70, 60, 25) elseif rank > 0 then Color3.fromRGB(35, 55, 45) else UI.Colors.Panel, BackgroundTransparency = if unlocked then 0.05 else 0.5, LayoutOrder = order, Parent = column }, { UI.corner(8), UI.stroke(if canBuy then UI.Colors.Gold else UI.Colors.Stroke, if canBuy then 2 else 1) })
 				order += 1
-				UI.label({ Text = passive.icon, Position = UDim2.fromOffset(4, 6), Size = UDim2.fromOffset(34, 34), TextXAlignment = Enum.TextXAlignment.Center, TextTransparency = if unlocked then 0 else 0.6, Parent = card })
+				UI.icon(passive.icon, { Position = UDim2.fromOffset(4, 6), Size = UDim2.fromOffset(34, 34), Transparency = if unlocked then 0 else 0.6, Parent = card })
 				UI.label({ Text = passive.name, Position = UDim2.fromOffset(40, 4), Size = UDim2.new(1, -44, 0, 18), Font = Enum.Font.GothamBlack, TextColor3 = if unlocked then UI.Colors.Text else UI.Colors.SubText, Parent = card })
-				UI.label({ Text = if unlocked then ("Rank %d/%d"):format(rank, passive.max) else ("🔒 %d pts no ramo"):format(needed), Position = UDim2.fromOffset(40, 22), Size = UDim2.new(1, -44, 0, 14), TextColor3 = if rank > 0 then UI.Colors.Gold else UI.Colors.SubText, Parent = card })
+				UI.label({ Text = if unlocked then ("Rank %d/%d"):format(rank, passive.max) else ("%d pts no ramo"):format(needed), Position = UDim2.fromOffset(40, 22), Size = UDim2.new(1, -44, 0, 14), TextColor3 = if rank > 0 then UI.Colors.Gold else UI.Colors.SubText, Parent = card })
 				UI.label({ Text = passive.text, Position = UDim2.fromOffset(6, 42), Size = UDim2.new(1, -12, 0, 28), TextScaled = false, TextSize = 13, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.Gotham, TextColor3 = UI.Colors.SubText, Parent = card })
 				card.MouseButton1Click:Connect(function()
 					if canBuy then
@@ -133,7 +133,7 @@ local function skillRow(data, id, order)
 	local def = Skills.List[id]
 	local entry = data.skills[id] or { level = 1, xp = 0 }
 	local row = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 50), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, LayoutOrder = order, Parent = body }, { UI.corner(8) })
-	UI.label({ Text = def.icon, Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(34, 34), TextXAlignment = Enum.TextXAlignment.Center, Parent = row })
+	UI.icon(def.icon, { Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(34, 34), Parent = row })
 	UI.label({ Text = ("%s  •  Nv. %d"):format(def.name, entry.level), Position = UDim2.fromOffset(50, 4), Size = UDim2.new(0.5, 0, 0, 20), Font = Enum.Font.GothamBlack, Parent = row })
 	local xpNext = Config.skillXpToNext(entry.level)
 	local _, fill, label = UI.bar(row, { Position = UDim2.new(0, 50, 0, 28), Size = UDim2.new(1, -60, 0, 14), color = if def.kind == "mastery" then UI.Colors.Red else UI.Colors.Green })
@@ -154,11 +154,11 @@ local function skillRow(data, id, order)
 end
 
 local function renderSkills(data)
-	UI.label({ Text = "⚔️ MAESTRIAS (sobem usando a arma)", Size = UDim2.new(1, -10, 0, 22), TextColor3 = UI.Colors.Red, Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = body })
+	UI.label({ Text = "MAESTRIAS (sobem usando a arma)", Size = UDim2.new(1, -10, 0, 22), TextColor3 = UI.Colors.Red, Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = body })
 	for i, id in Skills.MasteryOrder do
 		skillRow(data, id, i)
 	end
-	UI.label({ Text = "🛠️ PROFISSÕES (coleta e fabricação)", Size = UDim2.new(1, -10, 0, 22), TextColor3 = UI.Colors.Green, Font = Enum.Font.GothamBlack, LayoutOrder = 20, Parent = body })
+	UI.label({ Text = "PROFISSÕES (coleta e fabricação)", Size = UDim2.new(1, -10, 0, 22), TextColor3 = UI.Colors.Green, Font = Enum.Font.GothamBlack, LayoutOrder = 20, Parent = body })
 	for i, id in Skills.ProfessionOrder do
 		skillRow(data, id, 20 + i)
 	end
@@ -169,7 +169,7 @@ local function renderStats(data)
 	local class = Classes.List[data.class]
 	local weaponType = Items.WeaponTypes[stats.weaponType]
 	local rows = {
-		{ "Classe", if class then class.icon .. " " .. class.name else "—" },
+		{ "Classe", if class then class.name else "—" },
 		{ "Nível / Rank", ("%d  •  Rank %s"):format(data.level, Config.getRank(data.level).name) },
 		{ "Arma", ("%s %s (maestria %d)"):format(weaponType and weaponType.icon or "", weaponType and weaponType.name or "", stats.masteryLevel) },
 		{ "Afinidade de classe", if stats.affinity then "✔ +15% de dano" else "✘ arma de outra classe" },
@@ -208,7 +208,7 @@ local function render()
 end
 
 function Character.init(screen)
-	win = Window.create(screen, { name = "Personagem", title = "🧙 PERSONAGEM", width = 780, height = 580, tabs = { "Habilidades", "Talentos", "Perícias", "Atributos" }, accent = Color3.fromRGB(150, 210, 255) })
+	win = Window.create(screen, { icon = "wizard-face", name = "Personagem", title = "PERSONAGEM", width = 780, height = 580, tabs = { "Habilidades", "Talentos", "Perícias", "Atributos" }, accent = Color3.fromRGB(150, 210, 255) })
 	body = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, { UI.list(7) })
 	win.onTab = render
 	win.onOpen = render

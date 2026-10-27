@@ -77,14 +77,14 @@ function Inventory.describeLines(item)
 		table.insert(lines, { text, Color3.fromRGB(255, 220, 140) })
 	end
 	if item.enchantText then
-		table.insert(lines, { "✨ " .. item.enchantText, Color3.fromRGB(200, 150, 255), 34 })
+		table.insert(lines, { "✦ " .. item.enchantText, Color3.fromRGB(200, 150, 255), 34 })
 	end
 	-- perks (estilo Destiny): os fortes em dourado, o efeito Único em verde-água
 	for _, perkId in item.perks or {} do
 		local perk = Perks.List[perkId]
 		if perk then
 			local color = if perk.exclusive == "unique" then Color3.fromRGB(60, 255, 215) elseif perk.exclusive then Color3.fromRGB(200, 170, 255) elseif perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255)
-			table.insert(lines, { ("%s %s: %s"):format(perk.icon, perk.name, perk.text), color, 36 })
+			table.insert(lines, { ("%s: %s"):format(perk.name, perk.text), color, 36 })
 		end
 	end
 	if item.unique then
@@ -125,7 +125,7 @@ local function renderDetails()
 	local top = 100
 	line(details, top, item.name, rarity.color, 30, Enum.Font.GothamBlack).TextScaled = true
 	line(details, top + 32, ("%s • Nv. %d • +%d/%d"):format(rarity.name, item.level, item.upgrade, item.maxUpgrade), UI.Colors.SubText)
-	line(details, top + 52, UI.statIcon(item) .. " " .. UI.formatNumber(item.power), UI.Colors.Text, 26, Enum.Font.GothamBlack).TextScaled = true
+	line(details, top + 52, UI.statWord(item) .. " " .. UI.formatNumber(item.power), UI.Colors.Text, 26, Enum.Font.GothamBlack).TextScaled = true
 	local y = top + 82
 	if not item.equipped then
 		local current = equippedIn(item.slot)
@@ -151,7 +151,7 @@ local function renderDetails()
 			end
 		end
 	end)
-	local sellButton = UI.button({ Text = if item.equipped then "—" else ("VENDER 💰%s"):format(UI.formatNumber(item.sell)), Position = UDim2.new(0, 0, 1, -38), Size = UDim2.new(1, 0, 0, 34), BackgroundColor3 = if item.equipped then UI.Colors.Dark else Color3.fromRGB(150, 60, 60), Parent = details })
+	local sellButton = UI.button({ Text = if item.equipped then "—" else ("VENDER %s ouro"):format(UI.formatNumber(item.sell)), Position = UDim2.new(0, 0, 1, -38), Size = UDim2.new(1, 0, 0, 34), BackgroundColor3 = if item.equipped then UI.Colors.Dark else Color3.fromRGB(150, 60, 60), Parent = details })
 	sellButton.MouseButton1Click:Connect(function()
 		if not item.equipped then
 			local result = State.request("sell", item.uid)
@@ -192,7 +192,7 @@ local function renderMaterials(kind)
 	end
 	for i, entry in entries do
 		local row = UI.new("Frame", { Size = UDim2.new(1, -8, 0, 40), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, LayoutOrder = i, Parent = list }, { UI.corner(8) })
-		UI.label({ Text = entry.def.icon, Position = UDim2.fromOffset(8, 5), Size = UDim2.fromOffset(30, 30), TextXAlignment = Enum.TextXAlignment.Center, Parent = row })
+		UI.icon(entry.def.icon, { Position = UDim2.fromOffset(8, 5), Size = UDim2.fromOffset(30, 30), Parent = row })
 		UI.label({ Text = entry.def.name, Position = UDim2.fromOffset(46, 4), Size = UDim2.new(0.5, 0, 0, 20), Parent = row })
 		local info = if kind == "materials" then ("Vende por %d no Otto"):format(entry.def.sell) else (entry.def.key and ("Tecla %s"):format(entry.def.key) or "Pela mochila")
 		UI.label({ Text = info, Position = UDim2.fromOffset(46, 23), Size = UDim2.new(0.5, 0, 0, 14), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, Parent = row })
@@ -211,8 +211,8 @@ local function render()
 	if not data then
 		return
 	end
-	win.title.Text = ("🎒 INVENTÁRIO  (%d/%d)"):format(#data.inventory, data.maxInventory)
-	statsLabel.Text = ("⚔ %s   ❤ %s   🛡 %s   🎯 %d%%"):format(UI.formatNumber(data.stats.attack), UI.formatNumber(data.stats.maxHealth), UI.formatNumber(data.stats.defense), math.floor(data.stats.crit * 100))
+	win.title.Text = ("INVENTÁRIO  (%d/%d)"):format(#data.inventory, data.maxInventory)
+	statsLabel.Text = ("Ataque %s   •   Vida %s   •   Defesa %s   •   Crítico %d%%"):format(UI.formatNumber(data.stats.attack), UI.formatNumber(data.stats.maxHealth), UI.formatNumber(data.stats.defense), math.floor(data.stats.crit * 100))
 	local equipment = win.tab == "Equipamentos"
 	grid.Visible = equipment
 	details.Visible = equipment
@@ -251,15 +251,15 @@ local function render()
 end
 
 function Inventory.init(screen)
-	win = Window.create(screen, { name = "Inventario", title = "🎒 INVENTÁRIO", width = 760, height = 560, tabs = { "Equipamentos", "Materiais", "Consumíveis" } })
+	win = Window.create(screen, { icon = "backpack", name = "Inventario", title = "INVENTÁRIO", width = 760, height = 560, tabs = { "Equipamentos", "Materiais", "Consumíveis" } })
 	statsLabel = UI.label({ Text = "", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -56, 0, 16), Size = UDim2.fromOffset(320, 20), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = UI.Colors.SubText, Parent = win.frame })
 	slotBar = UI.new("Frame", { Size = UDim2.new(1, -250, 0, 44), BackgroundTransparency = 1, Parent = win.content }, { UI.list(6, true) })
 	grid = ItemGrid.create(win.content, { Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, -250, 1, -96) })
 	details = UI.new("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 0, 0, 0), Size = UDim2.new(0, 238, 1, -2), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, Parent = win.content }, { UI.corner(10), UI.padding(10) })
 	list = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Visible = false, Parent = win.content }, { UI.list(6) })
-	junkButton = UI.button({ Text = "🗑 Vender Comuns e Incomuns", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.fromOffset(260, 36), BackgroundColor3 = Color3.fromRGB(110, 60, 60), Parent = win.content })
+	junkButton = UI.button({ Text = "Vender Comuns e Incomuns", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.fromOffset(260, 36), BackgroundColor3 = Color3.fromRGB(110, 60, 60), Parent = win.content })
 	-- fusão: 9 itens da mesma raridade viram 1 de raridade maior
-	local fusionButton = UI.button({ Text = "⚗ Fundir itens (9 → 1)", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 268, 1, 0), Size = UDim2.fromOffset(220, 36), BackgroundColor3 = Color3.fromRGB(120, 70, 170), Parent = win.content })
+	local fusionButton = UI.button({ Text = "Fundir itens (9 → 1)", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 268, 1, 0), Size = UDim2.fromOffset(220, 36), BackgroundColor3 = Color3.fromRGB(120, 70, 170), Parent = win.content })
 	fusionButton.MouseButton1Click:Connect(function()
 		if Inventory.onFusion then
 			Inventory.onFusion()
@@ -271,12 +271,12 @@ function Inventory.init(screen)
 			junkButton.Text = "Clique de novo para confirmar"
 			task.delay(3, function()
 				junkConfirm = false
-				junkButton.Text = "🗑 Vender Comuns e Incomuns"
+				junkButton.Text = "Vender Comuns e Incomuns"
 			end)
 			return
 		end
 		junkConfirm = false
-		junkButton.Text = "🗑 Vender Comuns e Incomuns"
+		junkButton.Text = "Vender Comuns e Incomuns"
 		local result = State.request("sellJunk")
 		if result and result.ok then
 			Sounds.play("ping", 0.8, 0.4)

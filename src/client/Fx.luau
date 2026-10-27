@@ -163,7 +163,7 @@ end
 
 function Fx.gold(position, amount)
 	Sounds.play("coin", 1.6 + math.random() * 0.2, 0.25)
-	Fx.floatingText(position + Vector3.new(0, 1.5, 0), "+" .. amount .. " 💰", UI.Colors.Gold, 26, 1)
+	Fx.floatingText(position + Vector3.new(0, 1.5, 0), "+" .. amount .. " ouro", UI.Colors.Gold, 26, 1)
 end
 
 function Fx.xp(position, amount)
@@ -669,12 +669,12 @@ end
 -- nomes para mensagens
 function Fx.materialLabel(id)
 	local def = Items.Materials[id] or Items.Consumables[id]
-	return if def then def.icon .. " " .. def.name else id
+	return if def then def.name else id
 end
 
 function Fx.skillLabel(id)
 	local def = Skills.List[id]
-	return if def then def.icon .. " " .. def.name else id
+	return if def then def.name else id
 end
 
 return Fx

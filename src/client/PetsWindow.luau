@@ -43,7 +43,7 @@ local function renderOwned(data)
 		end
 		return a.level > b.level
 	end)
-	UI.label({ Text = ("🐾 %d/%d pets  •  O pet equipado segue você, ganha XP com os abates e dá bônus."):format(#list, Pets.MaxOwned), Size = UDim2.new(1, -10, 0, 20), TextColor3 = UI.Colors.SubText, LayoutOrder = 0, Parent = body })
+	UI.label({ Text = ("%d/%d pets  •  O pet equipado segue você, ganha XP com os abates e dá bônus."):format(#list, Pets.MaxOwned), Size = UDim2.new(1, -10, 0, 20), TextColor3 = UI.Colors.SubText, LayoutOrder = 0, Parent = body })
 	if #list == 0 then
 		UI.label({ Text = "Você ainda não tem pets. Compre um ovo na aba Ovos (no Otto, na vila).", Size = UDim2.new(1, -10, 0, 40), TextColor3 = UI.Colors.Gold, LayoutOrder = 1, Parent = body })
 		return
@@ -52,7 +52,7 @@ local function renderOwned(data)
 		local def = Pets.List[entry.id]
 		local rarity = Rarities.ById[def.rarity]
 		local row = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 70), BackgroundColor3 = rarity.color:Lerp(Color3.new(0, 0, 0), 0.7), LayoutOrder = index, Parent = body }, { UI.corner(10), UI.stroke(if entry.equipped then UI.Colors.Gold else rarity.color, if entry.equipped then 2.5 else 1.2) })
-		UI.label({ Text = def.icon, Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(54, 54), TextXAlignment = Enum.TextXAlignment.Center, Parent = row })
+		UI.icon(def.icon, { Position = UDim2.fromOffset(8, 8), Size = UDim2.fromOffset(54, 54), Parent = row })
 		UI.label({ Text = ("%s  •  Nv. %d"):format(def.name, entry.level), Position = UDim2.fromOffset(70, 6), Size = UDim2.new(1, -320, 0, 20), Font = Enum.Font.GothamBlack, TextColor3 = rarity.color, Parent = row }, { UI.textStroke(1) })
 		UI.label({ Text = statText(Pets.stats(entry.id, entry.level)), Position = UDim2.fromOffset(70, 28), Size = UDim2.new(1, -320, 0, 16), TextColor3 = Color3.fromRGB(180, 255, 200), Parent = row })
 		local _, fill, label = UI.bar(row, { Position = UDim2.new(0, 70, 0, 48), Size = UDim2.new(1, -330, 0, 12), color = UI.Colors.Xp })
@@ -87,7 +87,7 @@ local function renderEggs(data)
 	for index, eggId in Pets.EggOrder do
 		local egg = Pets.Eggs[eggId]
 		local card = UI.new("Frame", { Size = UDim2.new(1 / #Pets.EggOrder, -8, 1, 0), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.15, LayoutOrder = index, Parent = row }, { UI.corner(12), UI.stroke(egg.color, 2) })
-		UI.label({ Text = egg.icon, Position = UDim2.fromOffset(0, 6), Size = UDim2.new(1, 0, 0, 50), TextXAlignment = Enum.TextXAlignment.Center, Parent = card })
+		UI.icon(egg.icon, { Position = UDim2.fromOffset(0, 6), Size = UDim2.new(1, 0, 0, 50), Parent = card })
 		UI.label({ Text = egg.name, Position = UDim2.fromOffset(0, 56), Size = UDim2.new(1, 0, 0, 22), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = egg.color, Parent = card }, { UI.textStroke(1) })
 		-- chances, da mais rara para a mais comum
 		local entries = {}
@@ -100,11 +100,11 @@ local function renderEggs(data)
 		for i, entry in entries do
 			local def = Pets.List[entry.id]
 			local rarity = Rarities.ById[def.rarity]
-			UI.label({ Text = ("%s %s"):format(def.icon, def.name), Position = UDim2.fromOffset(10, 82 + (i - 1) * 22), Size = UDim2.new(1, -70, 0, 20), TextColor3 = rarity.color, Parent = card })
+			UI.label({ Text = def.name, Position = UDim2.fromOffset(10, 82 + (i - 1) * 22), Size = UDim2.new(1, -70, 0, 20), TextColor3 = rarity.color, Parent = card })
 			UI.label({ Text = ("%g%%"):format(entry.chance), AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -10, 0, 82 + (i - 1) * 22), Size = UDim2.fromOffset(56, 20), TextXAlignment = Enum.TextXAlignment.Right, Parent = card })
 		end
 		local canBuy = egg.robux or data.gold >= egg.price
-		local buy = UI.button({ Text = if egg.robux then "COMPRAR  " .. Store.priceText(egg.product) else ("CHOCAR  💰%s"):format(UI.formatNumber(egg.price)), AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(1, -20, 0, 40), BackgroundColor3 = if canBuy then egg.color:Lerp(Color3.new(0, 0, 0), 0.25) else UI.Colors.Dark, Parent = card })
+		local buy = UI.button({ Text = if egg.robux then "COMPRAR  " .. Store.priceText(egg.product) else ("CHOCAR  %s ouro"):format(UI.formatNumber(egg.price)), AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), Size = UDim2.new(1, -20, 0, 40), BackgroundColor3 = if canBuy then egg.color:Lerp(Color3.new(0, 0, 0), 0.25) else UI.Colors.Dark, Parent = card })
 		buy.MouseButton1Click:Connect(function()
 			if egg.robux then
 				Store.buy(egg.product)
@@ -132,7 +132,7 @@ local function render()
 end
 
 function PetsWindow.init(screen)
-	win = Window.create(screen, { name = "Pets", title = "🐾 PETS", width = 760, height = 540, tabs = { "Meus Pets", "Ovos" }, accent = Color3.fromRGB(150, 255, 200) })
+	win = Window.create(screen, { icon = "paw-print", name = "Pets", title = "PETS", width = 760, height = 540, tabs = { "Meus Pets", "Ovos" }, accent = Color3.fromRGB(150, 255, 200) })
 	body = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, { UI.list(7) })
 	win.onTab = render
 	win.onOpen = render
@@ -188,7 +188,7 @@ function PetsWindow.announce(notification)
 	local egg = Pets.Eggs[notification.source or ""] or Pets.Eggs.comum
 	hatchScene(notification.pet, egg.color)
 	local rarity = Rarities.ById[def.rarity]
-	Popups.burst(("%s %s!"):format(def.icon, string.upper(def.name)), rarity.color, if notification.source == "drop" then "Um ovo caiu do inimigo e chocou!" else "Saiu do ovo! Ele já está seguindo você (tecla G).")
+	Popups.burst(string.upper(def.name) .. "!", rarity.color, if notification.source == "drop" then "Um ovo caiu do inimigo e chocou!" else "Saiu do ovo! Ele já está seguindo você (tecla G).")
 	Sounds.play("ping", 0.8 + rarity.order * 0.15, 0.8)
 end
 

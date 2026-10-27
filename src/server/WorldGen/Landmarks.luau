@@ -74,7 +74,7 @@ function Landmarks.waystones(parent)
 		prompt.MaxActivationDistance = 12
 		prompt.RequiresLineOfSight = false
 		prompt.Parent = obelisk
-		Props.billboard(obelisk, "🌀 " .. stone.name, Color3.fromRGB(140, 210, 255), 6.5, 70)
+		Props.billboard(obelisk, stone.name, Color3.fromRGB(140, 210, 255), 6.5, 70)
 		model.Parent = folder
 		Props.scaleModel(model, cf, K)
 		Placement.reserve(stone.x, stone.z, 6 * K, "pedra")
@@ -277,7 +277,7 @@ local function passGate(parent)
 	part(model, { Name = "Arco", Size = Vector3.new(36, 5, 6), CFrame = center * CFrame.new(0, 26, 0), Color = Color3.fromRGB(80, 78, 85), Material = M.Cobblestone })
 	local barrier = part(model, { Name = "Barreira", Size = Vector3.new(34, 24, 1), CFrame = center * CFrame.new(0, 12, 0), Color = Color3.fromRGB(170, 90, 255), Material = M.ForceField, CanCollide = false, Transparency = 0.1 })
 	barrier:SetAttribute("Barrier", true)
-	Props.billboard(barrier, "🔒 PORTÃO SELADO • Nível 10", Color3.fromRGB(220, 170, 255), 15, 120)
+	Props.billboard(barrier, "PORTÃO SELADO • Nível 10", Color3.fromRGB(220, 170, 255), 15, 120)
 	model.Parent = parent
 	Props.scaleModel(model, center, K)
 	Placement.reserve(0, z, 30 * K, "portao")

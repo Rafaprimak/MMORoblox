@@ -58,13 +58,13 @@ local function setNight(value, announce)
 	if value then
 		Remotes.Notify:FireAllClients({
 			kind = "banner",
-			text = "🌙 A noite caiu",
+			text = "A noite caiu",
 			sub = ("Inimigos %d%% mais fortes e mais Elites  •  +%d%% de XP, ouro e equipamentos"):format(math.floor((Config.NightEnemyDamage - 1) * 100 + 0.5), math.floor(Config.NightRewardBonus * 100 + 0.5)),
 			color = Color3.fromRGB(150, 160, 255),
 			duration = 5,
 		})
 	else
-		Remotes.Notify:FireAllClients({ kind = "banner", text = "☀ Amanheceu", sub = "Os monstros voltam ao normal", color = Color3.fromRGB(255, 220, 120), duration = 4 })
+		Remotes.Notify:FireAllClients({ kind = "banner", text = "Amanheceu", sub = "Os monstros voltam ao normal", color = Color3.fromRGB(255, 220, 120), duration = 4 })
 	end
 end
 

@@ -66,7 +66,7 @@ local function render(force)
 		return
 	end
 	lastKey = key
-	win.title.Text = "🤝 TROCA COM " .. string.upper(trade.partner)
+	win.title.Text = "TROCA COM " .. string.upper(trade.partner)
 	local mineUids = table.clone(trade.mine.uids)
 	offerItems(mineFrame, trade.mine.items, function(item)
 		-- clicar num item da sua oferta tira ele
@@ -80,7 +80,7 @@ local function render(force)
 	if not goldBox:IsFocused() then
 		goldBox.Text = tostring(trade.mine.gold)
 	end
-	theirGold.Text = ("💰 %s"):format(UI.formatNumber(trade.theirs.gold))
+	theirGold.Text = ("%s ouro"):format(UI.formatNumber(trade.theirs.gold))
 	theirStatus.Text = if trade.theirConfirm then "✔ Confirmou" elseif trade.theirReady then "✔ Pronto" else "… montando a oferta"
 	theirStatus.TextColor3 = if trade.theirReady then UI.Colors.Green else UI.Colors.SubText
 	-- seu inventário (clique para colocar na oferta)
@@ -157,7 +157,7 @@ function TradeWindow.open()
 end
 
 function TradeWindow.init(screen)
-	win = Window.create(screen, { name = "Troca", title = "🤝 TROCA", width = 820, height = 580, accent = Color3.fromRGB(240, 200, 90) })
+	win = Window.create(screen, { icon = "shaking-hands", name = "Troca", title = "TROCA", width = 820, height = 580, accent = Color3.fromRGB(240, 200, 90) })
 	local left = UI.new("Frame", { Size = UDim2.new(0.5, -6, 1, -54), BackgroundTransparency = 1, Parent = win.content })
 	local right = UI.new("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.fromScale(1, 0), Size = UDim2.new(0.5, -6, 1, -54), BackgroundTransparency = 1, Parent = win.content })
 	UI.label({ Text = "VOCÊ OFERECE (clique para tirar)", Size = UDim2.new(1, 0, 0, 18), TextColor3 = UI.Colors.Gold, Parent = left })
@@ -169,7 +169,7 @@ function TradeWindow.init(screen)
 		})
 	end
 	mineFrame = slotGrid(left, 22)
-	UI.label({ Text = "💰 Ouro:", Position = UDim2.fromOffset(0, 186), Size = UDim2.fromOffset(70, 26), TextColor3 = UI.Colors.Gold, Parent = left })
+	UI.label({ Text = "Ouro:", Position = UDim2.fromOffset(0, 186), Size = UDim2.fromOffset(70, 26), TextColor3 = UI.Colors.Gold, Parent = left })
 	goldBox = UI.new("TextBox", { Text = "0", PlaceholderText = "0", ClearTextOnFocus = false, Position = UDim2.fromOffset(72, 184), Size = UDim2.fromOffset(150, 30), BackgroundColor3 = UI.Colors.Dark, TextColor3 = UI.Colors.Text, Font = Enum.Font.GothamBold, TextSize = 16, Parent = left }, { UI.corner(6) })
 	goldBox.FocusLost:Connect(function()
 		local trade = State.data and State.data.trade
@@ -186,7 +186,7 @@ function TradeWindow.init(screen)
 	})
 	UI.label({ Text = "O OUTRO OFERECE", Size = UDim2.new(1, 0, 0, 18), TextColor3 = UI.Colors.Gold, Parent = right })
 	theirsFrame = slotGrid(right, 22)
-	theirGold = UI.label({ Text = "💰 0", Position = UDim2.fromOffset(0, 186), Size = UDim2.new(1, 0, 0, 26), TextColor3 = UI.Colors.Gold, Parent = right })
+	theirGold = UI.label({ Text = "0", Position = UDim2.fromOffset(0, 186), Size = UDim2.new(1, 0, 0, 26), TextColor3 = UI.Colors.Gold, Parent = right })
 	theirStatus = UI.label({ Text = "", Position = UDim2.fromOffset(0, 220), Size = UDim2.new(1, 0, 0, 24), Font = Enum.Font.GothamBlack, Parent = right })
 	statusLabel = UI.label({ Text = "", Position = UDim2.fromOffset(0, 252), Size = UDim2.new(1, 0, 0, 60), TextScaled = false, TextSize = 14, TextWrapped = true, TextColor3 = UI.Colors.SubText, TextYAlignment = Enum.TextYAlignment.Top, Parent = right })
 	readyButton = UI.button({ Text = "PRONTO", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(0.32, 0, 0, 44), BackgroundColor3 = UI.Colors.Green, Parent = win.content })

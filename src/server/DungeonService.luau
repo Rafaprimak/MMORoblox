@@ -51,9 +51,9 @@ local MECHANIC_TEXT = {
 	armadilhas = "Cuidado com as grelhas de fogo!",
 }
 local BLESSINGS = {
-	{ name = "Bênção da Fúria", icon = "🔥", values = { damage = 0.15 }, text = "+15% de dano por 150 s" },
-	{ name = "Bênção da Pedra", icon = "🛡", values = { defense = 0.2 }, text = "+20% de defesa por 150 s" },
-	{ name = "Bênção da Vida", icon = "💚", heal = true, text = "vida cheia para todo o grupo" },
+	{ name = "Bênção da Fúria", icon = "flame", values = { damage = 0.15 }, text = "+15% de dano por 150 s" },
+	{ name = "Bênção da Pedra", icon = "checked-shield", values = { defense = 0.2 }, text = "+20% de defesa por 150 s" },
+	{ name = "Bênção da Vida", icon = "health-normal", heal = true, text = "vida cheia para todo o grupo" },
 }
 
 local lobbies = {} -- [dungeonId] = { player, ... } (o primeiro é o líder)
@@ -401,7 +401,7 @@ local function buildFloor(run, floor)
 							options.position = Vector3.new(around.X + math.random(-4, 4), floorY, around.Z + math.random(-4, 4))
 							EnemyService.spawn(room.camp, info.pool[math.random(1, #info.pool)], options)
 						end
-						notifyRun(run, { kind = "message", text = ("🔧 Alavanca %d/3 puxada... emboscada!"):format(room.levers) })
+						notifyRun(run, { kind = "message", text = ("Alavanca %d/3 puxada... emboscada!"):format(room.levers) })
 						markRun(run)
 					end)
 				end
@@ -455,7 +455,7 @@ local function buildFloor(run, floor)
 				end
 				relic:Destroy()
 				state.relics += 1
-				notifyRun(run, { kind = "message", text = ("✨ %s pegou uma relíquia (%d/3)"):format(player.DisplayName, state.relics) })
+				notifyRun(run, { kind = "message", text = ("%s pegou uma relíquia (%d/3)"):format(player.DisplayName, state.relics) })
 				markRun(run)
 			end)
 		end
@@ -472,7 +472,7 @@ local function buildFloor(run, floor)
 			end
 			found = true
 			TweenService:Create(brick, TweenInfo.new(0.6), { CFrame = brick.CFrame * CFrame.new(0, 0, 0.6), Transparency = 1 }):Play()
-			notifyRun(run, { kind = "banner", text = "🗝 PASSAGEM SECRETA!", sub = player.DisplayName .. " achou um baú escondido", color = Color3.fromRGB(255, 220, 120), duration = 3 })
+			notifyRun(run, { kind = "banner", text = "PASSAGEM SECRETA!", sub = player.DisplayName .. " achou um baú escondido", color = Color3.fromRGB(255, 220, 120), duration = 3 })
 			DungeonService.QuestHook(player, "dungeonSecret", run.dungeon.id, 1)
 			DungeonService.rewardChest(run, state, wallCf * CFrame.new(0, 0, -3.5), "secret")
 		end)
@@ -518,7 +518,7 @@ function DungeonService.altar(run, state, cf, theme)
 				PlayerService.addBuff(member, "altar", blessing.values, 150)
 			end
 		end
-		notifyRun(run, { kind = "banner", text = blessing.icon .. " " .. string.upper(blessing.name), sub = blessing.text, color = Color3.fromRGB(150, 230, 255), duration = 3 })
+		notifyRun(run, { kind = "banner", text = string.upper(blessing.name), sub = blessing.text, color = Color3.fromRGB(150, 230, 255), duration = 3 })
 	end)
 end
 
@@ -542,7 +542,7 @@ function DungeonService.suspiciousChest(run, state, cf, info)
 			local gold = run.dungeon.level * 5 * state.floor
 			PlayerService.addGold(player, gold)
 			PlayerService.addMaterial(player, run.dungeon.material, 2 + math.floor(state.floor / 3))
-			Remotes.Notify:FireClient(player, { kind = "message", text = ("🎁 Tesouro! +%d de ouro"):format(gold) })
+			Remotes.Notify:FireClient(player, { kind = "message", text = ("Tesouro! +%d de ouro"):format(gold) })
 		else
 			-- o mímico pertence a um acampamento só dele (não segura a grade da sala atual)
 			state.mimicCamp = state.mimicCamp or { id = room.camp.id .. "_mimico", center = Vector2.new(position.X, position.Z), radius = 12, floorY = room.camp.floorY, bounds = { position.X - 16, position.X + 16, position.Z - 16, position.Z + 16 }, hpMult = room.camp.hpMult, damageMult = room.camp.damageMult, levelBonus = room.camp.levelBonus, dungeon = true, dungeonId = room.camp.dungeonId, floor = room.camp.floor }
@@ -552,7 +552,7 @@ function DungeonService.suspiciousChest(run, state, cf, info)
 			options.rewardMult = info.rewardMult * 2
 			EnemyService.spawn(state.mimicCamp, info.pool[math.random(1, #info.pool)], options)
 			Remotes.Fx:FireAllClients("explosion", position, 6, "summon")
-			notifyRun(run, { kind = "banner", text = "🎭 ERA UM MÍMICO!", sub = "Um Elite saiu do baú!", color = Color3.fromRGB(255, 120, 80), duration = 2.5 })
+			notifyRun(run, { kind = "banner", text = "ERA UM MÍMICO!", sub = "Um Elite saiu do baú!", color = Color3.fromRGB(255, 120, 80), duration = 2.5 })
 		end
 	end)
 end
@@ -571,7 +571,7 @@ local function startRoom(run, state, index)
 	if room.boss then
 		options.position = Vector3.new(room.camp.center.X, room.camp.floorY, room.camp.center.Y)
 		EnemyService.spawn(room.camp, room.boss, options)
-		notifyRun(run, { kind = "banner", text = ("👑 ANDAR %d: CHEFE"):format(state.floor), sub = "Fiquem juntos: tanque na frente, suporte atrás!", color = Color3.fromRGB(255, 110, 80), duration = 3.5 })
+		notifyRun(run, { kind = "banner", text = ("ANDAR %d: CHEFE"):format(state.floor), sub = "Fiquem juntos: tanque na frente, suporte atrás!", color = Color3.fromRGB(255, 110, 80), duration = 3.5 })
 	else
 		local count = room.count
 		if room.mechanic == "ondas" then
@@ -582,7 +582,7 @@ local function startRoom(run, state, index)
 			EnemyService.spawn(room.camp, info.pool[math.random(1, #info.pool)], table.clone(options))
 		end
 		if index > 1 then
-			notifyRun(run, { kind = "banner", text = ("⚔ SALA %d/%d"):format(index, #state.rooms), sub = MECHANIC_TEXT[room.mechanic or "exterminio"], color = Color3.fromRGB(220, 200, 150), duration = 2.5 })
+			notifyRun(run, { kind = "banner", text = ("SALA %d/%d"):format(index, #state.rooms), sub = MECHANIC_TEXT[room.mechanic or "exterminio"], color = Color3.fromRGB(220, 200, 150), duration = 2.5 })
 		end
 	end
 	if room.traps then
@@ -612,7 +612,7 @@ local function populate(run, state)
 		options.rewardMult = state.info.rewardMult * 3
 		state.champion = EnemyService.spawn(room.camp, state.info.pool[math.random(1, #state.info.pool)], options)
 		state.championUntil = os.clock() + 60
-		notifyRun(run, { kind = "banner", text = "🏹 CAÇADA!", sub = "Um Campeão apareceu: derrote em 60 s antes que ele fuja", color = Color3.fromRGB(255, 200, 90), duration = 3 })
+		notifyRun(run, { kind = "banner", text = "CAÇADA!", sub = "Um Campeão apareceu: derrote em 60 s antes que ele fuja", color = Color3.fromRGB(255, 200, 90), duration = 3 })
 	end
 end
 
@@ -698,7 +698,7 @@ function DungeonService.descend(run)
 		return
 	end
 	run.descending = true
-	notifyRun(run, { kind = "banner", text = ("⬇ DESCENDO PARA O ANDAR %d"):format(run.floor + 1), sub = "Preparem-se...", color = Color3.fromRGB(220, 200, 150), duration = 2.5 })
+	notifyRun(run, { kind = "banner", text = ("▼ DESCENDO PARA O ANDAR %d"):format(run.floor + 1), sub = "Preparem-se...", color = Color3.fromRGB(220, 200, 150), duration = 2.5 })
 	task.delay(2.5, function()
 		if table.find(runs, run) then
 			startFloor(run, run.floor + 1)
@@ -732,7 +732,7 @@ function DungeonService.claim(player, run, state, claimed, kind)
 			Remotes.Notify:FireClient(player, { kind = "chest", chest = if info.minRarity >= 4 or secret then "real" else "prata", item = Items.describe(item, false) })
 		end)
 	end
-	Remotes.Notify:FireClient(player, { kind = "message", text = ("%s Andar %d: %d de ouro e %d de XP!"):format(if secret then "🗝" else "🏆", floor, gold, xp) })
+	Remotes.Notify:FireClient(player, { kind = "message", text = ((if secret then "Segredo! " else "") .. "Andar %d: %d de ouro e %d de XP!"):format(floor, gold, xp) })
 	PlayerService.markDirty(player)
 end
 
@@ -916,7 +916,7 @@ local function launch(dungeonId)
 	end
 	if dungeon.key and (leaderData.materials[dungeon.key] or 0) < 1 then
 		local key = Items.Materials[dungeon.key]
-		cancel(("🗝 %s precisa de uma %s (Mercador de Masmorras, na praça)."):format(leader.DisplayName, key and key.name or "chave"))
+		cancel(("%s precisa de uma %s (Mercador de Masmorras, na praça)."):format(leader.DisplayName, key and key.name or "chave"))
 		return
 	end
 	for _, member in list do
@@ -975,7 +975,7 @@ local function launch(dungeonId)
 	end
 	notifyRun(run, {
 		kind = "banner",
-		text = dungeon.icon .. " " .. string.upper(dungeon.name),
+		text = string.upper(dungeon.name),
 		sub = ("Andar 1 de %d  •  %d %s  •  uma corrida só: cair fora é recomeçar"):format(Dungeons.Floors, #group, if #group == 1 then "jogador" else "jogadores"),
 		color = Color3.fromRGB(220, 200, 150),
 		duration = 4,
@@ -1131,7 +1131,7 @@ local function update(run)
 	if state.champion and not state.champion.dead and not state.championFled and now >= state.championUntil then
 		state.championFled = true
 		EnemyService.despawn(state.champion)
-		notifyRun(run, { kind = "message", text = "💨 O Campeão fugiu..." })
+		notifyRun(run, { kind = "message", text = "O Campeão fugiu..." })
 		markRun(run)
 	end
 	if state.deadline and math.floor(state.deadline - now) % 5 == 0 then
@@ -1152,7 +1152,7 @@ local function update(run)
 		for _ = 1, count do
 			EnemyService.spawn(room.camp, state.info.pool[math.random(1, #state.info.pool)], spawnOptions(state, room))
 		end
-		notifyRun(run, { kind = "banner", text = ("🌊 ONDA %d/%d"):format(room.wave, room.waves), sub = "Mais inimigos chegando!", color = Color3.fromRGB(120, 190, 255), duration = 2 })
+		notifyRun(run, { kind = "banner", text = ("ONDA %d/%d"):format(room.wave, room.waves), sub = "Mais inimigos chegando!", color = Color3.fromRGB(120, 190, 255), duration = 2 })
 		markRun(run)
 		return
 	end
@@ -1172,7 +1172,7 @@ local function update(run)
 	-- próxima sala
 	if state.rooms[state.index + 1] then
 		if room.boss then
-			notifyRun(run, { kind = "banner", text = "👑 CHEFE DERROTADO!", sub = "Abram o baú e sigam em frente", color = Color3.fromRGB(255, 215, 90), duration = 3 })
+			notifyRun(run, { kind = "banner", text = "CHEFE DERROTADO!", sub = "Abram o baú e sigam em frente", color = Color3.fromRGB(255, 215, 90), duration = 3 })
 		end
 		startRoom(run, state, state.index + 1)
 		return
@@ -1199,7 +1199,7 @@ local function update(run)
 		state.objectiveDone = done == true
 		if done then
 			objectiveReward(run, state)
-			notifyRun(run, { kind = "message", text = "⭐ Objetivo extra concluído! Bônus de ouro e material para o grupo." })
+			notifyRun(run, { kind = "message", text = "Objetivo extra concluído! Bônus de ouro e material para o grupo." })
 		end
 	end
 	if floor >= Dungeons.Floors then
@@ -1208,7 +1208,7 @@ local function update(run)
 		local elapsed = os.clock() - run.started
 		notifyRun(run, {
 			kind = "banner",
-			text = ("🏆 %s CONCLUÍDA!"):format(string.upper(run.dungeon.name)),
+			text = ("%s CONCLUÍDA!"):format(string.upper(run.dungeon.name)),
 			sub = ("Os 20 andares em %d:%02d  •  Abram o baú e saiam pelo portal"):format(math.floor(elapsed / 60), math.floor(elapsed % 60)),
 			color = Color3.fromRGB(255, 215, 90),
 			duration = 6,
@@ -1217,9 +1217,9 @@ local function update(run)
 			DungeonService.QuestHook(player, "dungeon", run.dungeon.id, 1)
 		end
 	elseif room.boss then
-		notifyRun(run, { kind = "banner", text = "👑 CHEFE DERROTADO!", sub = "Abram o baú; a escada para o próximo andar está aberta", color = Color3.fromRGB(255, 215, 90), duration = 4 })
+		notifyRun(run, { kind = "banner", text = "CHEFE DERROTADO!", sub = "Abram o baú; a escada para o próximo andar está aberta", color = Color3.fromRGB(255, 215, 90), duration = 4 })
 	else
-		notifyRun(run, { kind = "banner", text = "⚔ ANDAR LIMPO!", sub = "A última grade subiu: desçam a escada", color = Color3.fromRGB(140, 230, 140), duration = 3 })
+		notifyRun(run, { kind = "banner", text = "ANDAR LIMPO!", sub = "A última grade subiu: desçam a escada", color = Color3.fromRGB(140, 230, 140), duration = 3 })
 	end
 	markRun(run)
 end
@@ -1255,7 +1255,7 @@ function DungeonService.init()
 					if not countdowns[id] then
 						countdowns[id] = os.clock() + COUNTDOWN
 						for _, member in list do
-							Remotes.Notify:FireClient(member, { kind = "banner", text = "⚔ TODOS PRONTOS", sub = ("Entrando em %d segundos..."):format(COUNTDOWN), color = Color3.fromRGB(140, 230, 140), duration = 2 })
+							Remotes.Notify:FireClient(member, { kind = "banner", text = "TODOS PRONTOS", sub = ("Entrando em %d segundos..."):format(COUNTDOWN), color = Color3.fromRGB(140, 230, 140), duration = 2 })
 							PlayerService.markDirty(member)
 						end
 					elseif os.clock() >= countdowns[id] then

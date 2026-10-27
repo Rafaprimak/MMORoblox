@@ -30,11 +30,11 @@ local function render()
 		local class = Classes.List[classId]
 		local role = Classes.Roles[class.role]
 		local card = UI.new("Frame", { Size = UDim2.fromOffset(210, 460), BackgroundColor3 = UI.Colors.Panel, LayoutOrder = i, Parent = cards }, { UI.corner(14), UI.stroke(class.color, 3) })
-		UI.label({ Text = class.icon, Position = UDim2.fromOffset(0, 10), Size = UDim2.new(1, 0, 0, 60), TextXAlignment = Enum.TextXAlignment.Center, Parent = card })
+		UI.icon(class.icon, { Position = UDim2.fromOffset(0, 10), Size = UDim2.new(1, 0, 0, 60), Parent = card })
 		UI.label({ Text = class.name, Position = UDim2.fromOffset(0, 74), Size = UDim2.new(1, 0, 0, 30), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = class.color, Font = Enum.Font.GothamBlack, Parent = card }, { UI.textStroke(1.5) })
 		if role then
 			local badge = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 104), Size = UDim2.fromOffset(150, 22), BackgroundColor3 = role.color, Parent = card }, { UI.corner(11) })
-			UI.label({ Text = role.icon .. " " .. string.upper(role.name), Size = UDim2.fromScale(1, 1), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = Color3.new(1, 1, 1), Parent = badge }, { UI.textStroke(1) })
+			UI.label({ Text = string.upper(role.name), Size = UDim2.fromScale(1, 1), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = Color3.new(1, 1, 1), Parent = badge }, { UI.textStroke(1) })
 		end
 		UI.label({ Text = class.description, Position = UDim2.fromOffset(10, 130), Size = UDim2.new(1, -20, 0, 54), TextScaled = false, TextSize = 14, TextWrapped = true, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Center, Parent = card })
 		statBar(card, 188, "Vida", class.health / 1.4, UI.Colors.Health)
@@ -43,19 +43,19 @@ local function render()
 		local weapons = {}
 		for weaponType in class.weapons do
 			local def = Items.WeaponTypes[weaponType]
-			table.insert(weapons, def.icon .. " " .. def.name)
+			table.insert(weapons, def.name)
 		end
 		table.sort(weapons)
 		UI.label({ Text = "Armas: " .. table.concat(weapons, ", "), Position = UDim2.fromOffset(12, 250), Size = UDim2.new(1, -24, 0, 32), TextScaled = false, TextSize = 13, TextWrapped = true, Parent = card })
 		local abilityLines = {}
 		for _, abilityId in class.abilities do
 			local ability = Classes.Abilities[abilityId]
-			table.insert(abilityLines, ("%s %s (Nv. %d)"):format(ability.icon, ability.name, ability.unlock))
+			table.insert(abilityLines, ("%s (Nv. %d)"):format(ability.name, ability.unlock))
 		end
 		UI.label({ Text = table.concat(abilityLines, "\n"), Position = UDim2.fromOffset(12, 286), Size = UDim2.new(1, -24, 0, 100), TextScaled = false, TextSize = 13, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.Gotham, Parent = card })
 		local current = data and data.class == classId
 		local button = UI.button({
-			Text = if current then "SUA CLASSE" elseif changeMode then ("TROCAR  💰%d"):format(Config.ClassChangePrice) else "ESCOLHER",
+			Text = if current then "SUA CLASSE" elseif changeMode then ("TROCAR  %d ouro"):format(Config.ClassChangePrice) else "ESCOLHER",
 			AnchorPoint = Vector2.new(0.5, 1),
 			Position = UDim2.new(0.5, 0, 1, -12),
 			Size = UDim2.new(1, -24, 0, 46),
@@ -70,7 +70,7 @@ local function render()
 			if result and result.ok then
 				Sounds.play("equip", 1, 0.7)
 				gui.Enabled = false
-				Popups.burst(class.icon .. " " .. string.upper(class.name), class.color, "Sua jornada começa! Fale com a Capitã Lyra (❗)")
+				Popups.burst(string.upper(class.name), class.color, "Sua jornada começa! Fale com a Capitã Lyra (!)")
 			end
 		end)
 	end

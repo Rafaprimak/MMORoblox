@@ -56,7 +56,7 @@ function ProgressionService.grant(player, reward, label)
 	end
 	if reward.title and Progression.Titles[reward.title] and not p.titles[reward.title] then
 		p.titles[reward.title] = true
-		Remotes.Notify:FireClient(player, { kind = "banner", text = "🏷 Título novo: " .. Progression.Titles[reward.title].name, sub = "Equipe na Jornada (tecla K)", color = Progression.Titles[reward.title].color, duration = 4 })
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "Título novo: " .. Progression.Titles[reward.title].name, sub = "Equipe na Jornada (tecla K)", color = Progression.Titles[reward.title].color, duration = 4 })
 	end
 	if reward.passXp then
 		ProgressionService.addPassXp(player, reward.passXp)

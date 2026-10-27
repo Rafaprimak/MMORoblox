@@ -79,7 +79,7 @@ end
 local function renderWindow()
 	local chest = Chests.List[selectedChest]
 	local data = State.data
-	win.title.Text = ("%s %s"):format(chest.icon, chest.name)
+	win.title.Text = chest.name
 	UI.clear(odds)
 	UI.label({ Text = "CHANCES REAIS", Size = UDim2.new(1, 0, 0, 20), Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = odds })
 	for i, entry in Rarities.odds(Chests.weightKey(chest), chest.minRarity) do
@@ -110,9 +110,9 @@ local function renderWindow()
 		return
 	end
 	local affordable = data and data.gold >= chest.price
-	buyButton.Text = ("ABRIR  •  💰 %s"):format(UI.formatNumber(chest.price))
+	buyButton.Text = ("ABRIR  •  %s ouro"):format(UI.formatNumber(chest.price))
 	buyButton.BackgroundColor3 = if affordable then Color3.fromRGB(230, 155, 30) else UI.Colors.Dark
-	againButton.Text = if affordable then ("ABRIR OUTRO  💰%s"):format(UI.formatNumber(chest.price)) else "Ouro insuficiente"
+	againButton.Text = if affordable then ("ABRIR OUTRO  %s ouro"):format(UI.formatNumber(chest.price)) else "Ouro insuficiente"
 	againButton.BackgroundColor3 = if affordable then Color3.fromRGB(230, 155, 30) else UI.Colors.Dark
 end
 
@@ -211,7 +211,7 @@ function Chest.reveal(item, chestId)
 	end)
 	resultName.Text = item.name
 	resultName.TextColor3 = rarity.color
-	resultInfo.Text = ("%s  •  %s %d  •  Nv. %d"):format(rarity.name, UI.statIcon(item), item.power, item.level)
+	resultInfo.Text = ("%s  •  %s %d  •  Nv. %d"):format(rarity.name, UI.statWord(item), item.power, item.level)
 	if rarity.rainbow then
 		Fx.registerRainbow(resultName, "TextColor3")
 	else
@@ -249,7 +249,7 @@ local function buy()
 end
 
 function Chest.init(screen)
-	win = Window.create(screen, { name = "Baus", title = "🎁 BAÚS", width = 720, height = 520, tabs = { "Bronze", "Prata", "Real", "Celestial" }, accent = UI.Colors.Gold })
+	win = Window.create(screen, { icon = "present", name = "Baus", title = "BAÚS", width = 720, height = 520, tabs = { "Bronze", "Prata", "Real", "Celestial" }, accent = UI.Colors.Gold })
 	odds = UI.new("Frame", { Size = UDim2.new(0, 250, 1, -60), BackgroundTransparency = 1, Parent = win.content }, { UI.list(4) })
 	possibleTitle = UI.label({ Text = "ITENS POSSÍVEIS (de Comum a Secreto)", Position = UDim2.fromOffset(262, 0), Size = UDim2.new(1, -262, 0, 20), Font = Enum.Font.GothamBlack, Parent = win.content })
 	possible = UI.new("ScrollingFrame", { Position = UDim2.fromOffset(262, 24), Size = UDim2.new(1, -262, 1, -84), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 5, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, {

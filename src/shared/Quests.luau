@@ -21,7 +21,7 @@ Quests.List = {
 			{ type = "talk", npc = "kael", amount = 1, text = "Fale com o Mestre Kael" },
 			{ type = "hit", target = "boneco", amount = 12, text = "Golpeie o boneco de treino" },
 			{ type = "dodge", amount = 3, text = "Esquive (tecla Q)" },
-			{ type = "parry", amount = 2, text = "Apare o golpe do boneco (F quando aparecer ❗)" },
+			{ type = "parry", amount = 2, text = "Apare o golpe do boneco (F quando aparecer !)" },
 		},
 		reward = { xp = 80, gold = 60, consumables = { pocao_vida = 3 } },
 	}),

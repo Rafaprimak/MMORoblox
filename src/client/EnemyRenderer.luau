@@ -69,7 +69,7 @@ local function createHealthGui(rec)
 	local postureBack = UI.new("Frame", { Position = UDim2.fromScale(0.15, 0.82), Size = UDim2.fromScale(0.7, 0.13), BackgroundColor3 = Color3.fromRGB(20, 20, 25), BackgroundTransparency = 0.2, Parent = gui }, { UI.corner(3) })
 	rec.postureFill = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.fromScale(0, 1), BackgroundColor3 = Color3.fromRGB(255, 200, 50), Parent = postureBack }, { UI.corner(3) })
 	rec.postureBack = postureBack
-	-- aviso de golpe: ❗ amarelo = dá para aparar (F) • ‼ vermelho = só esquivar (Q)
+	-- aviso de golpe:  amarelo = dá para aparar (F) • ‼ vermelho = só esquivar (Q)
 	local warnGui = UI.new("BillboardGui", { Size = UDim2.fromOffset(60, 60), StudsOffset = Vector3.new(0, 4.2, 0), MaxDistance = 120, AlwaysOnTop = true, LightInfluence = 0, Enabled = false, Adornee = anchor, Parent = anchor })
 	rec.warnLabel = UI.label({ Text = "!", Size = UDim2.fromScale(1, 1), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = Color3.fromRGB(255, 220, 60), Parent = warnGui }, { UI.textStroke(3) })
 	rec.warnGui = warnGui

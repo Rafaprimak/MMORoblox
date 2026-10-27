@@ -134,7 +134,7 @@ local function render(force)
 end
 
 function FusionWindow.init(screen)
-	win = Window.create(screen, { name = "Fusao", title = "⚗ FUSÃO DE EQUIPAMENTOS", width = 780, height = 560, accent = Color3.fromRGB(190, 120, 255) })
+	win = Window.create(screen, { icon = "round-bottom-flask", name = "Fusao", title = "FUSÃO DE EQUIPAMENTOS", width = 780, height = 560, accent = Color3.fromRGB(190, 120, 255) })
 	UI.label({ Text = ("Junte %d itens da mesma raridade (não equipados) e eles viram 1 item de raridade maior, de uma das bases que você colocou, no maior nível entre eles. Únicos não entram."):format(Config.Fusion.count), Size = UDim2.new(1, 0, 0, 34), TextScaled = false, TextSize = 13, TextWrapped = true, TextColor3 = UI.Colors.SubText, Parent = win.content })
 	rarityBar = UI.new("Frame", { Position = UDim2.fromOffset(0, 38), Size = UDim2.new(1, 0, 0, 32), BackgroundTransparency = 1, Parent = win.content }, { UI.list(6, true) })
 	grid = UI.new("ScrollingFrame", { Position = UDim2.fromOffset(0, 76), Size = UDim2.new(1, -270, 1, -76), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, {

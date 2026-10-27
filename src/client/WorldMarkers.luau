@@ -1,4 +1,4 @@
--- Marcadores no mundo: nome dos NPCs com ❗ (missão disponível) / ❓ (entregar),
+-- Marcadores no mundo: nome dos NPCs com  (missão disponível) /  (entregar),
 -- e o marcador do objetivo da missão rastreada (feixe + distância).
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -38,10 +38,12 @@ local function attachNpcGui(instance)
 	end
 	local adornee = if instance:IsA("Model") then (instance:FindFirstChild("Head") or instance.PrimaryPart) else instance
 	local gui = UI.new("BillboardGui", { Size = UDim2.fromOffset(220, 74), StudsOffset = Vector3.new(0, 2.6, 0), MaxDistance = 110, LightInfluence = 0, Adornee = adornee, Parent = adornee })
-	local marker = UI.label({ Text = "", Size = UDim2.new(1, 0, 0, 34), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = UI.Colors.Gold, Parent = gui }, { UI.textStroke(2.5) })
+	local marker = UI.icon(nil, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.fromOffset(36, 36), Parent = gui })
+	-- "!" de missão nova: letra grande dourada (sinal clássico de MMO)
+	local sign = UI.label({ Text = "!", Visible = false, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, -0.08), Size = UDim2.fromOffset(40, 40), TextXAlignment = Enum.TextXAlignment.Center, FontFace = UI.TitleFont, TextColor3 = UI.Colors.Gold, Parent = gui }, { UI.textStroke(2.5) })
 	UI.label({ Text = npc.name, Position = UDim2.fromOffset(0, 34), Size = UDim2.new(1, 0, 0, 22), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, Parent = gui }, { UI.textStroke(1.5) })
 	UI.label({ Text = npc.title, Position = UDim2.fromOffset(0, 56), Size = UDim2.new(1, 0, 0, 16), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Parent = gui }, { UI.textStroke(1) })
-	npcGuis[npcId] = { gui = gui, marker = marker }
+	npcGuis[npcId] = { gui = gui, marker = marker, sign = sign }
 end
 
 local function updateNpcMarkers(data)
@@ -64,16 +66,17 @@ local function updateNpcMarkers(data)
 	for npcId, info in npcGuis do
 		local available = quests and quests.available and quests.available[npcId]
 		if ready[npcId] == true then
-			info.marker.Text = "❓"
-			info.marker.TextColor3 = UI.Colors.Green
+			info.sign.Visible = false
+			UI.setIcon(info.marker, "help", UI.Colors.Green)
 		elseif available and #available > 0 then
-			info.marker.Text = "❗"
-			info.marker.TextColor3 = UI.Colors.Gold
+			info.sign.Visible = true
+			UI.setIcon(info.marker, nil)
 		elseif ready[npcId] == "talk" then
-			info.marker.Text = "💬"
-			info.marker.TextColor3 = Color3.fromRGB(150, 220, 255)
+			info.sign.Visible = false
+			UI.setIcon(info.marker, "talk", Color3.fromRGB(150, 220, 255))
 		else
-			info.marker.Text = ""
+			info.sign.Visible = false
+			UI.setIcon(info.marker, nil)
 		end
 	end
 end
@@ -253,7 +256,7 @@ function WorldMarkers.init()
 		end
 		beam.Parent = workspace
 		beam.CFrame = CFrame.new(target.position + Vector3.new(0, 30, 0)) * CFrame.Angles(0, 0, math.rad(90))
-		beamLabel.Text = ("📍 %s • %dm"):format(target.text, math.floor(distance))
+		beamLabel.Text = ("%s • %dm"):format(target.text, math.floor(distance))
 	end)
 end
 

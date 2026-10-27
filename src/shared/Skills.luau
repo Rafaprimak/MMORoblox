@@ -3,21 +3,21 @@ local Skills = {}
 
 Skills.List = {
 	-- maestrias
-	espadas = { name = "Espadas", icon = "🗡️", kind = "mastery", weaponType = "sword" },
-	machados = { name = "Machados", icon = "🪓", kind = "mastery", weaponType = "axe" },
-	martelos = { name = "Martelos", icon = "🔨", kind = "mastery", weaponType = "hammer" },
-	lancas = { name = "Lanças", icon = "🔱", kind = "mastery", weaponType = "spear" },
-	katanas = { name = "Katanas", icon = "⚔️", kind = "mastery", weaponType = "katana" },
-	adagas = { name = "Adagas", icon = "🔪", kind = "mastery", weaponType = "dagger" },
-	arcos = { name = "Arcos", icon = "🏹", kind = "mastery", weaponType = "bow" },
-	cajados = { name = "Cajados", icon = "🔮", kind = "mastery", weaponType = "staff" },
+	espadas = { name = "Espadas", icon = "broadsword", kind = "mastery", weaponType = "sword" },
+	machados = { name = "Machados", icon = "battle-axe", kind = "mastery", weaponType = "axe" },
+	martelos = { name = "Martelos", icon = "hammer-drop", kind = "mastery", weaponType = "hammer" },
+	lancas = { name = "Lanças", icon = "trident", kind = "mastery", weaponType = "spear" },
+	katanas = { name = "Katanas", icon = "crossed-swords", kind = "mastery", weaponType = "katana" },
+	adagas = { name = "Adagas", icon = "bowie-knife", kind = "mastery", weaponType = "dagger" },
+	arcos = { name = "Arcos", icon = "high-shot", kind = "mastery", weaponType = "bow" },
+	cajados = { name = "Cajados", icon = "crystal-ball", kind = "mastery", weaponType = "staff" },
 	-- profissões
-	mineracao = { name = "Mineração", icon = "⛏️", kind = "profession", description = "Minere rochas. Níveis liberam ferro (5) e mitril (15)." },
-	herbalismo = { name = "Herbalismo", icon = "🌿", kind = "profession", description = "Colha plantas. Níveis liberam cogumelos (4) e flor lunar (12)." },
-	lenhador = { name = "Lenhador", icon = "🪓", kind = "profession", description = "Corte árvores. Nível 8 libera madeira antiga." },
-	ferraria = { name = "Ferraria", icon = "⚒️", kind = "profession", description = "Forje equipamentos. Níveis altos aumentam a chance de raridade." },
-	alquimia = { name = "Alquimia", icon = "⚗️", kind = "profession", description = "Prepare poções. Níveis altos podem render poções extras." },
-	encantamento = { name = "Encantamento", icon = "✨", kind = "profession", description = "Encante itens. Níveis altos dão tiers maiores." },
+	mineracao = { name = "Mineração", icon = "war-pick", kind = "profession", description = "Minere rochas. Níveis liberam ferro (5) e mitril (15)." },
+	herbalismo = { name = "Herbalismo", icon = "herbs-bundle", kind = "profession", description = "Colha plantas. Níveis liberam cogumelos (4) e flor lunar (12)." },
+	lenhador = { name = "Lenhador", icon = "battle-axe", kind = "profession", description = "Corte árvores. Nível 8 libera madeira antiga." },
+	ferraria = { name = "Ferraria", icon = "anvil-impact", kind = "profession", description = "Forje equipamentos. Níveis altos aumentam a chance de raridade." },
+	alquimia = { name = "Alquimia", icon = "round-bottom-flask", kind = "profession", description = "Prepare poções. Níveis altos podem render poções extras." },
+	encantamento = { name = "Encantamento", icon = "sparkles", kind = "profession", description = "Encante itens. Níveis altos dão tiers maiores." },
 }
 
 Skills.MasteryOrder = { "espadas", "machados", "martelos", "lancas", "katanas", "adagas", "arcos", "cajados" }

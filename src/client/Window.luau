@@ -67,8 +67,14 @@ function Window.create(screen, options)
 		TextColor3 = Color3.fromRGB(255, 232, 170),
 		TextXAlignment = Enum.TextXAlignment.Center,
 		ZIndex = 7,
+		LayoutOrder = 2,
 		Parent = ribbon,
 	}, { UI.textStroke(1.5) })
+	-- ícone da janela à esquerda do título (e um losango do outro lado, para equilibrar)
+	if options.icon then
+		UI.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = ribbon })
+		UI.icon(options.icon, { Size = UDim2.fromOffset(26, 26), LayoutOrder = 1, Color = Color3.fromRGB(255, 226, 150), ZIndex = 7, Parent = ribbon })
+	end
 	local close = UI.button({ Text = "✕", Position = UDim2.new(1, -48, 0, 12), Size = UDim2.fromOffset(34, 32), BackgroundColor3 = Color3.fromRGB(150, 40, 45), ZIndex = 6, Parent = win.frame })
 	close.MouseButton1Click:Connect(function()
 		win:close()

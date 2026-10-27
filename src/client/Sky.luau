@@ -39,10 +39,10 @@ function Sky.isNight()
 	return workspace:GetAttribute("Night") == true
 end
 
--- texto curto para o HUD: "☀ 09:30" ou "🌙 22:10"
+-- texto curto para o HUD: " 09:30" ou " 22:10"
 function Sky.label()
 	local clock = DayNight.now()
-	return (if DayNight.isNight(clock) then "🌙 " else "☀ ") .. DayNight.format(clock)
+	return (if DayNight.isNight(clock) then "Noite  " else "Dia  ") .. DayNight.format(clock)
 end
 
 function Sky.init()

@@ -193,8 +193,12 @@ function LockOn.init()
 			end
 			return Enum.ContextActionResult.Pass
 		end, true)
-		ContextActionService:SetTitle("Travar", "🎯")
+		ContextActionService:SetTitle("Travar", "")
 		ContextActionService:SetPosition("Travar", UDim2.new(1, -290, 1, -200))
+		local button = ContextActionService:GetButton("Travar")
+		if button then
+			UI.icon("archery-target", { Size = UDim2.fromScale(0.58, 0.58), Position = UDim2.fromScale(0.21, 0.21), Parent = button })
+		end
 	end
 
 	-- câmera e rosto do personagem (roda depois da câmera padrão do Roblox)

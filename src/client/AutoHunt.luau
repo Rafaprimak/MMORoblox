@@ -121,7 +121,7 @@ function AutoHunt.init(screen)
 		Parent = screen,
 	}, { UI.corner(10) })
 	UI.ornate(banner, UI.Colors.Trim, 3)
-	UI.label({ Text = "⚔ AUTO CAÇAR (VIP, pode ficar AFK)  •  mova-se ou aperte N para parar", Size = UDim2.new(1, -16, 1, 0), Position = UDim2.fromOffset(8, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, Parent = banner }, { UI.textStroke(1) })
+	UI.label({ Text = "AUTO CAÇAR (VIP, pode ficar AFK)  •  mova-se ou aperte N para parar", Size = UDim2.new(1, -16, 1, 0), Position = UDim2.fromOffset(8, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, Parent = banner }, { UI.textStroke(1) })
 
 	local function refreshAnchor()
 		local on = AutoHunt.isOn()

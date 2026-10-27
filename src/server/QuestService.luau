@@ -257,7 +257,7 @@ function QuestService.accept(player, qid)
 	end
 	if def.grantsMount and not data.mount then
 		data.mount = true
-		Remotes.Notify:FireClient(player, { kind = "banner", text = "🐴 Montaria liberada!", sub = "Aperte H para montar e desmontar", color = Color3.fromRGB(230, 190, 120) })
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "Montaria liberada!", sub = "Aperte H para montar e desmontar", color = Color3.fromRGB(230, 190, 120) })
 	end
 	Remotes.Notify:FireClient(player, { kind = "questAccepted", title = def.name })
 	checkReady(player, data, qid)

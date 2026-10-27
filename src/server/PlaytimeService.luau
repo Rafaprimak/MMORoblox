@@ -93,7 +93,7 @@ task.spawn(function()
 				for index, reward in Config.PlaytimeRewards do
 					if not s.announced[index] and not s.claimed[index] and elapsed >= reward.minutes * 60 then
 						s.announced[index] = true
-						Remotes.Notify:FireClient(player, { kind = "message", text = ("🎁 Presente de %d minutos liberado! Abra a janela Presentes (tecla U)."):format(reward.minutes) })
+						Remotes.Notify:FireClient(player, { kind = "message", text = ("Presente de %d minutos liberado! Abra a janela Presentes (tecla U)."):format(reward.minutes) })
 						PlayerService.markDirty(player)
 					end
 				end

@@ -1,5 +1,8 @@
--- Utilitários de interface: criação de instâncias, cores e formatação.
+-- Utilitários de interface: criação de instâncias, cores, ícones e formatação.
 local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Icons = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Icons"))
 
 local UI = {}
 
@@ -34,6 +37,7 @@ UI.Colors = {
 	Mana = Color3.fromRGB(70, 130, 255),
 	Stamina = Color3.fromRGB(240, 200, 60),
 	Dark = Color3.fromRGB(60, 60, 72),
+	Icon = Color3.fromRGB(255, 234, 180), -- tinta padrão dos ícones (marfim dourado)
 }
 
 function UI.new(className, props, children)
@@ -291,8 +295,68 @@ function UI.formatPercent(percent)
 	return ("%.2f%%"):format(percent)
 end
 
+-- nome do ícone do atributo principal do item (vida para armaduras, ataque para o resto)
 function UI.statIcon(item)
-	return if item.slot == "armor" or item.slot == "helmet" or item.slot == "boots" then "❤" else "⚔"
+	return if item.slot == "armor" or item.slot == "helmet" or item.slot == "boots" then "heart-plus" else "crossed-swords"
+end
+
+-- palavra do atributo principal (para textos)
+function UI.statWord(item)
+	return if item.slot == "armor" or item.slot == "helmet" or item.slot == "boots" then "Vida" else "Ataque"
+end
+
+-- ===================== ÍCONES =====================
+-- Ícone do atlas (ver Icons): moldura transparente com sombra, desenho tingido com brilho metálico
+-- (degradê) e um losango de reserva enquanto a folha não foi enviada ao Roblox.
+-- props: as de qualquer GuiObject (Size, Position, AnchorPoint, LayoutOrder, ZIndex, Parent) +
+-- Color (tinta) e Transparency.
+function UI.setIcon(holder, name, color, transparency)
+	if not holder then
+		return
+	end
+	local image, offset, size = Icons.get(name)
+	local shadow, art, reserve = holder:FindFirstChild("Sombra"), holder:FindFirstChild("Imagem"), holder:FindFirstChild("Reserva")
+	if not art then
+		return
+	end
+	if color then
+		holder:SetAttribute("Tint", color)
+	end
+	local tint = holder:GetAttribute("Tint") or UI.Colors.Icon
+	if transparency then
+		holder:SetAttribute("Fade", transparency)
+	end
+	local fade = holder:GetAttribute("Fade") or 0
+	for _, layer in { shadow, art } do
+		layer.Image = image or ""
+		layer.ImageRectOffset = offset or Vector2.zero
+		layer.ImageRectSize = size or Vector2.zero
+	end
+	art.ImageColor3 = tint
+	art.ImageTransparency = fade
+	shadow.ImageTransparency = 0.45 + fade * 0.55
+	reserve.Visible = image == nil and name ~= nil and name ~= ""
+	reserve.TextColor3 = tint
+	reserve.TextTransparency = fade
+end
+
+function UI.icon(name, props)
+	props = props or {}
+	local holder = UI.new("Frame", { Name = "Icone", BackgroundTransparency = 1, Size = props.Size or UDim2.fromOffset(32, 32) })
+	for key, value in props do
+		if key ~= "Color" and key ~= "Transparency" and key ~= "Parent" then
+			holder[key] = value
+		end
+	end
+	local zIndex = props.ZIndex or 1
+	UI.new("ImageLabel", { Name = "Sombra", BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, ImageColor3 = Color3.new(0, 0, 0), Position = UDim2.new(0, 2, 0, 2), Size = UDim2.fromScale(1, 1), ZIndex = zIndex, Parent = holder })
+	UI.new("ImageLabel", { Name = "Imagem", BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Size = UDim2.fromScale(1, 1), ZIndex = zIndex, Parent = holder }, {
+		UI.new("UIGradient", { Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(190, 180, 165)), Rotation = 90 }),
+	})
+	UI.new("TextLabel", { Name = "Reserva", Text = "◆", BackgroundTransparency = 1, TextScaled = true, Font = Enum.Font.GothamBold, Size = UDim2.fromScale(0.6, 0.6), Position = UDim2.fromScale(0.2, 0.2), Visible = false, ZIndex = zIndex, Parent = holder })
+	UI.setIcon(holder, name, props.Color, props.Transparency)
+	holder.Parent = props.Parent
+	return holder
 end
 
 -- Ajusta a escala de uma janela ao tamanho da tela

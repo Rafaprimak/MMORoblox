@@ -20,16 +20,28 @@ local win, text, options
 local currentNpc = nil
 
 local SERVICE_LABELS = {
-	forge = "⚒️ Forja (criar e aprimorar)",
-	enchant = "✨ Encantar e desmontar",
-	alchemy = "⚗️ Alquimia (poções)",
-	shop = "🛒 Loja",
-	chest = "🎁 Baús do Hunter",
-	pets = "🐾 Ovos de Pet",
-	classes = "🧙 Classes",
-	stable = "🐴 Montaria",
-	dungeon = "🏰 Mercado das Masmorras",
-	fusion = "⚗ Fusão de equipamentos (9 → 1)",
+	forge = "Forja (criar e aprimorar)",
+	enchant = "Encantar e desmontar",
+	alchemy = "Alquimia (poções)",
+	shop = "Loja",
+	chest = "Baús do Hunter",
+	pets = "Ovos de Pet",
+	classes = "Classes",
+	stable = "Montaria",
+	dungeon = "Mercado das Masmorras",
+	fusion = "Fusão de equipamentos (9 → 1)",
+}
+local SERVICE_ICONS = {
+	forge = "anvil-impact",
+	enchant = "sparkles",
+	alchemy = "bubbling-flask",
+	shop = "shopping-cart",
+	chest = "present",
+	pets = "egg-clutch",
+	classes = "wizard-face",
+	stable = "horse-head",
+	dungeon = "castle",
+	fusion = "round-bottom-flask",
 }
 
 local function objectiveText(objective)
@@ -40,9 +52,14 @@ local function objectiveText(objective)
 	return "• " .. objective.text .. (if objective.amount > 1 then (" x%d"):format(objective.amount) else "") .. extra
 end
 
-local function option(label, color, order, callback)
+local function option(label, color, order, callback, icon)
 	local button = UI.button({ Text = label, Size = UDim2.new(1, 0, 0, 34), BackgroundColor3 = color or UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = order, Parent = options })
 	button.MouseButton1Click:Connect(callback)
+	if icon then
+		local pad = button:FindFirstChildOfClass("UIPadding") or UI.new("UIPadding", { Parent = button })
+		pad.PaddingLeft = UDim.new(0, 36)
+		UI.icon(icon, { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, -30, 0.5, 0), Size = UDim2.fromOffset(24, 24), ZIndex = button.ZIndex + 1, Parent = button })
+	end
 	return button
 end
 
@@ -60,8 +77,9 @@ local function showQuest(qid)
 	end
 	table.insert(lines, "")
 	table.insert(lines, "Recompensa: " .. Quests.rewardText(def.reward))
-	text.Text = "📜 " .. def.name .. "\n\n" .. table.concat(lines, "\n")
-	option("✅ Aceitar missão", UI.Colors.Green, 1, function()
+	text.Text = def.name .. "\n\n" .. table.concat(lines, "\n")
+	text:SetAttribute("LendoMissao", true)
+	option("✔ Aceitar missão", UI.Colors.Green, 1, function()
 		local result = State.request("acceptQuest", qid)
 		if result and result.ok then
 			Sounds.play("ping", 1.4, 0.5)
@@ -78,6 +96,7 @@ function showMain()
 	end
 	UI.clear(options)
 	text.Text = npc.greeting or "..."
+	text:SetAttribute("LendoMissao", false)
 	local data = State.data
 	local order = 1
 	if data and data.quests then
@@ -85,7 +104,7 @@ function showMain()
 		for _, entry in data.quests.active do
 			local def = Quests.ById[entry.id]
 			if def and entry.ready and def.turnIn == currentNpc then
-				option("❓ Entregar: " .. def.name, Color3.fromRGB(60, 140, 70), order, function()
+				option("? Entregar: " .. def.name, Color3.fromRGB(60, 140, 70), order, function()
 					local result = State.request("turnInQuest", entry.id)
 					if result and result.ok then
 						Sounds.play("ping", 1.6, 0.6)
@@ -99,7 +118,7 @@ function showMain()
 		for _, qid in (data.quests.available and data.quests.available[currentNpc] or {}) do
 			local def = Quests.ById[qid]
 			if def then
-				option("❗ " .. def.name .. (if def.daily then " (contrato)" else ""), Color3.fromRGB(150, 120, 40), order, function()
+				option("! " .. def.name .. (if def.daily then " (contrato)" else ""), Color3.fromRGB(150, 120, 40), order, function()
 					showQuest(qid)
 				end)
 				order += 1
@@ -110,7 +129,7 @@ function showMain()
 		if SERVICE_LABELS[service] and Dialog.services[service] then
 			option(SERVICE_LABELS[service], UI.Colors.Accent, order, function()
 				Dialog.services[service](currentNpc)
-			end)
+			end, SERVICE_ICONS[service])
 			order += 1
 		end
 	end
@@ -122,7 +141,7 @@ function showMain()
 		end
 		text.Text = ("%s\n\nContratos de hoje concluídos: %d/%d  •  Renovam em %s\nBônus por completar todos: %s"):format(npc.greeting, doneCount, #daily.offered, UI.formatTime(daily.resetIn), Quests.rewardText(Quests.DailyBonus))
 	end
-	option("👋 Tchau", UI.Colors.Dark, 99, function()
+	option("Tchau", UI.Colors.Dark, 99, function()
 		win:close()
 	end)
 end
@@ -152,7 +171,7 @@ function Dialog.init(screen)
 	State.Changed:Connect(function()
 		if win:isOpen() and currentNpc then
 			-- atualiza só a tela principal (não interrompe quem está lendo uma missão)
-			if not string.find(text.Text, "^📜") then
+			if not text:GetAttribute("LendoMissao") then
 				showMain()
 			end
 		end
@@ -174,7 +193,7 @@ end
 -- usado por outras janelas
 Dialog.materialName = function(id)
 	local def = Items.Materials[id]
-	return if def then def.icon .. " " .. def.name else id
+	return if def then def.name else id
 end
 
 return Dialog

@@ -452,7 +452,7 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 		s.iframesUntil = now + 2
 		humanoid.Health = humanoid.MaxHealth * 0.5
 		Remotes.Fx:FireAllClients("heal", player, math.floor(humanoid.MaxHealth * 0.5))
-		Remotes.Notify:FireClient(player, { kind = "banner", text = "💀 FILACTÉRIO!", sub = "Sua alma voltou ao corpo", color = Color3.fromRGB(170, 130, 255), duration = 2.5 })
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "FILACTÉRIO!", sub = "Sua alma voltou ao corpo", color = Color3.fromRGB(170, 130, 255), duration = 2.5 })
 		return "evaded"
 	end
 	-- perk Segunda Chance: o golpe fatal deixa com 1 de vida (a cada 90s)
@@ -460,7 +460,7 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 		final = math.max(0, math.floor(humanoid.Health) - 1)
 		s.secondChanceAt = now + 90
 		s.iframesUntil = now + 2
-		Remotes.Notify:FireClient(player, { kind = "banner", text = "😇 SEGUNDA CHANCE!", sub = "Invencível por 2 segundos", color = Color3.fromRGB(255, 230, 140), duration = 2.5 })
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "SEGUNDA CHANCE!", sub = "Invencível por 2 segundos", color = Color3.fromRGB(255, 230, 140), duration = 2.5 })
 	end
 	-- perk Espinhos: devolve parte do dano corpo a corpo
 	if stats.perks.espinhos and options.source and not options.ranged then
@@ -679,7 +679,7 @@ function PlayerService.addXP(player, amount)
 		local newRank = Config.getRank(data.level)
 		if newRank.name ~= oldRank.name then
 			Remotes.Notify:FireClient(player, { kind = "rankup", rank = newRank.name })
-			Remotes.Notify:FireAllClients({ kind = "announce", text = ("⭐ %s alcançou o Rank %s!"):format(player.DisplayName, newRank.name), color = newRank.color })
+			Remotes.Notify:FireAllClients({ kind = "announce", text = ("%s alcançou o Rank %s!"):format(player.DisplayName, newRank.name), color = newRank.color })
 		end
 		PlayerService.refreshCharacter(player, { heal = true })
 		local s = state[player]
@@ -780,7 +780,7 @@ function PlayerService.addItem(player, item, options)
 		Remotes.Notify:FireClient(player, { kind = "loot", item = Items.describe(item, false) })
 	end
 	if rarity.order >= 6 then
-		local announcement = { kind = "announce", text = ("🔥 %s conseguiu %s [%s]!"):format(player.DisplayName, Items.displayName(item), rarity.name), rarity = rarity.id }
+		local announcement = { kind = "announce", text = ("%s conseguiu %s [%s]!"):format(player.DisplayName, Items.displayName(item), rarity.name), rarity = rarity.id }
 		task.delay(if options.silent then 5 else 0.5, function()
 			Remotes.Notify:FireAllClients(announcement)
 		end)

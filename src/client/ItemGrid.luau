@@ -76,12 +76,14 @@ function ItemGrid.render(frame, items, selectedUid, onSelect, filter)
 			UI.label({ Text = "◆", AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -4, 0.58, 0), Size = UDim2.fromOffset(14, 14), TextColor3 = Color3.fromRGB(120, 255, 170), ZIndex = 4, Parent = cell }, { UI.textStroke(1) })
 		end
 		UI.label({ Text = item.name, Size = UDim2.new(1, -6, 0.18, 0), Position = UDim2.new(0, 3, 0.56, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = rarity.color, Parent = cell }, { UI.textStroke(1) })
-		UI.label({ Text = UI.statIcon(item) .. " " .. item.power, Size = UDim2.new(1, -6, 0.16, 0), Position = UDim2.new(0, 3, 0.78, 0), TextXAlignment = Enum.TextXAlignment.Center, Parent = cell }, { UI.textStroke(1) })
+		local statRow = UI.new("Frame", { Size = UDim2.new(1, -6, 0.16, 0), Position = UDim2.new(0, 3, 0.78, 0), BackgroundTransparency = 1, Parent = cell })
+		UI.icon(UI.statIcon(item), { SizeConstraint = Enum.SizeConstraint.RelativeYY, Size = UDim2.fromScale(1, 1), Position = UDim2.fromScale(0.1, 0), Parent = statRow })
+		UI.label({ Text = tostring(item.power), Size = UDim2.fromScale(0.6, 1), Position = UDim2.fromScale(0.36, 0), Parent = statRow }, { UI.textStroke(1) })
 		if item.upgrade > 0 then
 			UI.label({ Text = "+" .. item.upgrade, Size = UDim2.fromOffset(28, 15), Position = UDim2.fromOffset(4, 3), TextColor3 = UI.Colors.Gold, Parent = cell }, { UI.textStroke(1) })
 		end
 		if item.enchant then
-			UI.label({ Text = "✨", Size = UDim2.fromOffset(16, 16), Position = UDim2.new(1, -20, 1, -20), Parent = cell })
+			UI.icon("sparkles", { Size = UDim2.fromOffset(16, 16), Position = UDim2.new(1, -20, 1, -20), Color = Color3.fromRGB(210, 170, 255), Parent = cell })
 		end
 		if item.equipped then
 			UI.label({ Text = "E", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -4, 0, 4), Size = UDim2.fromOffset(18, 18), BackgroundTransparency = 0, BackgroundColor3 = UI.Colors.Green, TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, Parent = cell }, { UI.corner(9) })
