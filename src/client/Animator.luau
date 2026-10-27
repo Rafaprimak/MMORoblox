@@ -1,6 +1,7 @@
 -- Animações procedurais dos personagens: TUDO é calculado aqui, sem arquivos de animação.
 -- As animações padrão do Roblox ficam desligadas (o script "Animate" do jogador local é parado) e
--- este módulo escreve todas as juntas (Motor6D.Transform) em RunService.Stepped.
+-- este módulo escreve todas as juntas (.Transform) em RunService.Stepped. As juntas podem ser Motor6D (rig
+-- antigo) ou AnimationConstraint ("Avatar Joint Upgrade", o padrão novo do Roblox): as duas têm Transform.
 -- Camadas, de baixo para cima:
 --   1) locomoção: parado (respiração, troca de peso, olhar), andar/correr com ciclo de passo
 --      (contato → descida → passagem → subida), braços em contrabalanço, quadril girando para o lado
@@ -235,6 +236,24 @@ local LOWER = { RH = true, LH = true, RK = true, LK = true, RA = true, LA = true
 local states = setmetatable({}, { __mode = "k" }) -- [character] = estado de animação
 local motorCache = setmetatable({}, { __mode = "k" })
 
+local function isJoint(item)
+	return item:IsA("Motor6D") or item:IsA("AnimationConstraint")
+end
+
+-- junta que move a peça: pelo nome; se não achar, a AnimationConstraint cujo Attachment1 está na peça
+local function findJoint(character, part, name)
+	local joint = part:FindFirstChild(name)
+	if joint and isJoint(joint) then
+		return joint
+	end
+	for _, item in character:GetDescendants() do
+		if item:IsA("AnimationConstraint") and item.Attachment1 and item.Attachment1.Parent == part then
+			return item
+		end
+	end
+	return nil
+end
+
 local function motors(character)
 	local cached = motorCache[character]
 	if cached and cached.RS and cached.RS.Parent then
@@ -243,8 +262,8 @@ local function motors(character)
 	local result = {}
 	for key, path in JOINTS do
 		local part = character:FindFirstChild(path[1])
-		local motor = part and part:FindFirstChild(path[2])
-		if motor and motor:IsA("Motor6D") then
+		local motor = part and findJoint(character, part, path[2])
+		if motor then
 			result[key] = motor
 		end
 	end

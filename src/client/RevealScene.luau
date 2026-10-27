@@ -1,5 +1,5 @@
 -- Cena 3D de revelação (no fundo da tela): uma cópia do SEU personagem abre o baú ou vê o ovo chocar.
--- Usa ViewportFrame + WorldModel (as juntas Motor6D funcionam lá dentro), câmera própria e peças
+-- Usa ViewportFrame + WorldModel (as juntas Motor6D/AnimationConstraint viram poses calculadas), câmera própria e peças
 -- animadas por código. Partículas não aparecem em ViewportFrame, então brilho e raios são peças neon.
 --
 -- Baú:  local scene = RevealScene.chest(parent, chestColor)  → ajoelha e mexe no baú (antecipação)
@@ -48,6 +48,27 @@ local MOTOR_KEY = {
 	RightShoulder = "RS", RightElbow = "RE", LeftShoulder = "LS", LeftElbow = "LE", Waist = "W", Neck = "N",
 	Root = "RT", RightHip = "RH", LeftHip = "LH", RightKnee = "RK", LeftKnee = "LK",
 }
+-- mesma junta pela peça que ela move (AnimationConstraint pode ter outro nome)
+local PART_KEY = {
+	RightUpperArm = "RS", RightLowerArm = "RE", LeftUpperArm = "LS", LeftLowerArm = "LE", UpperTorso = "W", Head = "N",
+	LowerTorso = "RT", RightUpperLeg = "RH", LeftUpperLeg = "LH", RightLowerLeg = "RK", LeftLowerLeg = "LK",
+}
+
+-- junta como { part0, part1, c0, c1, key }: Motor6D/Weld (rig antigo) ou AnimationConstraint
+-- ("Avatar Joint Upgrade", padrão novo do Roblox: as peças ficam presas por anexos)
+local function jointInfo(item)
+	if item:IsA("AnimationConstraint") then
+		local a0, a1 = item.Attachment0, item.Attachment1
+		local p0, p1 = a0 and a0.Parent, a1 and a1.Parent
+		if p0 and p1 and p0:IsA("BasePart") and p1:IsA("BasePart") then
+			return p0, p1, a0.CFrame, a1.CFrame, MOTOR_KEY[item.Name] or PART_KEY[p1.Name]
+		end
+	elseif (item:IsA("Motor6D") or item:IsA("Weld")) and item.Part0 and item.Part1 then
+		local key = if item:IsA("Motor6D") then MOTOR_KEY[item.Name] or PART_KEY[item.Part1.Name] else nil
+		return item.Part0, item.Part1, item.C0, item.C1, key
+	end
+	return nil
+end
 
 local function cloneCharacter(worldModel, rootCFrame)
 	local character = Players.LocalPlayer.Character
@@ -88,15 +109,14 @@ local function cloneCharacter(worldModel, rootCFrame)
 		table.insert(edges[from], { to = to, step = step })
 	end
 	for _, item in copy:GetDescendants() do
-		if (item:IsA("Motor6D") or item:IsA("Weld")) and item.Part0 and item.Part1 then
-			local key = if item:IsA("Motor6D") then MOTOR_KEY[item.Name] else nil
-			local c0, c1 = item.C0, item.C1
+		local part0, part1, c0, c1, key = jointInfo(item)
+		if part0 then
 			-- Part0 → Part1: P1 = P0 * C0 * giro * C1⁻¹ ; o caminho inverso usa a inversa
-			addEdge(item.Part0, item.Part1, function(cf, joints)
+			addEdge(part0, part1, function(cf, joints)
 				local turn = if key then (joints[key] or CFrame.identity) else CFrame.identity
 				return cf * c0 * turn * c1:Inverse()
 			end)
-			addEdge(item.Part1, item.Part0, function(cf, joints)
+			addEdge(part1, part0, function(cf, joints)
 				local turn = if key then (joints[key] or CFrame.identity) else CFrame.identity
 				return cf * (c0 * turn * c1:Inverse()):Inverse()
 			end)
@@ -111,7 +131,7 @@ local function cloneCharacter(worldModel, rootCFrame)
 		end
 	end
 	for _, item in copy:GetDescendants() do
-		if item:IsA("Script") or item:IsA("LocalScript") or item:IsA("BillboardGui") or item:IsA("ParticleEmitter") or item:IsA("Sound") or item:IsA("JointInstance") or item:IsA("WeldConstraint") then
+		if item:IsA("Script") or item:IsA("LocalScript") or item:IsA("BillboardGui") or item:IsA("ParticleEmitter") or item:IsA("Sound") or item:IsA("JointInstance") or item:IsA("WeldConstraint") or item:IsA("Constraint") then
 			item:Destroy()
 		elseif item:IsA("BasePart") then
 			item.CanCollide = false

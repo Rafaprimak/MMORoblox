@@ -279,6 +279,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - **Personagens só nascem com o mundo pronto** (`Players.CharacterAutoLoads = false` + `LoadCharacter`). O respawn é manual (`Humanoid.Died`).
 - **DataStore não funciona no Studio sem publicar.** O aviso amarelo é esperado e o save fica desligado.
 - **`Motor6D.Transform` só funciona se alterado em `RunService.Stepped`** (depois das animações padrão).
+- **Juntas do personagem podem não ser `Motor6D`:** com o *Avatar Joint Upgrade* (padrão novo do Roblox) o R15 nasce com `AnimationConstraint` (anexos `Attachment0/1`, também com `Transform`). Nunca procure só `Motor6D` em personagem de jogador; veja `Animator.findJoint` e `RevealScene.jointInfo`.
 - **WriteVoxels:** região alinhada à grade de 4 studs e arrays `[x][y][z]` com o tamanho exato da região.
 - **PowerShell 5.1:** scripts `.ps1` com acentos precisam ser salvos em UTF-8 **com BOM**.
 - **`.bat` precisam de CRLF** (garantido pelo `.gitattributes`).
