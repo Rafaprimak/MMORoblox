@@ -16,6 +16,7 @@ local Quests = require(Shared.Quests)
 local NPCs = require(Shared.NPCs)
 
 local UI = require(script.Parent.UI)
+local Sounds = require(script.Parent.Sounds)
 local State = require(script.Parent.State)
 local EnemyRenderer = require(script.Parent.EnemyRenderer)
 local Sky = require(script.Parent.Sky)
@@ -351,6 +352,9 @@ end
 
 function HUD.addBuff(id, duration)
 	local info = BUFF_INFO[id] or { icon = "star-formation", color = UI.Colors.Gold }
+	if not buffIcons[id] then
+		Sounds.play("powerUp", 1, 0.4)
+	end
 	local old = buffIcons[id]
 	if old then
 		old:Destroy()

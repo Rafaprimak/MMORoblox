@@ -199,6 +199,7 @@ Config.DefaultSettings = {
 	rhythmBar = true,
 	tips = true,
 	quality = 2, -- 1 baixa, 2 média, 3 alta (distância de desenho do cenário)
+	outlines = true, -- contorno de desenho animado nos personagens e inimigos
 }
 
 return Config

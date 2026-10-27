@@ -292,6 +292,7 @@ local function startHeavy()
 	charging = true
 	local pose, t = chargePose(weaponType)
 	Animator.hold(character, pose, t)
+	Sounds.play("charge", 1, 0.45)
 	Controller.onCharge(true)
 	State.action("heavyStart")
 end

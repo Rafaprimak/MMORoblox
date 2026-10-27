@@ -75,7 +75,7 @@ local function toggle(parent, order, title, subtitle, key)
 end
 
 function SettingsWindow.init(screen)
-	win = Window.create(screen, { icon = "cog", title = "Configurações", width = 560, height = 590, name = "Configuracoes" })
+	win = Window.create(screen, { icon = "cog", title = "Configurações", width = 560, height = 660, name = "Configuracoes" })
 	local list = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = win.content }, { UI.list(6) })
 	local refreshers = {
 		stepper(list, 1, "Volume dos efeitos", "Golpes, interface e avisos", "volume", 0.1, 0, 1, function(v)
@@ -94,8 +94,11 @@ function SettingsWindow.init(screen)
 		toggle(list, 4, "Tremida de câmera", "Impactos fortes, críticos e aparadas", "shake"),
 		toggle(list, 5, "Barra de ritmo do combo", "Mostra quando clicar para emendar o combo", "rhythmBar"),
 		toggle(list, 6, "Dicas do tutorial", "Dicas no topo da tela nos primeiros minutos", "tips"),
+		toggle(list, 6, "Contorno de anime", "Borda escura nos personagens, NPCs e inimigos por perto", "outlines"),
 	}
 	local restart = UI.button({ Text = "Recomeçar o tutorial", Size = UDim2.fromOffset(220, 34), LayoutOrder = 7, BackgroundColor3 = UI.Colors.Accent, Parent = list })
+	-- créditos exigidos pela licença dos ícones (CC BY 3.0)
+	UI.label({ Text = "Ícones: game-icons.net (Lorc, Delapouite e outros), licença CC BY 3.0", Size = UDim2.new(1, -10, 0, 16), LayoutOrder = 8, TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, Parent = list })
 	restart.MouseButton1Click:Connect(function()
 		Prefs.set("tips", true)
 		scheduleSave()
