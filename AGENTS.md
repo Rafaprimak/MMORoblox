@@ -9,7 +9,11 @@ Este arquivo é a fonte da verdade sobre **como trabalhar neste projeto**. Leia 
 - **Jogo:** MMORPG de Hunters no Roblox (mundo aberto, classes, combos por arma, profissões, missões, baús).
 - **Linguagem:** Luau. **Ferramenta de build:** Rojo 7 (`default.project.json`).
 - **Idioma:** todo texto que o jogador vê é em **português do Brasil**. Comentários também em português. Nomes de variáveis/funções em inglês.
-- **Visual:** "blocado" caprichado (Parts simples, sem meshes, imagens ou animações com ID). Tudo é gerado por código. A única exceção são os **sons**: IDs opcionais da Creator Store em `src/shared/SoundIds.luau` (com reserva interna).
+- **Visual:** "blocado" caprichado (Parts simples gerados por código, sem animações com ID). Exceções, todas com reserva para nunca quebrar:
+  - **Sons:** IDs da Creator Store em `src/shared/SoundIds.luau` (com reserva interna);
+  - **Ícones:** desenhos do game-icons.net (CC BY 3.0) em folhas de atlas (`assets/icones/`, `Icons`/`IconAtlas`);
+  - **Natureza:** modelos low-poly gratuitos da Creator Store (`WorldGen/ExternalModels`), com as versões blocadas de reserva.
+- **Nada de emoji** em nenhum texto ou ícone do jogo (nem nos dados). Ícone = nome do game-icons.net (veja "Ícones" na seção 5).
 - **O servidor manda em tudo.** O cliente só desenha, anima e envia intenções. Nunca confie em valores vindos do cliente.
 
 ## 2. Regras de ouro
@@ -76,6 +80,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `ItemModels` | Modelo 3D de cada item (visual por base em `ItemModels.Looks`): usado na mão, no chão, no ícone e na cena do baú |
 | `Dungeons` | Masmorras: portais, 20 andares (`floorInfo`, `tier`, `startFloors`), inimigos por faixa, chefes a cada 5 andares, material, chave, loot exclusivo e loja do Mercador |
 | `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
+| `Icons`, `IconAtlas` | Ícones do jogo: `Icons.get(nome)` dá a folha e o recorte; `Icons.Sheets` guarda os IDs das folhas enviadas; `IconAtlas` é gerado por `scripts/icones/montar.py` |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
 
 ### Server
@@ -83,7 +88,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | Módulo | Papel |
 |---|---|
 | `init.server` | Ordem de inicialização, ganchos entre serviços, handlers de `Action` e `Request`, spawn dos jogadores |
-| `WorldGen/` | `TerrainGen` (voxels), `Town`, `Landmarks`, `Scatter` (natureza + recursos), `Props` (biblioteca de peças), `Placement` (anti-sobreposição) |
+| `WorldGen/` | `TerrainGen` (voxels), `Town`, `Landmarks`, `Scatter` (natureza + recursos), `Props` (biblioteca de peças), `Placement` (anti-sobreposição), `ExternalModels` (modelos low-poly da Creator Store para a natureza, com reserva blocada) |
 | `DataService` | Carregar/salvar (DataStore) com trava de sessão (`{ format = 3, data, lock = { jobId, time } }`), `UpdateAsync`, novas tentativas e cópia de segurança; `release` na saída, `releaseAll` no fechamento |
 | `AntiCheat` | Limite de pedidos por canal (`AntiCheat.allow`), argumentos válidos (`validArgs`), serviços de NPC só por perto (`ServiceActions`/`nearService`/`nearNpc`) e movimento 20x/s: velocidade/teleporte, atravessar parede, voo/pulo infinito/flutuar, giro de arremesso, personagem sem Humanoid; jogadores não colidem entre si (grupo `Jogadores`) |
 | `PlayerService` | Atributos, recursos (mana/estamina), dano no jogador, inventário, materiais, classe, ranks, poções, sincronização com o cliente |
@@ -136,6 +141,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Store` | Cliente: abre a compra com Robux (`Store.buy(chave)`) e mostra o preço; produto com id 0 = no Studio entrega de graça para testar |
 | `FusionWindow`, `TradeWindow` | Janelas de fusão e de troca (o botão "Trocar" é um ProximityPrompt local em cada outro jogador) |
 | `PlaytimeWindow` | Janela de Presentes (tecla U) com o tempo neste servidor |
+| `ArtStyle` | Estilo artístico: contorno de anime (Highlight só de borda) nos ~24 modelos mais perto, vinheta e gradação de cor pela hora do dia (configuração `outlines`) |
 | `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
 | `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
@@ -222,9 +228,14 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - Grupo: cada membro manda `dungeonReady`; com todos prontos, conta 3 s e começa (`launch`). Sempre do andar 1; a chave sai do líder (primeiro do grupo).
 
 ### Itens: modelos 3D, Únicos e conjuntos
-- **Nunca use emoji para item.** Item novo = base em `Items.Bases` + visual em `ItemModels.Looks[baseId]` (sem entrada usa um visual padrão pelo tier). Construtores por tipo de arma (`weapon.*`) e por espaço (`gear.*`) no `ItemModels`; armas têm o cabo na origem e a ponta em +Y, equipamentos ficam centrados com a frente em -Z.
+- **Item novo** = = base em `Items.Bases` + visual em `ItemModels.Looks[baseId]` (sem entrada usa um visual padrão pelo tier). Construtores por tipo de arma (`weapon.*`) e por espaço (`gear.*`) no `ItemModels`; armas têm o cabo na origem e a ponta em +Y, equipamentos ficam centrados com a frente em -Z.
 - **Vestido no corpo:** `ItemModels.worn(baseId, raridade, tamanhos)` devolve as peças por parte do corpo R15 (`worn.armor/helmet/boots/amulet/ring`, lendo o mesmo `Looks`); o `PlayerService` (`applyGearVisual`) solda em `Visual_<espaço>`. O elmo esconde chapéus/cabelos do avatar (atributo `TransparenciaOriginal`). Estilo novo de item precisa de visual no ícone (`gear.*`) e no corpo (`worn.*`).
-- Na interface, use `ItemIcon.new(pai, baseId, raridade, { Size, Position, spin, glow })`. Telas que redesenham com o `State.Changed` precisam evitar recriar ícones à toa (ver a assinatura em `ItemGrid.render`, `forgeKey` e `renderShop`).
+- Na interface, use `ItemIcon.new(pai, baseId, raridade, { Size, Position, spin, glow })`.
+
+### Ícones
+- Todo `icon` nos dados (classes, habilidades, talentos, perks, pets, ovos, baús, materiais, conquistas, locais...) é o **nome de um ícone do game-icons.net** (ex.: `"crossed-swords"`, catálogo em `scripts/icones/catalogo.txt`).
+- Na interface: `UI.icon(nome, { Size, Position, Color, Transparency, Parent })` cria o ícone (sombra + desenho tingido + losango de reserva) e `UI.setIcon(icone, nome, cor, transparência)` troca. Texto **não** leva o ícone junto: mostre o ícone ao lado (ver o menu do `HUD`, as opções do `Dialog` e a fita do `Window`, que aceita `icon`).
+- Depois de usar um nome novo, rode `python scripts/icones/montar.py`. Ele acha os nomes em `icon = "..."`, `UI.icon("...")`, `UI.setIcon(x, "...")`, `Icons.get("...")`, `touchAction(..., "...")`, nos talentos `node(...)` e em comentários `-- ícones: "a", "b"` (para nomes escolhidos em tempo de execução). As folhas que mudarem precisam ser enviadas de novo ao Roblox (novo ID em `Icons.Sheets`). Telas que redesenham com o `State.Changed` precisam evitar recriar ícones à toa (ver a assinatura em `ItemGrid.render`, `forgeKey` e `renderShop`).
 - **Único:** raridade `Unico` (peso 0: nunca sai de sorteio nem de baú). Base com `unique = true` e `signature` = perk com `exclusive = "unique"`; quem deixa cair: `Enemies.Defs[x].uniques` (chance `Enemies.UniqueChance`). Efeitos dos perks únicos no `PerkService` (golpes/abates) e no `PlayerService.damagePlayer` (defesa).
 - **Conjunto:** `Items.Sets[id]` (peças e bônus por quantidade) + `set = id` nas bases. `PlayerService.getStats` conta as peças, soma os `stats` e liga o `perk` do bônus (perk com `exclusive = "set"`).
 - Eventos de missão/conquista: `dungeonBoss`, `dungeon` (andar 20), `dungeonSecret`, `dungeonObjective`. Atributo do jogador: `Dungeon` (id da masmorra em que está). Bônus `dungeonDamage` (perks de assinatura) é aplicado em `EnemyService.damage`.
@@ -243,7 +254,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 ### Animação e áudio
 - `Animator` faz TODAS as animações dos jogadores (o script `Animate` do Roblox é desligado no personagem local e as juntas são escritas direto, não somadas). Camadas: locomoção (`locomotion`: parado, andar/correr por ciclo de passo, quadril virando para andar de lado/de costas, pulo, queda, aterrissagem, nado) ou cavaleiro (`riderPose` + galope em `animateHorse`), postura por arma (`STANCES`), golpe somado por cima (andando/montado só da cintura para cima), `flinch`, `hitstop` e tornozelos automáticos. Pose nova = quadros `{ t, juntas, curva }` em `POSES` (curva `snap` no quadro do golpe, `slowIn` em antecipação pesada; padrão `smooth`).
 - O cavalo da montaria tem grupos (`PernaFL`..., `Cabeca`, `Cauda`) ligados ao `Corpo` por Motor6D criados em `TravelService.mount`; o cliente anima as juntas `Junta*`.
-- Som novo: adicione em `SoundIds.Effects` (com `reserva`) e toque com `Sounds.play(nome)`. Ambiente/música: `SoundIds.Ambience/Music` + `SoundIds.RegionAmbience`. Música de combate: `SoundIds.Combat[tipoDoInimigo]` (inimigo novo sem entrada usa `padrao`); músicas licenciadas da conta APMOfficial (`creatorTargetId=7462718749`). Os IDs atuais são da biblioteca oficial da conta "Roblox" (ID 1); para achar mais, a API pública `apis.roblox.com/toolbox-service/v1/marketplace/3?keyword=...&creatorTargetId=1&creatorType=1` lista áudios oficiais e `.../items/details?assetIds=...` mostra os nomes.
+- Som novo: adicione em `SoundIds.Effects` (com `reserva`) e toque com `Sounds.play(nome)`. Efeitos no estilo anime (públicos da Creator Store): `swing`, `swingHeavy`, `hit`, `crit`, `dodge`, `teleport`, `charge`, `impact`, `powerUp`; evite sons com nome de jogo/anime com marca (costumam ser recortes protegidos). Ambiente/música: `SoundIds.Ambience/Music` + `SoundIds.RegionAmbience`. Música de combate: `SoundIds.Combat[tipoDoInimigo]` (inimigo novo sem entrada usa `padrao`); músicas licenciadas da conta APMOfficial (`creatorTargetId=7462718749`). Os IDs atuais são da biblioteca oficial da conta "Roblox" (ID 1); para achar mais, a API pública `apis.roblox.com/toolbox-service/v1/marketplace/3?keyword=...&creatorTargetId=1&creatorType=1` lista áudios oficiais e `.../items/details?assetIds=...` mostra os nomes.
 - **Interface:** tema azul-noite e dourado. Janelas e painéis usam `UI.ornate(frame)` (borda dupla e losangos), títulos usam `UI.TitleFont` (Merriweather) em `FontFace`, botões já vêm com degradê, borda dourada e sons de clique/hover.
 
 ### Interface
@@ -274,7 +285,8 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 ## 7. Armadilhas já conhecidas (aprendidas testando)
 
 - **Teclas reservadas do Roblox:** `I`/`O` são zoom da câmera (o inventário usa `ContextActionService:BindActionAtPriority` para ganhar prioridade), `Esc` abre o menu do Roblox, `E` é o padrão dos ProximityPrompts, `Tab` é a lista de jogadores. O Shift-lock foi desligado no `default.project.json` para o Shift virar corrida.
-- **Emojis novos não renderizam** (ex.: 🪄, 🪵 viram quadrados). Prefira emojis antigos e confira no Play.
+- **Não use emoji** (vários nem renderizam e o jogo não tem nenhum). Símbolos tipográficos simples (✦ ★ ◆ • → ✔ ✕ ▲ ▼) podem ficar no texto.
+- **`AssetService:LoadAssetAsync`** (modelos da Creator Store) só funciona com o jogo publicado e "Permitir o carregamento de ativos de terceiros" ligado; sempre tenha reserva.
 - **NPC com `Players:CreateHumanoidModelFromDescription`:** posicione a raiz em `HipHeight + raiz.Size.Y/2` acima do chão (bounding box não é confiável).
 - **Personagens só nascem com o mundo pronto** (`Players.CharacterAutoLoads = false` + `LoadCharacter`). O respawn é manual (`Humanoid.Died`).
 - **DataStore não funciona no Studio sem publicar.** O aviso amarelo é esperado e o save fica desligado.

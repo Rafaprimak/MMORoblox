@@ -149,6 +149,24 @@ O Roblox removeu os sons antigos que vinham no Studio, então os sons do jogo fi
 
 Campos vazios usam um som interno de reserva (ou ficam em silêncio). Ao abrir o jogo, cada ID é testado; se algum não carregar, aparece um aviso no Output e o jogo usa a reserva.
 
+Os golpes, a esquiva, o teleporte, a carga do golpe pesado, a quebra de guarda e os bônus usam **efeitos no estilo anime** públicos da Creator Store (a origem de cada um está no `desc` em `SoundIds.Effects`).
+
+### Ícones (game-icons.net)
+
+O jogo não usa emojis: todos os ícones são desenhos do [game-icons.net](https://game-icons.net) (licença CC BY 3.0, créditos na janela de Configurações), juntados em 3 folhas em `assets/icones/`. **Uma vez só**, envie as folhas ao Roblox:
+
+1. No Studio: **Janela → Gerenciador de Ativos → Importar** (ou *Bulk Import*) e escolha `assets/icones/folha1.png`, `folha2.png` e `folha3.png`.
+2. Clique com o botão direito em cada imagem enviada → **Copiar ID do ativo**.
+3. Cole em `src/shared/Icons.luau`, na mesma ordem: `Icons.Sheets = { "rbxassetid://ID_DA_FOLHA1", "rbxassetid://ID_DA_FOLHA2", "rbxassetid://ID_DA_FOLHA3" }`.
+
+Enquanto as folhas não estiverem enviadas, cada ícone aparece como um losango ◆.
+
+Para trocar ou adicionar um ícone: escreva o nome do game-icons.net no código (`icon = "crossed-swords"`, `UI.icon("key", {...})`) e rode `python scripts/icones/montar.py`. Ele baixa o que falta, remonta as folhas e diz quais mudaram (só essas precisam ser enviadas de novo, trocando o ID).
+
+### Modelos 3D da natureza
+
+Árvores, pinheiros, palmeiras, árvores secas, pedras e arbustos usam modelos **low-poly gratuitos da Creator Store**, listados em `src/server/WorldGen/ExternalModels.luau`. Para eles aparecerem, **publique o jogo** e ligue **Configurações do jogo → Segurança → Permitir o carregamento de ativos de terceiros**. Sem isso (por exemplo no Studio sem publicar) aparece um aviso no Output e as versões blocadas são usadas, sem quebrar nada.
+
 ---
 
 ## 🛠️ Para quem vai editar o código
@@ -203,6 +221,8 @@ src/client  → StarterPlayer.StarterPlayerScripts.Client  (interface e controle
 | Linhas vermelhas `CorePackages...` no Output | Vêm da interface interna do Roblox, não do jogo. Pode ignorar. |
 | Janela "Migração de iluminação" ao abrir | Não deve mais aparecer (o projeto já define o estilo de luz). Se aparecer, clique em *Continuar*. |
 | O mundo aparece vazio no modo de edição | Normal: ele é gerado quando você aperta Play. |
+| Ícones aparecem como losangos ◆ | As folhas de ícones ainda não foram enviadas ao Roblox. Veja "Ícones (game-icons.net)". |
+| Aviso "[ExternalModels] ... não carregaram" | Publique o jogo e ligue *Permitir o carregamento de ativos de terceiros* (Configurações do jogo → Segurança). Até lá a natureza fica blocada. |
 | Jogo pesado | É o primeiro protótipo; reduza o zoom de câmera ou feche outros programas. Para ajustar, diminua as quantidades em `src/server/WorldGen/Scatter.luau`. |
 
 Para ver erros: no Studio, **Janela → Saída** (*View → Output* em inglês).

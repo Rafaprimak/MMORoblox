@@ -1,6 +1,8 @@
 -- Biblioteca de objetos do cenário (blocados, mas com variação de forma, cor e tamanho).
 local CollectionService = game:GetService("CollectionService")
 
+local ExternalModels = require(script.Parent.ExternalModels)
+
 local Props = {}
 
 local M = Enum.Material
@@ -144,6 +146,10 @@ end
 -- ===================== NATUREZA =====================
 
 function Props.oak(parent, ground, scale, rng)
+	local external = ExternalModels.place("oak", parent, ground, scale, rng)
+	if external then
+		return external
+	end
 	local model = Instance.new("Model")
 	model.Name = "Carvalho"
 	local trunkHeight = (7 + rng:NextNumber() * 3) * scale
@@ -180,6 +186,10 @@ function Props.oak(parent, ground, scale, rng)
 end
 
 function Props.pine(parent, ground, scale, rng, snowy)
+	local external = not snowy and ExternalModels.place("pine", parent, ground, scale, rng)
+	if external then
+		return external
+	end
 	local model = Instance.new("Model")
 	model.Name = "Pinheiro"
 	local trunkHeight = 3 * scale
@@ -201,6 +211,10 @@ function Props.pine(parent, ground, scale, rng, snowy)
 end
 
 function Props.deadTree(parent, ground, scale, rng)
+	local external = ExternalModels.place("deadTree", parent, ground, scale, rng)
+	if external then
+		return external
+	end
 	local model = Instance.new("Model")
 	model.Name = "ArvoreSeca"
 	local color = Color3.fromRGB(95, 80, 65)
@@ -223,6 +237,10 @@ function Props.deadTree(parent, ground, scale, rng)
 end
 
 function Props.palm(parent, ground, scale, rng)
+	local external = ExternalModels.place("palm", parent, ground, scale, rng)
+	if external then
+		return external
+	end
 	local model = Instance.new("Model")
 	model.Name = "Palmeira"
 	local lean = rng:NextNumber(-0.25, 0.25)
@@ -248,6 +266,10 @@ function Props.palm(parent, ground, scale, rng)
 end
 
 function Props.rock(parent, ground, scale, rng, color)
+	local external = not color and ExternalModels.place("rock", parent, ground, scale, rng)
+	if external then
+		return external
+	end
 	local model = Instance.new("Model")
 	model.Name = "Pedra"
 	color = color or Color3.fromRGB(125, 122, 118)
@@ -277,6 +299,10 @@ function Props.rock(parent, ground, scale, rng, color)
 end
 
 function Props.bush(parent, ground, scale, rng)
+	local external = ExternalModels.place("bush", parent, ground, scale, rng)
+	if external then
+		return external
+	end
 	local model = Instance.new("Model")
 	model.Name = "Arbusto"
 	local color = Color3.fromRGB(60, 130, 55):Lerp(Color3.fromRGB(90, 150, 60), rng:NextNumber())

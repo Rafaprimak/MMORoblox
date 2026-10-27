@@ -7,6 +7,7 @@ local Landmarks = require(script.Landmarks)
 local Scatter = require(script.Scatter)
 local PointsOfInterest = require(script.PointsOfInterest)
 local DungeonPortals = require(script.DungeonPortals)
+local ExternalModels = require(script.ExternalModels)
 
 local WorldGen = {}
 
@@ -67,6 +68,12 @@ function WorldGen.build(onProgress)
 	local folder = Instance.new("Folder")
 	folder.Name = "Mundo"
 	folder.Parent = workspace
+	-- modelos 3D da Creator Store carregam enquanto o terreno é esculpido
+	local modelsReady = false
+	task.spawn(function()
+		pcall(ExternalModels.preload)
+		modelsReady = true
+	end)
 
 	TerrainGen.generate(function(fraction)
 		if onProgress then
@@ -84,6 +91,13 @@ function WorldGen.build(onProgress)
 			return nil
 		end
 		return result
+	end
+	local waited = os.clock()
+	while not modelsReady and os.clock() - waited < 30 do
+		if onProgress then
+			onProgress("Carregando modelos 3D", 0.71)
+		end
+		task.wait(0.2)
 	end
 	local board = step("Construindo a vila", 0.72, function()
 		return Town.build(folder, rng)
