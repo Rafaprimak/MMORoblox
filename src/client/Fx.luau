@@ -292,7 +292,7 @@ function Fx.guardBreak()
 	if root then
 		Fx.floatingText(root.Position + Vector3.new(0, 4, 0), "GUARDA QUEBRADA!", Color3.fromRGB(255, 80, 80), 34, 0.9)
 	end
-	Sounds.play("impact", 0.9, 0.6)
+	Sounds.play("impact", 0.55, 0.6)
 	Fx.shake(0.3, 0.6)
 end
 
@@ -332,7 +332,7 @@ function Fx.stagger(root, attacker)
 	burst(position, Color3.fromRGB(255, 210, 80), 16, 26, 0.5)
 	ring(position - Vector3.new(0, 1, 0), 7, Color3.fromRGB(255, 220, 90), 0.4, 0.3)
 	if attacker == player then
-		Sounds.play("impact", 1, 0.7)
+		Sounds.play("impact", 0.7, 0.7)
 		Fx.shake(0.2, 0.45)
 		fovPunch(5, 0.35)
 	end

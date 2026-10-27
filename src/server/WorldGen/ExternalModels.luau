@@ -1,14 +1,18 @@
 -- Modelos 3D da Creator Store (gratuitos, low-poly) para a natureza: carvalhos, pinheiros, palmeiras,
--- árvores secas, pedras e arbustos. Carregados uma vez no servidor com AssetService:LoadAssetAsync e
--- clonados por Props.oak/pine/... no lugar das versões blocadas.
---   * Precisa do jogo publicado e de "Permitir o carregamento de ativos de terceiros" ligado
---     (Configurações do jogo → Segurança). Sem isso (ou no Studio sem publicar) o carregamento falha e
---     as árvores blocadas continuam: nada quebra.
+-- árvores secas, pedras e arbustos, clonados por Props.oak/pine/... no lugar das versões blocadas.
+-- De onde vêm (nessa ordem):
+--   1) do próprio projeto: assets/modelos/Natureza.rbxm (vira ServerStorage.ModelosExternos.Natureza,
+--      com uma pasta por tipo). Funciona no Studio e no jogo publicado. O arquivo é feito no Studio com
+--      o comando de scripts/studio/baixar_modelos.lua (baixa os IDs do Catalog) + "Salvar em arquivo";
+--   2) da Creator Store na hora, com AssetService:LoadAssetAsync (precisa do jogo publicado e de
+--      "Permitir o carregamento de ativos de terceiros" em Configurações do jogo → Segurança);
+--   3) sem nenhum dos dois: as árvores blocadas continuam. Nada quebra.
 --   * Limpeza: scripts, sons, luzes, humanoides e prompts são apagados; tudo ancorado; só a parte de baixo
 --     das árvores (tronco) tem colisão, para a copa não prender ninguém.
 --   * Pacote (vários modelos espalhados num só) vira várias variações.
 --   * Altura: cada tipo tem uma altura-alvo parecida com a das árvores blocadas (× scale do Props).
 local AssetService = game:GetService("AssetService")
+local ServerStorage = game:GetService("ServerStorage")
 
 local ExternalModels = {}
 
@@ -162,9 +166,28 @@ function ExternalModels.preload()
 		return
 	end
 	loaded = true
+	-- 1) modelos salvos no projeto
+	local saved = ServerStorage:FindFirstChild("ModelosExternos")
+	saved = saved and saved:FindFirstChild("Natureza")
+	if saved then
+		for kind, entry in ExternalModels.Catalog do
+			local folder = saved:FindFirstChild(kind)
+			for _, asset in if folder then folder:GetChildren() else {} do
+				clean(asset)
+				for _, variant in variantsOf(asset) do
+					local template = prepare(variant, entry.collide)
+					if template then
+						templates[kind] = templates[kind] or {}
+						table.insert(templates[kind], template)
+					end
+				end
+			end
+		end
+	end
+	-- 2) o que faltou: da Creator Store na hora
 	local pending, failures, firstError = 0, 0, nil
 	for kind, entry in ExternalModels.Catalog do
-		for _, id in entry.ids do
+		for _, id in if templates[kind] then {} else entry.ids do
 			pending += 1
 			task.spawn(function()
 				local ok, err = loadOne(kind, id, entry)
@@ -182,7 +205,7 @@ function ExternalModels.preload()
 	end
 	if failures > 0 then
 		warn(("[ExternalModels] %d modelo(s) da Creator Store não carregaram; usando os blocados no lugar. "
-			.. "Publique o jogo e ligue \"Permitir o carregamento de ativos de terceiros\" em Configurações do jogo → Segurança. (%s)"):format(failures, tostring(firstError)))
+			.. "Para ver no Studio, rode o comando de scripts/studio/baixar_modelos.lua e salve em assets/modelos/Natureza.rbxm (README). (%s)"):format(failures, tostring(firstError)))
 	end
 end
 

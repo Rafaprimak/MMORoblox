@@ -55,7 +55,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Sem emojis: ícones do game-icons.net (CC BY 3.0) num atlas de 3 folhas, tingidos com sombra e brilho; menu, diálogos, barra de habilidades, títulos de janela, mapa, marcadores dos NPCs e botões de celular com ícones (enviar as folhas ao Roblox: README) (G)
 - 🧪 Natureza com modelos low-poly da Creator Store (carvalhos, pinheiros, palmeiras, árvores secas, pedras, arbustos), com reserva blocada; precisa do jogo publicado com ativos de terceiros liberados (M)
 - 🧪 Estilo artístico: contorno de anime nos personagens/NPCs/inimigos/pets próximos, vinheta e gradação de cor pela hora do dia (M)
-- 🧪 Sons no estilo anime: golpes, crítico, esquiva, teleporte, carga, quebra de guarda e bônus (P)
+- 🧪 Sons para teleporte, carga do golpe pesado, quebra de guarda e bônus (os efeitos estilo anime foram testados e removidos: não combinaram) (P)
 - 🧪 Animações todas procedurais e mais trabalhadas: `Animate` padrão desligado; parado com respiração/troca de peso/olhar, ciclo de passo andar→correr, andar de lado e de costas, pulo/queda/aterrissagem, nado, golpes com antecipação e impacto seco (`snap`), hit-stop no acerto, tremor ao carregar, rolamento novo, pés planos no chão (M)
 - 🧪 Travar a mira no inimigo (T / botão do meio), estilo souls; barras de ritmo e carga no retículo (M)
 - 🧪 Modelagem caprichada: armas detalhadas por tipo, armadura/elmo/botas visíveis (capa no Lendário+), árvores, pedras e inimigos com mais detalhe (G)
