@@ -196,7 +196,7 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 ### Atributos e tags
 - **Jogador:** `Mana, MaxMana, Stamina, MaxStamina, Level, Class, WeaponType, Mounted, Pet, PetLevel, Title, TitleId, Dungeon, Raid, Vip, AutoFarm, AutoAnchor` (ponto de caça do Auto Caçar).
 - **Raiz de inimigo** (pasta `workspace.Inimigos`): `Type, Elite, Level, Hp, MaxHp, Posture, MaxPosture, Staggered, Action ("tipo:contador"), Dot, Dead`.
-- **Workspace:** `WorldReady, WorldStatus, WorldProgress, DayEpoch, Night` e o evento do mundo atual: `EventKind` ("boss" | "invasion"), `EventName, EventPlace, EventX, EventZ, EventEnds` (horário do servidor), `EventWave, EventWaves`.
+- **Workspace:** `WorldReady, WorldStatus, WorldProgress, DayEpoch, Night` e o evento do mundo atual: `EventKind` ("boss" | "invasion"), `EventName, EventPlace, EventX, EventZ, EventEnds` (horário do servidor), `EventWave, EventWaves`. Evento sazonal: `Evento` (id ativo) e `EventoForcado` (teste no Studio).
 - **Tags:** `Rainbow` (cor arco-íris), `Spin` (gira), `ResourceNode`, `Waystone`, `NPC`, `NightLight` (peça que acende à noite; use `Props.nightLight(part)`).
 
 ### Inimigos: servidor x cliente
