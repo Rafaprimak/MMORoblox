@@ -199,6 +199,11 @@ T = {
     "ex.: 500": ("e.g. 500", "ej.: 500"),
     "ÚNICO": ("UNIQUE", "ÚNICO"),
     "MENU": ("MENU", "MENÚ"),
+    "Volume do ambiente": ("Ambience volume", "Volumen del ambiente"),
+    "Vento, ondas, grilos e pássaros": ("Wind, waves, crickets and birds", "Viento, olas, grillos y pájaros"),
+    "Volume da música": ("Music volume", "Volumen de la música"),
+    "Música de cada região e das lutas": ("Music for each region and for fights", "Música de cada región y de las peleas"),
+    "Volume dos efeitos": ("Effects volume", "Volumen de efectos"),
 
     # ===== raridades, espaços, armas =====
     "Comum": ("Common", "Común"), "COMUM": ("COMMON", "COMÚN"),

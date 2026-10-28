@@ -49,7 +49,7 @@ local function baseVolume(channel)
 	if channel == "music" then
 		return 0.35 * (Prefs.get("musicVolume") or 0.5)
 	end
-	return 0.45 * (Prefs.get("volume") or 1)
+	return 0.45 * (Prefs.get("ambienceVolume") or 0.6)
 end
 
 -- troca o som de um canal com crossfade (id nil = silêncio); mult ajusta o volume daquele som
@@ -148,13 +148,13 @@ function Ambience.init()
 				elseif trackId == playingMusic then
 					setChannel("music", trackId) -- só acerta o volume
 				end
-				-- pássaros cantando de vez em quando (de dia, fora das montanhas)
+				-- pássaros de vez em quando (de dia, só nos campos e no bosque; raros e baixinhos)
 				local now = os.clock()
-				if not night and now > nextBird and ambienceKey ~= "montanha" and ambienceKey ~= "ruinas" and ambienceKey ~= "costa" then
-					nextBird = now + math.random(5, 13)
+				if not night and now > nextBird and (ambienceKey == "campo" or ambienceKey == "bosque") then
+					nextBird = now + math.random(30, 75)
 					local bird = Instance.new("Sound")
 					bird.SoundId = SoundIds.Birds[math.random(1, #SoundIds.Birds)]
-					bird.Volume = 0.25 * (Prefs.get("volume") or 1)
+					bird.Volume = 0.12 * (Prefs.get("ambienceVolume") or 0.6)
 					bird.PlaybackSpeed = 0.9 + math.random() * 0.25
 					bird.Parent = SoundService
 					bird:Play()

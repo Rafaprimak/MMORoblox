@@ -324,6 +324,7 @@ Key,Source,Context,Example,en,es
 ,Máximo!,,,Max!,¡Máximo!
 ,Mãos na Bigorna,,,Hands on the Anvil,Manos al Yunque
 ,Mítico,,,Mythic,Mítico
+,Música de cada região e das lutas,,,Music for each region and for fights,Música de cada región y de las peleas
 ,Nada à venda com esses filtros.,,,Nothing for sale with these filters.,Nada a la venta con estos filtros.
 ,Navio Naufragado,,,Shipwreck,Barco Naufragado
 ,Nenhuma ação registrada.,,,No actions logged.,Ninguna acción registrada.
@@ -463,6 +464,7 @@ Key,Source,Context,Example,en,es
 ,Velho Orin,,,Old Orin,Viejo Orin
 ,Vender,,,Sell,Vender
 ,Vender Comuns e Incomuns,,,Sell Commons and Uncommons,Vender Comunes e Infrecuentes
+,"Vento, ondas, grilos e pássaros",,,"Wind, waves, crickets and birds","Viento, olas, grillos y pájaros"
 ,Vença lutas na Arena,,,Win Arena fights,Gana combates en la Arena
 ,Ver Baús do Hunter,,,See Hunter Chests,Ver Cofres del Cazador
 ,Veterano,,,Veteran,Veterano
@@ -471,6 +473,9 @@ Key,Source,Context,Example,en,es
 ,"Você ainda não tem pets. Compre um ovo na aba Ovos (no Otto, na vila).",,,"You have no pets yet. Buy an egg in the Eggs tab (from Otto, in the village).","Aún no tienes mascotas. Compra un huevo en la pestaña Huevos (con Otto, en la aldea)."
 ,Você não tem anúncios. Anuncie na aba Vender.,,,You have no listings. List something in the Sell tab.,No tienes anuncios. Publica en la pestaña Vender.
 ,Você não tem materiais para vender.,,,You have no materials to sell.,No tienes materiales para vender.
+,Volume da música,,,Music volume,Volumen de la música
+,Volume do ambiente,,,Ambience volume,Volumen del ambiente
+,Volume dos efeitos,,,Effects volume,Volumen de efectos
 ,Vá até a Mina Abandonada,,,Go to the Abandoned Mine,Ve a la Mina Abandonada
 ,ex.: 500,,,e.g. 500,ej.: 500
 ,ÉPICO,,,EPIC,ÉPICO

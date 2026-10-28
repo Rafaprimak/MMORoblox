@@ -47,8 +47,9 @@ SoundIds.Effects = {
 
 -- Ambiente em loop (por região). Fica em silêncio enquanto o id estiver vazio.
 SoundIds.Ambience = {
-	vila = { id = "rbxassetid://1844684913", desc = "Vila: natureza calma (APM: Nature)" },
-	campo = { id = "rbxassetid://1844684913", desc = "Campos: natureza, vento leve (APM: Nature)" },
+	-- (antes: APM "Nature", um trecho de 34 s com assobios que repetia sem parar e incomodava)
+	vila = { id = "rbxassetid://1845888182", desc = "Vila: vento suave, sem pássaros (APM: Light Wind, 106 s)" },
+	campo = { id = "rbxassetid://1845888182", desc = "Campos: vento suave (APM: Light Wind, 106 s)" },
 	bosque = { id = "rbxassetid://1842179318", desc = "Floresta (APM: Forest Ambience)" },
 	costa = { id = "rbxassetid://1846173482", desc = "Praia: ondas (APM: Ocean Waves)" },
 	montanha = { id = "rbxassetid://15675021174", desc = "Montanha: vento forte" },
