@@ -342,6 +342,10 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return PartyService.leave(player)
 	elseif action == "partyKick" then
 		return PartyService.kick(player, a)
+	elseif action == "partyLooking" then
+		return PartyService.setLooking(player, a, b)
+	elseif action == "partyList" then
+		return PartyService.lookingList(player)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then

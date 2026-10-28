@@ -26,6 +26,7 @@ local partyOf = {} -- [player] = party
 local invites = {} -- [convidado] = { from, time }
 local lastInvite = {} -- [player] = os.clock() (evita spam de convite)
 local nextId = 0
+local looking = {} -- [player] = { note, since }: "procurando grupo"
 
 local function markAll(party)
 	for _, member in party.members do
@@ -103,6 +104,7 @@ local function removeMember(party, player, reason)
 end
 
 local function addMember(party, player)
+	looking[player] = nil
 	table.insert(party.members, player)
 	partyOf[player] = party
 	channelAdd(party, player)
@@ -247,7 +249,39 @@ function PartyService.kick(player, targetId)
 	return { ok = true }
 end
 
+-- ===================== PROCURAR GRUPO =====================
+
+-- liga/desliga "procurando grupo" (com um recado curto: "masmorra", "chefe de mundo"...)
+function PartyService.setLooking(player, on, note)
+	if on == true then
+		local text = if typeof(note) == "string" then string.sub(note, 1, 40) else ""
+		looking[player] = { note = text, since = os.time() }
+		return { ok = true, msg = "Você aparece na lista de quem procura grupo." }
+	end
+	looking[player] = nil
+	return { ok = true }
+end
+
+-- lista de quem procura grupo (sem quem já está num grupo cheio)
+function PartyService.lookingList(player)
+	local list = {}
+	for other, info in looking do
+		if other.Parent == Players and other ~= player then
+			local party = partyOf[other]
+			if not party or #party.members < PartyService.MAX then
+				local data = DataService.get(other)
+				table.insert(list, { id = other.UserId, name = other.DisplayName, level = data and data.level or 1, class = data and data.class or "", note = info.note, grouped = party ~= nil })
+			end
+		end
+	end
+	table.sort(list, function(a, b)
+		return a.level > b.level
+	end)
+	return { ok = true, list = list, mine = looking[player] ~= nil }
+end
+
 function PartyService.onPlayerRemoving(player)
+	looking[player] = nil
 	invites[player] = nil
 	lastInvite[player] = nil
 	local party = partyOf[player]

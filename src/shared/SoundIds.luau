@@ -47,13 +47,13 @@ SoundIds.Effects = {
 
 -- Ambiente em loop (por região). Fica em silêncio enquanto o id estiver vazio.
 SoundIds.Ambience = {
-	vila = { id = "", desc = "Vila: pássaros, gente conversando ao longe" },
-	campo = { id = "", desc = "Campos: vento leve e pássaros" },
-	bosque = { id = "", desc = "Floresta: folhas, corujas" },
-	costa = { id = "", desc = "Praia: ondas e gaivotas" },
+	vila = { id = "rbxassetid://1844684913", desc = "Vila: natureza calma (APM: Nature)" },
+	campo = { id = "rbxassetid://1844684913", desc = "Campos: natureza, vento leve (APM: Nature)" },
+	bosque = { id = "rbxassetid://1842179318", desc = "Floresta (APM: Forest Ambience)" },
+	costa = { id = "rbxassetid://1846173482", desc = "Praia: ondas (APM: Ocean Waves)" },
 	montanha = { id = "rbxassetid://15675021174", desc = "Montanha: vento forte" },
-	ruinas = { id = "", desc = "Ruínas: vento com eco" },
-	noite = { id = "", desc = "Noite: grilos (toca junto com a região)" },
+	ruinas = { id = "rbxassetid://1839778801", desc = "Ruínas: vento com eco (APM: Wind Cave)" },
+	noite = { id = "rbxassetid://1846652276", desc = "Noite: grilos, toca junto com a região (APM: Crickets A)" },
 }
 
 -- Música em loop (crossfade ao trocar)

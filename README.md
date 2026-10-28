@@ -151,6 +151,10 @@ O Roblox removeu os sons antigos que vinham no Studio, então os sons do jogo fi
 
 Campos vazios usam um som interno de reserva (ou ficam em silêncio). Ao abrir o jogo, cada ID é testado; se algum não carregar, aparece um aviso no Output e o jogo usa a reserva.
 
+### Versão em inglês (e outras línguas)
+
+O jogo é escrito em português e usa a **tradução automática do Roblox** para os outros idiomas (inclusive textos criados por script): no [Creator Dashboard](https://create.roblox.com/dashboard/creations), abra o jogo → **Localização** → idioma de origem **Português (Brasil)** → ligue **Captura automática de texto** e **Tradução automática** para inglês, espanhol etc. Revise as traduções dos textos mais vistos (menu, missões) na mesma tela.
+
 ### Ícones (game-icons.net)
 
 O jogo não usa emojis: todos os ícones são desenhos do [game-icons.net](https://game-icons.net) (licença CC BY 3.0, créditos na janela de Configurações), juntados em 3 folhas em `assets/icones/`. **Uma vez só**, envie as folhas ao Roblox:

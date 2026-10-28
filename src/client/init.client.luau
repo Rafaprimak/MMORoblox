@@ -136,6 +136,29 @@ HUD.init(screen, {
 		State.action("ability", slot, aim, point)
 	end,
 })
+
+-- Telas pequenas (celular): os elementos fixos do HUD diminuem juntos (as janelas já se ajustam sozinhas).
+-- Cada elemento escala em volta do próprio ponto de âncora, então continua no mesmo canto da tela.
+local function fitHud()
+	local camera = workspace.CurrentCamera
+	local viewport = if camera then camera.ViewportSize else Vector2.new(1280, 720)
+	local scale = math.clamp(math.min(viewport.X / 1280, viewport.Y / 720), 0.6, 1)
+	for _, child in screen:GetChildren() do
+		if child:IsA("GuiObject") and not child:GetAttribute("IsWindow") then
+			local uiScale = child:FindFirstChild("EscalaTela")
+			if not uiScale then
+				if child:FindFirstChildOfClass("UIScale") then
+					continue -- já tem a escala própria (janelas, animações)
+				end
+				uiScale = UI.new("UIScale", { Name = "EscalaTela", Parent = child })
+			end
+			uiScale.Scale = scale
+		end
+	end
+end
+task.defer(fitHud)
+task.delay(3, fitHud) -- pega os painéis criados depois
+workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(fitHud)
 WorldMarkers.init()
 Tutorial.init(screen)
 SettingsWindow.onRestartTutorial = Tutorial.restart

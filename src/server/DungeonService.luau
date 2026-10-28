@@ -18,6 +18,7 @@ local Remotes = require(Shared.Remotes)
 
 local DataService = require(script.Parent.DataService)
 local PlayerService = require(script.Parent.PlayerService)
+local PartyService = require(script.Parent.PartyService)
 local EnemyService = require(script.Parent.EnemyService)
 local AntiCheat = require(script.Parent.AntiCheat)
 local TravelService = require(script.Parent.TravelService)
@@ -853,6 +854,15 @@ function DungeonService.join(player, dungeonId)
 		return { ok = false, msg = "O grupo já está cheio (4 jogadores)." }
 	end
 	table.insert(list, player)
+	-- colegas do grupo perto do portal entram junto na sala
+	for _, mate in PartyService.members(player) do
+		local mateData = DataService.get(mate)
+		if mate ~= player and #list < Dungeons.MaxPlayers and not runOf[mate] and not table.find(list, mate) and mateData and mateData.level >= dungeon.minLevel and nearPortal(mate, dungeon) then
+			removeFromLobby(mate)
+			table.insert(list, mate)
+			Remotes.Notify:FireClient(mate, { kind = "message", text = ("Seu grupo entrou na sala da %s. Dê PRONTO no portal."):format(dungeon.name) })
+		end
+	end
 	for _, member in list do
 		PlayerService.markDirty(member)
 	end

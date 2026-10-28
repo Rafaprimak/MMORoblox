@@ -37,6 +37,7 @@ function Window.create(screen, options)
 		Parent = screen,
 	}, { UI.corner(14), UI.stroke(UI.Colors.Trim, 2) })
 	win.scale = UI.new("UIScale", { Parent = win.frame })
+	win.frame:SetAttribute("IsWindow", true)
 	-- fundo azul-noite com degradê, moldura dourada dupla e losangos nos cantos
 	UI.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(150, 150, 175)), Rotation = 90, Parent = win.frame })
 	UI.ornate(win.frame, UI.Colors.Trim, 6)

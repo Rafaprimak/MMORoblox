@@ -4,7 +4,9 @@
 --   * quadros dos colegas à esquerda: ícone da classe, nome, nível, vida ao vivo, distância e coroa do
 --     líder; o líder tira alguém pelo X; botão "Sair do grupo";
 --   * nome verde em cima dos colegas no mundo e pontos verdes no mapa (MapWindow usa PartyUI.members);
---   * chat do grupo: /g mensagem (ou /grupo), com a marca [Grupo] nas mensagens.
+--   * chat do grupo: /g mensagem (ou /grupo), com a marca [Grupo] nas mensagens;
+--   * "Procurar grupo": janela com a lista de quem está procurando (convidar com um clique) e o botão
+--     para entrar na lista com um recado curto.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TextChatService = game:GetService("TextChatService")
@@ -17,6 +19,7 @@ local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
 local Sounds = require(script.Parent.Sounds)
 local Popups = require(script.Parent.Popups)
+local Window = require(script.Parent.Window)
 
 local PartyUI = {}
 
@@ -28,6 +31,7 @@ local current = nil -- payload `party` atual
 local frames = {} -- [userId] = { frame, fill, distance }
 local tags = {} -- [userId] = BillboardGui em cima do colega
 local signature = ""
+local lfg = {} -- janela "Procurar grupo"
 
 -- colegas atuais (sem o próprio jogador), para o mapa
 function PartyUI.members()
@@ -234,8 +238,64 @@ local function setupChat()
 	end
 end
 
+-- ===================== PROCURAR GRUPO =====================
+
+local function renderLooking()
+	local result = State.request("partyList")
+	if not result or not result.ok then
+		return
+	end
+	UI.clear(lfg.list)
+	lfg.mine = result.mine == true
+	lfg.toggle.Text = if lfg.mine then "Sair da lista" else "Entrar na lista"
+	lfg.toggle.BackgroundColor3 = if lfg.mine then UI.Colors.Dark else UI.Colors.Green
+	if #result.list == 0 then
+		UI.label({ Text = "Ninguém procurando grupo agora. Entre na lista para aparecer para os outros!", Size = UDim2.new(1, -8, 0, 40), TextWrapped = true, TextScaled = false, TextSize = 15, TextColor3 = UI.Colors.SubText, Parent = lfg.list })
+		return
+	end
+	for order, entry in result.list do
+		local class = Classes.List[entry.class]
+		local row = UI.new("Frame", { Size = UDim2.new(1, -8, 0, 46), BackgroundColor3 = UI.Colors.PanelLight, LayoutOrder = order, Parent = lfg.list }, { UI.corner(8) })
+		UI.icon(class and class.icon or "person", { Position = UDim2.fromOffset(6, 7), Size = UDim2.fromOffset(32, 32), Color = class and class.color or UI.Colors.Icon, Parent = row })
+		UI.label({ Text = ("%s  •  Nv. %d  •  %s"):format(entry.name, entry.level, class and class.name or "?"), Position = UDim2.fromOffset(46, 4), Size = UDim2.new(1, -170, 0, 18), Font = Enum.Font.GothamBlack, Parent = row })
+		UI.label({ Text = if entry.note ~= "" then entry.note else (if entry.grouped then "já tem grupo, aceita mais gente" else "sem recado"), Position = UDim2.fromOffset(46, 24), Size = UDim2.new(1, -170, 0, 16), TextColor3 = UI.Colors.SubText, Parent = row })
+		local invite = UI.button({ Text = "Convidar", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(110, 32), BackgroundColor3 = UI.Colors.Green, Parent = row })
+		invite.MouseButton1Click:Connect(function()
+			local reply = State.request("partyInvite", entry.id)
+			if reply and reply.ok and reply.msg then
+				Popups.message(reply.msg, UI.Colors.Green)
+			end
+		end)
+	end
+end
+
+local function buildLooking(screen)
+	lfg.win = Window.create(screen, { icon = "team-idea", name = "ProcurarGrupo", title = "PROCURAR GRUPO", width = 560, height = 470, accent = Color3.fromRGB(110, 200, 120) })
+	local top = UI.new("Frame", { Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, Parent = lfg.win.content })
+	lfg.note = UI.new("TextBox", { PlaceholderText = "Recado (ex.: masmorra, chefe de mundo, missões)", Text = "", ClearTextOnFocus = false, Size = UDim2.new(1, -290, 0, 34), BackgroundColor3 = UI.Colors.PanelLight, TextColor3 = UI.Colors.Text, PlaceholderColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, Parent = top }, { UI.corner(8), UI.padding(8) })
+	lfg.toggle = UI.button({ Text = "Entrar na lista", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -140, 0, 0), Size = UDim2.fromOffset(140, 34), BackgroundColor3 = UI.Colors.Green, Parent = top })
+	lfg.toggle.MouseButton1Click:Connect(function()
+		local reply = State.request("partyLooking", not lfg.mine, lfg.note.Text)
+		if reply and reply.ok and reply.msg then
+			Popups.message(reply.msg, UI.Colors.Green)
+		end
+		renderLooking()
+	end)
+	local refresh = UI.button({ Text = "Atualizar", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, 0, 0, 0), Size = UDim2.fromOffset(130, 34), BackgroundColor3 = UI.Colors.Accent, Parent = top })
+	refresh.MouseButton1Click:Connect(renderLooking)
+	lfg.list = UI.new("ScrollingFrame", { Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, 0, 1, -50), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), Parent = lfg.win.content }, { UI.list(6) })
+	lfg.win.onOpen = renderLooking
+end
+
+function PartyUI.openLooking()
+	lfg.win:open()
+end
+
 function PartyUI.init(screen)
-	list = UI.new("Frame", { Position = UDim2.fromOffset(12, 124), Size = UDim2.fromOffset(200, 230), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
+	list = UI.new("Frame", { Position = UDim2.fromOffset(12, 124), Size = UDim2.fromOffset(200, 260), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
+	buildLooking(screen)
+	local finder = UI.button({ Text = "Procurar grupo", Size = UDim2.fromOffset(120, 24), LayoutOrder = 0, BackgroundColor3 = Color3.fromRGB(60, 110, 70), Parent = list })
+	finder.MouseButton1Click:Connect(PartyUI.openLooking)
 	leaveButton = UI.button({ Text = "Sair do grupo", Size = UDim2.fromOffset(120, 24), LayoutOrder = 99, BackgroundColor3 = UI.Colors.Dark, Visible = false, Parent = list })
 	leaveButton.MouseButton1Click:Connect(function()
 		State.request("partyLeave")

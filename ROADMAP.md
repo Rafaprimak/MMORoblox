@@ -111,7 +111,9 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 - 🧪 Grupos (party) no mundo aberto (até 5): convite com T em cima do jogador, colegas perto do abate (100 studs) ganham a recompensa e o próprio loot, +10% de XP por colega perto, quadros com vida ao vivo, nome verde em cima dos colegas, pontos no mapa, chat do grupo com /g (M)
 - 🧪 Eventos do mundo: chefe de mundo a cada 25 min (vida cresce com os jogadores, baú para quem participou, some depois de 12 min) e invasão noturna da vila em 3 ondas; painel no topo, marcador no mundo e no mapa; botões de teste no Studio (M)
-- ⬜ Procurar grupo (lista de quem quer grupo) e grupo entrando junto no portal da masmorra (P)
+- 🧪 Procurar grupo (lista com recado e "Convidar") e colegas perto do portal entram junto na sala da masmorra (P)
+- 🧪 Sons de ambiente por região (APM: floresta, ondas, grilos à noite, vento nas ruínas, natureza na vila e nos campos) (P)
+- 🧪 HUD diminui junto em telas pequenas (celular); tradução automática do Roblox documentada no README (P)
 - ⬜ Guildas: criação, cargos, chat, banco da guilda e missões de guilda (G)
 - 🧪 Troca entre jogadores (equipamentos e ouro): botão "Trocar" em cima do outro jogador, convite, Pronto → Confirmar dos dois, mudar a oferta tira o Pronto, servidor confere tudo de novo e salva; registro das últimas 20 trocas; nível mínimo 5 (M)
 - 🧪 Fusão de equipamentos (estilo Task Bar Hero): 9 da mesma raridade → 1 pelo menos uma raridade acima (91% +1, 8% +2, 1% +3 em `Config.Fusion`), no inventário e no Bruno (M)
