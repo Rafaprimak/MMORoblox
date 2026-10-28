@@ -84,7 +84,7 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Pets | **G** | Botão 🐾 |
 | Configurações (volume, música, sensibilidade, qualidade gráfica, números de dano...) | **P** | Botão ⚙ |
 | Presentes por tempo no servidor | **U** | Botão 🎁 Presentes |
-| Auto Caçar (só VIP; pode ficar 100% AFK; mover o personagem desliga) | **N** | Botão ⚔ Auto Caçar |
+| Auto (só VIP; faz as missões, caça, coleta, entrega, viaja e resgata recompensas sozinho; masmorras, raide e ofícios ficam com você; mover o personagem desliga) | **N** | Botão Auto (missões) |
 | Trocar com outro jogador (nível 5+) | **E** perto dele | Botão "Trocar" em cima do jogador |
 | Convidar para o grupo | **T** perto dele | Botão "Convidar para o grupo" em cima do jogador |
 | Falar com o grupo | digite **/g mensagem** no chat (ou /grupo) | o mesmo |

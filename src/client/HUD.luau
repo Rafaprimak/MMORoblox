@@ -173,7 +173,7 @@ function HUD.init(screen, callbacks)
 		{ "Arena", "", callbacks.onArena, nil, "laurel-crown" },
 		{ "Pets", "G", callbacks.onPets, nil, "paw-print" },
 		{ "Presentes", "U", callbacks.onPlaytime, "playtime", "sands-of-time" },
-		{ "Auto Caçar", "N", callbacks.onAutoHunt, "autohunt", "crossed-swords" },
+		{ "Auto (missões)", "N", callbacks.onAutoHunt, "autohunt", "crossed-swords" },
 		{ "Configurações", "P", callbacks.onSettings, nil, "cog" },
 	}
 	-- celular: a tela é baixa demais para 15 botões; o menu fica recolhido atrás do botão MENU

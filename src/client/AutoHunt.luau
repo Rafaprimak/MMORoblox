@@ -1,39 +1,65 @@
--- Auto Caçar (só VIP; o servidor libera o atributo "AutoFarm"). Enquanto ligado, o personagem procura o
--- inimigo vivo mais perto dentro de RANGE do ponto onde foi ligado, anda até ele, ataca no ritmo do
--- combo, toma poção de vida quando está mal e volta para o ponto quando não há ninguém por perto.
+-- Auto (só VIP; o servidor libera o atributo "AutoFarm"). Um piloto automático que joga sozinho:
+--   * MISSÕES: aceita as missões que dá para fazer sozinho, vai até o objetivo (caçar, coletar, conversar,
+--     explorar, achar segredos, subir de nível) e entrega no NPC. Viaja pelas pedras de viagem e monta no
+--     cavalo nas distâncias longas.
+--   * COMBATE: ataca no ritmo do combo, usa as habilidades 1-4, toma poção quando está mal.
+--   * ROTINA: resgata o login diário e o passe, equipa itens melhores e vende o lixo quando a bolsa enche.
+--   * Sem missão possível: caça em volta do ponto onde foi ligado.
+-- Masmorras, raide, arena, chefes de mundo e ofícios (forja, alquimia, encantamento) ficam com você.
 -- Mexer o personagem (WASD, setas, analógico, pulo) desliga.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local MarketplaceService = game:GetService("MarketplaceService")
+local PathfindingService = game:GetService("PathfindingService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Enemies = require(Shared.Enemies)
+local Quests = require(Shared.Quests)
+local NPCs = require(Shared.NPCs)
+local World = require(Shared.World)
+local Points = require(Shared.Points)
 
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
 local Controller = require(script.Parent.Controller)
 local Popups = require(script.Parent.Popups)
+local WorldMarkers = require(script.Parent.WorldMarkers)
 
 local AutoHunt = {}
 
-local RANGE = 70 -- até onde ele vai buscar inimigos a partir do ponto de partida
+local RANGE = 70 -- caça livre: até onde ele vai buscar inimigos a partir do ponto de partida
+local QUEST_FIGHT_RANGE = 90 -- missão de caça: raio em volta do acampamento do alvo
 local REACH = { bow = 34, staff = 30 } -- alcance de ataque por arma (o resto: corpo a corpo)
 local MELEE_REACH = 6.5
 local POTION_AT = 0.35
+local TALK_RANGE = 12
+local TRAVEL_MIN = 650 -- studs: acima disso tenta uma pedra de viagem
+
+-- objetivos que o Auto sabe cumprir sozinho
+local AUTO_OBJECTIVES = {
+	kill = true, hit = true, gather = true, deliver = true, talk = true, explore = true, discover = true,
+	poi = true, poiSecret = true, level = true, mastery = true, mount = true, dodge = true, ability = true,
+	rhythm = true, finisher = true,
+}
 
 local player = Players.LocalPlayer
 local anchor = nil
-local banner
-local lastPotion = 0
+local banner, statusLabel
+local lastPotion, lastAbility, abilitySlot, lastDodge = 0, 0, 1, 0
+local lastChores, lastTravel, lastMount, lastTalk, lastPromptAt, lastRequest = 0, 0, 0, 0, 0, 0
 
 local MOVE_KEYS = {
 	[Enum.KeyCode.W] = true, [Enum.KeyCode.A] = true, [Enum.KeyCode.S] = true, [Enum.KeyCode.D] = true,
 	[Enum.KeyCode.Up] = true, [Enum.KeyCode.Down] = true, [Enum.KeyCode.Left] = true, [Enum.KeyCode.Right] = true,
 	[Enum.KeyCode.Space] = true,
 }
+
+local function flat(v)
+	return Vector3.new(v.X, 0, v.Z)
+end
 
 function AutoHunt.isOn()
 	return player:GetAttribute("AutoFarm") == true
@@ -48,7 +74,7 @@ function AutoHunt.toggle()
 		if Config.VipGamePassId > 0 then
 			MarketplaceService:PromptGamePassPurchase(player, Config.VipGamePassId)
 		else
-			Popups.message("O Auto Caçar é exclusivo para VIP (o VIP ainda não está à venda).", UI.Colors.Gold)
+			Popups.message("O Auto é exclusivo para VIP (o VIP ainda não está à venda).", UI.Colors.Gold)
 		end
 		return
 	end
@@ -56,22 +82,506 @@ function AutoHunt.toggle()
 	State.request("autoFarm", true, root and root.Position)
 end
 
-local function nearestEnemy(origin)
+local function setStatus(text)
+	if statusLabel and statusLabel.Text ~= text then
+		statusLabel.Text = text
+	end
+end
+
+-- ===================== ANDAR (caminho com desvio de obstáculos) =====================
+
+local nav = { goal = nil, waypoints = nil, index = 1, computedAt = 0, computing = false, lastPos = nil, lastCheck = 0, stuck = 0 }
+
+local function computePath(from, to)
+	nav.computing = true
+	task.spawn(function()
+		local path = PathfindingService:CreatePath({ AgentRadius = 2, AgentHeight = 5, AgentCanJump = true, WaypointSpacing = 8 })
+		local ok = pcall(function()
+			path:ComputeAsync(from, to)
+		end)
+		if ok and path.Status == Enum.PathStatus.Success then
+			nav.waypoints = path:GetWaypoints()
+			nav.index = 2
+		else
+			nav.waypoints = nil
+		end
+		nav.computedAt = os.clock()
+		nav.computing = false
+	end)
+end
+
+-- anda até goal; devolve a distância horizontal que falta
+local function moveTo(humanoid, root, goal)
+	local offset = flat(goal - root.Position)
+	local distance = offset.Magnitude
+	if distance < 3 then
+		humanoid:MoveTo(root.Position)
+		return distance
+	end
+	-- longe: anda por trechos de 160 studs
+	local sub = goal
+	if distance > 220 then
+		local point = root.Position + offset.Unit * 160
+		sub = Vector3.new(point.X, math.max(World.height(point.X, point.Z), World.SeaLevel) + 3, point.Z)
+	end
+	if not nav.goal or (nav.goal - sub).Magnitude > 15 or (os.clock() - nav.computedAt > 5 and not nav.computing) then
+		nav.goal = sub
+		if not nav.computing then
+			computePath(root.Position, sub)
+		end
+	end
+	local waypoint = nav.waypoints and nav.waypoints[nav.index]
+	if waypoint then
+		if flat(waypoint.Position - root.Position).Magnitude < 4 then
+			nav.index += 1
+			waypoint = nav.waypoints[nav.index]
+		end
+	end
+	if waypoint then
+		if waypoint.Action == Enum.PathWaypointAction.Jump then
+			humanoid.Jump = true
+		end
+		humanoid:MoveTo(waypoint.Position)
+	else
+		humanoid:MoveTo(sub)
+	end
+	-- preso: pula e recalcula
+	if os.clock() - nav.lastCheck > 2 then
+		if nav.lastPos and (root.Position - nav.lastPos).Magnitude < 1.5 then
+			nav.stuck += 1
+			humanoid.Jump = true
+			nav.computedAt = 0
+		else
+			nav.stuck = 0
+		end
+		nav.lastPos = root.Position
+		nav.lastCheck = os.clock()
+	end
+	return distance
+end
+
+-- ===================== COMBATE =====================
+
+local function enemyAt(origin, center, range, typeFilter)
 	local folder = workspace:FindFirstChild("Inimigos")
 	local best, bestDistance = nil, math.huge
-	for _, root in if folder then folder:GetChildren() else {} do
-		local def = Enemies.Defs[root:GetAttribute("Type") or ""]
-		if root:IsA("BasePart") and def and def.behavior ~= "dummy" and not root:GetAttribute("Dead") then
-			if anchor and (root.Position - anchor).Magnitude <= RANGE then
-				local distance = (root.Position - origin).Magnitude
+	for _, enemyRoot in if folder then folder:GetChildren() else {} do
+		local enemyType = enemyRoot:GetAttribute("Type") or ""
+		local def = Enemies.Defs[enemyType]
+		if enemyRoot:IsA("BasePart") and def and not enemyRoot:GetAttribute("Dead") then
+			local wanted = if typeFilter then enemyType == typeFilter else def.behavior ~= "dummy"
+			if wanted and (not center or (enemyRoot.Position - center).Magnitude <= range) then
+				local distance = (enemyRoot.Position - origin).Magnitude
 				if distance < bestDistance then
-					best, bestDistance = root, distance
+					best, bestDistance = enemyRoot, distance
 				end
 			end
 		end
 	end
 	return best, bestDistance
 end
+
+local function fight(humanoid, root, target, distance, options)
+	local weaponType = player:GetAttribute("WeaponType")
+	local reach = REACH[weaponType or ""] or MELEE_REACH
+	local radius = target.Size.X / 2
+	if distance > reach + radius then
+		local direction = flat(root.Position - target.Position)
+		local stop = if direction.Magnitude > 0.1 then target.Position + direction.Unit * (radius + reach * 0.6) else target.Position
+		moveTo(humanoid, root, Vector3.new(stop.X, root.Position.Y, stop.Z))
+		return
+	end
+	humanoid:MoveTo(root.Position)
+	local now = os.clock()
+	-- habilidades (gira entre 1 e 4; o servidor recusa se estiver em recarga)
+	if not (options and options.noAbilities) and now - lastAbility > 2.5 then
+		lastAbility = now
+		Controller.autoAimPoint = target.Position
+		local aim, point = Controller.getAim()
+		Controller.autoAimPoint = nil
+		State.action("ability", abilitySlot, aim, point)
+		abilitySlot = abilitySlot % 4 + 1
+	end
+	-- esquiva de vez em quando (também conta para missões de esquiva)
+	if options and options.dodge and now - lastDodge > 4 then
+		lastDodge = now
+		State.action("dodge")
+	end
+	if not Controller.isAttacking() then
+		Controller.autoAttack(target.Position)
+	end
+end
+
+-- ===================== ROTINA (resgates, equipamento, bolsa) =====================
+
+local function chores()
+	local data = State.data
+	if not data then
+		return
+	end
+	local progress = data.progress
+	if progress and progress.login and progress.login.canClaim then
+		State.request("claimLogin")
+	end
+	if progress and progress.pass then
+		local pass = progress.pass
+		if pass.tier > pass.claimed or (pass.premium and pass.tier > (pass.claimedPremium or 0)) then
+			State.request("claimPass")
+		end
+	end
+	-- equipa o item mais forte de cada espaço (sem trocar exóticos nem itens do mesmo nível de poder)
+	local best, current = {}, {}
+	for _, item in data.inventory or {} do
+		if item.slot then
+			if item.equipped then
+				current[item.slot] = item
+			end
+			local candidate = best[item.slot]
+			local usable = item.slot ~= "weapon" or item.weaponType == player:GetAttribute("WeaponType") or not player:GetAttribute("WeaponType")
+			if usable and not item.exotic and (not candidate or item.power > candidate.power) then
+				best[item.slot] = item
+			end
+		end
+	end
+	for slot, item in best do
+		local equipped = current[slot]
+		if not item.equipped and (not equipped or (not equipped.exotic and item.power > equipped.power * 1.05)) then
+			State.request("equip", item.uid)
+		end
+	end
+	-- bolsa cheia: vende Comuns e Incomuns
+	if #(data.inventory or {}) >= Config.MaxInventory - 5 then
+		State.request("sellJunk")
+	end
+end
+
+-- ===================== MISSÕES =====================
+
+local function npcPosition(npcId)
+	local npc = NPCs.ById[npcId]
+	if not npc or not npc.x then
+		return nil
+	end
+	return Vector3.new(npc.x, World.height(npc.x, npc.z), npc.z)
+end
+
+local function automatable(def)
+	if def.daily then
+		return false
+	end
+	for _, objective in def.objectives do
+		if not AUTO_OBJECTIVES[objective.type] then
+			return false
+		end
+	end
+	return true
+end
+
+local function activeEntries(data)
+	local list = {}
+	for _, entry in data.quests and data.quests.active or {} do
+		local def = Quests.ById[entry.id]
+		if def then
+			table.insert(list, { def = def, entry = entry })
+		end
+	end
+	-- história primeiro, depois as das regiões, depois o resto
+	table.sort(list, function(a, b)
+		local pa = if a.def.chain == "main" then 0 elseif a.def.chain then 1 else 2
+		local pb = if b.def.chain == "main" then 0 elseif b.def.chain then 1 else 2
+		return pa < pb
+	end)
+	return list
+end
+
+-- primeiro objetivo que ainda falta (e se ele é automático)
+local function nextObjective(def, entry)
+	for i, objective in def.objectives do
+		local progress = entry.objectives[i]
+		if progress and progress.progress < progress.amount then
+			return objective, i
+		end
+	end
+	return nil
+end
+
+-- missão nova disponível para aceitar (em ordem: história, regiões, outras), só as automáticas
+local function questToAccept(data)
+	local count = #(data.quests and data.quests.active or {})
+	if count >= Config.MaxActiveQuests then
+		return nil
+	end
+	local best, bestRank = nil, math.huge
+	for npcId, ids in data.quests and data.quests.available or {} do
+		for _, qid in ids do
+			local def = Quests.ById[qid]
+			if def and automatable(def) and NPCs.ById[npcId] and NPCs.ById[npcId].x then
+				local rank = if def.chain == "main" then 0 elseif def.chain then 1 else 2
+				if rank < bestRank then
+					best, bestRank = { def = def, npc = npcId }, rank
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- acampamento bom para subir de nível (inimigo mais forte que ainda dá para enfrentar)
+local function grindCamp(level, from)
+	local best, bestScore = nil, -math.huge
+	for _, camp in Enemies.Camps do
+		if not camp.town then
+			for enemyId in camp.spawns do
+				local def = Enemies.Defs[enemyId]
+				if def and def.behavior ~= "boss" and def.behavior ~= "dummy" and def.level <= level + 1 then
+					local position = Vector3.new(camp.center.X, World.height(camp.center.X, camp.center.Y), camp.center.Y)
+					local score = def.level * 100 - (position - from).Magnitude * 0.05
+					if score > bestScore then
+						best, bestScore = { position = position, enemy = enemyId }, score
+					end
+				end
+			end
+		end
+	end
+	return best
+end
+
+-- prompt perto (segredos de locais, coleta)
+local function promptNear(position, radius, name)
+	local best, bestDistance = nil, math.huge
+	for _, part in workspace:GetPartBoundsInRadius(position, radius) do
+		for _, child in part:GetChildren() do
+			if child:IsA("ProximityPrompt") and child.Enabled and (name == nil or child.Name == name) then
+				local distance = (part.Position - position).Magnitude
+				if distance < bestDistance then
+					best, bestDistance = child, distance
+				end
+			end
+		end
+	end
+	return best
+end
+
+local function triggerPrompt(prompt)
+	if os.clock() - lastPromptAt < (prompt.HoldDuration + 0.6) then
+		return
+	end
+	lastPromptAt = os.clock()
+	pcall(function()
+		prompt:InputHoldBegin()
+	end)
+	task.delay(prompt.HoldDuration + 0.05, function()
+		pcall(function()
+			prompt:InputHoldEnd()
+		end)
+	end)
+end
+
+-- viagem rápida: pedra de viagem descoberta bem mais perto do destino
+local function maybeTravel(root, goal)
+	local data = State.data
+	if not data or os.clock() - lastTravel < 25 then
+		return false
+	end
+	local distance = flat(goal - root.Position).Magnitude
+	if distance < TRAVEL_MIN then
+		return false
+	end
+	local best, bestDistance = nil, distance - 400
+	for _, stone in World.Waystones do
+		if data.discovered and data.discovered[stone.id] then
+			local d = flat(Vector3.new(stone.x, 0, stone.z) - goal).Magnitude
+			if d < bestDistance then
+				best, bestDistance = stone, d
+			end
+		end
+	end
+	if best then
+		lastTravel = os.clock()
+		local result = State.request("travel", best.id)
+		return result ~= nil and result.ok == true
+	end
+	return false
+end
+
+local function maybeMount(root, goal)
+	local data = State.data
+	if data and data.mount and not player:GetAttribute("Mounted") and os.clock() - lastMount > 6 and flat(goal - root.Position).Magnitude > 140 then
+		lastMount = os.clock()
+		State.action("mount")
+	end
+end
+
+-- vai até um lugar (com viagem e cavalo); true quando chegou
+local function travelTo(humanoid, root, goal, near)
+	local distance = flat(goal - root.Position).Magnitude
+	if distance <= (near or 6) then
+		humanoid:MoveTo(root.Position)
+		return true
+	end
+	if maybeTravel(root, goal) then
+		return false
+	end
+	maybeMount(root, goal)
+	moveTo(humanoid, root, goal)
+	return false
+end
+
+-- um passo do modo missões; false = não tinha nada para fazer
+local function questStep(humanoid, root)
+	local data = State.data
+	if not data or not data.quests then
+		return false
+	end
+	-- 1) missão pronta: entregar
+	for _, item in activeEntries(data) do
+		if item.entry.ready then
+			local npcId = item.def.turnIn or item.def.giver
+			local position = npcPosition(npcId)
+			if position then
+				setStatus(("Entregando: %s"):format(item.def.name))
+				if travelTo(humanoid, root, position, TALK_RANGE) and os.clock() - lastRequest > 2 then
+					lastRequest = os.clock()
+					State.request("turnInQuest", item.def.id)
+				end
+				return true
+			end
+		end
+	end
+	-- 2) objetivo da primeira missão que dá para fazer sozinho
+	for _, item in activeEntries(data) do
+		local def, entry = item.def, item.entry
+		if not automatable(def) then
+			continue
+		end
+		local objective = nextObjective(def, entry)
+		if not objective then
+			continue
+		end
+		local kind = objective.type
+		setStatus(("%s: %s"):format(def.name, objective.text or kind))
+		if kind == "kill" or kind == "hit" then
+			local wanted = if objective.target ~= "any" then objective.target else nil
+			local target, distance = enemyAt(root.Position, nil, 0, wanted)
+			if target and (target.Position - root.Position).Magnitude < QUEST_FIGHT_RANGE then
+				fight(humanoid, root, target, distance, { noAbilities = kind == "hit" })
+				return true
+			end
+			local goal = if wanted then WorldMarkers.objectiveTarget(def, entry, root.Position) else nil
+			if goal then
+				travelTo(humanoid, root, goal, 20)
+				return true
+			end
+			if not wanted then
+				local any, anyDistance = enemyAt(root.Position, root.Position, 120, nil)
+				if any then
+					fight(humanoid, root, any, anyDistance)
+					return true
+				end
+				local camp = grindCamp(data.level or 1, root.Position)
+				if camp then
+					travelTo(humanoid, root, camp.position, 20)
+					return true
+				end
+			end
+		elseif kind == "level" or kind == "mastery" or kind == "dodge" or kind == "ability" or kind == "rhythm" or kind == "finisher" then
+			local any, anyDistance = enemyAt(root.Position, root.Position, 120, nil)
+			if any then
+				fight(humanoid, root, any, anyDistance, { dodge = kind == "dodge" })
+				return true
+			end
+			local camp = grindCamp(data.level or 1, root.Position)
+			if camp then
+				travelTo(humanoid, root, camp.position, 20)
+				return true
+			end
+		elseif kind == "mount" then
+			if not player:GetAttribute("Mounted") and os.clock() - lastMount > 4 then
+				lastMount = os.clock()
+				State.action("mount")
+			end
+			return true
+		elseif kind == "talk" then
+			local position = npcPosition(objective.npc)
+			if position then
+				if travelTo(humanoid, root, position, TALK_RANGE) and os.clock() - lastTalk > 3 then
+					lastTalk = os.clock()
+					State.action("talk", objective.npc)
+				end
+				return true
+			end
+		elseif kind == "gather" or kind == "deliver" then
+			local goal = WorldMarkers.objectiveTarget(def, entry, root.Position)
+			if goal then
+				-- perto de um ponto de coleta: segura o prompt
+				local prompt = promptNear(goal, 10, nil)
+				if prompt and flat(goal - root.Position).Magnitude < 8 then
+					humanoid:MoveTo(root.Position)
+					triggerPrompt(prompt)
+					return true
+				end
+				-- é um inimigo que deixa o material: caça perto dele
+				local enemy, enemyDistance = enemyAt(root.Position, goal, 60, nil)
+				if enemy and (enemy.Position - root.Position).Magnitude < 60 then
+					fight(humanoid, root, enemy, enemyDistance)
+					return true
+				end
+				travelTo(humanoid, root, goal, 5)
+				return true
+			end
+			-- nada carregado por perto: anda até a pedra de viagem mais próxima para o mundo aparecer
+			local nearest, nearestDistance = nil, math.huge
+			for _, stone in World.Waystones do
+				local d = flat(Vector3.new(stone.x, 0, stone.z) - root.Position).Magnitude
+				if d > 40 and d < nearestDistance then
+					nearest, nearestDistance = stone, d
+				end
+			end
+			if nearest then
+				travelTo(humanoid, root, Vector3.new(nearest.x, World.height(nearest.x, nearest.z), nearest.z), 10)
+				return true
+			end
+		elseif kind == "explore" or kind == "discover" or kind == "poi" then
+			local goal = WorldMarkers.objectiveTarget(def, entry, root.Position)
+			if goal then
+				travelTo(humanoid, root, goal, 4)
+				return true
+			end
+		elseif kind == "poiSecret" then
+			local poi = Points.ById[objective.target]
+			if poi then
+				local goal = Vector3.new(poi.x, World.height(poi.x, poi.z), poi.z)
+				if travelTo(humanoid, root, goal, 25) or flat(goal - root.Position).Magnitude < 90 then
+					local prompt = promptNear(root.Position, 90, "SegredoLocal")
+					if prompt and prompt.Parent:IsA("BasePart") then
+						if travelTo(humanoid, root, prompt.Parent.Position, 6) then
+							triggerPrompt(prompt)
+						end
+					else
+						moveTo(humanoid, root, goal)
+					end
+				end
+				return true
+			end
+		end
+	end
+	-- 3) aceitar a próxima missão
+	local nextQuest = questToAccept(data)
+	if nextQuest then
+		local position = npcPosition(nextQuest.npc)
+		if position then
+			setStatus(("Pegando missão: %s"):format(nextQuest.def.name))
+			if travelTo(humanoid, root, position, TALK_RANGE) and os.clock() - lastRequest > 2 then
+				lastRequest = os.clock()
+				State.request("acceptQuest", nextQuest.def.id)
+			end
+			return true
+		end
+	end
+	return false
+end
+
+-- ===================== LAÇO =====================
 
 local function step()
 	local character = player.Character
@@ -81,32 +591,37 @@ local function step()
 		return
 	end
 	anchor = anchor or root.Position
+	local data = State.data
 	-- poção de vida quando está mal
-	if humanoid.Health / humanoid.MaxHealth < POTION_AT and os.clock() - lastPotion > 6 and State.data and (State.data.consumables.pocao_vida or 0) > 0 then
+	if humanoid.Health / humanoid.MaxHealth < POTION_AT and os.clock() - lastPotion > 6 and data and (data.consumables.pocao_vida or 0) > 0 then
 		lastPotion = os.clock()
 		State.action("potion", "pocao_vida")
 	end
-	local target, distance = nearestEnemy(root.Position)
+	-- rotina a cada 15 s
+	if os.clock() - lastChores > 15 then
+		lastChores = os.clock()
+		task.spawn(chores)
+	end
+	-- inimigo atacando por perto: defende-se primeiro
+	local threat, threatDistance = enemyAt(root.Position, root.Position, 14, nil)
+	if threat then
+		setStatus("Lutando")
+		fight(humanoid, root, threat, threatDistance)
+		return
+	end
+	if questStep(humanoid, root) then
+		return
+	end
+	-- caça livre em volta do ponto de partida
+	setStatus("Caçando por perto")
+	local target, distance = enemyAt(root.Position, anchor, RANGE, nil)
 	if not target then
-		if (root.Position - anchor).Magnitude > 8 then
-			humanoid:MoveTo(anchor)
+		if flat(root.Position - anchor).Magnitude > 8 then
+			moveTo(humanoid, root, anchor)
 		end
 		return
 	end
-	local weaponType = player:GetAttribute("WeaponType")
-	local reach = REACH[weaponType or ""] or MELEE_REACH
-	local radius = target.Size.X / 2
-	if distance > reach + radius then
-		-- chega perto (para um pouco antes, para não ficar dentro do inimigo)
-		local direction = (root.Position - target.Position) * Vector3.new(1, 0, 1)
-		local stop = if direction.Magnitude > 0.1 then target.Position + direction.Unit * (radius + reach * 0.6) else target.Position
-		humanoid:MoveTo(Vector3.new(stop.X, root.Position.Y, stop.Z))
-	else
-		humanoid:MoveTo(root.Position)
-		if not Controller.isAttacking() then
-			Controller.autoAttack(target.Position)
-		end
-	end
+	fight(humanoid, root, target, distance)
 end
 
 function AutoHunt.init(screen)
@@ -114,14 +629,15 @@ function AutoHunt.init(screen)
 		Name = "AutoCacar",
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.new(0.5, 0, 0, 100),
-		Size = UDim2.fromOffset(360, 34),
+		Size = UDim2.fromOffset(420, 50),
 		BackgroundColor3 = UI.Colors.Panel,
 		BackgroundTransparency = 0.15,
 		Visible = false,
 		Parent = screen,
 	}, { UI.corner(10) })
 	UI.ornate(banner, UI.Colors.Trim, 3)
-	UI.label({ Text = "AUTO CAÇAR (VIP, pode ficar AFK)  •  mova-se ou aperte N para parar", Size = UDim2.new(1, -16, 1, 0), Position = UDim2.fromOffset(8, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, Parent = banner }, { UI.textStroke(1) })
+	UI.label({ Text = "AUTO (VIP): missões, caça e coleta sozinho  •  mova-se ou N para parar", Size = UDim2.new(1, -16, 0, 22), Position = UDim2.fromOffset(8, 3), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.Gold, Parent = banner }, { UI.textStroke(1) })
+	statusLabel = UI.label({ Text = "", Size = UDim2.new(1, -16, 0, 18), Position = UDim2.fromOffset(8, 26), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Parent = banner }, { UI.textStroke(1) })
 
 	local function refreshAnchor()
 		local on = AutoHunt.isOn()
@@ -134,9 +650,9 @@ function AutoHunt.init(screen)
 	player:GetAttributeChangedSignal("AutoAnchor"):Connect(refreshAnchor)
 	player:GetAttributeChangedSignal("AutoFarm"):Connect(function()
 		refreshAnchor()
-		local on = AutoHunt.isOn()
 		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-		if not on then
+		if not AutoHunt.isOn() then
+			nav.waypoints, nav.goal = nil, nil
 			local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 			if humanoid and root then
 				humanoid:MoveTo(root.Position)
@@ -156,7 +672,7 @@ function AutoHunt.init(screen)
 	end)
 	refreshAnchor()
 	-- 100% AFK: o Roblox desconecta depois de 20 min sem mexer no teclado/mouse. Antes disso o jogo
-	-- reconecta no mesmo servidor e o Auto Caçar volta ligado no mesmo ponto.
+	-- reconecta no mesmo servidor e o Auto volta ligado no mesmo ponto.
 	player.Idled:Connect(function(idleSeconds)
 		if AutoHunt.isOn() and idleSeconds >= 16 * 60 then
 			Popups.message("Modo AFK: reconectando para não ser desconectado...", UI.Colors.Gold)
@@ -173,7 +689,10 @@ function AutoHunt.init(screen)
 			return
 		end
 		accumulator = 0
-		step()
+		local ok, err = pcall(step)
+		if not ok then
+			warn("[Auto]", err)
+		end
 	end)
 end
 

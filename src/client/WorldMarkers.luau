@@ -247,6 +247,9 @@ local function refreshTarget()
 	end
 end
 
+-- usado também pelo Auto (AutoHunt) para saber para onde ir
+WorldMarkers.objectiveTarget = objectiveTarget
+
 function WorldMarkers.init()
 	for _, instance in CollectionService:GetTagged("NPC") do
 		attachNpcGui(instance)
