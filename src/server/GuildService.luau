@@ -810,7 +810,8 @@ function GuildService.start()
 		previous(player, data, bonus)
 		GuildService.applyBonus(player, data, bonus)
 	end
-	pcall(function()
+	-- em segundo plano: no Studio (ou com o serviço fora do ar) a assinatura pode demorar muito
+	task.spawn(pcall, function()
 		MessagingService:SubscribeAsync(TOPIC, onMessage)
 	end)
 	task.spawn(function()

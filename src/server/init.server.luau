@@ -560,10 +560,26 @@ spawn.Size = Vector3.new(6, 1, 6)
 spawn.CFrame = CFrame.new(World.TownCenter.X, World.TownHeight + 0.5, World.TownCenter.Z + 16 * World.PropScale)
 spawn.Parent = workspace
 
+-- Cada etapa roda protegida e com tempo-limite: um serviço que trava (DataStore/MessagingService fora
+-- do ar, Studio sem publicar) não pode impedir o mundo de abrir. Etapas que não esperam nada terminam
+-- na hora, então a ordem continua a mesma.
 local function safely(name, fn, ...)
-	local ok, err = pcall(fn, ...)
-	if not ok then
-		warn(("[Servidor] Falha em %s: %s"):format(name, tostring(err)))
+	local args = table.pack(...)
+	local done = false
+	task.spawn(function()
+		local ok, err = pcall(fn, table.unpack(args, 1, args.n))
+		if not ok then
+			warn(("[Servidor] Falha em %s: %s"):format(name, tostring(err)))
+		end
+		done = true
+	end)
+	local started = os.clock()
+	while not done do
+		if os.clock() - started > 10 then
+			warn(("[Servidor] %s está demorando demais; o jogo segue sem esperar."):format(name))
+			return
+		end
+		task.wait()
 	end
 end
 safely("NPCs", NPCService.spawn, built.board)
