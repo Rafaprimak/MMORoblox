@@ -154,11 +154,11 @@ local function resolveMove(player, move, aim, extra)
 	end
 
 	if move.hit == "cone" then
-		hitList(EnemyService.inCone(origin, aim, move.range, move.arc))
+		hitList(EnemyService.inCone(origin, aim, move.range, move.arc, nil, player))
 	elseif move.hit == "circle" then
 		local center = origin + flat(aim).Unit * move.offset
 		Remotes.Fx:FireAllClients("explosion", center - Vector3.new(0, 2.5, 0), move.radius, "earth")
-		hitList(EnemyService.inRadius(center, move.radius))
+		hitList(EnemyService.inRadius(center, move.radius, nil, player))
 	elseif move.hit == "nova" then
 		local ticks = move.ticks or 1
 		Remotes.Fx:FireAllClients("explosion", origin - Vector3.new(0, 2.5, 0), move.radius, move.style or "slash")
@@ -167,7 +167,7 @@ local function resolveMove(player, move, aim, extra)
 			if not r then
 				break
 			end
-			hitList(EnemyService.inRadius(r.Position, move.radius))
+			hitList(EnemyService.inRadius(r.Position, move.radius, nil, player))
 			if i < ticks then
 				task.wait(move.interval or 0.15)
 			end
@@ -184,7 +184,7 @@ local function resolveMove(player, move, aim, extra)
 			if not r then
 				break
 			end
-			for _, rec in EnemyService.alongSegment(last, r.Position, move.radius) do
+			for _, rec in EnemyService.alongSegment(last, r.Position, move.radius, player) do
 				if not hit[rec] then
 					hit[rec] = true
 					info.fromPosition = r.Position
@@ -199,6 +199,7 @@ local function resolveMove(player, move, aim, extra)
 		local spawnAt = origin + Vector3.new(0, 1.2, 0) + flat(aim).Unit * 2
 		ProjectileService.fire({
 			team = "player",
+			owner = player,
 			origin = spawnAt,
 			direction = aim,
 			speed = move.speed,
@@ -215,7 +216,7 @@ local function resolveMove(player, move, aim, extra)
 			end,
 			onExplode = function(position)
 				Remotes.Fx:FireAllClients("explosion", position, move.aoe, move.style)
-				for _, rec in EnemyService.inRadius(position, move.aoe) do
+				for _, rec in EnemyService.inRadius(position, move.aoe, nil, player) do
 					CombatService.dealDamage(player, rec, mult, info)
 				end
 			end,
@@ -243,6 +244,12 @@ local function begin(player, move, aim, extra)
 	end
 	task.delay(move.windup / stats.attackSpeed, resolveMove, player, move, aim, extra)
 	return duration
+end
+
+-- Interrompe o jogador por "seconds" (ninguém ataca até lá). Usado quando um golpe é aparado na arena.
+function CombatService.interrupt(player, seconds)
+	combo[player] = { index = 0, endAt = os.clock() + seconds }
+	chargeStart[player] = nil
 end
 
 -- Golpe leve. O servidor decide o índice do combo pelo tempo (o cliente só sugere).

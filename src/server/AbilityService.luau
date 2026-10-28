@@ -50,12 +50,17 @@ local function groundPoint(root, aimPoint, range)
 		offset = offset.Unit * range
 	end
 	local x, z = root.Position.X + offset.X, root.Position.Z + offset.Z
-	return Vector3.new(x, World.height(x, z), z)
+	local y = World.height(x, z)
+	-- arenas e masmorras ficam longe do terreno: usa o chão de onde o jogador está
+	if root.Position.Y - y > 12 then
+		y = root.Position.Y - 3
+	end
+	return Vector3.new(x, y, z)
 end
 
 local function hitRadius(player, center, radius, mult, info)
 	local count = 0
-	for _, rec in EnemyService.inRadius(center, radius) do
+	for _, rec in EnemyService.inRadius(center, radius, nil, player) do
 		info.fromPosition = info.fromPosition or center
 		if CombatService.dealDamage(player, rec, mult, info) > 0 then
 			count += 1
@@ -80,7 +85,7 @@ local function dashAndHit(player, direction, speed, duration, radius, mult, stun
 			return
 		end
 		if mult > 0 then
-			for _, rec in EnemyService.alongSegment(last, r.Position, radius) do
+			for _, rec in EnemyService.alongSegment(last, r.Position, radius, player) do
 				if not hit[rec] then
 					hit[rec] = true
 					CombatService.dealDamage(player, rec, mult, { stun = stun, fromPosition = r.Position, ability = true })
@@ -135,6 +140,7 @@ end
 local function shoot(player, ability, mult, direction, origin, style)
 	ProjectileService.fire({
 		team = "player",
+		owner = player,
 		origin = origin,
 		direction = direction,
 		speed = ability.speed,
@@ -219,14 +225,14 @@ function executors.meteor(player, ability, mult, _aim, point, root)
 end
 
 function executors.shadowstep(player, ability, _mult, _aim, _point, root)
-	local rec = EnemyService.nearest(root.Position, ability.range)
+	local rec = EnemyService.nearest(root.Position, ability.range, player)
 	if not rec then
 		Remotes.Notify:FireClient(player, { kind = "message", text = "Nenhum inimigo por perto." })
 		return false
 	end
 	local enemyLook = Vector3.new(-math.sin(rec.yaw), 0, -math.cos(rec.yaw))
 	local behind = rec.pos - enemyLook * (rec.radius + 3)
-	local destination = Vector3.new(behind.X, World.height(behind.X, behind.Z) + 3.2, behind.Z)
+	local destination = Vector3.new(behind.X, math.max(World.height(behind.X, behind.Z), rec.pos.Y) + 3.2, behind.Z)
 	local from = root.Position
 	AntiCheat.allowTeleport(player, 1.5)
 	player.Character:PivotTo(CFrame.lookAt(destination, Vector3.new(rec.pos.X, destination.Y, rec.pos.Z)))
@@ -244,7 +250,7 @@ function executors.poisonbuff(player, ability, mult)
 end
 
 function executors.execute(player, ability, mult, aim, _point, root)
-	local targets = EnemyService.inCone(root.Position, flatAim(aim, root), ability.range, ability.arc, 1)
+	local targets = EnemyService.inCone(root.Position, flatAim(aim, root), ability.range, ability.arc, 1, player)
 	local rec = targets[1]
 	if not rec then
 		return
@@ -260,10 +266,18 @@ end
 
 -- ===================== SUPORTE E TANQUE =====================
 
--- jogadores vivos dentro do raio (aliados: o jogo não tem PvP)
-local function alliesNear(position, radius)
+-- Arena: só o próprio time é aliado (gancho preenchido pelo ArenaService)
+AbilityService.IsAlly = function(_player, _other)
+	return true
+end
+
+-- jogadores vivos dentro do raio (aliados; na arena, só o time de quem lançou)
+local function alliesNear(player, position, radius)
 	local list = {}
 	for _, other in Players:GetPlayers() do
+		if not AbilityService.IsAlly(player, other) then
+			continue
+		end
 		local character = other.Character
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 		local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -279,7 +293,7 @@ local function healAllies(player, position, radius, fraction)
 	local stats = PlayerService.getStats(player)
 	local power = 1 + (stats.bonus.healPower or 0)
 	local total = 0
-	for _, ally in alliesNear(position, radius) do
+	for _, ally in alliesNear(player, position, radius) do
 		local missing = ally.humanoid.MaxHealth - ally.humanoid.Health
 		local amount = ally.humanoid.MaxHealth * fraction * power
 		if missing > 0 then
@@ -302,7 +316,7 @@ function executors.heal(player, ability, mult, _aim, _point, root)
 	Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), ability.radius * 0.5, "holy")
 	healAllies(player, root.Position, ability.radius, ability.heal * mult)
 	if ability.iframes then
-		for _, ally in alliesNear(root.Position, ability.radius) do
+		for _, ally in alliesNear(player, root.Position, ability.radius) do
 			PlayerService.grantIFrames(ally.player, ability.iframes)
 		end
 	end
@@ -310,7 +324,7 @@ end
 
 function executors.allybuff(player, ability, mult, _aim, _point, root)
 	Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), ability.radius * 0.6, "holy")
-	for _, ally in alliesNear(root.Position, ability.radius) do
+	for _, ally in alliesNear(player, root.Position, ability.radius) do
 		PlayerService.addBuff(ally.player, ability.buffId, { damage = (ability.damage or 0) * mult, defense = (ability.defense or 0) * mult }, ability.time)
 		Remotes.Fx:FireAllClients("heal", ally.player, 0)
 		if ally.player ~= player then

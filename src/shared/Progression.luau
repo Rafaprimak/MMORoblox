@@ -80,6 +80,7 @@ Progression.Achievements = {
 	{ id = "explorador", name = "Explorador", icon = "compass", event = "poi", tiers = { 3, 6, 9 }, title = "desbravador", text = "Descubra locais de interesse" },
 	{ id = "cacador_tesouros", name = "Caça ao Tesouro", icon = "key", event = "poiChest", tiers = { 2, 5, 9 }, title = "achador", text = "Abra baús escondidos nos locais" },
 	{ id = "coracao_estrela", name = "Coração da Estrela", icon = "falling-star", event = "raid", tiers = { 1, 5, 15 }, title = "devorador_estrelas", text = "Derrote o Devorador de Estrelas na raide" },
+	{ id = "gladiador", name = "Gladiador", icon = "laurel-crown", event = "arenaWin", tiers = { 1, 25, 150 }, title = "gladiador", text = "Vença lutas na Arena" },
 	{ id = "guardiao_segredos", name = "Guardião de Segredos", icon = "eyeball", event = "poiSecret", tiers = { 2, 5, 9 }, title = "sabedor", text = "Encontre os segredos escondidos nos locais de interesse" },
 	{ id = "perfeccionista", name = "Perfeccionista", icon = "upgrade", event = "upgradeTo", mode = "max", tiers = { 5, 8, 10 }, title = "perfeccionista", text = "Aprimore um item" },
 	{ id = "masmorreiro", name = "Senhor das Profundezas", icon = "castle", event = "dungeonBoss", tiers = { 1, 12, 60 }, title = "senhor_profundezas", text = "Derrote chefes de masmorra" },
@@ -152,6 +153,18 @@ Progression.Titles = {
 	devorador_estrelas = { name = "Devorador de Estrelas", color = Color3.fromRGB(255, 140, 230), rainbow = true },
 	veterano = { name = "Veterano", color = Color3.fromRGB(230, 200, 150) },
 	imortal = { name = "Imortal", color = Color3.fromRGB(255, 255, 255), rainbow = true },
+	-- arena (Arena.Divisions e conquista Gladiador)
+	gladiador = { name = "Gladiador", color = Color3.fromRGB(230, 190, 120) },
+	gladiador_prata = { name = "Gladiador de Prata", color = Color3.fromRGB(200, 205, 220) },
+	gladiador_ouro = { name = "Gladiador de Ouro", color = Color3.fromRGB(255, 205, 70) },
+	gladiador_platina = { name = "Gladiador de Platina", color = Color3.fromRGB(120, 230, 210) },
+	gladiador_diamante = { name = "Gladiador de Diamante", color = Color3.fromRGB(120, 180, 255) },
+	campeao_arena = { name = "Campeão da Arena", color = Color3.fromRGB(255, 90, 90), rainbow = true },
+	-- eventos sazonais (Seasons.Events)
+	cacador_aboboras = { name = "Caçador de Abóboras", color = Color3.fromRGB(255, 140, 40) },
+	espirito_inverno = { name = "Espírito do Inverno", color = Color3.fromRGB(150, 225, 255) },
+	folia = { name = "Rei da Folia", color = Color3.fromRGB(255, 90, 200) },
+	arraia = { name = "Alma do Arraiá", color = Color3.fromRGB(255, 200, 60) },
 }
 
 -- texto curto de uma recompensa (para a interface)

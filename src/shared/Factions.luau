@@ -25,7 +25,7 @@ Factions.List = {
 		icon = "wolf-head",
 		color = Color3.fromRGB(255, 170, 80),
 		npc = "kael",
-		text = "Os melhores Hunters do reino. Sobe derrotando chefes de masmorra e de mundo e limpando masmorras inteiras.",
+		text = "Os melhores Hunters do reino. Sobe derrotando chefes de masmorra e de mundo, limpando masmorras inteiras e vencendo na Arena.",
 	},
 }
 Factions.ById = {}
@@ -55,6 +55,7 @@ Factions.Events = {
 	worldBoss = { liga = 70 },
 	dungeon = { liga = 200 },
 	raid = { liga = 300, circulo = 100 },
+	arenaWin = { liga = 20 },
 }
 
 -- missões entregues dão reputação para a facção de quem deu a missão

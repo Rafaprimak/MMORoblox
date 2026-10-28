@@ -77,6 +77,7 @@ PlayerService.OnThorns = function(_player, _source, _amount) end
 
 -- Gancho para somar bônus de outros sistemas (pets, perks): function(player, data, bonus)
 PlayerService.ExtraBonus = function(_player, _data, _bonus) end
+PlayerService.ArenaHealMult = 0.5 -- curas dentro da arena (Arena.HealMult, ajustável pela configuração remota)
 -- Núcleo Estelar explodiu (init.server empurra os inimigos perto; evita PlayerService exigir EnemyService)
 PlayerService.OnStarCore = function(_player, _position) end
 
@@ -481,6 +482,10 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 	if stats.perks.espinhos and options.source and not options.ranged then
 		PlayerService.OnThorns(player, options.source, final * 0.25 * stats.perks.espinhos)
 	end
+	-- arena: ninguém morre de verdade (cai com 1 de vida e o ArenaService tira da rodada)
+	if options.nonLethal then
+		final = math.min(final, math.max(0, math.floor(humanoid.Health) - 1))
+	end
 	humanoid:TakeDamage(final)
 	s.lastDamageAt = now
 	Remotes.Fx:FireClient(player, "hurt", final, sourcePosition)
@@ -501,6 +506,9 @@ function PlayerService.heal(player, amount)
 	local character = player.Character
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 	if humanoid and humanoid.Health > 0 then
+		if player:GetAttribute("Arena") then
+			amount *= PlayerService.ArenaHealMult
+		end
 		humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + amount)
 	end
 end
@@ -1086,6 +1094,10 @@ function PlayerService.useConsumable(player, id)
 	end
 	if (data.consumables[id] or 0) <= 0 then
 		Remotes.Notify:FireClient(player, { kind = "message", text = "Você não tem " .. def.name .. "." })
+		return false
+	end
+	if player:GetAttribute("Arena") then
+		Remotes.Notify:FireClient(player, { kind = "message", text = "Poções não podem ser usadas na arena." })
 		return false
 	end
 	local now = os.clock()

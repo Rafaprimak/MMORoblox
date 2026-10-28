@@ -78,7 +78,7 @@ local function step(projectile, dt)
 
 	-- alvos
 	if projectile.team == "player" then
-		for _, rec in EnemyService.alongSegment(from, to, projectile.radius) do
+		for _, rec in EnemyService.alongSegment(from, to, projectile.radius, projectile.owner) do
 			if not projectile.hit[rec] then
 				projectile.hit[rec] = true
 				local center = EnemyService.centerOf(rec)

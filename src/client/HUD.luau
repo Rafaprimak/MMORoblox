@@ -156,8 +156,8 @@ function HUD.init(screen, callbacks)
 	refs.bossFrame, refs.bossFill, refs.bossText = bossFrame, bossFill, bossText
 
 	-- ===== botões do menu =====
-	-- ícones: "eagle-emblem", "book-cover", "backpack", "wizard-face", "scroll-unfurled", "treasure-map", "present", "horse-head", "star-formation", "paw-print", "sands-of-time", "crossed-swords", "cog", "help"
-	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 50), Size = UDim2.fromOffset(150, 460), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
+	-- ícones: "eagle-emblem", "book-cover", "laurel-crown", "backpack", "wizard-face", "scroll-unfurled", "treasure-map", "present", "horse-head", "star-formation", "paw-print", "sands-of-time", "crossed-swords", "cog", "help"
+	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 50), Size = UDim2.fromOffset(150, 490), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
 	local entries = {
 		{ "Inventário", "I", callbacks.onInventory, nil, "backpack" },
 		{ "Personagem", "C", callbacks.onCharacter, nil, "wizard-face" },
@@ -170,13 +170,14 @@ function HUD.init(screen, callbacks)
 		{ "Jornada", "K", callbacks.onJourney, "journey", "star-formation" },
 		{ "Guilda", "L", callbacks.onGuild, nil, "eagle-emblem" },
 		{ "Crônicas", "Y", callbacks.onChronicles, nil, "book-cover" },
+		{ "Arena", "", callbacks.onArena, nil, "laurel-crown" },
 		{ "Pets", "G", callbacks.onPets, nil, "paw-print" },
 		{ "Presentes", "U", callbacks.onPlaytime, "playtime", "sands-of-time" },
 		{ "Auto Caçar", "N", callbacks.onAutoHunt, "autohunt", "crossed-swords" },
 		{ "Configurações", "P", callbacks.onSettings, nil, "cog" },
 	}
 	for i, entry in entries do
-		local button = UI.button({ Text = entry[1] .. "  [" .. entry[2] .. "]", Size = UDim2.fromOffset(150, 27), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
+		local button = UI.button({ Text = entry[1] .. (if entry[2] ~= "" then "  [" .. entry[2] .. "]" else ""), Size = UDim2.fromOffset(150, 27), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
 		button.MouseButton1Click:Connect(entry[3])
 		-- ícone à esquerda do texto
 		local pad = button:FindFirstChildOfClass("UIPadding") or UI.new("UIPadding", { Parent = button })

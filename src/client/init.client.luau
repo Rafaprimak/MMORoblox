@@ -54,6 +54,7 @@ local MarketWindow = require(script.MarketWindow)
 local GuildWindow = require(script.GuildWindow)
 local ChroniclesWindow = require(script.ChroniclesWindow)
 local RaidWindow = require(script.RaidWindow)
+local ArenaWindow = require(script.ArenaWindow)
 local EventTracker = require(script.EventTracker)
 local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
@@ -101,6 +102,7 @@ MarketWindow.init(screen)
 GuildWindow.init(screen)
 ChroniclesWindow.init(screen)
 RaidWindow.init(screen)
+ArenaWindow.init(screen)
 EventTracker.init(screen)
 PetRenderer.init()
 ClassSelect.init()
@@ -132,6 +134,7 @@ HUD.init(screen, {
 	onJourney = JourneyWindow.toggle,
 	onGuild = GuildWindow.toggle,
 	onChronicles = ChroniclesWindow.toggle,
+	onArena = ArenaWindow.toggle,
 	onPlaytime = function()
 		PlaytimeWindow.toggle()
 	end,

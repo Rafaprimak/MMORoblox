@@ -60,6 +60,7 @@ function DataService.defaultData()
 		factionTiers = {}, -- [facção] = último degrau recompensado
 		lore = {}, -- [página] = true (diário de lore)
 		raidWeek = -1, -- semana em que já pegou o prêmio da raide
+		arena = { season = 0, rating = 1000, best = 1000, wins = 0, losses = 0, history = {} }, -- Arena PvP (pontos da temporada)
 		market = { selling = {}, buying = {} }, -- mercado: custódia dos anúncios e das compras em andamento
 		progress = {
 			counters = {},

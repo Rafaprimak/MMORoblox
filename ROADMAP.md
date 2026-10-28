@@ -127,7 +127,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Mercado dos Caçadores (leilão entre servidores, no Otto): anunciar equipamento ou material com preço, buscar por nome/tipo/raridade, comprar de qualquer servidor, cancelar; 48 h por anúncio, taxa de 1% para anunciar e 10% na venda; à prova de duplicação (custódia no perfil + `UpdateAsync` atômico + acerto de minuto em minuto) (G)
 - ⬜ Rankings: nível, poder de equipamento, kills do chefe, por semana (M)
 - 🧪 Raide "Coração da Estrela" (nível 18+, até 8 jogadores): portal único (estrela caída com feixe de luz visível de todo o mapa), arena única (ilha flutuando no espaço com céu de nebulosa), chefe com modelo próprio (Devorador de Estrelas: tentáculos, núcleo de estrela, asas de nebulosa, coroa de fragmentos orbitando), fases (chuva de estrelas, servos, fúria), prêmio semanal (baú Real + item Lendário + ouro), conjunto Estelar exclusivo (8 armas + 4 peças, perks Chuva Estelar/Manto Estelar/Núcleo Estelar), título arco-íris e página de lore (G)
-- ⬜ Arena PvP opcional (duelo 1v1 e 3v3) com rank próprio (G)
+- 🧪 Arena PvP "Coliseu de Aurora" (menu Arena, nível 8+): fila de qualquer lugar, Duelo 1x1 e Equipes 3x3 (times montados pelos pontos), melhor de 3 rodadas de 90 s, coliseu próprio longe do mapa (até 4 lutas ao mesmo tempo), todo o combate vale (habilidades, perks, esquiva, aparar, bloqueio) com dano reduzido e sem morte; sem poções e curas pela metade; pontos Elo por temporada, 6 divisões com títulos, ranking top 20 da temporada, histórico das 10 últimas lutas, conquista Gladiador, placar com a vida dos dois times (G)
 - ⬜ Emotes e chat com balões (P)
 
 ## Fase 4 — Progressão de longo prazo

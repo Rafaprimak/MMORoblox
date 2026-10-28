@@ -78,6 +78,8 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `TownPlan` | Traçado da vila (fonte única): ruas, calçadas, praça, becos, lotes das lojas e casas, postes. Usado pelo terreno, NPCs, construção e moradores |
 | `Points` | Locais de interesse (posição achada de forma determinística em chão seco e plano), recompensa e baú |
 | `ItemModels` | Modelo 3D de cada item (visual por base em `ItemModels.Looks`): usado na mão, no chão, no ícone e na cena do baú |
+| `Arena` | Arena PvP: modos (`Modes`), rodadas, multiplicadores de dano/cura, divisões com títulos e pontos Elo (`delta`) |
+| `Seasons` | Temporadas de 8 semanas (`Seasons.info`) e eventos sazonais por data (`activeEvent`) |
 | `Dungeons` | Masmorras: portais, 20 andares (`floorInfo`, `tier`, `startFloors`), inimigos por faixa, chefes a cada 5 andares, material, chave, loot exclusivo e loja do Mercador |
 | `Guilds` | Regras das guildas: custo/nível para fundar, emblemas, XP por evento (`Points`), metas semanais (`Goals`, `goalsForWeek`), nível (`level`/`xpForLevel`) |
 | `Factions`, `Lore` | Facções (degraus, reputação por evento, facção de quem dá cada missão) e páginas do diário de lore (`unlock = { evento, alvo }`) |
@@ -112,6 +114,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `PetService` | Ovos, equipar/soltar pets, XP do pet, bônus (`ExtraBonus`), drops raros |
 | `DungeonBuilder` | Peças das masmorras: salas por tema e tipo (`decor.*`), paredes com porta em arco, corredores com grade (`corridor`/`openGate`), escada, tochas |
 | `DungeonService` | Grupo no portal, cópia da masmorra longe do mapa (x ≈ 6000), um andar por vez com mecânica, objetivo extra, segredos e altar; chefes, baús, pontos de retorno, Mercador de Masmorras |
+| `ArenaService` | Arena PvP: fila, partidas em coliseus longe do mapa (x ≈ -12000), rodadas, pontos da temporada (`data.arena`), ranking (`Arena_T<temporada>`); preenche os ganchos `EnemyService.Proxies/ProxyDamage/ProxyDot/ProxyParried` e `AbilityService.IsAlly` |
 | `VipService` | VIP (game pass `Config.VipGamePassId`; no Studio todos são VIP) e o atributo `AutoFarm` (Auto Caçar, desliga nas masmorras) |
 | `MonetizationService` | Compras com Robux (`Config.Products`): o único `ProcessReceipt` do jogo; entrega uma vez por `PurchaseId` (`data.purchases`) e salva na hora |
 | `FusionService` | Fusão de equipamentos: 9 da mesma raridade → 1 acima (`Config.Fusion`) |
@@ -148,6 +151,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DungeonAtmosphere` | Clima das masmorras no cliente (luz, névoa, tom, poeira/brasas) enquanto o jogador tem o atributo `Dungeon` |
 | `AutoHunt` | Auto Caçar no cliente (só com `AutoFarm`): anda até o inimigo mais perto, ataca no ritmo (`Controller.autoAttack`), toma poção e volta ao ponto de partida |
 | `Store` | Cliente: abre a compra com Robux (`Store.buy(chave)`) e mostra o preço; produto com id 0 = no Studio entrega de graça para testar |
+| `ArenaWindow` | Janela da Arena (menu, sem tecla): fila, divisão, ranking, histórico; placar no topo durante a luta |
 | `FusionWindow`, `TradeWindow` | Janelas de fusão e de troca (o botão "Trocar" é um ProximityPrompt local em cada outro jogador) |
 | `PlaytimeWindow` | Janela de Presentes (tecla U) com o tempo neste servidor |
 | `MarketWindow` | Janela do Mercado (Comprar / Vender / Meus anúncios), aberta pelo serviço `market` do Otto |
@@ -178,7 +182,7 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 
 ### Rede (`src/shared/Remotes.luau`)
 - **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
-- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, claimPlaytime, autoFarm, afkRejoin, devPremium, fuse, tradeInvite, tradeRespond, tradeOffer, tradeReady, tradeConfirm, tradeCancel, partyInvite, partyRespond, partyLeave, partyKick, partyLooking, partyList, marketSell, marketBuy, marketCancel, marketBrowse, marketMine, dungeonRanking, raidJoin, raidLeave, raidReady, raidExit, guildCreate, guildInvite, guildRespond, guildLeave, guildKick, guildRank, guildBank, guildClaim, guildChat, guildRanking, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
+- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, arenaJoin, arenaLeave, arenaForfeit, arenaRanking, dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, claimPlaytime, autoFarm, afkRejoin, devPremium, fuse, tradeInvite, tradeRespond, tradeOffer, tradeReady, tradeConfirm, tradeCancel, partyInvite, partyRespond, partyLeave, partyKick, partyLooking, partyList, marketSell, marketBuy, marketCancel, marketBrowse, marketMine, dungeonRanking, raidJoin, raidLeave, raidReady, raidExit, guildCreate, guildInvite, guildRespond, guildLeave, guildKick, guildRank, guildBank, guildClaim, guildChat, guildRanking, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward, dungeonPortal, tradeInvite, tradeOpen, partyInvite, guildInvite, guildChat, raidPortal`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
@@ -221,6 +225,13 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - Regras da noite ficam em `Config.Night*` (dano e Elites dos inimigos, XP/ouro/drops). Para algo novo "só à noite", leia `workspace:GetAttribute("Night")`.
 - Configurações novas: adicione em `Config.DefaultSettings` (o `reconcile` completa saves antigos), na janela `SettingsWindow` e leia com `Prefs.get(chave)`. O servidor valida em `PlayerService.saveSettings`.
 - `Fx.hit` recebe o `element` do golpe (estilo da habilidade ou `fire`/`blood` pelo encantamento) para as faíscas do impacto.
+
+### Arena PvP (dano entre jogadores)
+- Não existe "PvP solto": jogador só acerta jogador dentro de uma luta da arena. As consultas do `EnemyService` (`inCone`, `inRadius`, `alongSegment`, `nearest`) recebem o **atacante** como último argumento; se ele está numa luta, devolvem só os oponentes como registros `proxy = true` (com `pos`, `yaw`, `hp`, `maxHp`, `root`, `player`).
+- `EnemyService.damage/applyDot/parried` desviam esses registros para o `ArenaService`, que chama `PlayerService.damagePlayer(..., { nonLethal = true })` (esquiva, aparar, bloqueio e perks de defesa valem; ninguém morre, cai com 1 de vida).
+- **Consulta nova de alvo em golpe, habilidade, perk ou projétil:** passe o jogador que ataca (`EnemyService.inRadius(c, r, nil, player)`; projéteis com `owner = player`). Sem isso a habilidade não acerta na arena.
+- Cura/escudo em aliados: use `alliesNear(player, ...)` (respeita `AbilityService.IsAlly`: na arena só o próprio time).
+- Na arena: sem poções (`useConsumable`), curas × `PlayerService.ArenaHealMult`. Atributos `Arena` (id da luta) e `ArenaTeam`.
 
 ### Classes, talentos e ameaça
 - Cada classe tem `role` (tank, support, dps, control), `threat` e `abilities` (4 básicas, grátis) + `extra` (4 avançadas, `advanced = true`, custam 1 ponto). O loadout das teclas 1-4 fica em `data.loadout` (`PlayerService.getLoadout`).

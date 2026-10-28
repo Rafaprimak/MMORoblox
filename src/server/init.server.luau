@@ -44,6 +44,7 @@ local MarketService = require(script.MarketService)
 local GuildService = require(script.GuildService)
 local ChronicleService = require(script.ChronicleService)
 local RaidService = require(script.RaidService)
+local ArenaService = require(script.ArenaService)
 local WorldEventService = require(script.WorldEventService)
 
 workspace:SetAttribute("WorldReady", false)
@@ -66,7 +67,7 @@ PlayerService.QuestHook = questHook
 PlayerService.QuestSummary = QuestService.summary
 PlayerService.OnDamaged = TravelService.onDamaged
 PlayerService.OnStarCore = function(player, position)
-	for _, rec in EnemyService.inRadius(position, 14) do
+	for _, rec in EnemyService.inRadius(position, 14, nil, player) do
 		EnemyService.damage(rec, 1, player, { perk = true, knockback = 16, stun = 1, fromPosition = position, element = "holy" })
 	end
 end
@@ -95,6 +96,13 @@ MarketService.QuestHook = questHook
 GuildService.QuestHook = questHook
 WorldEventService.QuestHook = questHook
 RaidService.QuestHook = questHook
+ArenaService.QuestHook = questHook
+-- Arena PvP: os oponentes viram alvos do combate (ver EnemyService.Proxies)
+EnemyService.Proxies = ArenaService.proxies
+EnemyService.ProxyDamage = ArenaService.proxyDamage
+EnemyService.ProxyDot = ArenaService.proxyDot
+EnemyService.ProxyParried = ArenaService.proxyParried
+AbilityService.IsAlly = ArenaService.isAlly
 DungeonService.QuestHook = questHook
 FusionService.QuestHook = questHook
 PetService.init()
@@ -112,6 +120,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.guild = GuildService.payload(player)
 		payload.chronicle = ChronicleService.summary(player)
 		payload.raid = RaidService.summary(player)
+		payload.arena = ArenaService.summary(player)
 		payload.poiSecrets = data.poiSecrets
 	end
 end
@@ -409,6 +418,14 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return RaidService.setReady(player, a)
 	elseif action == "raidExit" then
 		return RaidService.exit(player)
+	elseif action == "arenaJoin" then
+		return ArenaService.join(player, a)
+	elseif action == "arenaLeave" then
+		return ArenaService.leaveQueue(player)
+	elseif action == "arenaForfeit" then
+		return ArenaService.forfeit(player)
+	elseif action == "arenaRanking" then
+		return ArenaService.ranking(player)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
@@ -460,6 +477,7 @@ local function onPlayerAdded(player)
 		AntiCheat.onCharacterAdded(player)
 		DungeonService.onCharacterAdded(player, character)
 		RaidService.onCharacterAdded(player, character)
+		ArenaService.onCharacterAdded(player, character)
 		VipService.onCharacterAdded(player, character)
 		local humanoid = character:WaitForChild("Humanoid", 10)
 		if humanoid then
@@ -486,6 +504,7 @@ Players.PlayerRemoving:Connect(function(player)
 	MarketService.onPlayerRemoving(player)
 	GuildService.onPlayerRemoving(player)
 	RaidService.onPlayerRemoving(player)
+	ArenaService.onPlayerRemoving(player)
 	PlaytimeService.onPlayerRemoving(player)
 	DungeonService.onPlayerRemoving(player)
 	TravelService.dismount(player)
@@ -542,6 +561,7 @@ safely("Eventos do mundo", WorldEventService.start)
 safely("Mercado", MarketService.start)
 safely("Guildas", GuildService.start)
 safely("Raide", RaidService.init)
+safely("Arena", ArenaService.init)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

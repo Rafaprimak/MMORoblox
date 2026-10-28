@@ -213,7 +213,7 @@ end
 
 -- Guarda quebrada: atordoado por alguns segundos e tomando dano extra
 function EnemyService.stagger(rec, player)
-	if rec.dead then
+	if rec.dead or rec.proxy then
 		return
 	end
 	local now = os.clock()
@@ -248,6 +248,10 @@ end
 
 -- Golpe do inimigo aparado: perde o equilíbrio (curto) e muita postura
 function EnemyService.parried(rec, player)
+	if rec.proxy then
+		EnemyService.ProxyParried(rec, player)
+		return
+	end
 	if rec.dead then
 		return
 	end
@@ -267,6 +271,9 @@ end
 -- info: { crit, knockback, stun, fromPosition, color, dot, posture }
 -- Retorna o dano causado e se foi contra-ataque
 function EnemyService.damage(rec, amount, player, info)
+	if rec.proxy then
+		return EnemyService.ProxyDamage(rec, amount, player, info or {})
+	end
 	-- perks de assinatura das masmorras: +dano dentro delas
 	if player and rec.camp and rec.camp.dungeon and amount > 0 then
 		local bonus = PlayerService.getStats(player).bonus.dungeonDamage
@@ -338,6 +345,10 @@ function EnemyService.damage(rec, amount, player, info)
 end
 
 function EnemyService.applyDot(rec, player, dps, duration, kind)
+	if rec.proxy then
+		EnemyService.ProxyDot(rec, player, dps, duration, kind)
+		return
+	end
 	if rec.dead then
 		return
 	end
@@ -351,12 +362,34 @@ end
 
 -- ===================== CONSULTAS =====================
 
-function EnemyService.inCone(origin, direction, range, arcDegrees, maxTargets)
+-- Arena PvP: oponentes do atacante viram "alvos" (registros com proxy = true) nas consultas abaixo.
+-- Ganchos preenchidos pelo ArenaService; fora da arena Proxies devolve nil e nada muda.
+EnemyService.Proxies = function(_attacker)
+	return nil
+end
+EnemyService.ProxyDamage = function(_rec, _amount, _player, _info)
+	return 0
+end
+EnemyService.ProxyDot = function(_rec, _player, _dps, _duration, _kind) end
+EnemyService.ProxyParried = function(_rec, _player) end
+
+-- lista de alvos para uma consulta: inimigos normais, ou só os oponentes se o atacante está numa luta da arena
+local function targetsFor(attacker)
+	if attacker then
+		local extra = EnemyService.Proxies(attacker)
+		if extra then
+			return extra
+		end
+	end
+	return active
+end
+
+function EnemyService.inCone(origin, direction, range, arcDegrees, maxTargets, attacker)
 	local look = flat(direction)
 	look = if look.Magnitude > 0.01 then look.Unit else Vector3.new(0, 0, -1)
 	local cosLimit = math.cos(math.rad(arcDegrees / 2))
 	local found = {}
-	for _, rec in active do
+	for _, rec in targetsFor(attacker) do
 		if not rec.dead then
 			local offset = rec.pos + Vector3.new(0, rec.height / 2, 0) - origin
 			local horizontal = flat(offset)
@@ -379,9 +412,9 @@ function EnemyService.inCone(origin, direction, range, arcDegrees, maxTargets)
 	return result
 end
 
-function EnemyService.inRadius(center, radius, maxTargets)
+function EnemyService.inRadius(center, radius, maxTargets, attacker)
 	local found = {}
-	for _, rec in active do
+	for _, rec in targetsFor(attacker) do
 		if not rec.dead then
 			local offset = rec.pos + Vector3.new(0, rec.height / 2, 0) - center
 			local distance = flat(offset).Magnitude - rec.radius
@@ -401,11 +434,11 @@ function EnemyService.inRadius(center, radius, maxTargets)
 end
 
 -- Inimigos cujo corpo encosta no segmento a->b (projéteis e investidas)
-function EnemyService.alongSegment(a, b, radius)
+function EnemyService.alongSegment(a, b, radius, attacker)
 	local result = {}
 	local ab = b - a
 	local lengthSq = ab:Dot(ab)
-	for _, rec in active do
+	for _, rec in targetsFor(attacker) do
 		if not rec.dead then
 			local center = rec.pos + Vector3.new(0, rec.height / 2, 0)
 			local t = if lengthSq > 0 then math.clamp((center - a):Dot(ab) / lengthSq, 0, 1) else 0
@@ -419,9 +452,9 @@ function EnemyService.alongSegment(a, b, radius)
 	return result
 end
 
-function EnemyService.nearest(origin, range)
+function EnemyService.nearest(origin, range, attacker)
 	local best, bestDistance = nil, range
-	for _, rec in active do
+	for _, rec in targetsFor(attacker) do
 		if not rec.dead and rec.def.behavior ~= "dummy" then
 			local distance = (flat(rec.pos - origin)).Magnitude - rec.radius
 			if distance < bestDistance then
@@ -488,7 +521,7 @@ end
 
 -- Provocar: o inimigo ataca este jogador por "duration" segundos e ganha muita ameaça dele
 function EnemyService.taunt(rec, player, duration)
-	if rec.dead then
+	if rec.dead or rec.proxy then
 		return
 	end
 	rec.tauntBy = player

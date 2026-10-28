@@ -91,6 +91,7 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Guilda | **L** (fundar com a Helena, no Salão das Guildas) | botão "Guilda" |
 | Falar com a guilda | digite **/gu mensagem** no chat (ou /guilda) | o mesmo |
 | Crônicas (facções e lore) | **Y** | botão "Crônicas" |
+| Arena PvP (Duelo 1x1, Equipes 3x3) | — | botão "Arena" no menu |
 | Fusão (9 itens da mesma raridade → 1 maior) | — | Inventário → ⚗ Fundir, ou o Bruno |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
 

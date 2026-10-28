@@ -102,7 +102,7 @@ function PerkService.afterHit(player, rec, dealt, info, stats, crit)
 	end
 	if perks.tempestade and crit then
 		local count = 0
-		for _, other in EnemyService.inRadius(rec.pos, 14) do
+		for _, other in EnemyService.inRadius(rec.pos, 14, nil, player) do
 			if other ~= rec and not other.dead and count < 2 then
 				count += 1
 				Remotes.Fx:FireAllClients("chain", EnemyService.centerOf(rec), EnemyService.centerOf(other))
@@ -116,7 +116,7 @@ function PerkService.afterHit(player, rec, dealt, info, stats, crit)
 	if perks.eclipse and s.hitCount % 5 == 0 then
 		local center = rec.pos
 		Remotes.Fx:FireAllClients("explosion", center, 10, "shadow")
-		for _, other in EnemyService.inRadius(center, 10) do
+		for _, other in EnemyService.inRadius(center, 10, nil, player) do
 			EnemyService.damage(other, stats.attack * stats.damageMult * 1.5, player, { perk = true, element = "shadow", knockback = 5, fromPosition = center })
 		end
 	end
@@ -125,7 +125,7 @@ function PerkService.afterHit(player, rec, dealt, info, stats, crit)
 		local root = character and character:FindFirstChild("HumanoidRootPart")
 		local center = if root then root.Position - Vector3.new(0, 2.5, 0) else rec.pos
 		Remotes.Fx:FireAllClients("explosion", center, 12, "earth")
-		for _, other in EnemyService.inRadius(center, 12) do
+		for _, other in EnemyService.inRadius(center, 12, nil, player) do
 			EnemyService.damage(other, stats.attack * stats.damageMult * 1.1, player, { perk = true, element = "earth", posture = 25, knockback = 6, fromPosition = center })
 		end
 	end
@@ -138,7 +138,7 @@ function PerkService.afterHit(player, rec, dealt, info, stats, crit)
 		Remotes.Fx:FireAllClients("meteor", center, 8, 0.35)
 		task.delay(0.35, function()
 			Remotes.Fx:FireAllClients("explosion", center, 8, "holy")
-			for _, other in EnemyService.inRadius(center, 8) do
+			for _, other in EnemyService.inRadius(center, 8, nil, player) do
 				EnemyService.damage(other, stats.attack * stats.damageMult * 1.2, player, { perk = true, element = "holy", posture = 15, fromPosition = center })
 			end
 		end)
@@ -147,7 +147,7 @@ function PerkService.afterHit(player, rec, dealt, info, stats, crit)
 		EnemyService.applyDot(rec, player, dealt * 0.06, 4, "poison")
 		if crit then
 			local count = 0
-			for _, other in EnemyService.inRadius(rec.pos, 16) do
+			for _, other in EnemyService.inRadius(rec.pos, 16, nil, player) do
 				if other ~= rec and not other.dead and count < 3 then
 					count += 1
 					Remotes.Fx:FireAllClients("chain", EnemyService.centerOf(rec), EnemyService.centerOf(other))
@@ -188,7 +188,7 @@ function PerkService.onKill(player, rec)
 		PlayerService.restoreMana(player, 0.15)
 		local center = rec.pos
 		Remotes.Fx:FireAllClients("explosion", center, 10, "arcane")
-		for _, other in EnemyService.inRadius(center, 10) do
+		for _, other in EnemyService.inRadius(center, 10, nil, player) do
 			if other ~= rec and not other.dead then
 				EnemyService.damage(other, stats.attack * stats.damageMult * 1.2, player, { perk = true, element = "arcane", knockback = -6, fromPosition = center })
 			end
@@ -198,7 +198,7 @@ function PerkService.onKill(player, rec)
 	if perks.erupcao then
 		local center = rec.pos
 		Remotes.Fx:FireAllClients("explosion", center, 9, "fire")
-		for _, other in EnemyService.inRadius(center, 9) do
+		for _, other in EnemyService.inRadius(center, 9, nil, player) do
 			if other ~= rec and not other.dead then
 				EnemyService.damage(other, stats.attack * stats.damageMult * 0.8, player, { perk = true, element = "fire", knockback = 6, fromPosition = center })
 			end
@@ -212,7 +212,7 @@ function PerkService.onKill(player, rec)
 		local center = rec.pos
 		local damage = stats.attack * stats.damageMult * 0.6
 		Remotes.Fx:FireAllClients("explosion", center, 8, "fire")
-		for _, other in EnemyService.inRadius(center, 8) do
+		for _, other in EnemyService.inRadius(center, 8, nil, player) do
 			if other ~= rec and not other.dead then
 				EnemyService.damage(other, damage, player, { perk = true, element = "fire", knockback = 6, fromPosition = center })
 			end
@@ -242,7 +242,7 @@ function PerkService.onFullCharge(player, delay)
 		end
 		local center = root.Position - Vector3.new(0, 2.5, 0)
 		Remotes.Fx:FireAllClients("explosion", center, 11, "earth")
-		for _, rec in EnemyService.inRadius(root.Position, 11) do
+		for _, rec in EnemyService.inRadius(root.Position, 11, nil, player) do
 			EnemyService.damage(rec, stats.attack * stats.damageMult * 0.7, player, { perk = true, element = "earth", knockback = 10, fromPosition = root.Position, posture = 15 })
 		end
 	end)
