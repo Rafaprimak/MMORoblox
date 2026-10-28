@@ -43,6 +43,12 @@
         "$path": "assets/modelos"
       }
     },
+    "LocalizationService": {
+      "$className": "LocalizationService",
+      "Traducoes": {
+        "$path": "localization/Traducoes.csv"
+      }
+    },
     "Lighting": {
       "$className": "Lighting",
       "$properties": {

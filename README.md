@@ -155,9 +155,12 @@ O Roblox removeu os sons antigos que vinham no Studio, então os sons do jogo fi
 
 Campos vazios usam um som interno de reserva (ou ficam em silêncio). Ao abrir o jogo, cada ID é testado; se algum não carregar, aparece um aviso no Output e o jogo usa a reserva.
 
-### Versão em inglês (e outras línguas)
+### Inglês e espanhol
 
-O jogo é escrito em português e usa a **tradução automática do Roblox** para os outros idiomas (inclusive textos criados por script): no [Creator Dashboard](https://create.roblox.com/dashboard/creations), abra o jogo → **Localização** → idioma de origem **Português (Brasil)** → ligue **Captura automática de texto** e **Tradução automática** para inglês, espanhol etc. Revise as traduções dos textos mais vistos (menu, missões) na mesma tela.
+- **Tabela própria:** ~480 textos (menu, janelas, botões, raridades, itens, lugares, NPCs, inimigos, missões da história e objetivos) traduzidos à mão em `scripts/traducao/traducoes.py`. `python scripts/traducao/gerar.py` gera `localization/Traducoes.csv`, que o Rojo coloca no **LocalizationService** (o Roblox troca o texto sozinho para quem joga em inglês ou espanhol).
+- **O resto** (descrições longas, falas, lore, textos montados com números): ligue a **tradução automática do Roblox**: [Creator Dashboard](https://create.roblox.com/dashboard/creations) → o jogo → **Localização** → idioma de origem **Português (Brasil)** → **Captura automática de texto** + **Tradução automática** para **Inglês** e **Espanhol**.
+- **Testar no Studio:** aba **Teste** → emulador de jogador / **Localização** → escolha `en` ou `es` e dê Play.
+- Texto novo que aparece muito? Adicione em `traducoes.py` e rode o `gerar.py` de novo.
 
 ### Ícones (game-icons.net)
 
