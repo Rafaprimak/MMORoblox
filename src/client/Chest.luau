@@ -1,4 +1,8 @@
 -- Baús: escolha do baú, itens possíveis + chances, e a roleta horizontal que desacelera até o prêmio.
+-- Abertura (o mais empolgante possível, sem enganar): as cartas da fita saem com as chances REAIS do baú
+-- (nada de "quase" colocado de propósito); as cartas perto do centro crescem (lente); quando para, a luz
+-- da carta premiada sobe de cor em cor até a raridade verdadeira do item (antecipa, não engana); depois
+-- clarão, onda de choque, carimbo da raridade, confete e som. "Pular" mostra o resultado na hora.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
@@ -31,6 +35,11 @@ local selectedChest = "bronze"
 local revealing = false
 local possibleTitle = nil
 local raysConnection = nil
+local flash, stamp, shockwave, skipButton
+local skipping = false
+
+-- carimbo gigante por raridade (ordem 3+)
+local STAMPS = { [3] = "RARO!", [4] = "ÉPICO!", [5] = "LENDÁRIO!!", [6] = "MÍTICO!!!", [7] = "SECRETO!!!" }
 
 local function makeCard(parent, baseId, rarity, index)
 	local base = Items.Bases[baseId]
@@ -49,7 +58,46 @@ local function makeCard(parent, baseId, rarity, index)
 	if rarity.rainbow then
 		Fx.registerRainbow(stroke, "Color")
 	end
+	UI.new("UIScale", { Name = "Lupa", Parent = card })
 	return card
+end
+
+-- onda de choque saindo do centro
+local function shock(color)
+	shockwave.Size = UDim2.fromOffset(40, 40)
+	shockwave.BackgroundTransparency = 1
+	local stroke = shockwave:FindFirstChildOfClass("UIStroke")
+	stroke.Color = color
+	stroke.Transparency = 0
+	shockwave.Visible = true
+	UI.tween(shockwave, 0.7, { Size = UDim2.fromOffset(900, 900) }, Enum.EasingStyle.Quad)
+	UI.tween(stroke, 0.7, { Transparency = 1 })
+end
+
+-- carimbo da raridade batendo na tela
+local function stampRarity(rarity)
+	local label = STAMPS[rarity.order]
+	if not label then
+		return
+	end
+	stamp.Text = label
+	stamp.TextColor3 = rarity.color
+	stamp.TextTransparency = 0
+	stamp.Visible = true
+	local scale = stamp:FindFirstChildOfClass("UIScale")
+	scale.Scale = 3.2
+	UI.tween(scale, 0.35, { Scale = 1 }, Enum.EasingStyle.Back)
+	if rarity.rainbow then
+		Fx.registerRainbow(stamp, "TextColor3")
+	else
+		Fx.unregisterRainbow(stamp)
+	end
+	task.delay(0.3, function()
+		Fx.shake(0.15 + rarity.order * 0.06, 0.25 + rarity.order * 0.05)
+	end)
+	task.delay(1.8, function()
+		UI.tween(stamp, 0.4, { TextTransparency = 1 })
+	end)
 end
 
 local function confetti(color, count)
@@ -139,6 +187,13 @@ function Chest.reveal(item, chestId)
 	overlayGui.Enabled = true
 	resultPanel.Visible = false
 	reelHolder.Visible = true
+	stamp.Visible = false
+	shockwave.Visible = false
+	flash.BackgroundTransparency = 1
+	if raysConnection then
+		raysConnection:Disconnect()
+		raysConnection = nil
+	end
 	-- cena no fundo: seu personagem ajoelha e mexe no baú enquanto a roleta gira
 	if currentScene then
 		currentScene:destroy()
@@ -153,6 +208,7 @@ function Chest.reveal(item, chestId)
 	for _, card in reel:GetChildren() do
 		card:Destroy()
 	end
+	local cards = {}
 	for i = 1, REEL_LENGTH do
 		local baseId, rarity
 		if i == WIN_INDEX then
@@ -162,7 +218,7 @@ function Chest.reveal(item, chestId)
 			baseId = pool[math.random(1, #pool)]
 			rarity = Rarities.roll(Chests.weightKey(chest), chest.minRarity)
 		end
-		makeCard(reel, baseId, rarity, i)
+		cards[i] = makeCard(reel, baseId, rarity, i)
 	end
 	RunService.RenderStepped:Wait() -- espera a tela calcular o tamanho da fita
 	local holderWidth = reelHolder.AbsoluteSize.X
@@ -173,41 +229,90 @@ function Chest.reveal(item, chestId)
 	local jitter = math.random(-CARD_W * 0.35, CARD_W * 0.35)
 	local finalX = -((WIN_INDEX - 1) * (CARD_W + CARD_GAP)) + centerOffset + jitter
 	reel.Position = UDim2.fromOffset(centerOffset, 0)
+	skipping = false
+	skipButton.Visible = true
 
-	-- anima com desaceleração e "tic" a cada carta que passa pelo centro
-	local duration = 4.2
+	-- giro com desaceleração, "tic" a cada carta (cada vez mais agudo) e lente no centro
+	local duration = 5.4
 	local start = os.clock()
 	local startX = centerOffset
 	local lastIndex = 0
 	while true do
-		local t = math.min((os.clock() - start) / duration, 1)
+		local t = if skipping then 1 else math.min((os.clock() - start) / duration, 1)
 		local eased = 1 - (1 - t) ^ 4
 		local x = startX + (finalX - startX) * eased
 		reel.Position = UDim2.fromOffset(x, 0)
+		for i, card in cards do
+			local cardCenter = x + (i - 1) * (CARD_W + CARD_GAP) + CARD_W / 2
+			local distance = math.abs(cardCenter - holderWidth / 2)
+			local lens = card:FindFirstChild("Lupa")
+			if lens then
+				lens.Scale = 1 + 0.16 * math.max(0, 1 - distance / (CARD_W * 1.4))
+			end
+		end
 		local index = math.floor((centerOffset - x) / (CARD_W + CARD_GAP)) + 1
-		if index ~= lastIndex then
+		if index ~= lastIndex and not skipping then
 			lastIndex = index
-			Sounds.play("ping", 0.9 + t * 0.6, 0.12)
+			Sounds.play("ping", 0.85 + t * 0.75, 0.1 + t * 0.08)
 		end
 		if t >= 1 then
 			break
 		end
 		RunService.RenderStepped:Wait()
 	end
+	skipButton.Visible = false
 
-	-- revelação: a tampa abre, o feixe de luz sobe e o personagem ergue o item
+	-- suspense honesto: a luz da carta premiada sobe de cor em cor até a raridade REAL do item
 	local rarity = Rarities.ById[item.rarity] or Rarities.List[1]
+	local winCard = cards[WIN_INDEX]
+	local winStroke = winCard and winCard:FindFirstChildOfClass("UIStroke")
+	local winLens = winCard and winCard:FindFirstChild("Lupa")
+	if winCard and not skipping then
+		for order = 1, rarity.order do
+			local tier = Rarities.List[order]
+			if winStroke then
+				winStroke.Color = tier.color
+				winStroke.Thickness = 3 + order
+			end
+			if winLens then
+				winLens.Scale = 1.16 + order * 0.035
+			end
+			for _, ray in rays do
+				ray.BackgroundColor3 = tier.color
+				ray.BackgroundTransparency = 0.88 - order * 0.03
+			end
+			Sounds.play("ping", 0.7 + order * 0.18, 0.3 + order * 0.04)
+			if order >= 4 then
+				Fx.shake(0.04 * order, 0.15)
+			end
+			if skipping then
+				break
+			end
+			task.wait(if order >= 4 then 0.34 else 0.2)
+		end
+		-- raridades altas seguram mais um pouco (o coração acelera)
+		if rarity.order >= 4 and not skipping then
+			Sounds.play("charge", 1, 0.5)
+			task.wait(0.55 + (rarity.order - 4) * 0.2)
+		end
+	end
+
+	-- revelação: clarão, onda de choque, a tampa abre e o personagem ergue o item
+	flash.BackgroundColor3 = rarity.color:Lerp(Color3.new(1, 1, 1), 0.55)
+	flash.BackgroundTransparency = if rarity.order >= 4 then 0 else 0.4
+	UI.tween(flash, 0.7, { BackgroundTransparency = 1 })
+	shock(rarity.color)
 	if currentScene then
 		currentScene:open(rarity.color, rarity.order >= 4, item.base, item.rarity)
 	end
 	reelHolder.Visible = false
 	for _, ray in rays do
 		ray.BackgroundColor3 = rarity.color
-		ray.BackgroundTransparency = 0.6
+		ray.BackgroundTransparency = if rarity.order >= 4 then 0.45 else 0.6
 	end
 	raysConnection = RunService.RenderStepped:Connect(function(dt)
-		rays[1].Rotation += dt * 30
-		rays[2].Rotation -= dt * 20
+		rays[1].Rotation += dt * (30 + rarity.order * 6)
+		rays[2].Rotation -= dt * (20 + rarity.order * 4)
 	end)
 	resultName.Text = item.name
 	resultName.TextColor3 = rarity.color
@@ -225,9 +330,20 @@ function Chest.reveal(item, chestId)
 	Sounds.play(if rarity.order >= 4 then "lootRare" else "loot", 0.6 + rarity.order * 0.15, 0.8)
 	if rarity.order >= 4 then
 		Sounds.play("crit", 0.8, 0.6)
-		Fx.shake(0.25 + rarity.order * 0.05, 0.2 + rarity.order * 0.12)
+		Sounds.play("powerUp", 1, 0.6)
 	end
-	confetti(rarity.color, 14 + rarity.order * 9)
+	if rarity.order >= 5 then
+		Sounds.play("levelup", 1, 0.6)
+	end
+	stampRarity(rarity)
+	-- ondas de confete (mais ondas quanto mais rara)
+	task.spawn(function()
+		local waves = if rarity.order >= 6 then 4 elseif rarity.order >= 4 then 2 else 1
+		for _ = 1, waves do
+			confetti(rarity.color, 14 + rarity.order * 9)
+			task.wait(0.28)
+		end
+	end)
 	renderWindow()
 	revealing = false
 end
@@ -276,6 +392,15 @@ function Chest.init(screen)
 	reel = UI.new("Frame", { Position = UDim2.fromOffset(0, 10), Size = UDim2.fromOffset(REEL_LENGTH * (CARD_W + CARD_GAP), 150), BackgroundTransparency = 1, ZIndex = 4, Parent = reelHolder })
 	UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.new(0, 4, 1, 0), BackgroundColor3 = UI.Colors.Gold, ZIndex = 6, Parent = reelHolder })
 	UI.iconImage("plain-arrow", { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 0.82, -88), Size = UDim2.fromOffset(34, 30), Color = UI.Colors.Gold, ZIndex = 6, Parent = overlay })
+
+	-- clarão, onda de choque, carimbo e botão de pular
+	flash = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 9, Parent = overlay })
+	shockwave = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.42), Size = UDim2.fromOffset(40, 40), BackgroundTransparency = 1, Visible = false, ZIndex = 8, Parent = overlay }, { UI.new("UICorner", { CornerRadius = UDim.new(1, 0) }), UI.new("UIStroke", { Thickness = 10, Color = Color3.new(1, 1, 1) }) })
+	stamp = UI.label({ Text = "", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.22), Size = UDim2.fromOffset(700, 110), TextXAlignment = Enum.TextXAlignment.Center, FontFace = UI.TitleFont, Visible = false, ZIndex = 9, Parent = overlay }, { UI.textStroke(4), UI.new("UIScale") })
+	skipButton = UI.button({ Text = "Pular", AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -24, 1, -24), Size = UDim2.fromOffset(120, 40), BackgroundColor3 = UI.Colors.Dark, Visible = false, ZIndex = 9, Parent = overlay })
+	skipButton.MouseButton1Click:Connect(function()
+		skipping = true
+	end)
 
 	resultPanel = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0.72, 0), Size = UDim2.fromOffset(520, 150), BackgroundTransparency = 1, ZIndex = 7, Visible = false, Parent = overlay })
 	UI.new("UIScale", { Parent = resultPanel })
