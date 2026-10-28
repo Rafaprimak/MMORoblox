@@ -20,7 +20,7 @@ Arena.StartRating = 1000
 Arena.K = 32
 
 -- divisões (pontos mínimos) e o título que cada uma dá ao ser alcançada
--- ícones: "crossed-swords", "checked-shield", "laurel-crown", "trophy"
+-- ícones: "crossed-swords", "checked-shield", "laurel-crown"
 Arena.Divisions = {
 	{ id = "bronze", name = "Bronze", rating = 0, color = Color3.fromRGB(205, 127, 70) },
 	{ id = "prata", name = "Prata", rating = 1100, color = Color3.fromRGB(200, 205, 220), title = "gladiador_prata" },

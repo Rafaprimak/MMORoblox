@@ -151,5 +151,9 @@ return {
 		["magic-shield"] = { 3, 15 },
 		["shouting"] = { 3, 16 },
 		["team-idea"] = { 3, 17 },
+		["campfire"] = { 3, 18 },
+		["laurel-crown"] = { 3, 19 },
+		["party-flags"] = { 3, 20 },
+		["pumpkin"] = { 3, 21 },
 	},
 }
