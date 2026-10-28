@@ -155,5 +155,13 @@ return {
 		["laurel-crown"] = { 3, 19 },
 		["party-flags"] = { 3, 20 },
 		["pumpkin"] = { 3, 21 },
+		["barrier"] = { 3, 22 },
+		["broken-heart"] = { 3, 23 },
+		["horizon-road"] = { 3, 24 },
+		["hourglass"] = { 3, 25 },
+		["open-treasure-chest"] = { 3, 26 },
+		["wizard-staff"] = { 3, 27 },
+		["wolf-howl"] = { 3, 28 },
+		["wooden-sign"] = { 3, 29 },
 	},
 }

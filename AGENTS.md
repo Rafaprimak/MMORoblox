@@ -87,6 +87,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
 | `Icons`, `IconAtlas` | Ícones do jogo: `Icons.get(nome)` dá a folha e o recorte; `Icons.Sheets` guarda os IDs das folhas enviadas; `IconAtlas` é gerado por `scripts/icones/montar.py` |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
+| (tradução) | `scripts/traducao/traducoes.py` → `gerar.py` → `localization/Traducoes.csv` (LocalizationService). Texto curto novo e muito visto: adicione lá |
 | `RemoteConfig` | Campos do balanceamento ao vivo (padrão, mínimo, máximo, passo) e `validate` |
 
 ### Server
@@ -155,6 +156,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `AutoHunt` | Auto Caçar no cliente (só com `AutoFarm`): anda até o inimigo mais perto, ataca no ritmo (`Controller.autoAttack`), toma poção e volta ao ponto de partida |
 | `Store` | Cliente: abre a compra com Robux (`Store.buy(chave)`) e mostra o preço; produto com id 0 = no Studio entrega de graça para testar |
 | `AdminWindow` | Painel de admin (botão ADMIN no canto, só com o atributo `Admin`): jogadores, balanceamento, mundo, registro |
+| `SignReader` | Abre o texto das placas do mundo (prompt `LerPlaca`; servidor cria com `Props.readable`/`Props.signpost`) |
 | `ArenaWindow` | Janela da Arena (menu, sem tecla): fila, divisão, ranking, histórico; placar no topo durante a luta |
 | `FusionWindow`, `TradeWindow` | Janelas de fusão e de troca (o botão "Trocar" é um ProximityPrompt local em cada outro jogador) |
 | `PlaytimeWindow` | Janela de Presentes (tecla U) com o tempo neste servidor |
@@ -278,6 +280,11 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - `def.boss` agora é calculado em `Enemies` (`behavior == "boss"`). Chefes só de masmorra têm `dungeon = true`.
 - Grupo: cada membro manda `dungeonReady`; com todos prontos, conta 3 s e começa (`launch`). Sempre do andar 1; a chave sai do líder (primeiro do grupo).
 
+### História, placas e Exóticos
+- A história do jogo (Orbe Infinito) está nas missões `chain = "main"` e nas páginas `Lore.Pages` (`unlock = { "quest", id }` libera ao entregar a missão). Mantenha o tom: a barreira dos arquimagos, a Maré de Mana, o dia que se repete.
+- **Nada de título flutuante gigante para lugares:** use `Props.signpost(parent, chãoCf, título, texto, cor)` (poste com placa que se lê) ou `Props.engrave(peça, texto, cor, faces)` + `Props.readable(peça, título, texto)`.
+- **Exótico:** base com `exotic = true` + perk `exclusive = "exotic"`; raridade `Exotico` (peso 0). Só um equipado (`PlayerService.equippedExotic`), sem troca/mercado/fusão. Arma exótica por tipo em `Items.ExoticWeapons`.
+
 ### Itens: modelos 3D, Únicos e conjuntos
 - **Item novo** = = base em `Items.Bases` + visual em `ItemModels.Looks[baseId]` (sem entrada usa um visual padrão pelo tier). Construtores por tipo de arma (`weapon.*`) e por espaço (`gear.*`) no `ItemModels`; armas têm o cabo na origem e a ponta em +Y, equipamentos ficam centrados com a frente em -Z.
 - **Vestido no corpo:** `ItemModels.worn(baseId, raridade, tamanhos)` devolve as peças por parte do corpo R15 (`worn.armor/helmet/boots/amulet/ring`, lendo o mesmo `Looks`); o `PlayerService` (`applyGearVisual`) solda em `Visual_<espaço>`. O elmo esconde chapéus/cabelos do avatar (atributo `TransparenciaOriginal`). Estilo novo de item precisa de visual no ícone (`gear.*`) e no corpo (`worn.*`).
@@ -322,7 +329,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 | **Tipo de arma novo** | `Items.WeaponTypes`, `WeaponStyles.<tipo>`, `Skills.List` (maestria com `weaponType`), `WeaponModels` (modelo e estilo de pegada), poses em `Animator` se precisar, `Classes.List[x].weapons` |
 | **Inimigo novo** | `Enemies.Defs` (comportamento: `melee`, `ranged`, `charger`, `slammer`, `boss`, `dummy`), um builder em `EnemyModels` (use `role` e `joint` para animar), um acampamento em `Enemies.Camps` em terreno seco e acessível |
 | **Habilidade nova** | `Classes.Abilities` (escolha ou crie um `kind`), executor em `AbilityService.executors`, pose em `Animator` |
-| **Missão nova** | `Quests.List` (giver/turnIn, `requires`, objetivos). Tipos de objetivo existentes: `kill, hit, gather, deliver, talk, explore, discover, craft, enchant, upgrade, upgradeTo, level, mastery, mount, chest, dodge, ability, finisher, parry, perfectDodge, rhythm, stagger, fullCharge, poi, poiSecret, worldBoss, invasion` (e `reward.faction = { id, amount }`) |
+| **Missão nova** | `Quests.List` (giver/turnIn, `requires`, objetivos). Tipos de objetivo existentes: `kill, hit, gather (item "any" = qualquer), deliver, talk, explore, discover, craft, enchant, upgrade, upgradeTo, level, mastery, mount, chest, dodge, ability, finisher, parry, perfectDodge, rhythm, stagger, fullCharge, poi, poiSecret, worldBoss, invasion, raid, arenaWin, dungeonFloor (target = masmorra, amount = andar), dungeonBoss` (e `reward.faction`, `reward.item = { base, rarity }`, `reward.exoticWeapon`, `lore = página`). O Auto (`AutoHunt.AUTO_OBJECTIVES`) só pega missões com objetivos que ele sabe fazer |
 | **Tipo de objetivo novo** | `QuestService` (`matches`/`progressOf`), disparar o `QuestHook` no lugar certo, `WorldMarkers.objectiveTarget` (para onde o feixe aponta) |
 | **NPC novo** | `NPCs.List` (posição em terreno plano; `indoor` se ficar dentro de uma construção), construção em `WorldGen/Town` ou `Landmarks`, serviço em `Dialog.services` + `Services` |
 | **Perk novo** | `Perks.List` (pool `weapon` ou `gear`; `stats` fixos ou gatilho em `PerkService`) |

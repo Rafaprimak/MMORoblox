@@ -94,6 +94,14 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 
 ## Fase 2 — Conteúdo
 
+- 🧪 **História do Orbe Infinito** (o jogo agora se chama **Infinite Orb**): a Vila Aurora vive dentro de uma barreira de mana dos três arquimagos (Elric, Serafina e Valdrik) que protege da Maré de Mana (origem dos monstros) e faz o dia se repetir (explica monstros renascendo e falas repetidas); só os Hunters lembram. 34 missões principais em 4 atos + epílogo, do nível 1 ao 20 (~400 mil de XP), com as 3 masmorras (objetivo `dungeonFloor`) e a raide (o meteoro de mana) no final; 21 páginas de Crônicas; placas em cada região contando a história (G)
+  - ⬜ Próximo capítulo: construir a **porta para o mundo exterior** (novos biomas além da barreira)
+- 🧪 **Lendas e itens Exóticos** (depois do nível 20): 8 missões longas (2 de grind pesado: 6.000 abates, 2.000 coletas, 120 baús...) dando 15 itens Exóticos com efeito próprio (Arsenal do Ciclo, Égide, Coroa dos Arquimagos, Passos do Tempo, Coração Partido, Anel do Horizonte, Caçada Infinita, Colecionador); só um Exótico equipado por vez; presos à conta (G)
+- 🧪 Masmorras: itens exclusivos sempre Raro ou melhor (até Mítico/Secreto nos chefes); Mercador vende em Raro, Épico ou Lendário (P)
+- 🧪 Chefe de mundo novo: **Behemoth de Mana** (modelo próprio, vida para ~20 caçadores, 15 min); invasão noturna só às vezes (35% por noite, 2 noites de folga) (M)
+- 🧪 Placas para ler (E) no lugar dos títulos flutuantes: lojas com nome gravado, postes de placa nas pedras de viagem, masmorras, portão e raide; nome da região discreto no topo (M)
+- 🧪 Paredes invisíveis na borda do mapa (P)
+
 - 🧪 **Masmorras instanciadas (endgame)**: Toca dos Goblins (5+), Cripta Esquecida (10+), Abismo de Pedra (15+); grupo de 1 a 4 no portal, começa quando todos dão Pronto; 20 andares em uma corrida só (sem ponto de retorno; `data.dungeons` guarda o recorde); chefe a cada 5 andares com baú por membro; força dos inimigos sobe por andar e a vida pelo tamanho do grupo (G)
   - 🧪 Itens Únicos (estilo UT): raridade Única fora dos baús, 8 itens com efeito próprio caindo de chefes (1,5%, dobro no andar 20) e anúncio para o servidor
   - 🧪 Conjuntos: 3 conjuntos de 4 peças com bônus de 2 e 4 peças
@@ -119,6 +127,8 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Procurar grupo (lista com recado e "Convidar") e colegas perto do portal entram junto na sala da masmorra (P)
 - 🧪 Sons de ambiente por região (APM: floresta, ondas, grilos à noite, vento nas ruínas, natureza na vila e nos campos) (P)
 - 🧪 HUD diminui junto em telas pequenas (celular); tradução automática do Roblox documentada no README (P)
+- 🧪 **Inglês e espanhol**: tabela de localização com ~480 textos traduzidos à mão (`scripts/traducao`) + tradução automática do Roblox para o resto (M)
+- 🧪 **Auto (VIP)**: faz as missões sozinho (aceita, caça, coleta, conversa, explora, acha segredos, entrega), viaja pelas pedras, monta, usa habilidades, resgata login/passe, equipa itens melhores e vende o lixo (masmorras, raide, arena e ofícios ficam com o jogador) (G)
 - 🧪 Guildas entre servidores (tecla L, Salão das Guildas com a Helena): fundar (5.000 ouro, nível 10, nome filtrado e único, sigla e emblema), convidar, cargos (líder/oficial/membro), expulsar, passar a liderança, banco (depositar/sacar com histórico), nível da guilda (+1% XP e ouro por nível), 3 metas semanais com prêmio para cada membro, ranking semanal, chat /gu entre servidores, [SIGLA] no nome em cima da cabeça (G)
 - 🧪 Troca entre jogadores (equipamentos e ouro): botão "Trocar" em cima do outro jogador, convite, Pronto → Confirmar dos dois, mudar a oferta tira o Pronto, servidor confere tudo de novo e salva; registro das últimas 20 trocas; nível mínimo 5 (M)
 - 🧪 Fusão de equipamentos (estilo Task Bar Hero): 9 da mesma raridade → 1 pelo menos uma raridade acima (91% +1, 8% +2, 1% +3 em `Config.Fusion`), no inventário e no Bruno (M)
