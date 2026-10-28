@@ -41,6 +41,7 @@ local FusionService = require(script.FusionService)
 local TradeService = require(script.TradeService)
 local PartyService = require(script.PartyService)
 local MarketService = require(script.MarketService)
+local GuildService = require(script.GuildService)
 local WorldEventService = require(script.WorldEventService)
 
 workspace:SetAttribute("WorldReady", false)
@@ -52,6 +53,7 @@ workspace:SetAttribute("WorldProgress", 0)
 local function questHook(player, kind, target, amount)
 	QuestService.event(player, kind, target, amount)
 	ProgressionService.track(player, kind, target, amount)
+	GuildService.track(player, kind, amount)
 end
 QuestService.OnComplete = ProgressionService.onQuestDone
 PlayerService.QuestHook = questHook
@@ -79,6 +81,8 @@ NPCService.QuestHook = questHook
 PetService.QuestHook = questHook
 ExploreService.QuestHook = questHook
 MarketService.QuestHook = questHook
+GuildService.QuestHook = questHook
+WorldEventService.QuestHook = questHook
 DungeonService.QuestHook = questHook
 FusionService.QuestHook = questHook
 PetService.init()
@@ -93,6 +97,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.playtime = PlaytimeService.summary(player)
 		payload.trade = TradeService.summary(player)
 		payload.party = PartyService.payload(player)
+		payload.guild = GuildService.payload(player)
 		payload.poiSecrets = data.poiSecrets
 	end
 end
@@ -358,6 +363,27 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return MarketService.browse(player, a)
 	elseif action == "marketMine" then
 		return MarketService.mine(player)
+	elseif action == "guildCreate" then
+		local form = if type(a) == "table" then a else {}
+		return GuildService.create(player, form.name, form.tag, form.icon)
+	elseif action == "guildInvite" then
+		return GuildService.invite(player, a)
+	elseif action == "guildRespond" then
+		return GuildService.respond(player, a)
+	elseif action == "guildLeave" then
+		return GuildService.leave(player)
+	elseif action == "guildKick" then
+		return GuildService.kick(player, a)
+	elseif action == "guildRank" then
+		return GuildService.setRank(player, a, b)
+	elseif action == "guildBank" then
+		return GuildService.bank(player, a, b)
+	elseif action == "guildClaim" then
+		return GuildService.claim(player, a)
+	elseif action == "guildChat" then
+		return GuildService.chat(player, a)
+	elseif action == "guildRanking" then
+		return GuildService.ranking(player)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
@@ -399,6 +425,7 @@ local function onPlayerAdded(player)
 	end
 	QuestService.setup(player)
 	MarketService.onProfileLoaded(player)
+	GuildService.onPlayerReady(player)
 	VipService.onPlayerAdded(player)
 	PlaytimeService.onPlayerAdded(player)
 	PetService.onPlayerReady(player)
@@ -431,6 +458,7 @@ Players.PlayerRemoving:Connect(function(player)
 	TradeService.onPlayerRemoving(player)
 	PartyService.onPlayerRemoving(player)
 	MarketService.onPlayerRemoving(player)
+	GuildService.onPlayerRemoving(player)
 	PlaytimeService.onPlayerRemoving(player)
 	DungeonService.onPlayerRemoving(player)
 	TravelService.dismount(player)
@@ -485,6 +513,7 @@ safely("Robux", MonetizationService.init)
 safely("Anti-trapaça", AntiCheat.start)
 safely("Eventos do mundo", WorldEventService.start)
 safely("Mercado", MarketService.start)
+safely("Guildas", GuildService.start)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

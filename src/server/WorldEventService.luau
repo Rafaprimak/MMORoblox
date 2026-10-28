@@ -24,6 +24,8 @@ local ShopService = require(script.Parent.ShopService)
 
 local WorldEventService = {}
 
+WorldEventService.QuestHook = function(_player, _kind, _target, _amount) end
+
 local S = World.Scale
 
 -- chefes possíveis: ponto do mapa (projeto) e nome do lugar
@@ -59,9 +61,10 @@ local function playerCount()
 end
 
 -- recompensa de quem participou (dano, suporte ou estava lutando perto)
-local function rewardParticipants(participants, gold, chest, label)
+local function rewardParticipants(participants, gold, chest, label, event)
 	for player in participants do
 		if player.Parent == Players then
+			WorldEventService.QuestHook(player, event, nil, 1)
 			PlayerService.addGold(player, gold)
 			ShopService.grant(player, chest)
 			Remotes.Notify:FireClient(player, { kind = "banner", text = label, sub = ("+%d de ouro e um baú de %s"):format(gold, chest), color = Color3.fromRGB(255, 215, 120), duration = 5 })
@@ -111,7 +114,7 @@ local function endBoss(defeated)
 			count += 1
 		end
 		announce(("%s foi derrotado por %d caçador(es)!"):format(event.name, count), "Os participantes ganharam baús", Color3.fromRGB(120, 230, 140))
-		rewardParticipants(event.participants, 600, "prata", "CHEFE DE MUNDO DERROTADO!")
+		rewardParticipants(event.participants, 600, "prata", "CHEFE DE MUNDO DERROTADO!", "worldBoss")
 	else
 		EnemyService.despawn(event.rec)
 		announce(("%s voltou para as sombras..."):format(event.name), "Ninguém conseguiu derrotá-lo a tempo", Color3.fromRGB(180, 160, 200))
@@ -174,7 +177,7 @@ local function endInvasion(won)
 	EnemyService.clearCamp(event.camp)
 	if won then
 		announce("A VILA FOI DEFENDIDA!", "Os defensores ganharam baús", Color3.fromRGB(120, 230, 140))
-		rewardParticipants(event.participants, 400, "prata", "VILA DEFENDIDA!")
+		rewardParticipants(event.participants, 400, "prata", "VILA DEFENDIDA!", "invasion")
 	else
 		announce("Os invasores recuaram com o amanhecer...", nil, Color3.fromRGB(180, 160, 200))
 	end

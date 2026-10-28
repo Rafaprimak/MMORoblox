@@ -146,6 +146,7 @@ AntiCheat.ServiceActions = {
 	marketCancel = "market",
 	marketBrowse = "market",
 	marketMine = "market",
+	guildCreate = "guild",
 }
 local SERVICE_RANGE = 40 -- studs (folga para quem anda um pouco com a janela aberta)
 

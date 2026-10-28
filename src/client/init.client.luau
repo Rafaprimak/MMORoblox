@@ -51,6 +51,7 @@ local FusionWindow = require(script.FusionWindow)
 local TradeWindow = require(script.TradeWindow)
 local PartyUI = require(script.PartyUI)
 local MarketWindow = require(script.MarketWindow)
+local GuildWindow = require(script.GuildWindow)
 local EventTracker = require(script.EventTracker)
 local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
@@ -95,6 +96,7 @@ end
 TradeWindow.init(screen)
 PartyUI.init(screen)
 MarketWindow.init(screen)
+GuildWindow.init(screen)
 EventTracker.init(screen)
 PetRenderer.init()
 ClassSelect.init()
@@ -124,6 +126,7 @@ HUD.init(screen, {
 	onSettings = SettingsWindow.toggle,
 	onPets = PetsWindow.toggle,
 	onJourney = JourneyWindow.toggle,
+	onGuild = GuildWindow.toggle,
 	onPlaytime = function()
 		PlaytimeWindow.toggle()
 	end,
@@ -211,6 +214,7 @@ Dialog.services = {
 	dungeon = DungeonWindow.openShop,
 	fusion = FusionWindow.open,
 	market = MarketWindow.open,
+	guild = GuildWindow.open,
 	classes = function()
 		Window.closeAll()
 		ClassSelect.open(true)
@@ -233,6 +237,10 @@ Remotes.Notify.OnClientEvent:Connect(function(notification)
 		Chest.reveal(notification.item, notification.chest)
 	elseif notification.kind == "partyInvite" then
 		PartyUI.invite(notification)
+	elseif notification.kind == "guildInvite" then
+		GuildWindow.invite(notification)
+	elseif notification.kind == "guildChat" then
+		GuildWindow.chat(notification)
 	elseif notification.kind == "tradeInvite" then
 		TradeWindow.invite(notification)
 	elseif notification.kind == "tradeOpen" then
@@ -379,6 +387,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		PetsWindow.toggle()
 	elseif key == Enum.KeyCode.K then
 		JourneyWindow.toggle()
+	elseif key == Enum.KeyCode.L then
+		GuildWindow.toggle()
 	elseif key == Enum.KeyCode.B then
 		Chest.toggle()
 	elseif key == Enum.KeyCode.U then

@@ -145,6 +145,18 @@ NPCs.List = {
 		indoor = 10,
 		greeting = "Desceu nas masmorras e voltou com saque? Eu troco por chaves, poções e armas que você não acha em lugar nenhum.",
 	}),
+	service("helena", {
+		name = "Helena",
+		title = "Mestra das Guildas",
+		skin = Color3.fromRGB(225, 180, 140),
+		shirt = Color3.fromRGB(150, 110, 40),
+		pants = Color3.fromRGB(60, 45, 35),
+		hat = "wide",
+		services = { "guild" },
+		building = "guildhall",
+		indoor = 8,
+		greeting = "Sozinho você vai longe; com uma guilda, vai mais longe ainda. Quer fundar a sua? Custa 5.000 de ouro e o nível 10.",
+	}),
 	service("quadro", {
 		name = "Quadro de Recompensas",
 		title = "Missões diárias",

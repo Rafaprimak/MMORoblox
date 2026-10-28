@@ -114,7 +114,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Procurar grupo (lista com recado e "Convidar") e colegas perto do portal entram junto na sala da masmorra (P)
 - 🧪 Sons de ambiente por região (APM: floresta, ondas, grilos à noite, vento nas ruínas, natureza na vila e nos campos) (P)
 - 🧪 HUD diminui junto em telas pequenas (celular); tradução automática do Roblox documentada no README (P)
-- ⬜ Guildas: criação, cargos, chat, banco da guilda e missões de guilda (G)
+- 🧪 Guildas entre servidores (tecla L, Salão das Guildas com a Helena): fundar (5.000 ouro, nível 10, nome filtrado e único, sigla e emblema), convidar, cargos (líder/oficial/membro), expulsar, passar a liderança, banco (depositar/sacar com histórico), nível da guilda (+1% XP e ouro por nível), 3 metas semanais com prêmio para cada membro, ranking semanal, chat /gu entre servidores, [SIGLA] no nome em cima da cabeça (G)
 - 🧪 Troca entre jogadores (equipamentos e ouro): botão "Trocar" em cima do outro jogador, convite, Pronto → Confirmar dos dois, mudar a oferta tira o Pronto, servidor confere tudo de novo e salva; registro das últimas 20 trocas; nível mínimo 5 (M)
 - 🧪 Fusão de equipamentos (estilo Task Bar Hero): 9 da mesma raridade → 1 pelo menos uma raridade acima (91% +1, 8% +2, 1% +3 em `Config.Fusion`), no inventário e no Bruno (M)
 - 🧪 Pets com modelos novos e muito mais detalhados (formas arredondadas, orelhas, patinhas, asas em penas, chifres, crina, listras, coleira...) (M)

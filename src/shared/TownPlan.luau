@@ -24,6 +24,7 @@ TownPlan.Services = {
 	lyra = { x = -15, z = -23, facing = 180 }, -- praça, borda norte
 	quadro = { x = 15, z = -23, facing = 180 }, -- quadro de contratos
 	varg = { x = -12, z = 36, facing = -90 }, -- Covil do Mercador de Masmorras (rua do sul, lado oeste)
+	helena = { x = 37, z = 40, facing = 90 }, -- Salão das Guildas (segunda fileira leste, porta para o beco)
 }
 
 -- Casas: { x da porta, z da porta, facing, largura, profundidade }
@@ -42,7 +43,7 @@ TownPlan.Houses = {
 	-- segunda fileira (portas para os becos)
 	{ -37, -40, -90, 12, 10 }, { -37, -62, -90, 12, 10 },
 	{ 37, -40, 90, 12, 10 }, { 37, -62, 90, 12, 10 },
-	{ -37, 42, -90, 12, 10 }, { 37, 40, 90, 12, 10 },
+	{ -37, 42, -90, 12, 10 }, -- (o lote { 37, 40 } é o Salão das Guildas)
 }
 
 -- Faixas de piso: { x1, z1, x2, z2, tipo } (tipo: praca, rua, calcada, beco)

@@ -55,6 +55,7 @@ function DataService.defaultData()
 		dungeons = {}, -- [masmorraId] = maior andar limpo (recorde)
 		purchases = {}, -- [PurchaseId] = true (compras com Robux já entregues; evita entregar duas vezes)
 		tradeLog = {}, -- últimas 20 trocas com outros jogadores
+		guild = nil, -- id da guilda (o registro da guilda manda)
 		market = { selling = {}, buying = {} }, -- mercado: custódia dos anúncios e das compras em andamento
 		progress = {
 			counters = {},
