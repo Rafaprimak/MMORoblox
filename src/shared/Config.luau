@@ -26,6 +26,9 @@ Config.StaminaRegenDelay = 0.8
 Config.WalkSpeed = 16
 Config.SprintSpeed = 27
 Config.SprintDrain = 14 -- estamina por segundo
+-- eventos do mundo aberto (WorldEventService): primeiro chefe de mundo e intervalo entre eles (segundos)
+Config.WorldBossFirst = 8 * 60
+Config.WorldBossInterval = 25 * 60
 Config.MountSpeed = 64 -- mapa em escala realista (bem maior): o cavalo compensa
 Config.MountPrice = 300
 Config.DodgeCost = 22

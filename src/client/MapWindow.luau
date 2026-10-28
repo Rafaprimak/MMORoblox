@@ -15,6 +15,8 @@ local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Sounds = require(script.Parent.Sounds)
+local PartyUI = require(script.Parent.PartyUI)
+local EventTracker = require(script.Parent.EventTracker)
 
 local MapWindow = {}
 
@@ -24,6 +26,8 @@ local MIN_ZOOM, MAX_ZOOM = 1, 5
 local player = Players.LocalPlayer
 
 local win, mapFrame, canvas, markers, playerArrow, info
+local partyDots = {} -- pontos verdes dos colegas do grupo
+local eventMark -- ícone do evento do mundo (chefe/invasão)
 local zoom = 1
 local offset = Vector2.zero -- canto de cima do mapa ampliado, em pixels (sempre <= 0)
 local drawn = false
@@ -285,6 +289,38 @@ function MapWindow.init(screen)
 			playerArrow.Position = at(mx, mz)
 			local look = root.CFrame.LookVector
 			playerArrow.Rotation = math.deg(math.atan2(look.X, -look.Z)) + 180 -- a seta do ícone aponta para baixo
+		end
+		-- colegas do grupo
+		local mates = PartyUI.members()
+		for i, mate in mates do
+			local dot = partyDots[i]
+			if not dot or not dot.Parent then
+				dot = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(12, 12), BackgroundColor3 = Color3.fromRGB(110, 235, 130), ZIndex = 6, Parent = markers }, { UI.corner(6), UI.stroke(Color3.new(0, 0, 0), 1.5) })
+				partyDots[i] = dot
+			end
+			local mateRoot = mate.player.Character and mate.player.Character:FindFirstChild("HumanoidRootPart")
+			dot.Visible = mateRoot ~= nil
+			if mateRoot then
+				local mx, mz = toMap(mateRoot.Position.X, mateRoot.Position.Z)
+				dot.Position = at(mx, mz)
+			end
+		end
+		for i = #mates + 1, #partyDots do
+			partyDots[i].Visible = false
+		end
+		-- evento do mundo
+		local ex, ez, kind = EventTracker.position()
+		if ex then
+			if not eventMark or not eventMark.Parent then
+				eventMark = UI.icon("crown", { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(30, 30), ZIndex = 7, Parent = markers })
+			end
+			-- ícones: "crown", "crossed-swords"
+			UI.setIcon(eventMark, if kind == "boss" then "crown" else "crossed-swords", Color3.fromRGB(255, 110, 80))
+			local mx, mz = toMap(ex, ez)
+			eventMark.Position = at(mx, mz)
+			eventMark.Visible = true
+		elseif eventMark then
+			eventMark.Visible = false
 		end
 	end)
 end

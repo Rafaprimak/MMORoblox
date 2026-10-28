@@ -185,9 +185,9 @@ function HUD.init(screen, callbacks)
 			refs.menuButtons[entry[4]] = { button = button, text = button.Text }
 		end
 	end
-	refs.devPanel = UI.new("Frame", { Size = UDim2.fromOffset(150, 150), BackgroundTransparency = 1, LayoutOrder = 10, Visible = false, Parent = menu }, { UI.list(3) })
+	refs.devPanel = UI.new("Frame", { Size = UDim2.fromOffset(150, 200), BackgroundTransparency = 1, LayoutOrder = 10, Visible = false, Parent = menu }, { UI.list(3) })
 	UI.label({ Text = "TESTE (só Studio)", Size = UDim2.fromOffset(150, 14), TextColor3 = UI.Colors.SubText, LayoutOrder = 0, Parent = refs.devPanel }, { UI.textStroke(1) })
-	for i, entry in { { "+5.000 XP", "xp" }, { "+5.000 Ouro", "gold" }, { "+Materiais", "materials" }, { "+Perícias", "skills" }, { "Pular dia/noite", "night" } } do
+	for i, entry in { { "+5.000 XP", "xp" }, { "+5.000 Ouro", "gold" }, { "+Materiais", "materials" }, { "+Perícias", "skills" }, { "Pular dia/noite", "night" }, { "Chefe de mundo", "worldboss" }, { "Invasão", "invasion" } } do
 		local button = UI.button({ Text = entry[1], Size = UDim2.fromOffset(150, 24), LayoutOrder = i, BackgroundColor3 = UI.Colors.Dark, Parent = refs.devPanel })
 		button.MouseButton1Click:Connect(function()
 			State.request("dev", entry[2])

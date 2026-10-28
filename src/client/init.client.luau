@@ -49,6 +49,8 @@ local AutoHunt = require(script.AutoHunt)
 local PlaytimeWindow = require(script.PlaytimeWindow)
 local FusionWindow = require(script.FusionWindow)
 local TradeWindow = require(script.TradeWindow)
+local PartyUI = require(script.PartyUI)
+local EventTracker = require(script.EventTracker)
 local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
 
@@ -90,6 +92,8 @@ Inventory.onFusion = function()
 	FusionWindow.open()
 end
 TradeWindow.init(screen)
+PartyUI.init(screen)
+EventTracker.init(screen)
 PetRenderer.init()
 ClassSelect.init()
 Sky.init()
@@ -201,6 +205,8 @@ end)
 Remotes.Notify.OnClientEvent:Connect(function(notification)
 	if notification.kind == "chest" then
 		Chest.reveal(notification.item, notification.chest)
+	elseif notification.kind == "partyInvite" then
+		PartyUI.invite(notification)
 	elseif notification.kind == "tradeInvite" then
 		TradeWindow.invite(notification)
 	elseif notification.kind == "tradeOpen" then

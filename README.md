@@ -86,6 +86,8 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Presentes por tempo no servidor | **U** | Botão 🎁 Presentes |
 | Auto Caçar (só VIP; pode ficar 100% AFK; mover o personagem desliga) | **N** | Botão ⚔ Auto Caçar |
 | Trocar com outro jogador (nível 5+) | **E** perto dele | Botão "Trocar" em cima do jogador |
+| Convidar para o grupo | **T** perto dele | Botão "Convidar para o grupo" em cima do jogador |
+| Falar com o grupo | digite **/g mensagem** no chat (ou /grupo) | o mesmo |
 | Fusão (9 itens da mesma raridade → 1 maior) | — | Inventário → ⚗ Fundir, ou o Bruno |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
 

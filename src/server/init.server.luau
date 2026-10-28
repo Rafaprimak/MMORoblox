@@ -39,6 +39,8 @@ local PlaytimeService = require(script.PlaytimeService)
 local MonetizationService = require(script.MonetizationService)
 local FusionService = require(script.FusionService)
 local TradeService = require(script.TradeService)
+local PartyService = require(script.PartyService)
+local WorldEventService = require(script.WorldEventService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -88,6 +90,8 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.dungeon = DungeonService.summary(player)
 		payload.playtime = PlaytimeService.summary(player)
 		payload.trade = TradeService.summary(player)
+		payload.party = PartyService.payload(player)
+		payload.poiSecrets = data.poiSecrets
 	end
 end
 EnemyService.FireProjectile = ProjectileService.fire
@@ -121,13 +125,22 @@ EnemyService.OnKilled = function(rec, contributors)
 			contributors[other] = 0
 		end
 	end
+	-- grupo: colegas vivos perto do abate também ganham a recompensa (e o próprio loot)
+	for player in table.clone(contributors) do
+		for _, mate in PartyService.nearbyMembers(player, rec.pos) do
+			if contributors[mate] == nil then
+				contributors[mate] = 0
+			end
+		end
+	end
+	WorldEventService.onKilled(rec, contributors)
 	local night = DayNightService.isNight()
 	local rewardMult = (if night then 1 + Config.NightRewardBonus else 1) * (rec.rewardMult or 1)
 	for player in contributors do
 		local bonus = PlayerService.getStats(player).bonus
 		local playerData = DataService.get(player)
 		local gapFactor = Config.xpLevelFactor(playerData and playerData.level or 1, rec.level)
-		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.xpGain or 0)) * gapFactor)
+		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.xpGain or 0)) * gapFactor * PartyService.xpBonus(player, rec.pos))
 		PlayerService.addXP(player, xp)
 		local gold = math.floor(math.random(def.gold[1], def.gold[2]) * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.goldFind or 0)))
 		if gold > 0 then
@@ -213,6 +226,10 @@ local function devGift(player, kind)
 		end
 	elseif kind == "night" then
 		DayNightService.skip()
+	elseif kind == "worldboss" then
+		WorldEventService.forceBoss()
+	elseif kind == "invasion" then
+		WorldEventService.forceInvasion()
 	elseif kind == "skills" then
 		for _, id in { "mineracao", "herbalismo", "lenhador", "ferraria", "alquimia", "encantamento" } do
 			SkillService.addXP(player, id, 3000)
@@ -317,6 +334,14 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return TradeService.confirm(player)
 	elseif action == "tradeCancel" then
 		return TradeService.cancel(player)
+	elseif action == "partyInvite" then
+		return PartyService.invite(player, a)
+	elseif action == "partyRespond" then
+		return PartyService.respond(player, a, b)
+	elseif action == "partyLeave" then
+		return PartyService.leave(player)
+	elseif action == "partyKick" then
+		return PartyService.kick(player, a)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
@@ -387,6 +412,7 @@ end
 
 Players.PlayerRemoving:Connect(function(player)
 	TradeService.onPlayerRemoving(player)
+	PartyService.onPlayerRemoving(player)
 	PlaytimeService.onPlayerRemoving(player)
 	DungeonService.onPlayerRemoving(player)
 	TravelService.dismount(player)
@@ -439,6 +465,7 @@ safely("Locais de interesse", ExploreService.start)
 safely("Masmorras", DungeonService.init)
 safely("Robux", MonetizationService.init)
 safely("Anti-trapaça", AntiCheat.start)
+safely("Eventos do mundo", WorldEventService.start)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)
