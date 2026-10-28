@@ -188,6 +188,8 @@ local function buildPortal()
 	label.Font = Enum.Font.GothamBlack
 	label.Parent = gui
 	local mundo = workspace:FindFirstChild("Mundo")
+	-- sempre presente em todos os clientes: o feixe da estrela caída é visto de todo o mapa
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
 	model.Parent = mundo or workspace
 end
 
@@ -283,7 +285,7 @@ end
 local function teleport(player, cf)
 	local character = player.Character
 	if character and character:FindFirstChild("HumanoidRootPart") then
-		AntiCheat.allowTeleport(player, 3)
+		AntiCheat.allowTeleport(player, 3, cf.Position)
 		character:PivotTo(cf)
 	end
 end

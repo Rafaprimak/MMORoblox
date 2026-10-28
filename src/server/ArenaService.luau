@@ -105,7 +105,7 @@ end
 local function teleport(player, cf)
 	local character = player.Character
 	if character and character:FindFirstChild("HumanoidRootPart") then
-		AntiCheat.allowTeleport(player, 3)
+		AntiCheat.allowTeleport(player, 3, cf.Position)
 		character:PivotTo(cf)
 	end
 end

@@ -308,6 +308,7 @@ function NPCService.spawn(boardPart)
 			local model = createNpc(npc)
 			model:SetAttribute("NpcId", npc.id)
 			CollectionService:AddTag(model, "NPC")
+			model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic -- chega inteiro no cliente (StreamingEnabled)
 			model.Parent = folder
 			addPrompt(model.PrimaryPart, npc)
 		end

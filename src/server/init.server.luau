@@ -487,6 +487,11 @@ local function onPlayerAdded(player)
 	EventService.onPlayerReady(player)
 	AdminService.onPlayerReady(player)
 	player.CharacterAdded:Connect(function(character)
+		-- StreamingEnabled: personagens sempre presentes em todos os clientes (auras, pets, grupo, troca
+		-- e animações dependem do CharacterAdded; são poucos modelos, o custo é pequeno)
+		pcall(function()
+			character.ModelStreamingMode = Enum.ModelStreamingMode.Persistent
+		end)
 		player:SetAttribute("Mounted", false)
 		AntiCheat.onCharacterAdded(player)
 		DungeonService.onCharacterAdded(player, character)
@@ -578,6 +583,18 @@ safely("Raide", RaidService.init)
 safely("Arena", ArenaService.init)
 safely("Eventos sazonais", EventService.start)
 safely("Admin", AdminService.start)
+
+-- StreamingEnabled: cada árvore/pedra chega inteira no cliente (e o DetailCulling trata o modelo todo)
+pcall(function()
+	local nature = workspace:FindFirstChild("Mundo") and workspace.Mundo:FindFirstChild("Natureza")
+	if nature then
+		for _, child in nature:GetChildren() do
+			if child:IsA("Model") then
+				child.ModelStreamingMode = Enum.ModelStreamingMode.Atomic
+			end
+		end
+	end
+end)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

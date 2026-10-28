@@ -140,7 +140,7 @@ local function teleport(player, cframe)
 	local character = player.Character
 	if character and character.PrimaryPart then
 		TravelService.dismount(player)
-		AntiCheat.allowTeleport(player, 3)
+		AntiCheat.allowTeleport(player, 3, cframe.Position)
 		character:PivotTo(cframe)
 	end
 end
@@ -1073,7 +1073,7 @@ function DungeonService.onCharacterAdded(player, character)
 	task.defer(function()
 		character:WaitForChild("HumanoidRootPart", 5)
 		if runOf[player] == run and run.current then
-			AntiCheat.allowTeleport(player, 3)
+			AntiCheat.allowTeleport(player, 3, run.current.arrival.Position)
 			character:PivotTo(run.current.arrival)
 		end
 	end)

@@ -176,9 +176,24 @@ function HUD.init(screen, callbacks)
 		{ "Auto Caçar", "N", callbacks.onAutoHunt, "autohunt", "crossed-swords" },
 		{ "Configurações", "P", callbacks.onSettings, nil, "cog" },
 	}
+	-- celular: a tela é baixa demais para 15 botões; o menu fica recolhido atrás do botão MENU
+	local touchOnly = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+	if touchOnly then
+		menu.Visible = false
+		menu.Position = UDim2.new(0, 110, 0.5, 30)
+		local toggle = UI.button({ Text = "MENU", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 30), Size = UDim2.fromOffset(90, 40), BackgroundColor3 = UI.Colors.PanelLight, Parent = screen })
+		toggle.MouseButton1Click:Connect(function()
+			menu.Visible = not menu.Visible
+		end)
+	end
 	for i, entry in entries do
-		local button = UI.button({ Text = entry[1] .. (if entry[2] ~= "" then "  [" .. entry[2] .. "]" else ""), Size = UDim2.fromOffset(150, 27), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
-		button.MouseButton1Click:Connect(entry[3])
+		local button = UI.button({ Text = entry[1] .. (if entry[2] ~= "" and not touchOnly then "  [" .. entry[2] .. "]" else ""), Size = UDim2.fromOffset(150, 27), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
+		button.MouseButton1Click:Connect(function()
+			if touchOnly then
+				menu.Visible = false
+			end
+			entry[3]()
+		end)
 		-- ícone à esquerda do texto
 		local pad = button:FindFirstChildOfClass("UIPadding") or UI.new("UIPadding", { Parent = button })
 		pad.PaddingLeft = UDim.new(0, 30)

@@ -180,8 +180,9 @@ function TravelService.travel(player, stoneId)
 	TravelService.dismount(player)
 	local x, z = stone.x + 6, stone.z + 6
 	local y = World.height(x, z)
-	AntiCheat.allowTeleport(player, 3)
-	character:PivotTo(CFrame.new(x, math.max(y, World.SeaLevel) + 4, z))
+	local destination = Vector3.new(x, math.max(y, World.SeaLevel) + 4, z)
+	AntiCheat.allowTeleport(player, 3, destination)
+	character:PivotTo(CFrame.new(destination))
 	Remotes.Fx:FireAllClients("blink", Vector3.new(stone.x, y, stone.z), Vector3.new(x, y + 3, z), "travel")
 	TravelService.QuestHook(player, "travel", stoneId, 1)
 	return { ok = true }

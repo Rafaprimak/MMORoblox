@@ -176,7 +176,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Balanceamento remoto (`RemoteConfig`): XP, ouro, drop, vida e dano dos inimigos, dano e cura da Arena, intervalo do chefe de mundo e mensagem do dia, salvos num DataStore e aplicados em todos os servidores na hora, sem publicar de novo (M)
 - ⬜ Analytics: retenção, funil da história, onde os jogadores morrem/desistem (M)
 - ⬜ Tradução para inglês (LocalizationService) (M)
-- ⬜ Otimização para celular: StreamingEnabled, menos partes, UI testada em telas pequenas (G)
+- 🧪 StreamingEnabled ligado (raio 192–1024, pausa fora da área carregada): o cliente só recebe o mundo por perto (terreno, natureza, inimigos), teleportes longos pedem o destino antes (`AntiCheat.allowTeleport(..., destino)`), NPCs e árvores chegam inteiros, personagens e o portal da raide sempre presentes; `DetailCulling` aguenta o Roblox tirar e devolver modelos. No celular o menu fica recolhido atrás do botão MENU. **Falta medir FPS/memória no celular** (G)
 - ⬜ Ícone, thumbnails e trailer (M)
 
 ---

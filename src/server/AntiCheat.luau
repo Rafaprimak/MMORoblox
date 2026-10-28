@@ -224,7 +224,14 @@ local function resetTrack(track)
 end
 
 -- O servidor vai mover o personagem (viagem, masmorra, Piscar...): não conta como trapaça
-function AntiCheat.allowTeleport(player, seconds)
+-- destination (opcional): com StreamingEnabled, pede ao Roblox para mandar o lugar de destino ao cliente
+-- antes (senão o jogador chega num lugar ainda vazio e o jogo o pausa até carregar). Pode demorar um pouco.
+function AntiCheat.allowTeleport(player, seconds, destination)
+	if destination and workspace.StreamingEnabled then
+		pcall(function()
+			player:RequestStreamAroundAsync(destination, 4)
+		end)
+	end
 	local track = trackOf(player)
 	track.allowUntil = os.clock() + (seconds or 2)
 	resetTrack(track)

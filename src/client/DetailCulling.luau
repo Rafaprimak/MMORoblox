@@ -1,6 +1,8 @@
 -- Desempenho: tira do mundo (só neste cliente) as árvores, pedras, arbustos e flores longe da câmera
 -- e devolve quando você chega perto. A distância depende da "Qualidade gráfica" nas configurações.
 -- Só mexe em workspace.Mundo.Natureza (cenário parado; nada ali é mudado pelo servidor depois).
+-- Com StreamingEnabled o Roblox também tira e devolve esses modelos: quem chega depois entra na lista
+-- (ChildAdded) e quem o Roblox apagou sai dela (mudar o Parent de um modelo apagado dá erro).
 local RunService = game:GetService("RunService")
 
 local Prefs = require(script.Parent.Prefs)
@@ -14,10 +16,11 @@ local SMALL_FRACTION = 0.45
 local BATCH = 250 -- modelos conferidos por quadro
 
 local entries = {} -- { model, position, small, hidden }
+local known = {} -- [modelo] = true (já está na lista)
 local folder
 
 local function register(model)
-	if not model:IsA("Model") and not model:IsA("BasePart") then
+	if known[model] or (not model:IsA("Model") and not model:IsA("BasePart")) then
 		return
 	end
 	local position
@@ -30,7 +33,15 @@ local function register(model)
 		position = model.Position
 		small = model.Size.Magnitude < 14
 	end
+	known[model] = true
 	table.insert(entries, { model = model, position = position, small = small, hidden = false })
+end
+
+-- tira da lista (troca com o último para não abrir buraco)
+local function removeAt(index)
+	known[entries[index].model] = nil
+	entries[index] = entries[#entries]
+	entries[#entries] = nil
 end
 
 function DetailCulling.init()
@@ -50,6 +61,9 @@ function DetailCulling.init()
 				task.wait()
 			end
 		end
+		folder.ChildAdded:Connect(function(child)
+			task.defer(register, child)
+		end)
 		local cursor = 1
 		RunService.Heartbeat:Connect(function()
 			local camera = workspace.CurrentCamera
@@ -60,14 +74,32 @@ function DetailCulling.init()
 			local quality = math.clamp(math.floor(Prefs.get("quality") or 2), 1, 3)
 			local far = DISTANCE[quality]
 			for _ = 1, math.min(BATCH, #entries) do
+				if #entries == 0 then
+					break
+				end
+				if cursor > #entries then
+					cursor = 1
+				end
 				local entry = entries[cursor]
-				cursor = cursor % #entries + 1
+				-- visível mas sem pai = o Roblox tirou do cliente (streaming): esquece
+				if not entry.hidden and entry.model.Parent ~= folder then
+					removeAt(cursor)
+					continue
+				end
+				cursor += 1
 				local limit = if entry.small then far * SMALL_FRACTION else far
 				local offset = entry.position - eye
 				local hide = offset.X * offset.X + offset.Z * offset.Z > limit * limit
 				if hide ~= entry.hidden then
-					entry.hidden = hide
-					entry.model.Parent = if hide then nil else folder
+					local ok = pcall(function()
+						entry.model.Parent = if hide then nil else folder
+					end)
+					if ok then
+						entry.hidden = hide
+					else
+						-- o Roblox apagou o modelo enquanto estava escondido; ele volta pelo ChildAdded
+						removeAt(cursor - 1)
+					end
 				end
 			end
 		end)

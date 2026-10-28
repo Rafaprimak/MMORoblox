@@ -390,7 +390,7 @@ function handlers.visit(admin, args)
 	if not from or not to then
 		return { ok = false, msg = "Jogador não encontrado." }
 	end
-	AntiCheat.allowTeleport(admin, 3)
+	AntiCheat.allowTeleport(admin, 3, to.Position)
 	admin.Character:PivotTo(to.CFrame * CFrame.new(0, 0, 5))
 	log(admin, "ir", target.Name)
 	return { ok = true }
@@ -405,7 +405,7 @@ function handlers.bring(admin, args)
 	if target:GetAttribute("Arena") or target:GetAttribute("Dungeon") or target:GetAttribute("Raid") then
 		return { ok = false, msg = "Ele está numa arena, masmorra ou raide." }
 	end
-	AntiCheat.allowTeleport(target, 3)
+	AntiCheat.allowTeleport(target, 3, from.Position)
 	target.Character:PivotTo(from.CFrame * CFrame.new(0, 0, -5))
 	log(admin, "trazer", target.Name)
 	return { ok = true }
