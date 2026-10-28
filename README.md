@@ -188,6 +188,44 @@ Sem esse arquivo, o jogo publicado ainda tenta baixar os modelos na hora (precis
 
 ---
 
+## 🌍 Publicar no Roblox e vender com Robux
+
+### 1. Publicar pela primeira vez
+1. Rode **`1-gerar-jogo.bat`** e abra o `MMOTESTE.rbxlx` no Roblox Studio.
+2. **Arquivo → Publicar no Roblox como...** → **Criar nova experiência**: nome **Infinite Orb**, gênero RPG, dispositivos (computador, celular, tablet, console). Clique em **Criar**.
+3. Ainda no Studio, abra **Início → Configurações do jogo** (Game Settings):
+   - **Segurança:** ligue **Permitir acesso do Studio aos serviços de API** (salvar no Studio) e **Permitir carregamento de ativos de terceiros**.
+   - **Avatar:** tipo **R15**.
+   - **Permissões:** deixe **Privado** enquanto testa; troque para **Público** quando for lançar.
+   - Clique em **Salvar**.
+4. A partir de agora, edite sempre **o jogo publicado** (não o arquivo `.rbxlx`): no Studio, **Arquivo → Abrir do Roblox** → Infinite Orb. Rode **`2-sincronizar-ao-vivo.bat`**, clique em **Plugins → Rojo → Connect** e, quando quiser atualizar o jogo de verdade, **Arquivo → Publicar no Roblox** (Alt+P).
+
+### 2. Criar o que se compra com Robux
+No [Creator Hub](https://create.roblox.com/dashboard/creations) → clique no **Infinite Orb** → **Monetização**:
+
+| O que criar | Onde | Preço sugerido | Onde colar o ID |
+|---|---|---|---|
+| Passe **VIP** (Auto e loot automático) | **Passes** → Criar passe → depois **Vender** e definir o preço | 199 | `Config.VipGamePassId` |
+| **Baú Celestial** | **Produtos de desenvolvedor** → Criar produto | 159 | `Config.Products.chest_celestial.id` |
+| **Ovo Celestial** | **Produtos de desenvolvedor** | 159 | `Config.Products.egg_celestial.id` |
+| **Passe Premium** da temporada | **Produtos de desenvolvedor** | 399 | `Config.Products.pass_premium.id` |
+
+- Cada um precisa de nome, descrição e imagem (uma imagem quadrada de 512×512; dá para usar um print do ícone do jogo).
+- Depois de criar, copie o **ID** (o número na página do produto ou do passe) e cole no `src/shared/Config.luau`.
+- **O preço que vale é o do Creator Hub.** O número `robux` do `Config` só aparece enquanto o ID está 0. Com o ID preenchido, o jogo lê o preço de verdade e mostra com o **ícone do Robux** nos botões.
+- Publique de novo (Alt+P) para os IDs valerem.
+
+### 3. Regras do Roblox para itens pagos
+- **Itens aleatórios pagos** (Baú e Ovo Celestial): as chances já aparecem em % antes da compra, como o Roblox exige. No Creator Hub → **Questionário de conteúdo/maturidade**, responda que o jogo tem **itens aleatórios pagos**.
+- O Roblox fica com 30% de cada venda. O resto vira Robux na conta dona do jogo (ou do grupo).
+
+### 4. Antes de abrir para todo mundo
+- **Localização:** Creator Hub → o jogo → **Localização** → idioma de origem **Português (Brasil)** → ligue a tradução automática para **inglês** e **espanhol** (a tabela própria já vai junto com o jogo).
+- **Lugares → Infinite Orb → Configurações:** tamanho do servidor (sugestão: **30**).
+- **Ícone e miniaturas** do jogo na página **Visão geral**.
+- Teste uma compra no Studio com o ID preenchido: o Roblox mostra a tela de compra de teste e **não cobra** no Studio.
+- Você, como dono, já é **admin** no jogo publicado (botão ADMIN no canto).
+
 ## 🛠️ Para quem vai editar o código
 
 - **[AGENTS.md](AGENTS.md):** regras, arquitetura e receitas para desenvolver (vale para pessoas e IAs).

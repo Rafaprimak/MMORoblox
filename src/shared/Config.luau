@@ -141,17 +141,17 @@ end
 -- No Studio todo mundo é VIP, para testar.
 Config.VipGamePassId = 0
 
--- ===== Produtos de Robux (developer products) =====
--- Crie cada produto no Creator Hub (Monetização → Developer Products) e cole o ID aqui. Com id = 0 o
--- produto ainda não está à venda (no Studio dá para testar de graça pelo botão "Testar").
--- robux = preço mostrado enquanto o ID não existe (o preço de verdade é o do Creator Hub).
--- (os dois custam ~R$ 10 em reais; o preço que vale é o que estiver no Creator Hub)
 -- ===== Administradores =====
 -- O dono do jogo já é admin (e, se o jogo for de um grupo, quem tiver cargo >= AdminGroupRank).
 -- Para dar acesso a mais alguém, coloque o UserId aqui. No Studio todo mundo é admin (para testar).
 Config.Admins = {}
 Config.AdminGroupRank = 254
 
+-- ===== Produtos de Robux (developer products) =====
+-- Crie cada produto no Creator Hub (Monetização → Produtos de desenvolvedor) e cole o ID em id. Com id = 0
+-- o produto ainda não está à venda (no Studio entrega de graça para testar).
+-- robux = preço mostrado só enquanto o ID é 0; com o ID preenchido, o jogo mostra o preço do Creator Hub.
+-- Passo a passo completo: README, "Publicar no Roblox e vender com Robux".
 Config.Products = {
 	chest_celestial = { id = 0, robux = 159, kind = "chest", target = "celestial" },
 	egg_celestial = { id = 0, robux = 159, kind = "egg", target = "celestial" },

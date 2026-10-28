@@ -16,7 +16,10 @@ local Store = {}
 
 local prices = {} -- [chave] = preço real (lido do Roblox quando o produto existe)
 
--- texto do preço: "159 Robux"
+-- ícone oficial do Robux: caractere especial que as fontes do Roblox desenham como o símbolo do Robux
+Store.RobuxIcon = utf8.char(0xE002)
+
+-- texto do preço com o ícone do Robux na frente (ícone + "159")
 function Store.priceText(key)
 	local product = Config.Products[key]
 	if not product then
@@ -33,7 +36,7 @@ function Store.priceText(key)
 			end
 		end)
 	end
-	return ("%d Robux"):format(prices[key] or product.robux)
+	return ("%s %d"):format(Store.RobuxIcon, prices[key] or product.robux)
 end
 
 function Store.buy(key)
