@@ -135,6 +135,20 @@ Items.Bases = {
 	elmo_magma = { name = "Elmo de Magma", slot = "helmet", power = 32, tier = 3, dungeon = "abismo", signature = "casca_abissal", set = "abismo" },
 	botas_brasa = { name = "Botas de Brasa", slot = "boots", power = 26, tier = 3, bonus = { stamina = 20 }, dungeon = "abismo", signature = "casca_abissal", set = "abismo" },
 
+	-- ===== RAIDE: CONJUNTO ESTELAR (só cai do Devorador de Estrelas) =====
+	espada_estelar = { name = "Espada do Cometa", slot = "weapon", weaponType = "sword", power = 31, tier = 4, raid = true, signature = "chuva_estelar" },
+	katana_estelar = { name = "Katana da Via Láctea", slot = "weapon", weaponType = "katana", power = 32, tier = 4, raid = true, signature = "chuva_estelar" },
+	adagas_estelares = { name = "Presas da Nebulosa", slot = "weapon", weaponType = "dagger", power = 24, tier = 4, raid = true, signature = "chuva_estelar" },
+	machado_estelar = { name = "Machado do Eclipse Solar", slot = "weapon", weaponType = "axe", power = 34, tier = 4, raid = true, signature = "chuva_estelar" },
+	martelo_estelar = { name = "Martelo da Supernova", slot = "weapon", weaponType = "hammer", power = 40, tier = 4, raid = true, signature = "chuva_estelar" },
+	lanca_estelar = { name = "Lança da Estrela Cadente", slot = "weapon", weaponType = "spear", power = 30, tier = 4, raid = true, signature = "chuva_estelar" },
+	arco_estelar = { name = "Arco da Aurora", slot = "weapon", weaponType = "bow", power = 27, tier = 4, raid = true, signature = "chuva_estelar" },
+	cetro_estelar = { name = "Cetro do Coração Estelar", slot = "weapon", weaponType = "staff", power = 27, tier = 4, raid = true, signature = "chuva_estelar" },
+	coroa_estelar = { name = "Coroa Estelar", slot = "helmet", power = 40, tier = 4, bonus = { mana = 40 }, raid = true, signature = "manto_estelar", set = "estelar" },
+	armadura_estelar = { name = "Couraça do Firmamento", slot = "armor", power = 115, tier = 4, bonus = { stamina = 25 }, raid = true, signature = "manto_estelar", set = "estelar" },
+	passos_estelares = { name = "Passos de Constelação", slot = "boots", power = 32, tier = 4, bonus = { stamina = 25 }, raid = true, signature = "manto_estelar", set = "estelar" },
+	amuleto_estelar = { name = "Fragmento do Coração", slot = "amulet", power = 9, tier = 4, stats = { damage = 0.05, critDamage = 0.08 }, raid = true, signature = "manto_estelar", set = "estelar" },
+
 	-- ===== ÚNICOS (raridade Única, efeito próprio; só caem de chefes: Enemies.Defs[x].uniques) =====
 	lamina_eclipse = { name = "Lâmina do Eclipse", slot = "weapon", weaponType = "sword", power = 27, tier = 4, unique = true, signature = "eclipse" },
 	adagas_capitao = { name = "Adagas do Capitão", slot = "weapon", weaponType = "dagger", power = 20, tier = 4, unique = true, signature = "sangria" },
@@ -148,6 +162,14 @@ Items.Bases = {
 
 -- Conjuntos: peças (base.set = id) e bônus por quantidade equipada (stats somados; perk liga um efeito)
 Items.Sets = {
+	estelar = {
+		name = "Coração da Estrela",
+		pieces = { "coroa_estelar", "armadura_estelar", "passos_estelares", "amuleto_estelar" },
+		bonuses = {
+			[2] = { stats = { damage = 0.06, crit = 0.04 }, text = "+6% de dano e +4% de crítico" },
+			[4] = { stats = { damage = 0.1, health = 0.1, abilityDamage = 0.1 }, perk = "nucleo_estelar", text = "+10% de dano, vida e dano de habilidades e Núcleo Estelar (salva da morte com uma explosão)" },
+		},
+	},
 	toca = {
 		name = "Saqueador da Toca",
 		pieces = { "capuz_saqueador", "colete_tunel", "botas_tunel", "anel_saqueador" },
@@ -174,10 +196,10 @@ Items.Sets = {
 	},
 }
 
--- Itens que podem sair do Baú Celestial: todo equipamento de tier 3 (sem Únicos nem exclusivos de masmorra)
+-- Itens que podem sair do Baú Celestial: todo equipamento de tier 3 (sem Únicos nem exclusivos de masmorra/raide)
 Items.PremiumPool = {}
 for baseId, base in Items.Bases do
-	if (base.tier or 0) >= 3 and not base.unique and not base.dungeon then
+	if (base.tier or 0) >= 3 and not base.unique and not base.dungeon and not base.raid then
 		table.insert(Items.PremiumPool, baseId)
 	end
 end
@@ -460,6 +482,7 @@ function Items.describe(item, equipped)
 		set = base.set,
 		unique = base.unique == true,
 		dungeon = base.dungeon,
+		raid = base.raid == true,
 		equipped = equipped == true,
 	}
 end

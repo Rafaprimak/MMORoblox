@@ -77,6 +77,8 @@ PlayerService.OnThorns = function(_player, _source, _amount) end
 
 -- Gancho para somar bônus de outros sistemas (pets, perks): function(player, data, bonus)
 PlayerService.ExtraBonus = function(_player, _data, _bonus) end
+-- Núcleo Estelar explodiu (init.server empurra os inimigos perto; evita PlayerService exigir EnemyService)
+PlayerService.OnStarCore = function(_player, _position) end
 
 local function addBonus(target, source, scale)
 	for key, value in source do
@@ -453,6 +455,19 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 		humanoid.Health = humanoid.MaxHealth * 0.5
 		Remotes.Fx:FireAllClients("heal", player, math.floor(humanoid.MaxHealth * 0.5))
 		Remotes.Notify:FireClient(player, { kind = "banner", text = "FILACTÉRIO!", sub = "Sua alma voltou ao corpo", color = Color3.fromRGB(170, 130, 255), duration = 2.5 })
+		return "evaded"
+	end
+	-- conjunto Estelar (Núcleo Estelar): o golpe fatal vira uma explosão que cura 30% (a cada 60 s)
+	if stats.perks.nucleo_estelar and final >= humanoid.Health and now >= (s.starCoreAt or 0) then
+		s.starCoreAt = now + 60
+		s.iframesUntil = now + 1.5
+		humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + humanoid.MaxHealth * 0.3)
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if root then
+			Remotes.Fx:FireAllClients("explosion", root.Position - Vector3.new(0, 2.5, 0), 14, "holy")
+			PlayerService.OnStarCore(player, root.Position)
+		end
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "NÚCLEO ESTELAR!", sub = "A estrela no seu peito explodiu e te salvou", color = Color3.fromRGB(255, 200, 120), duration = 2.5 })
 		return "evaded"
 	end
 	-- perk Segunda Chance: o golpe fatal deixa com 1 de vida (a cada 90s)

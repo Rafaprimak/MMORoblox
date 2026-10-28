@@ -89,6 +89,8 @@ function Inventory.describeLines(item)
 	end
 	if item.unique then
 		table.insert(lines, { "» ÚNICO: só cai de chefes, muito raro.", Color3.fromRGB(60, 255, 215), 18 })
+	elseif item.raid then
+		table.insert(lines, { "» EXCLUSIVO DA RAIDE: só cai do Devorador de Estrelas.", Color3.fromRGB(255, 140, 230), 18 })
 	end
 	-- conjunto: peças equipadas e bônus (ativos em verde)
 	local set = item.set and Items.Sets[item.set]

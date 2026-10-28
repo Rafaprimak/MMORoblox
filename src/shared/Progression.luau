@@ -79,6 +79,7 @@ Progression.Achievements = {
 	{ id = "domador", name = "Domador", icon = "paw-print", event = "pet", tiers = { 1, 10, 30 }, title = "domador", text = "Consiga pets" },
 	{ id = "explorador", name = "Explorador", icon = "compass", event = "poi", tiers = { 3, 6, 9 }, title = "desbravador", text = "Descubra locais de interesse" },
 	{ id = "cacador_tesouros", name = "Caça ao Tesouro", icon = "key", event = "poiChest", tiers = { 2, 5, 9 }, title = "achador", text = "Abra baús escondidos nos locais" },
+	{ id = "coracao_estrela", name = "Coração da Estrela", icon = "falling-star", event = "raid", tiers = { 1, 5, 15 }, title = "devorador_estrelas", text = "Derrote o Devorador de Estrelas na raide" },
 	{ id = "guardiao_segredos", name = "Guardião de Segredos", icon = "eyeball", event = "poiSecret", tiers = { 2, 5, 9 }, title = "sabedor", text = "Encontre os segredos escondidos nos locais de interesse" },
 	{ id = "perfeccionista", name = "Perfeccionista", icon = "upgrade", event = "upgradeTo", mode = "max", tiers = { 5, 8, 10 }, title = "perfeccionista", text = "Aprimore um item" },
 	{ id = "masmorreiro", name = "Senhor das Profundezas", icon = "castle", event = "dungeonBoss", tiers = { 1, 12, 60 }, title = "senhor_profundezas", text = "Derrote chefes de masmorra" },
@@ -148,6 +149,7 @@ Progression.Titles = {
 	desbravador = { name = "Desbravador", color = Color3.fromRGB(150, 220, 140) },
 	achador = { name = "Achador de Tesouros", color = Color3.fromRGB(255, 200, 90) },
 	sabedor = { name = "Sabedor de Segredos", color = Color3.fromRGB(150, 230, 255) },
+	devorador_estrelas = { name = "Devorador de Estrelas", color = Color3.fromRGB(255, 140, 230), rainbow = true },
 	veterano = { name = "Veterano", color = Color3.fromRGB(230, 200, 150) },
 	imortal = { name = "Imortal", color = Color3.fromRGB(255, 255, 255), rainbow = true },
 }

@@ -29,6 +29,7 @@ Guilds.Points = {
 	poiChest = 10,
 	poiSecret = 20,
 	marketSell = 5,
+	raid = 200,
 }
 
 -- metas da semana (sorteadas 3 por semana, as mesmas para todas as guildas)

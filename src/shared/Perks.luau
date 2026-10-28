@@ -49,6 +49,9 @@ Perks.List = {
 	tirania = { pool = "gear", exclusive = "unique", name = "Tirania", icon = "crown", text = "Recebe 15% menos dano e ganha +25% de ouro.", stats = { goldFind = 0.25 } },
 	filacterio = { pool = "gear", exclusive = "unique", name = "Filactério", icon = "skull-crack", text = "Um golpe fatal faz você voltar com 50% da vida (a cada 120 s)." },
 	-- ===== BÔNUS DE CONJUNTO (4 peças; ver Items.Sets) =====
+	chuva_estelar = { pool = "weapon", exclusive = "raide", major = true, name = "Chuva Estelar", icon = "falling-star", text = "12% de chance por golpe de uma estrela cair no alvo: 120% de dano em área. +8% de dano crítico.", stats = { critDamage = 0.08 } },
+	manto_estelar = { pool = "gear", exclusive = "raide", name = "Manto Estelar", icon = "galaxy", text = "+8% de vida, +5% de defesa e +8% de dano das habilidades.", stats = { health = 0.08, defense = 0.05, abilityDamage = 0.08 } },
+	nucleo_estelar = { pool = "gear", exclusive = "set", name = "Núcleo Estelar", icon = "star-swirl", text = "Golpe fatal: uma explosão estelar cura 30% da vida e empurra os inimigos (a cada 60 s)." },
 	pilhagem = { pool = "gear", exclusive = "set", name = "Pilhagem", icon = "two-coins", text = "Inimigos em masmorras deixam o dobro de material." },
 	pacto_espectral = { pool = "gear", exclusive = "set", name = "Pacto Espectral", icon = "spectre", text = "Cada abate cura 5% da vida." },
 	erupcao = { pool = "gear", exclusive = "set", name = "Erupção", icon = "flame", text = "Inimigos derrotados explodem em lava (80% do ataque em volta)." },

@@ -132,6 +132,17 @@ function PerkService.afterHit(player, rec, dealt, info, stats, crit)
 	if perks.sangria then
 		EnemyService.applyDot(rec, player, dealt * 0.1, 3, "burn")
 	end
+	-- raide: Chuva Estelar (uma estrela cai no alvo)
+	if perks.chuva_estelar and not info.perk and math.random() < 0.12 then
+		local center = rec.pos
+		Remotes.Fx:FireAllClients("meteor", center, 8, 0.35)
+		task.delay(0.35, function()
+			Remotes.Fx:FireAllClients("explosion", center, 8, "holy")
+			for _, other in EnemyService.inRadius(center, 8) do
+				EnemyService.damage(other, stats.attack * stats.damageMult * 1.2, player, { perk = true, element = "holy", posture = 15, fromPosition = center })
+			end
+		end)
+	end
 	if perks.teia_viuva then
 		EnemyService.applyDot(rec, player, dealt * 0.06, 4, "poison")
 		if crit then

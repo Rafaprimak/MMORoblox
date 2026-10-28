@@ -54,6 +54,7 @@ Factions.Events = {
 	dungeonBoss = { liga = 25 },
 	worldBoss = { liga = 70 },
 	dungeon = { liga = 200 },
+	raid = { liga = 300, circulo = 100 },
 }
 
 -- missões entregues dão reputação para a facção de quem deu a missão

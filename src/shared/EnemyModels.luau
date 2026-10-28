@@ -238,6 +238,80 @@ function builders.golem(add, def)
 	return 6.1
 end
 
+-- Devorador de Estrelas (chefe da raide): criatura cósmica flutuante de cristal. Tentáculos que ondulam
+-- (tentacle), núcleo de estrela no peito, asas de nebulosa, garras de luz, crânio de três olhos, coroa de
+-- fragmentos girando (orbit) e cinturão de meteoros girando ao contrário (orbitR).
+function builders.devorador(add, def)
+	local body = def.color
+	local dark = body:Lerp(BLACK, 0.45)
+	local star = Color3.fromRGB(255, 236, 170)
+	local magenta = Color3.fromRGB(255, 110, 225)
+	local cyan = Color3.fromRGB(120, 225, 255)
+	local glass = Enum.Material.Glass
+	local neon = Enum.Material.Neon
+	-- tentáculos embaixo (ele flutua: as pontas quase tocam o chão)
+	for i = 0, 5 do
+		local a = i / 6 * math.pi * 2 + 0.3
+		local cx, cz = math.cos(a), math.sin(a)
+		local joint = Vector3.new(cx * 1.1, 3.4, cz * 1.1)
+		add("tentacle", Vector3.new(0.6, 1.7, 0.6), Vector3.new(cx * 1.35, 2.6, cz * 1.35), dark, glass, CFrame.Angles(cz * 0.25, 0, -cx * 0.25), joint)
+		add("tentacle", Vector3.new(0.45, 1.4, 0.45), Vector3.new(cx * 1.75, 1.3, cz * 1.75), body, glass, CFrame.Angles(cz * 0.4, 0, -cx * 0.4), joint)
+		add("tentacle", Vector3.new(0.3, 0.6, 0.3), Vector3.new(cx * 2.0, 0.4, cz * 2.0), magenta, neon, nil, joint)
+	end
+	-- tronco de cristal
+	add("body", Vector3.new(2.4, 1.6, 2.0), Vector3.new(0, 3.9, 0), dark, glass, nil, nil, nil, 0.05)
+	add("body", Vector3.new(3.2, 2.6, 2.4), Vector3.new(0, 5.5, 0), body, glass, nil, nil, nil, 0.05)
+	for _, side in { -1, 1 } do
+		add("body", Vector3.new(1.2, 2.2, 0.5), Vector3.new(side * 1.3, 5.6, -1.05), dark, glass, CFrame.Angles(0, side * 0.35, side * 0.2))
+		add("body", Vector3.new(1.4, 1.2, 1.4), Vector3.new(side * 2.1, 6.5, 0), dark, glass, CFrame.Angles(0.3, side * 0.6, side * 0.4))
+	end
+	-- núcleo de estrela e faíscas em volta
+	add("body", Vector3.one * 1.5, Vector3.new(0, 5.4, -1.2), star, neon, nil, nil, Enum.PartType.Ball)
+	for k = 0, 5 do
+		local a = k / 6 * math.pi * 2
+		add("body", Vector3.one * 0.25, Vector3.new(math.cos(a) * 1.1, 5.4 + math.sin(a) * 1.1, -1.3), cyan, neon)
+	end
+	-- asas de nebulosa (duas camadas translúcidas)
+	for _, side in { -1, 1 } do
+		add("body", Vector3.new(0.15, 4.4, 3.2), Vector3.new(side * 2.5, 7.0, 1.4), magenta, neon, CFrame.Angles(0, side * 0.6, side * 0.45), nil, nil, 0.55)
+		add("body", Vector3.new(0.12, 3.2, 2.2), Vector3.new(side * 2.3, 6.6, 1.2), cyan, neon, CFrame.Angles(0, side * 0.5, side * 0.3), nil, nil, 0.7)
+	end
+	-- braços com garras de luz
+	for _, side in { -1, 1 } do
+		local arm = if side < 0 then "armL" else "armR"
+		local joint = Vector3.new(side * 2.1, 6.4, 0)
+		add(arm, Vector3.new(0.9, 2.6, 0.9), Vector3.new(side * 2.6, 5.0, 0), body, glass, nil, joint)
+		add(arm, Vector3.new(0.8, 2.2, 0.8), Vector3.new(side * 2.8, 3.1, -0.3), dark, glass, CFrame.Angles(0.25, 0, 0), joint)
+		for c = -1, 1 do
+			add(arm, Vector3.new(0.22, 1.2, 0.22), Vector3.new(side * 2.8 + c * 0.32, 1.6, -0.75), magenta, neon, CFrame.Angles(-0.4, 0, c * 0.25), joint)
+		end
+	end
+	-- crânio de três olhos, mandíbula e chifres
+	local neck = Vector3.new(0, 6.8, 0)
+	add("head", Vector3.new(1.8, 1.5, 1.6), Vector3.new(0, 7.6, -0.2), dark, glass, nil, neck)
+	add("head", Vector3.new(1.95, 0.35, 0.7), Vector3.new(0, 8.1, -0.75), body, glass, nil, neck)
+	add("head", Vector3.new(1.3, 0.4, 1.0), Vector3.new(0, 6.85, -0.6), dark, glass, nil, neck)
+	for _, side in { -1, 1 } do
+		add("head", Vector3.new(0.38, 0.2, 0.1), Vector3.new(side * 0.45, 7.65, -1.02), magenta, neon, nil, neck)
+		add("head", Vector3.new(0.35, 1.5, 0.35), Vector3.new(side * 0.75, 8.6, 0.1), dark, glass, CFrame.Angles(0, 0, side * -0.45), neck)
+		add("head", Vector3.new(0.25, 0.45, 0.25), Vector3.new(side * 1.12, 9.35, 0.1), cyan, neon, CFrame.Angles(0, 0, side * -0.45), neck)
+	end
+	add("head", Vector3.new(0.3, 0.3, 0.1), Vector3.new(0, 8.0, -1.0), star, neon, CFrame.Angles(0, 0, math.rad(45)), neck)
+	-- coroa de fragmentos girando
+	for k = 0, 7 do
+		local a = k / 8 * math.pi * 2
+		add("orbit", Vector3.new(0.3, 1.0, 0.3), Vector3.new(math.cos(a) * 1.7, 9.8, math.sin(a) * 1.7), if k % 2 == 0 then star else cyan, neon, CFrame.Angles(math.sin(a) * 0.3, 0, math.cos(a) * 0.3), Vector3.new(0, 9.8, 0))
+	end
+	-- cinturão de meteoros girando ao contrário
+	for k = 0, 5 do
+		local a = k / 6 * math.pi * 2
+		local size = 0.6 + (k % 3) * 0.15
+		add("orbitR", Vector3.one * size, Vector3.new(math.cos(a) * 3.3, 4.3 + (k % 2) * 0.6, math.sin(a) * 3.3), Color3.fromRGB(70, 55, 80), Enum.Material.Basalt, CFrame.Angles(a, a * 2, 0), Vector3.new(0, 4.3, 0))
+		add("orbitR", Vector3.one * (size * 0.4), Vector3.new(math.cos(a) * 3.3, 4.3 + (k % 2) * 0.6 + size * 0.45, math.sin(a) * 3.3), magenta, neon, nil, Vector3.new(0, 4.3, 0))
+	end
+	return 10.2
+end
+
 function builders.dummy(add, def)
 	local straw = def.color
 	add("body", Vector3.new(2, 0.3, 2), Vector3.new(0, 0.15, 0), WOOD, Enum.Material.Wood)

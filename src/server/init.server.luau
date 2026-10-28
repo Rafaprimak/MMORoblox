@@ -43,6 +43,7 @@ local PartyService = require(script.PartyService)
 local MarketService = require(script.MarketService)
 local GuildService = require(script.GuildService)
 local ChronicleService = require(script.ChronicleService)
+local RaidService = require(script.RaidService)
 local WorldEventService = require(script.WorldEventService)
 
 workspace:SetAttribute("WorldReady", false)
@@ -64,6 +65,11 @@ end
 PlayerService.QuestHook = questHook
 PlayerService.QuestSummary = QuestService.summary
 PlayerService.OnDamaged = TravelService.onDamaged
+PlayerService.OnStarCore = function(player, position)
+	for _, rec in EnemyService.inRadius(position, 14) do
+		EnemyService.damage(rec, 1, player, { perk = true, knockback = 16, stun = 1, fromPosition = position, element = "holy" })
+	end
+end
 PlayerService.OnParry = function(player, source)
 	if source then
 		EnemyService.parried(source, player)
@@ -88,6 +94,7 @@ ExploreService.QuestHook = questHook
 MarketService.QuestHook = questHook
 GuildService.QuestHook = questHook
 WorldEventService.QuestHook = questHook
+RaidService.QuestHook = questHook
 DungeonService.QuestHook = questHook
 FusionService.QuestHook = questHook
 PetService.init()
@@ -104,6 +111,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.party = PartyService.payload(player)
 		payload.guild = GuildService.payload(player)
 		payload.chronicle = ChronicleService.summary(player)
+		payload.raid = RaidService.summary(player)
 		payload.poiSecrets = data.poiSecrets
 	end
 end
@@ -147,6 +155,7 @@ EnemyService.OnKilled = function(rec, contributors)
 		end
 	end
 	WorldEventService.onKilled(rec, contributors)
+	RaidService.onKilled(rec)
 	local night = DayNightService.isNight()
 	local rewardMult = (if night then 1 + Config.NightRewardBonus else 1) * (rec.rewardMult or 1)
 	for player in contributors do
@@ -392,6 +401,14 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return GuildService.ranking(player)
 	elseif action == "dungeonRanking" then
 		return DungeonService.ranking(player, a)
+	elseif action == "raidJoin" then
+		return RaidService.join(player)
+	elseif action == "raidLeave" then
+		return RaidService.leave(player)
+	elseif action == "raidReady" then
+		return RaidService.setReady(player, a)
+	elseif action == "raidExit" then
+		return RaidService.exit(player)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
@@ -442,6 +459,7 @@ local function onPlayerAdded(player)
 		player:SetAttribute("Mounted", false)
 		AntiCheat.onCharacterAdded(player)
 		DungeonService.onCharacterAdded(player, character)
+		RaidService.onCharacterAdded(player, character)
 		VipService.onCharacterAdded(player, character)
 		local humanoid = character:WaitForChild("Humanoid", 10)
 		if humanoid then
@@ -467,6 +485,7 @@ Players.PlayerRemoving:Connect(function(player)
 	PartyService.onPlayerRemoving(player)
 	MarketService.onPlayerRemoving(player)
 	GuildService.onPlayerRemoving(player)
+	RaidService.onPlayerRemoving(player)
 	PlaytimeService.onPlayerRemoving(player)
 	DungeonService.onPlayerRemoving(player)
 	TravelService.dismount(player)
@@ -522,6 +541,7 @@ safely("Anti-trapaça", AntiCheat.start)
 safely("Eventos do mundo", WorldEventService.start)
 safely("Mercado", MarketService.start)
 safely("Guildas", GuildService.start)
+safely("Raide", RaidService.init)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

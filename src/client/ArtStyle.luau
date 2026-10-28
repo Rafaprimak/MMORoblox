@@ -193,7 +193,7 @@ function ArtStyle.init()
 		end
 		elapsed = 0
 		refreshOutlines()
-		local inDungeon = DungeonAtmosphere.inDungeon()
+		local inDungeon = DungeonAtmosphere.inDungeon() or player:GetAttribute("Raid") == true
 		updateMist(inDungeon)
 		grade.Enabled = not inDungeon
 		if not inDungeon then

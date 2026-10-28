@@ -87,6 +87,13 @@ Lore.Pages = {
 		unlock = { "worldBoss" },
 		text = "Os chefes de mundo sobem das profundezas quando a estrela vermelha fica mais forte. Os caçadores de Aurora já sabem: quando o chão tremer e o céu escurecer, é hora de se juntar. Sozinho, ninguém derruba um colosso.",
 	},
+	{
+		id = "coracao",
+		title = "O Coração da Estrela",
+		hint = "Derrote o Devorador de Estrelas na raide.",
+		unlock = { "raid" },
+		text = "A estrela vermelha não era uma estrela: era um ovo. O Devorador nasceu dela faminto de luz, e cada estrela que ele engole deixa o céu um pouco mais escuro. Quando cai, o coração dele se parte em fragmentos que ainda brilham. Os caçadores que os carregam dizem ouvir um batimento, baixinho, quando a noite fica escura demais.",
+	},
 }
 Lore.ById = {}
 for _, page in Lore.Pages do

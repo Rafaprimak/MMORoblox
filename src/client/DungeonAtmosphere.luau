@@ -15,6 +15,13 @@ local player = Players.LocalPlayer
 
 -- por tema: luz ambiente, névoa da atmosfera, tom da imagem e o que flutua no ar
 local MOODS = {
+	-- raide (atributo Raid): noite cósmica violeta, névoa de nebulosa, estrelas cintilando e cadentes
+	raide = {
+		ambient = Color3.fromRGB(70, 50, 110), outdoor = Color3.fromRGB(90, 70, 140), brightness = 1.1,
+		fog = Color3.fromRGB(70, 35, 120), decay = Color3.fromRGB(150, 60, 160), density = 0.28,
+		tint = Color3.fromRGB(235, 215, 255), saturation = 0.25, contrast = 0.18,
+		motes = Color3.fromRGB(255, 240, 200), embers = true, stars = true,
+	},
 	caverna = {
 		ambient = Color3.fromRGB(58, 48, 40), outdoor = Color3.fromRGB(30, 26, 22), brightness = 0.4,
 		fog = Color3.fromRGB(44, 34, 26), decay = Color3.fromRGB(30, 22, 16), density = 0.5,
@@ -107,6 +114,22 @@ local function makeMotes(mood)
 	emitter.Shape = Enum.ParticleEmitterShape.Box
 	emitter.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
 	emitter.Parent = part
+	if mood.stars then
+		-- estrelas cadentes riscando o céu
+		local streaks = Instance.new("ParticleEmitter")
+		streaks.Color = ColorSequence.new(Color3.fromRGB(255, 230, 180), Color3.fromRGB(255, 120, 230))
+		streaks.LightEmission = 1
+		streaks.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.6), NumberSequenceKeypoint.new(1, 0) })
+		streaks.Lifetime = NumberRange.new(0.8, 1.4)
+		streaks.Rate = 6
+		streaks.Speed = NumberRange.new(60, 90)
+		streaks.EmissionDirection = Enum.NormalId.Bottom
+		streaks.SpreadAngle = Vector2.new(25, 25)
+		streaks.Acceleration = Vector3.new(-20, 0, 0)
+		streaks.Drag = 0
+		streaks.Parent = part
+		part.Size = Vector3.new(160, 40, 160)
+	end
 	part.Parent = workspace.CurrentCamera
 	return part
 end
@@ -140,7 +163,7 @@ function DungeonAtmosphere.init()
 	RunService.RenderStepped:Connect(function()
 		local id = player:GetAttribute("Dungeon")
 		local dungeon = id and Dungeons.ById[id]
-		local mood = dungeon and MOODS[dungeon.theme]
+		local mood = if player:GetAttribute("Raid") then MOODS.raide else dungeon and MOODS[dungeon.theme]
 		if mood ~= currentMood then
 			restore()
 			currentMood = mood
@@ -169,7 +192,7 @@ function DungeonAtmosphere.init()
 			apply(mood)
 			local camera = workspace.CurrentCamera
 			if emitterPart and camera then
-				emitterPart.CFrame = CFrame.new(camera.CFrame.Position)
+				emitterPart.CFrame = CFrame.new(camera.CFrame.Position + (if mood.stars then Vector3.new(0, 30, 0) else Vector3.zero))
 			end
 		end
 	end)

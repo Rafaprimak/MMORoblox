@@ -173,6 +173,20 @@ Enemies.Defs = {
 		leash = 140, dungeon = true,
 		uniques = { "martelo_colosso" },
 	},
+	-- chefe da raide (RaidService): fases, chuva de estrelas e servos ficam no serviço
+	devorador = {
+		name = "Devorador de Estrelas", level = 24, hp = 60000, damage = 52, speed = 10, attackCooldown = 1.6, attackRange = 12,
+		xp = 15000, gold = { 1500, 2500 }, dropChance = 1, equipDrops = 3, minRarity = 5,
+		-- só o conjunto Estelar (exclusivo da raide)
+		pool = { "espada_estelar", "katana_estelar", "adagas_estelares", "machado_estelar", "martelo_estelar", "lanca_estelar", "arco_estelar", "cetro_estelar", "coroa_estelar", "armadura_estelar", "passos_estelares", "amuleto_estelar" },
+		drops = { { id = "essencia", chance = 1, min = 8, max = 14 }, { id = "minerio_mitril", chance = 1, min = 4, max = 8 }, { id = "nucleo_golem", chance = 1, min = 3, max = 5 } },
+		aggro = 140, radius = 8, model = "devorador", color = Color3.fromRGB(60, 35, 110), behavior = "boss", scale = 3.2, defense = 0.35,
+		charge = { speed = 55, time = 1.0, windup = 1.2, damage = 70, cooldown = 10 },
+		slam = { radius = 24, windup = 1.3, damage = 80, cooldown = 7 },
+		summon = { enemy = "golem", count = 1, cooldown = 35 },
+		leash = 220, dungeon = true,
+		uniques = { "martelo_colosso", "lamina_eclipse", "anel_lich" },
+	},
 }
 
 -- comportamento "boss" = chefe (barra no topo, música de chefe, não vira Elite, não é empurrado)

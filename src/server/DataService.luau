@@ -59,6 +59,7 @@ function DataService.defaultData()
 		factions = {}, -- [facção] = reputação
 		factionTiers = {}, -- [facção] = último degrau recompensado
 		lore = {}, -- [página] = true (diário de lore)
+		raidWeek = -1, -- semana em que já pegou o prêmio da raide
 		market = { selling = {}, buying = {} }, -- mercado: custódia dos anúncios e das compras em andamento
 		progress = {
 			counters = {},

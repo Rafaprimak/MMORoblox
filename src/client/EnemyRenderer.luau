@@ -306,6 +306,15 @@ local function partOffset(rec, entry, moving, actionT, now)
 		return rotateAround(joint, R(0, -swing * 0.5, -math.abs(swing) * 0.3))
 	elseif role == "tail" then
 		return rotateAround(joint, R(0, math.sin(now * 9) * 0.5, 0))
+	elseif role == "orbit" then
+		-- anel de fragmentos girando (coroa)
+		return rotateAround(joint, R(0, now * 1.3, 0))
+	elseif role == "orbitR" then
+		return rotateAround(joint, R(0, -now * 0.8, 0))
+	elseif role == "tentacle" then
+		-- cada tentáculo ondula no seu ritmo (a posição da junta muda a fase)
+		local k = joint.X * 1.7 + joint.Z * 2.3
+		return rotateAround(joint, R(math.sin(now * 1.8 + k) * 0.3, 0, math.cos(now * 1.5 + k) * 0.24))
 	elseif role == "head" then
 		if action == "roar" and actionT < 1 then
 			return rotateAround(joint, R(-0.5 * math.sin(actionT * math.pi), 0, 0))
