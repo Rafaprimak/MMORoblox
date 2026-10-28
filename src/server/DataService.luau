@@ -56,6 +56,9 @@ function DataService.defaultData()
 		purchases = {}, -- [PurchaseId] = true (compras com Robux já entregues; evita entregar duas vezes)
 		tradeLog = {}, -- últimas 20 trocas com outros jogadores
 		guild = nil, -- id da guilda (o registro da guilda manda)
+		factions = {}, -- [facção] = reputação
+		factionTiers = {}, -- [facção] = último degrau recompensado
+		lore = {}, -- [página] = true (diário de lore)
 		market = { selling = {}, buying = {} }, -- mercado: custódia dos anúncios e das compras em andamento
 		progress = {
 			counters = {},
@@ -85,7 +88,7 @@ end
 local FREE_KEYS = {
 	inventory = true, equipped = true, materials = true, consumables = true, skills = true,
 	abilityRanks = true, talents = true, loadout = true, pets = true, poi = true, poiChests = true, poiSecrets = true, counters = true, achievements = true, titles = true, levelRewards = true, active = true, done = true, offered = true, discovered = true,
-	dungeons = true, purchases = true, tradeLog = true, selling = true, buying = true,
+	dungeons = true, purchases = true, tradeLog = true, selling = true, buying = true, factions = true, factionTiers = true, lore = true,
 }
 
 local function reconcile(data, template)

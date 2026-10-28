@@ -42,6 +42,7 @@ local TradeService = require(script.TradeService)
 local PartyService = require(script.PartyService)
 local MarketService = require(script.MarketService)
 local GuildService = require(script.GuildService)
+local ChronicleService = require(script.ChronicleService)
 local WorldEventService = require(script.WorldEventService)
 
 workspace:SetAttribute("WorldReady", false)
@@ -54,8 +55,12 @@ local function questHook(player, kind, target, amount)
 	QuestService.event(player, kind, target, amount)
 	ProgressionService.track(player, kind, target, amount)
 	GuildService.track(player, kind, amount)
+	ChronicleService.track(player, kind, target, amount)
 end
-QuestService.OnComplete = ProgressionService.onQuestDone
+QuestService.OnComplete = function(player, daily, def)
+	ProgressionService.onQuestDone(player, daily)
+	ChronicleService.onQuestDone(player, def)
+end
 PlayerService.QuestHook = questHook
 PlayerService.QuestSummary = QuestService.summary
 PlayerService.OnDamaged = TravelService.onDamaged
@@ -98,6 +103,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.trade = TradeService.summary(player)
 		payload.party = PartyService.payload(player)
 		payload.guild = GuildService.payload(player)
+		payload.chronicle = ChronicleService.summary(player)
 		payload.poiSecrets = data.poiSecrets
 	end
 end

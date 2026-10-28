@@ -156,8 +156,8 @@ function HUD.init(screen, callbacks)
 	refs.bossFrame, refs.bossFill, refs.bossText = bossFrame, bossFill, bossText
 
 	-- ===== botões do menu =====
-	-- ícones: "eagle-emblem", "backpack", "wizard-face", "scroll-unfurled", "treasure-map", "present", "horse-head", "star-formation", "paw-print", "sands-of-time", "crossed-swords", "cog", "help"
-	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 40), Size = UDim2.fromOffset(150, 430), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
+	-- ícones: "eagle-emblem", "book-cover", "backpack", "wizard-face", "scroll-unfurled", "treasure-map", "present", "horse-head", "star-formation", "paw-print", "sands-of-time", "crossed-swords", "cog", "help"
+	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 50), Size = UDim2.fromOffset(150, 460), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
 	local entries = {
 		{ "Inventário", "I", callbacks.onInventory, nil, "backpack" },
 		{ "Personagem", "C", callbacks.onCharacter, nil, "wizard-face" },
@@ -169,6 +169,7 @@ function HUD.init(screen, callbacks)
 		end, nil, "horse-head" },
 		{ "Jornada", "K", callbacks.onJourney, "journey", "star-formation" },
 		{ "Guilda", "L", callbacks.onGuild, nil, "eagle-emblem" },
+		{ "Crônicas", "Y", callbacks.onChronicles, nil, "book-cover" },
 		{ "Pets", "G", callbacks.onPets, nil, "paw-print" },
 		{ "Presentes", "U", callbacks.onPlaytime, "playtime", "sands-of-time" },
 		{ "Auto Caçar", "N", callbacks.onAutoHunt, "autohunt", "crossed-swords" },

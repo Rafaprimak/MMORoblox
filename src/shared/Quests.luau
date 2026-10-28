@@ -5,6 +5,8 @@
 --   craft(item|"forge"|"alchemy")         enchant   upgrade   upgradeTo(nível +N)
 --   level(n)            mastery(n)        mount     chest     dodge   ability   finisher
 --   parry (aparar)      perfectDodge      rhythm (golpe no ritmo)   stagger (quebrar guarda)   fullCharge
+--   poi(target = local) poiSecret(target = local)   worldBoss   invasion
+-- reward.faction = { id, amount }: reputação extra com uma facção (Factions)
 local Quests = {}
 
 local function q(def)
@@ -175,6 +177,162 @@ Quests.List = {
 	}),
 
 	-- ===================== SECUNDÁRIAS =====================
+	-- ===================== CADEIAS DAS REGIÕES =====================
+	-- Campos (Orin, no lago): fazenda, pedras e o herói de pedra
+	q({
+		id = "r_campos1", chain = "campos", name = "A Fazenda Silenciosa", giver = "orin", turnIn = "orin",
+		text = "O moinho dos campos parou de girar e os javalis tomaram a plantação. Vá ver o que aconteceu.",
+		requires = { level = 3 },
+		objectives = {
+			{ type = "poi", target = "moinho", amount = 1, text = "Descubra o Moinho dos Campos" },
+			{ type = "kill", target = "javali", amount = 6, text = "Expulse os Javalis" },
+		},
+		reward = { xp = 400, gold = 150, faction = { id = "guarda", amount = 60 } },
+	}),
+	q({
+		id = "r_campos2", chain = "campos", name = "Pedras que Cantam", giver = "orin", turnIn = "orin",
+		text = "Os menires do Círculo de Pedras zumbem à noite. Dizem que uma runa apagada ainda responde ao toque.",
+		requires = { quests = { "r_campos1" } },
+		objectives = {
+			{ type = "poi", target = "circulo", amount = 1, text = "Descubra o Círculo de Pedras" },
+			{ type = "poiSecret", target = "circulo", amount = 1, text = "Encontre o segredo do Círculo" },
+		},
+		reward = { xp = 600, gold = 200, faction = { id = "circulo", amount = 120 } },
+	}),
+	q({
+		id = "r_campos3", chain = "campos", name = "O Herói de Pedra", giver = "orin", turnIn = "orin",
+		text = "A estátua do herói Aldric guarda algo na praça. Os lobos rondam por lá: cuidado.",
+		requires = { quests = { "r_campos2" } },
+		objectives = {
+			{ type = "poi", target = "estatua", amount = 1, text = "Descubra a Estátua do Herói" },
+			{ type = "kill", target = "lobo", amount = 8, text = "Derrote os Lobos da praça" },
+			{ type = "poiSecret", target = "estatua", amount = 1, text = "Encontre o segredo da Estátua" },
+		},
+		reward = { xp = 900, gold = 300, chest = "prata", faction = { id = "guarda", amount = 150 } },
+	}),
+	-- Bosque (Nia, na encruzilhada): caravana, goblins e o templo da floresta
+	q({
+		id = "r_bosque1", chain = "bosque", name = "A Caravana Atacada", giver = "nia", turnIn = "nia",
+		text = "Uma caravana de ferro sumiu a caminho do norte. Os rastros levam para o leste.",
+		requires = { level = 6 },
+		objectives = {
+			{ type = "poi", target = "acampamento", amount = 1, text = "Encontre a caravana" },
+			{ type = "kill", target = "goblin", amount = 8, text = "Derrote Goblins" },
+			{ type = "poiSecret", target = "acampamento", amount = 1, text = "Ache o que foi enterrado" },
+		},
+		reward = { xp = 1100, gold = 300, faction = { id = "liga", amount = 120 } },
+	}),
+	q({
+		id = "r_bosque2", chain = "bosque", name = "Teias no Templo", giver = "nia", turnIn = "nia",
+		text = "As aranhas tomaram o templo antigo do bosque. Limpe o caminho até o altar.",
+		requires = { quests = { "r_bosque1" } },
+		objectives = {
+			{ type = "poi", target = "altar", amount = 1, text = "Descubra o Altar Esquecido" },
+			{ type = "kill", target = "aranha", amount = 8, text = "Derrote Aranhas Gigantes" },
+		},
+		reward = { xp = 1400, gold = 350, faction = { id = "liga", amount = 150 } },
+	}),
+	q({
+		id = "r_bosque3", chain = "bosque", name = "O Pacto da Floresta", giver = "nia", turnIn = "elric",
+		text = "Os guardiões de pedra esperam uma oferenda. Cumpra o pacto e conte ao mago Elric.",
+		requires = { quests = { "r_bosque2" } },
+		objectives = {
+			{ type = "poiSecret", target = "altar", amount = 1, text = "Deixe uma oferenda no altar" },
+		},
+		reward = { xp = 1600, gold = 400, chest = "prata", faction = { id = "circulo", amount = 200 } },
+	}),
+	-- Ruínas (Gus, perto da mina): cemitério, academia e as estrelas
+	q({
+		id = "r_ruinas1", chain = "ruinas", name = "Vozes no Cemitério", giver = "gus", turnIn = "gus",
+		text = "Os mortos do cemitério antigo não descansam. Descubra por quê.",
+		requires = { level = 10 },
+		objectives = {
+			{ type = "poi", target = "cemiterio", amount = 1, text = "Descubra o Cemitério Antigo" },
+			{ type = "kill", target = "esqueleto", amount = 10, text = "Derrote Esqueletos" },
+			{ type = "poiSecret", target = "cemiterio", amount = 1, text = "Leia a lápide sem nome" },
+		},
+		reward = { xp = 2200, gold = 500, faction = { id = "guarda", amount = 150 } },
+	}),
+	q({
+		id = "r_ruinas2", chain = "ruinas", name = "A Academia Perdida", giver = "gus", turnIn = "gus",
+		text = "Os astrólogos estudavam as estrelas nas ruínas a oeste. Os magos esqueletos ainda guardam o lugar.",
+		requires = { quests = { "r_ruinas1" } },
+		objectives = {
+			{ type = "poi", target = "observatorio", amount = 1, text = "Descubra o Observatório" },
+			{ type = "kill", target = "esqueleto_mago", amount = 5, text = "Derrote Esqueletos Magos" },
+		},
+		reward = { xp = 2600, gold = 550, faction = { id = "circulo", amount = 150 } },
+	}),
+	q({
+		id = "r_ruinas3", chain = "ruinas", name = "A Estrela Vermelha", giver = "gus", turnIn = "elric",
+		text = "Alinhe a lente do astrolábio e leve ao Elric o que as estrelas mostrarem.",
+		requires = { quests = { "r_ruinas2" } },
+		objectives = {
+			{ type = "poiSecret", target = "observatorio", amount = 1, text = "Alinhe a lente do astrolábio" },
+		},
+		reward = { xp = 3000, gold = 650, chest = "prata", faction = { id = "circulo", amount = 250 } },
+	}),
+	-- Costa (Sol, na praia): naufrágio, garrafa e o farol
+	q({
+		id = "r_costa1", chain = "costa", name = "Destroços na Areia", giver = "sol", turnIn = "sol",
+		text = "Um navio encalhou na costa. Os caranguejos estão saqueando a carga.",
+		requires = { level = 5 },
+		objectives = {
+			{ type = "poi", target = "naufragio", amount = 1, text = "Descubra o Navio Naufragado" },
+			{ type = "kill", target = "caranguejo", amount = 8, text = "Afaste os Caranguejos" },
+		},
+		reward = { xp = 900, gold = 250, faction = { id = "guarda", amount = 80 } },
+	}),
+	q({
+		id = "r_costa2", chain = "costa", name = "A Garrafa do Capitão", giver = "sol", turnIn = "sol",
+		text = "O capitão sempre deixava mensagens em garrafas. Procure na beira da água.",
+		requires = { quests = { "r_costa1" } },
+		objectives = {
+			{ type = "poiSecret", target = "naufragio", amount = 1, text = "Encontre a garrafa na areia" },
+		},
+		reward = { xp = 1100, gold = 300, faction = { id = "circulo", amount = 100 } },
+	}),
+	q({
+		id = "r_costa3", chain = "costa", name = "O Farol Apagado", giver = "sol", turnIn = "sol",
+		text = "O mapa do capitão aponta para o farol abandonado. Vá até lá antes que anoiteça.",
+		requires = { quests = { "r_costa2" } },
+		objectives = {
+			{ type = "explore", location = "farol", amount = 1, text = "Chegue ao Farol Abandonado" },
+			{ type = "kill", target = "caranguejo", amount = 10, text = "Limpe o caminho" },
+		},
+		reward = { xp = 1400, gold = 400, chest = "prata", faction = { id = "guarda", amount = 150 } },
+	}),
+	-- Norte (Tomás, na passagem): posto avançado e a defesa da vila
+	q({
+		id = "r_norte1", chain = "norte", name = "O Posto Avançado", giver = "tomas", turnIn = "tomas",
+		text = "A torre de vigia caiu e os goblins usam o posto. Retome o lugar.",
+		requires = { level = 8 },
+		objectives = {
+			{ type = "poi", target = "vigia", amount = 1, text = "Descubra a Torre de Vigia" },
+			{ type = "kill", target = "goblin_arqueiro", amount = 6, text = "Derrote Goblins Arqueiros" },
+			{ type = "poiSecret", target = "vigia", amount = 1, text = "Abra o alçapão" },
+		},
+		reward = { xp = 1800, gold = 450, faction = { id = "guarda", amount = 150 } },
+	}),
+	q({
+		id = "r_norte2", chain = "norte", name = "Quando a Noite Cai", giver = "tomas", turnIn = "lyra",
+		text = "Os relatórios avisam: à noite, monstros atacam a entrada da vila. Ajude a defendê-la.",
+		requires = { quests = { "r_norte1" } },
+		objectives = {
+			{ type = "invasion", amount = 1, text = "Defenda a vila de uma invasão noturna" },
+		},
+		reward = { xp = 2500, gold = 600, chest = "prata", faction = { id = "guarda", amount = 300 } },
+	}),
+	q({
+		id = "r_norte3", chain = "norte", name = "Juntos Contra o Colosso", giver = "lyra", turnIn = "kael",
+		text = "Quando um chefe de mundo aparecer, junte-se aos outros caçadores e derrube-o.",
+		requires = { quests = { "r_norte2" } },
+		objectives = {
+			{ type = "worldBoss", amount = 1, text = "Ajude a derrotar um chefe de mundo" },
+		},
+		reward = { xp = 3500, gold = 800, chest = "real", faction = { id = "liga", amount = 300 } },
+	}),
+
 	q({
 		id = "s_presas", name = "Colar de Presas", giver = "nia", turnIn = "nia",
 		text = "Quero um colar de presas de lobo. Me traga algumas?",
@@ -314,6 +472,9 @@ function Quests.rewardText(reward)
 	end
 	if reward.consumables or reward.materials then
 		table.insert(parts, "Itens")
+	end
+	if reward.faction then
+		table.insert(parts, ("+%d de reputação"):format(reward.faction.amount or 0))
 	end
 	return table.concat(parts, "  •  ")
 end

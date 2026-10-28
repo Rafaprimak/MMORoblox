@@ -90,6 +90,7 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Falar com o grupo | digite **/g mensagem** no chat (ou /grupo) | o mesmo |
 | Guilda | **L** (fundar com a Helena, no Salão das Guildas) | botão "Guilda" |
 | Falar com a guilda | digite **/gu mensagem** no chat (ou /guilda) | o mesmo |
+| Crônicas (facções e lore) | **Y** | botão "Crônicas" |
 | Fusão (9 itens da mesma raridade → 1 maior) | — | Inventário → ⚗ Fundir, ou o Bruno |
 | Falar, coletar, viajar | **E** perto do NPC, rocha, planta ou pedra | Toque no aviso |
 

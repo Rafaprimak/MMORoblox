@@ -69,6 +69,11 @@ local function progressOf(player, data, objective, stored)
 		return math.min(SkillService.bestMastery(player), objective.amount)
 	elseif kind == "discover" then
 		return if data.discovered[objective.target] then objective.amount else stored or 0
+	elseif kind == "poi" and objective.target then
+		-- local já descoberto antes de aceitar a missão também conta
+		return if data.poi[objective.target] then objective.amount else stored or 0
+	elseif kind == "poiSecret" and objective.target then
+		return if data.poiSecrets[objective.target] then objective.amount else stored or 0
 	end
 	return math.min(stored or 0, objective.amount)
 end
@@ -116,6 +121,8 @@ local function matches(objective, kind, target)
 		return objective.location == target
 	elseif kind == "discover" then
 		return objective.target == target
+	elseif kind == "poi" or kind == "poiSecret" or kind == "poiChest" then
+		return objective.target == nil or objective.target == target
 	end
 	return true
 end
@@ -123,8 +130,8 @@ end
 -- Missão concluída (ProgressionService conta para conquistas e passe)
 QuestService.OnComplete = function(_player, _daily) end
 
-local function grantReward(player, reward, title, category)
-	QuestService.OnComplete(player, category == "daily")
+local function grantReward(player, reward, title, category, def)
+	QuestService.OnComplete(player, category == "daily", def)
 	Remotes.Notify:FireClient(player, { kind = "quest", title = title, category = category, reward = Quests.rewardText(reward) })
 	if reward.xp then
 		PlayerService.addXP(player, reward.xp)
@@ -153,7 +160,7 @@ local function complete(player, data, def)
 	if data.quests.tracked == def.id then
 		data.quests.tracked = next(data.quests.active)
 	end
-	grantReward(player, def.reward, def.name, if def.daily then "daily" else def.chain or "side")
+	grantReward(player, def.reward, def.name, if def.daily then "daily" else def.chain or "side", def)
 	-- bônus das diárias
 	if def.daily and not data.daily.bonusClaimed then
 		local allDone = #data.daily.offered > 0

@@ -80,6 +80,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `ItemModels` | Modelo 3D de cada item (visual por base em `ItemModels.Looks`): usado na mão, no chão, no ícone e na cena do baú |
 | `Dungeons` | Masmorras: portais, 20 andares (`floorInfo`, `tier`, `startFloors`), inimigos por faixa, chefes a cada 5 andares, material, chave, loot exclusivo e loja do Mercador |
 | `Guilds` | Regras das guildas: custo/nível para fundar, emblemas, XP por evento (`Points`), metas semanais (`Goals`, `goalsForWeek`), nível (`level`/`xpForLevel`) |
+| `Factions`, `Lore` | Facções (degraus, reputação por evento, facção de quem dá cada missão) e páginas do diário de lore (`unlock = { evento, alvo }`) |
 | `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
 | `Icons`, `IconAtlas` | Ícones do jogo: `Icons.get(nome)` dá a folha e o recorte; `Icons.Sheets` guarda os IDs das folhas enviadas; `IconAtlas` é gerado por `scripts/icones/montar.py` |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
@@ -116,6 +117,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `TradeService` | Troca entre jogadores com Pronto/Confirmar, validação na hora de trocar e `data.tradeLog` |
 | `MarketService` | Mercado global: anúncio no DataStore `Mercado_v1` (fonte da verdade), índice no MemoryStore `MercadoIndice` (busca por preço), custódia no perfil (`data.market.selling/buying`), `settle` resolve a custódia pelo estado do anúncio (vendido/cancelado/expirado). Nunca dê item/ouro do mercado fora do `settle` |
 | `GuildService` | Guildas: registro no DataStore `Guildas_v1` (sempre por `UpdateAsync`), nomes únicos em `GuildasNomes_v1`, pontos dos membros (`track`, ligado ao `questHook`) em buffer gravado de minuto em minuto, metas semanais, banco, ranking (OrderedDataStore por semana), chat e avisos entre servidores (MessagingService "Guildas"), bônus de nível no `ExtraBonus`, [SIGLA] no `Humanoid.DisplayName` |
+| `ChronicleService` | Reputação e lore: `track` (pelo `questHook`), `onQuestDone` (pelo `QuestService.OnComplete`, recebe a missão), recompensa de degrau na hora; `data.factions/factionTiers/lore` |
 | `PartyService` | Grupos no mundo aberto (até 5): convite/aceitar/sair/expulsar, `nearbyMembers`/`xpBonus` para dividir abates (usado no `OnKilled`), canal de chat `Grupo<id>` no TextChatService |
 | `WorldEventService` | Chefe de mundo (`Config.WorldBossFirst/Interval`) e invasão noturna da vila em ondas; acampamentos criados na hora com `worldEvent`; recompensa os participantes; publica o evento nos atributos `Event*` do workspace |
 | `PlaytimeService` | Presentes por tempo seguido no mesmo servidor (`Config.PlaytimeRewards`), por sessão |
@@ -148,6 +150,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `PlaytimeWindow` | Janela de Presentes (tecla U) com o tempo neste servidor |
 | `MarketWindow` | Janela do Mercado (Comprar / Vender / Meus anúncios), aberta pelo serviço `market` do Otto |
 | `GuildWindow` | Guilda (tecla L): fundar, membros e cargos, banco, metas, ranking; chat /gu; painel de convite |
+| `ChroniclesWindow` | Crônicas (tecla Y): facções e diário de lore |
 | `PartyUI` | Grupo: convite (tecla T em cima do jogador), quadros dos colegas, nome verde em cima deles, `PartyUI.members()` para o mapa, chat `/g` |
 | `EventTracker` | Painel do evento do mundo no topo da tela + marcador no mundo; `EventTracker.position()` para o mapa |
 | `ArtStyle` | Estilo artístico: contorno de anime (Highlight só de borda) nos ~24 modelos mais perto, vinheta e gradação de cor pela hora do dia (configuração `outlines`) |
@@ -284,11 +287,12 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 | **Tipo de arma novo** | `Items.WeaponTypes`, `WeaponStyles.<tipo>`, `Skills.List` (maestria com `weaponType`), `WeaponModels` (modelo e estilo de pegada), poses em `Animator` se precisar, `Classes.List[x].weapons` |
 | **Inimigo novo** | `Enemies.Defs` (comportamento: `melee`, `ranged`, `charger`, `slammer`, `boss`, `dummy`), um builder em `EnemyModels` (use `role` e `joint` para animar), um acampamento em `Enemies.Camps` em terreno seco e acessível |
 | **Habilidade nova** | `Classes.Abilities` (escolha ou crie um `kind`), executor em `AbilityService.executors`, pose em `Animator` |
-| **Missão nova** | `Quests.List` (giver/turnIn, `requires`, objetivos). Tipos de objetivo existentes: `kill, hit, gather, deliver, talk, explore, discover, craft, enchant, upgrade, upgradeTo, level, mastery, mount, chest, dodge, ability, finisher, parry, perfectDodge, rhythm, stagger, fullCharge` |
+| **Missão nova** | `Quests.List` (giver/turnIn, `requires`, objetivos). Tipos de objetivo existentes: `kill, hit, gather, deliver, talk, explore, discover, craft, enchant, upgrade, upgradeTo, level, mastery, mount, chest, dodge, ability, finisher, parry, perfectDodge, rhythm, stagger, fullCharge, poi, poiSecret, worldBoss, invasion` (e `reward.faction = { id, amount }`) |
 | **Tipo de objetivo novo** | `QuestService` (`matches`/`progressOf`), disparar o `QuestHook` no lugar certo, `WorldMarkers.objectiveTarget` (para onde o feixe aponta) |
 | **NPC novo** | `NPCs.List` (posição em terreno plano; `indoor` se ficar dentro de uma construção), construção em `WorldGen/Town` ou `Landmarks`, serviço em `Dialog.services` + `Services` |
 | **Perk novo** | `Perks.List` (pool `weapon` ou `gear`; `stats` fixos ou gatilho em `PerkService`) |
 | **Pet novo** | `Pets.List` + `odds` de um ovo (somando 100) |
+| **Página de lore / facção** | `Lore.Pages` (texto, dica e `unlock` por evento de missão) / `Factions.List` + pontos em `Factions.Events` (títulos dos degraus em `Progression.Titles` como `<facção>_honrado/exaltado`) |
 | **Conquista nova** | `Progression.Achievements` (evento de missão existente) + título em `Progression.Titles` |
 | **Passiva/talento** | `Classes.Passives[classe]` (ramo, tier, máximo, stats por rank) |
 | **Recurso de coleta** | `Resources.Nodes` + regra em `Scatter` (`NODE_RULES`) + visual em `buildNode` |

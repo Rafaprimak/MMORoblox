@@ -117,6 +117,13 @@ Progression.LevelRewards = {
 -- ===================== TÍTULOS =====================
 Progression.Titles = {
 	novato = { name = "Novato", color = Color3.fromRGB(200, 200, 210) },
+	-- facções (ChronicleService: degraus Honrado e Exaltado)
+	guarda_honrado = { name = "Defensor de Aurora", color = Color3.fromRGB(110, 160, 255) },
+	guarda_exaltado = { name = "Escudo da Vila", color = Color3.fromRGB(150, 190, 255) },
+	circulo_honrado = { name = "Aprendiz Arcano", color = Color3.fromRGB(190, 130, 255) },
+	circulo_exaltado = { name = "Guardião dos Segredos", color = Color3.fromRGB(215, 170, 255) },
+	liga_honrado = { name = "Caçador da Liga", color = Color3.fromRGB(255, 170, 80) },
+	liga_exaltado = { name = "Lenda da Liga", color = Color3.fromRGB(255, 205, 110) },
 	dedicado = { name = "Caçador Dedicado", color = Color3.fromRGB(120, 200, 255) },
 	lenda_trilha = { name = "Lenda da Trilha", color = Color3.fromRGB(255, 200, 60) },
 	exterminador = { name = "Exterminador", color = Color3.fromRGB(255, 80, 70) },

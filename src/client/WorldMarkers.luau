@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local World = require(Shared.World)
+local Points = require(Shared.Points)
 local NPCs = require(Shared.NPCs)
 local Quests = require(Shared.Quests)
 local Enemies = require(Shared.Enemies)
@@ -150,6 +151,16 @@ local function objectiveTarget(def, entry, from)
 				local loc = World.Locations[objective.location]
 				if loc then
 					return Vector3.new(loc.x, World.height(loc.x, loc.z), loc.z), objective.text
+				end
+			elseif kind == "poi" or kind == "poiSecret" then
+				local poi = Points.ById[objective.target]
+				if poi then
+					return Vector3.new(poi.x, World.height(poi.x, poi.z), poi.z), objective.text
+				end
+			elseif kind == "worldBoss" or kind == "invasion" then
+				local ex, ez = workspace:GetAttribute("EventX"), workspace:GetAttribute("EventZ")
+				if ex and ez then
+					return Vector3.new(ex, World.height(ex, ez), ez), objective.text
 				end
 			elseif kind == "discover" then
 				local stone = World.WaystoneById[objective.target]

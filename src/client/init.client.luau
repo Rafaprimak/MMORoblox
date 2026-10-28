@@ -52,6 +52,7 @@ local TradeWindow = require(script.TradeWindow)
 local PartyUI = require(script.PartyUI)
 local MarketWindow = require(script.MarketWindow)
 local GuildWindow = require(script.GuildWindow)
+local ChroniclesWindow = require(script.ChroniclesWindow)
 local EventTracker = require(script.EventTracker)
 local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
@@ -97,6 +98,7 @@ TradeWindow.init(screen)
 PartyUI.init(screen)
 MarketWindow.init(screen)
 GuildWindow.init(screen)
+ChroniclesWindow.init(screen)
 EventTracker.init(screen)
 PetRenderer.init()
 ClassSelect.init()
@@ -127,6 +129,7 @@ HUD.init(screen, {
 	onPets = PetsWindow.toggle,
 	onJourney = JourneyWindow.toggle,
 	onGuild = GuildWindow.toggle,
+	onChronicles = ChroniclesWindow.toggle,
 	onPlaytime = function()
 		PlaytimeWindow.toggle()
 	end,
@@ -389,6 +392,8 @@ UserInputService.InputBegan:Connect(function(input, processed)
 		JourneyWindow.toggle()
 	elseif key == Enum.KeyCode.L then
 		GuildWindow.toggle()
+	elseif key == Enum.KeyCode.Y then
+		ChroniclesWindow.toggle()
 	elseif key == Enum.KeyCode.B then
 		Chest.toggle()
 	elseif key == Enum.KeyCode.U then
