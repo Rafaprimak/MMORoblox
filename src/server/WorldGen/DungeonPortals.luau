@@ -101,7 +101,7 @@ local function build(parent, dungeon)
 	prompt:SetAttribute("DungeonId", dungeon.id)
 	prompt.Parent = swirl
 
-	Props.billboard(gem, ("%s\nnível recomendado %d"):format(string.upper(dungeon.name), dungeon.level), theme.glow, 4, 200)
+	Props.signpost(model, cf * CFrame.new(9.5, 0, -6) * CFrame.Angles(0, math.rad(-25), 0), dungeon.name, ("%s\n\nNível mínimo %d (recomendado %d). Grupo de 1 a 4 Hunters: todos dão Pronto no portal e descem juntos, do andar 1 ao 20. Chefe a cada 5 andares."):format(dungeon.text, dungeon.minLevel, dungeon.level), theme.glow)
 	model.Parent = parent
 	Placement.reserve(position.X, position.Z, 16 * World.PropScale, "masmorra")
 	return model

@@ -122,6 +122,66 @@ function Props.smoke(parentPart, rate)
 	return smoke
 end
 
+-- Texto gravado numa face da peça (placas de loja, poste de placa). faces = { Enum.NormalId... }
+function Props.engrave(target, text, color, faces)
+	for _, face in faces or { Enum.NormalId.Front } do
+		local gui = Instance.new("SurfaceGui")
+		gui.Name = "Gravado"
+		gui.Face = face
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = 60
+		gui.LightInfluence = 0.6
+		gui.MaxDistance = 140
+		gui.Parent = target
+		local label = Instance.new("TextLabel")
+		label.BackgroundTransparency = 1
+		label.Size = UDim2.new(0.92, 0, 0.8, 0)
+		label.Position = UDim2.fromScale(0.04, 0.1)
+		label.FontFace = Font.new("rbxasset://fonts/families/Merriweather.json", Enum.FontWeight.Bold)
+		label.TextScaled = true
+		label.TextColor3 = color
+		label.Text = text
+		label.Parent = gui
+		local stroke = Instance.new("UIStroke")
+		stroke.Thickness = 2
+		stroke.Color = Color3.fromRGB(30, 20, 12)
+		stroke.Parent = label
+	end
+end
+
+-- Peça que dá para ler (E perto dela): o cliente abre a placa com título e texto (SignReader)
+function Props.readable(target, title, text)
+	local prompt = Instance.new("ProximityPrompt")
+	prompt.Name = "LerPlaca"
+	prompt.ActionText = "Ler"
+	prompt.ObjectText = title
+	prompt.HoldDuration = 0
+	prompt.MaxActivationDistance = 12
+	prompt.RequiresLineOfSight = false
+	prompt.KeyboardKeyCode = Enum.KeyCode.E
+	prompt:SetAttribute("Titulo", title)
+	prompt:SetAttribute("Texto", text)
+	prompt.Parent = target
+	return prompt
+end
+
+-- Poste de madeira com placa (título gravado dos dois lados, texto para ler). groundCf: chão, frente em -Z
+function Props.signpost(parent, groundCf, title, text, color)
+	local model = Instance.new("Model")
+	model.Name = "Placa_" .. title
+	local wood = Color3.fromRGB(112, 74, 42)
+	local dark = Color3.fromRGB(70, 45, 28)
+	part(model, { Name = "Poste", Size = Vector3.new(0.45, 6.2, 0.45), CFrame = groundCf * CFrame.new(0, 3.1, 0), Color = dark, Material = Enum.Material.Wood, CanCollide = false })
+	local board = part(model, { Name = "Tabua", Size = Vector3.new(5.2, 2.2, 0.3), CFrame = groundCf * CFrame.new(0, 5.0, 0), Color = wood, Material = Enum.Material.WoodPlanks, CanCollide = false })
+	part(model, { Name = "Moldura", Size = Vector3.new(5.5, 0.25, 0.4), CFrame = groundCf * CFrame.new(0, 6.2, 0), Color = dark, Material = Enum.Material.Wood, CanCollide = false })
+	part(model, { Name = "Moldura", Size = Vector3.new(5.5, 0.25, 0.4), CFrame = groundCf * CFrame.new(0, 3.8, 0), Color = dark, Material = Enum.Material.Wood, CanCollide = false })
+	part(model, { Name = "Telhadinho", Size = Vector3.new(5.9, 0.2, 0.9), CFrame = groundCf * CFrame.new(0, 6.5, 0), Color = Color3.fromRGB(120, 50, 40), Material = Enum.Material.WoodPlanks, CanCollide = false })
+	Props.engrave(board, title, color or Color3.fromRGB(255, 225, 150), { Enum.NormalId.Front, Enum.NormalId.Back })
+	Props.readable(board, title, text)
+	model.Parent = parent
+	return model
+end
+
 function Props.billboard(adornee, text, color, offsetY, maxDistance)
 	local gui = Instance.new("BillboardGui")
 	gui.Size = UDim2.fromOffset(260, 46)

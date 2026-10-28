@@ -12,6 +12,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Raids = require(Shared.Raids)
+local World = require(Shared.World)
 local Enemies = require(Shared.Enemies)
 local Items = require(Shared.Items)
 local Remotes = require(Shared.Remotes)
@@ -22,6 +23,7 @@ local EnemyService = require(script.Parent.EnemyService)
 local LootService = require(script.Parent.LootService)
 local ShopService = require(script.Parent.ShopService)
 local AntiCheat = require(script.Parent.AntiCheat)
+local Props = require(script.Parent.WorldGen.Props)
 
 local RaidService = {}
 
@@ -171,22 +173,8 @@ local function buildPortal()
 	prompt.MaxActivationDistance = 18
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = swirl
-	local gui = Instance.new("BillboardGui")
-	gui.Size = UDim2.fromOffset(360, 56)
-	gui.StudsOffset = Vector3.new(0, 16, 0)
-	gui.MaxDistance = 600
-	gui.LightInfluence = 0
-	gui.AlwaysOnTop = false
-	gui.Parent = swirl
-	local label = Instance.new("TextLabel")
-	label.BackgroundTransparency = 1
-	label.Size = UDim2.fromScale(1, 1)
-	label.Text = ("RAIDE: %s\nnível %d+  •  até %d caçadores"):format(string.upper(Raids.Name), Raids.MinLevel, Raids.MaxPlayers)
-	label.TextColor3 = Color3.fromRGB(255, 190, 245)
-	label.TextStrokeTransparency = 0.2
-	label.TextScaled = true
-	label.Font = Enum.Font.GothamBlack
-	label.Parent = gui
+	local signX, signZ = portalPosition().X + 26, portalPosition().Z + 4
+	Props.signpost(model, CFrame.new(signX, World.height(signX, signZ), signZ) * CFrame.Angles(0, math.rad(-90), 0), "Estrela Caída", ("%s\n\nRaide: nível %d+, de 2 a %d Hunters."):format(Raids.Text, Raids.MinLevel, Raids.MaxPlayers), Color3.fromRGB(255, 190, 245))
 	local mundo = workspace:FindFirstChild("Mundo")
 	-- sempre presente em todos os clientes: o feixe da estrela caída é visto de todo o mapa
 	model.ModelStreamingMode = Enum.ModelStreamingMode.Persistent

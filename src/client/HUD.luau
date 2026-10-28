@@ -146,7 +146,7 @@ function HUD.init(screen, callbacks)
 	refs.clock = UI.label({ Text = "", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -14, 0, 122), Size = UDim2.fromOffset(300, 22), TextXAlignment = Enum.TextXAlignment.Right, Font = Enum.Font.GothamBlack, Parent = screen }, { UI.textStroke(1.5) })
 
 	-- ===== nome da região e barra de chefe =====
-	refs.region = UI.label({ Text = "", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 14), Size = UDim2.fromOffset(500, 34), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = Color3.fromRGB(255, 240, 200), TextTransparency = 1, Parent = screen })
+	refs.region = UI.label({ Text = "", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10), Size = UDim2.fromOffset(320, 18), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = Color3.fromRGB(255, 240, 200), TextTransparency = 1, Parent = screen })
 	refs.regionStroke = UI.textStroke(2)
 	refs.regionStroke.Transparency = 1
 	refs.regionStroke.Parent = refs.region

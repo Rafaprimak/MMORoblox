@@ -98,7 +98,8 @@ function builders.forge(parent, npc, rng)
 	local sign = part(model, { Name = "Placa", Size = Vector3.new(4.5, 2, 0.3), CFrame = cf * CFrame.new(0, 9.4, -0.5), Color = Color3.fromRGB(50, 50, 58), Material = M.Metal })
 	part(model, { Name = "Simbolo", Size = Vector3.new(0.3, 1.5, 0.35), CFrame = cf * CFrame.new(-0.5, 9.4, -0.6) * CFrame.Angles(0, 0, math.rad(35)), Color = C.Fire, Material = M.Neon })
 	part(model, { Name = "Simbolo", Size = Vector3.new(0.3, 1.5, 0.35), CFrame = cf * CFrame.new(0.5, 9.4, -0.6) * CFrame.Angles(0, 0, math.rad(-35)), Color = C.Fire, Material = M.Neon })
-	Props.billboard(sign, "FERRARIA", C.Fire, 3)
+	Props.engrave(sign, "FERRARIA", C.Fire)
+	Props.readable(sign, "Ferraria do Bruno", "Aqui o aço é forjado, aprimorado e fundido. O Bruno diz que \"aço não esquece\": o que você forja continua com você mesmo quando o dia volta. Serviços: forjar, aprimorar, desmontar, reforjar perks e fundir 9 itens iguais em 1 melhor.")
 	local _r = rng
 	return model
 end
@@ -160,7 +161,10 @@ function builders.alchemy(parent, npc, rng)
 	-- placa em forma de frasco
 	local sign = part(model, { Name = "PlacaFrasco", Size = Vector3.new(1.6, 1.6, 0.3), Shape = Enum.PartType.Ball, CFrame = cf * CFrame.new(0, 9.0, -1.0), Color = Color3.fromRGB(110, 230, 140), Material = M.Neon })
 	part(model, { Name = "Gargalo", Size = Vector3.new(0.5, 0.8, 0.3), CFrame = cf * CFrame.new(0, 10.0, -1.0), Color = Color3.fromRGB(110, 230, 140), Material = M.Neon })
-	Props.billboard(sign, "ALQUIMIA", Color3.fromRGB(120, 255, 140), 3)
+	-- tabuleta embaixo do frasco (o frasco é redondo, não dá para gravar)
+	local board = part(model, { Name = "Tabuleta", Size = Vector3.new(3.6, 1.1, 0.25), CFrame = cf * CFrame.new(0, 7.7, -1.0), Color = Color3.fromRGB(112, 74, 42), Material = M.WoodPlanks })
+	Props.engrave(board, "ALQUIMIA", Color3.fromRGB(150, 255, 170))
+	Props.readable(board, "Alquimia da Mira", "Ervas, cogumelos e flores lunares viram poções de vida, mana e vigor. Mira guarda num caderno tudo o que cada dia repetido apaga da memória dela.")
 	return model
 end
 
@@ -332,7 +336,7 @@ function builders.tower(parent, npc, rng)
 		end
 	end
 	model.Parent = parent
-	Props.billboard(crystal, "ENCANTAMENTOS", Color3.fromRGB(200, 150, 255), 3)
+	Props.readable(crystal, "Torre do Arquimago Elric", "Elric é um dos três arquimagos que ergueram o Orbe Infinito em volta do vale. Na torre ele encanta armas com a essência dos monstros: a mesma mana que os mudou, agora domada.")
 	return model
 end
 
@@ -392,7 +396,8 @@ function builders.emporium(parent, npc, rng)
 		part(model, { Name = "Saco", Size = Vector3.new(1.2, 1.4, 1), CFrame = cf * CFrame.new(-5.6 + i * 1.3, 0.7, -2.6), Color = Color3.fromRGB(200, 180, 130), Material = M.Fabric })
 	end
 	local sign = part(model, { Name = "Placa", Size = Vector3.new(7, 1.8, 0.3), CFrame = cf * CFrame.new(0, 9.6, -0.65), Color = Color3.fromRGB(150, 40, 40), Material = M.WoodPlanks })
-	Props.billboard(sign, "EMPÓRIO DO OTTO", C.Gold, 3)
+	Props.engrave(sign, "EMPÓRIO DO OTTO", C.Gold)
+	Props.readable(sign, "Empório do Otto", "Tudo se compra, tudo se vende. Otto também cuida do Mercado dos Caçadores, onde Hunters de todos os servidores anunciam equipamentos e materiais.")
 	return model
 end
 
@@ -481,7 +486,8 @@ function builders.dungeonShop(parent, npc, rng)
 	part(model, { Name = "Braco", Size = Vector3.new(0.2, 0.2, 2.2), CFrame = cf * CFrame.new(3.6, 8.6, -1.1), Color = Color3.fromRGB(40, 40, 45), Material = M.Metal })
 	local sign = part(model, { Name = "Placa", Size = Vector3.new(0.25, 1.6, 2.2), CFrame = cf * CFrame.new(3.6, 7.6, -1.6), Color = Color3.fromRGB(70, 45, 95), Material = M.WoodPlanks })
 	part(model, { Name = "Simbolo", Size = Vector3.new(0.3, 0.8, 0.8), CFrame = cf * CFrame.new(3.6, 7.6, -1.6) * CFrame.Angles(math.rad(45), 0, 0), Color = Color3.fromRGB(255, 200, 90), Material = M.Neon })
-	Props.billboard(sign, "COVIL DO MERCADOR", Color3.fromRGB(200, 150, 255), 3)
+	Props.engrave(sign, "COVIL", Color3.fromRGB(220, 180, 255), { Enum.NormalId.Left, Enum.NormalId.Right })
+	Props.readable(sign, "Covil do Mercador", "Varg só negocia com quem desce às masmorras. Chaves, poções fortes e os itens exclusivos da Toca, da Cripta e do Abismo, em Raro, Épico ou Lendário.")
 	return model
 end
 
