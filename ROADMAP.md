@@ -172,6 +172,8 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Anti-exploit: limite de pedidos por segundo em `Action`/`Request` (abuso contínuo desconecta), checagem de velocidade/teleporte a cada 0,5 s com volta ao último lugar válido; teleportes do servidor liberados por `AntiCheat.allowTeleport` (M)
   - 🧪 Anti-trapaça completo: argumentos forjados recusados, forja/loja/encantador/alquimista/mercador e conversa só perto do NPC, atravessar paredes (noclip), voo/pulo infinito/super pulo/flutuar, arremesso (jogadores não colidem; giro absurdo zerado), personagem sem Humanoid recriado; muitas infrações em 1 min desconectam (fora do Studio)
   - ⬜ Detectar voo parado no ar (fly hack) e checar alcance dos golpes de longe
+- 🧪 Painel de administrador (botão ADMIN, só para o dono do jogo, cargo alto no grupo, `Config.Admins` e todos no Studio): jogadores do servidor (ir até, trazer, dar ouro/XP, expulsar, banir com prazo entre servidores, desbanir), aviso global filtrado, chefe de mundo/invasão/evento, registro das últimas 100 ações (M)
+- 🧪 Balanceamento remoto (`RemoteConfig`): XP, ouro, drop, vida e dano dos inimigos, dano e cura da Arena, intervalo do chefe de mundo e mensagem do dia, salvos num DataStore e aplicados em todos os servidores na hora, sem publicar de novo (M)
 - ⬜ Analytics: retenção, funil da história, onde os jogadores morrem/desistem (M)
 - ⬜ Tradução para inglês (LocalizationService) (M)
 - ⬜ Otimização para celular: StreamingEnabled, menos partes, UI testada em telas pequenas (G)

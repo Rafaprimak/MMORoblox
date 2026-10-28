@@ -37,8 +37,12 @@ local function isNight()
 end
 
 -- multiplicador de dano do inimigo (Elite e noite)
+-- multiplicadores globais da configuração remota (AdminService)
+EnemyService.GlobalHpMult = 1
+EnemyService.GlobalDamageMult = 1
+
 local function damageMult(rec)
-	return rec.damageMult * (if isNight() then Config.NightEnemyDamage else 1)
+	return rec.damageMult * (if isNight() then Config.NightEnemyDamage else 1) * EnemyService.GlobalDamageMult
 end
 
 local function yawTowards(direction)
@@ -98,7 +102,7 @@ function EnemyService.spawn(camp, enemyId, options)
 	local elite = options.forceElite == true or (canBeElite and math.random() < Enemies.EliteChance * (if isNight() then Config.NightEliteMultiplier else 1))
 	local height = EnemyModels.height(def, elite)
 	local radius = def.radius * (if elite then 1.35 else 1)
-	local hp = math.floor(def.hp * (if elite then 3 else 1) * (options.hpMult or 1))
+	local hp = math.floor(def.hp * (if elite then 3 else 1) * (options.hpMult or 1) * EnemyService.GlobalHpMult)
 	local level = def.level + (if elite then 2 else 0) + (options.levelBonus or 0)
 	local pos = options.position or randomPointInCamp(camp)
 

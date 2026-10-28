@@ -144,6 +144,12 @@ Config.VipGamePassId = 0
 -- produto ainda não está à venda (no Studio dá para testar de graça pelo botão "Testar").
 -- robux = preço mostrado enquanto o ID não existe (o preço de verdade é o do Creator Hub).
 -- (os dois custam ~R$ 10 em reais; o preço que vale é o que estiver no Creator Hub)
+-- ===== Administradores =====
+-- O dono do jogo já é admin (e, se o jogo for de um grupo, quem tiver cargo >= AdminGroupRank).
+-- Para dar acesso a mais alguém, coloque o UserId aqui. No Studio todo mundo é admin (para testar).
+Config.Admins = {}
+Config.AdminGroupRank = 254
+
 Config.Products = {
 	chest_celestial = { id = 0, robux = 159, kind = "chest", target = "celestial" },
 	egg_celestial = { id = 0, robux = 159, kind = "egg", target = "celestial" },

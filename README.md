@@ -199,6 +199,12 @@ Com isso, qualquer arquivo salvo em `src/` aparece no Studio na hora, sem gerar 
 2. Rode **`2-sincronizar-ao-vivo.bat`** (ou `rojo serve default.project.json`) e deixe a janela aberta.
 3. No Studio, abra o `MMOTESTE.rbxlx` e clique em **Plugins → Rojo → Connect**.
 
+### Administração e balanceamento ao vivo
+
+- **Quem é admin:** o dono do jogo (se o jogo for de um grupo, quem tem cargo 254+). Para mais pessoas, coloque o UserId em `Config.Admins`. No Studio todo mundo é admin.
+- **Painel:** botão **ADMIN** no canto inferior esquerdo. Abas: *Jogadores* (ir até, trazer, dar ouro/XP, expulsar, banir por horas ou para sempre, desbanir), *Balanceamento* (XP, ouro, drop, vida/dano dos inimigos, Arena, chefe de mundo, mensagem do dia), *Mundo* (aviso para todos os servidores, chefe, invasão, evento) e *Registro*.
+- O balanceamento salvo vale **em todos os servidores na hora**, sem publicar de novo (precisa do jogo publicado com acesso às APIs).
+
 ### Onde fica cada coisa
 
 | Arquivo | O que tem |

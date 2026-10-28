@@ -87,6 +87,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Townsfolk` | Moradores e animais da vila: aparência, rotas e falas; posição determinística pelo relógio do servidor |
 | `Icons`, `IconAtlas` | Ícones do jogo: `Icons.get(nome)` dá a folha e o recorte; `Icons.Sheets` guarda os IDs das folhas enviadas; `IconAtlas` é gerado por `scripts/icones/montar.py` |
 | `Remotes` | Cria (servidor) ou encontra (cliente) os canais de rede |
+| `RemoteConfig` | Campos do balanceamento ao vivo (padrão, mínimo, máximo, passo) e `validate` |
 
 ### Server
 
@@ -114,6 +115,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `PetService` | Ovos, equipar/soltar pets, XP do pet, bônus (`ExtraBonus`), drops raros |
 | `DungeonBuilder` | Peças das masmorras: salas por tema e tipo (`decor.*`), paredes com porta em arco, corredores com grade (`corridor`/`openGate`), escada, tochas |
 | `DungeonService` | Grupo no portal, cópia da masmorra longe do mapa (x ≈ 6000), um andar por vez com mecânica, objetivo extra, segredos e altar; chefes, baús, pontos de retorno, Mercador de Masmorras |
+| `AdminService` | Admins (`isAdmin`), configuração remota (DataStore `ConfigRemota_v1` + MessagingService "Admin"), banimento (`Banidos_v1`, `checkBan` antes de carregar o perfil), comandos do painel (`handle`) e registro (`AdminLog_v1`) |
 | `EventService` | Eventos sazonais (`Seasons.Events`): enfeites na vila (`EnfeitesEvento`), bônus no `ExtraBonus` (`xpGain`, `goldFind`, `dropFind`), meta de abates com título (`data.events`), atributo `Evento` no workspace |
 | `ArenaService` | Arena PvP: fila, partidas em coliseus longe do mapa (x ≈ -12000), rodadas, pontos da temporada (`data.arena`), ranking (`Arena_T<temporada>`); preenche os ganchos `EnemyService.Proxies/ProxyDamage/ProxyDot/ProxyParried` e `AbilityService.IsAlly` |
 | `VipService` | VIP (game pass `Config.VipGamePassId`; no Studio todos são VIP) e o atributo `AutoFarm` (Auto Caçar, desliga nas masmorras) |
@@ -152,6 +154,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DungeonAtmosphere` | Clima das masmorras no cliente (luz, névoa, tom, poeira/brasas) enquanto o jogador tem o atributo `Dungeon` |
 | `AutoHunt` | Auto Caçar no cliente (só com `AutoFarm`): anda até o inimigo mais perto, ataca no ritmo (`Controller.autoAttack`), toma poção e volta ao ponto de partida |
 | `Store` | Cliente: abre a compra com Robux (`Store.buy(chave)`) e mostra o preço; produto com id 0 = no Studio entrega de graça para testar |
+| `AdminWindow` | Painel de admin (botão ADMIN no canto, só com o atributo `Admin`): jogadores, balanceamento, mundo, registro |
 | `ArenaWindow` | Janela da Arena (menu, sem tecla): fila, divisão, ranking, histórico; placar no topo durante a luta |
 | `FusionWindow`, `TradeWindow` | Janelas de fusão e de troca (o botão "Trocar" é um ProximityPrompt local em cada outro jogador) |
 | `PlaytimeWindow` | Janela de Presentes (tecla U) com o tempo neste servidor |
@@ -183,7 +186,7 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 
 ### Rede (`src/shared/Remotes.luau`)
 - **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
-- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, arenaJoin, arenaLeave, arenaForfeit, arenaRanking, dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, claimPlaytime, autoFarm, afkRejoin, devPremium, fuse, tradeInvite, tradeRespond, tradeOffer, tradeReady, tradeConfirm, tradeCancel, partyInvite, partyRespond, partyLeave, partyKick, partyLooking, partyList, marketSell, marketBuy, marketCancel, marketBrowse, marketMine, dungeonRanking, raidJoin, raidLeave, raidReady, raidExit, guildCreate, guildInvite, guildRespond, guildLeave, guildKick, guildRank, guildBank, guildClaim, guildChat, guildRanking, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
+- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, arenaJoin, arenaLeave, arenaForfeit, arenaRanking, admin (subcomando + argumentos; o servidor confere `AdminService.isAdmin`), dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, claimPlaytime, autoFarm, afkRejoin, devPremium, fuse, tradeInvite, tradeRespond, tradeOffer, tradeReady, tradeConfirm, tradeCancel, partyInvite, partyRespond, partyLeave, partyKick, partyLooking, partyList, marketSell, marketBuy, marketCancel, marketBrowse, marketMine, dungeonRanking, raidJoin, raidLeave, raidReady, raidExit, guildCreate, guildInvite, guildRespond, guildLeave, guildKick, guildRank, guildBank, guildClaim, guildChat, guildRanking, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward, dungeonPortal, tradeInvite, tradeOpen, partyInvite, guildInvite, guildChat, raidPortal`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
@@ -226,6 +229,11 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - Regras da noite ficam em `Config.Night*` (dano e Elites dos inimigos, XP/ouro/drops). Para algo novo "só à noite", leia `workspace:GetAttribute("Night")`.
 - Configurações novas: adicione em `Config.DefaultSettings` (o `reconcile` completa saves antigos), na janela `SettingsWindow` e leia com `Prefs.get(chave)`. O servidor valida em `PlayerService.saveSettings`.
 - `Fx.hit` recebe o `element` do golpe (estilo da habilidade ou `fire`/`blood` pelo encantamento) para as faíscas do impacto.
+
+### Admin e balanceamento remoto
+- Valor que precisa ser ajustado sem publicar: campo novo em `RemoteConfig.Fields` + aplicação em `AdminService` (`apply` para valores do servidor, `applyBonus` para bônus de XP/ouro/drop). O padrão do campo é o valor normal do jogo.
+- Comando novo de admin: função em `handlers` do `AdminService` (sempre `log(...)`) + botão no `AdminWindow`. Texto de admin que outros jogadores leem passa pelo `TextService` (filtro).
+- Atributo do jogador `Admin`; do workspace `Motd`.
 
 ### Temporadas, passe e eventos
 - `Seasons.index()` dá a temporada (8 semanas desde `Seasons.Epoch`). Coisas "da temporada" guardam o número e recomeçam quando ele muda: o passe (`ProgressionService` `checkSeason`, `data.progress.pass.season`) e a Arena (`ArenaService` `arenaData`, `data.arena.season`).

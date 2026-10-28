@@ -46,6 +46,7 @@ local ChronicleService = require(script.ChronicleService)
 local RaidService = require(script.RaidService)
 local ArenaService = require(script.ArenaService)
 local EventService = require(script.EventService)
+local AdminService = require(script.AdminService)
 local WorldEventService = require(script.WorldEventService)
 
 workspace:SetAttribute("WorldReady", false)
@@ -432,6 +433,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return ArenaService.forfeit(player)
 	elseif action == "arenaRanking" then
 		return ArenaService.ranking(player)
+	elseif action == "admin" then
+		return AdminService.handle(player, a, b)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
@@ -467,6 +470,9 @@ local function spawnCharacter(player)
 end
 
 local function onPlayerAdded(player)
+	if AdminService.checkBan(player) then
+		return
+	end
 	local data = PlayerService.onPlayerAdded(player)
 	if not data then
 		return
@@ -479,6 +485,7 @@ local function onPlayerAdded(player)
 	PetService.onPlayerReady(player)
 	ProgressionService.onPlayerReady(player)
 	EventService.onPlayerReady(player)
+	AdminService.onPlayerReady(player)
 	player.CharacterAdded:Connect(function(character)
 		player:SetAttribute("Mounted", false)
 		AntiCheat.onCharacterAdded(player)
@@ -570,6 +577,7 @@ safely("Guildas", GuildService.start)
 safely("Raide", RaidService.init)
 safely("Arena", ArenaService.init)
 safely("Eventos sazonais", EventService.start)
+safely("Admin", AdminService.start)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)
