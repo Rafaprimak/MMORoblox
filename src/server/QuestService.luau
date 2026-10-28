@@ -74,6 +74,9 @@ local function progressOf(player, data, objective, stored)
 		return if data.poi[objective.target] then objective.amount else stored or 0
 	elseif kind == "poiSecret" and objective.target then
 		return if data.poiSecrets[objective.target] then objective.amount else stored or 0
+	elseif kind == "dungeonFloor" then
+		-- recorde de andar limpo na masmorra (feito antes da missão também conta)
+		return math.min((data.dungeons or {})[objective.target] or 0, objective.amount)
 	end
 	return math.min(stored or 0, objective.amount)
 end
@@ -112,7 +115,7 @@ local function matches(objective, kind, target)
 	if kind == "kill" or kind == "hit" then
 		return objective.target == "any" or objective.target == target
 	elseif kind == "gather" then
-		return objective.item == target
+		return objective.item == "any" or objective.item == target
 	elseif kind == "craft" then
 		return objective.item == target
 	elseif kind == "talk" then
@@ -122,6 +125,8 @@ local function matches(objective, kind, target)
 	elseif kind == "discover" then
 		return objective.target == target
 	elseif kind == "poi" or kind == "poiSecret" or kind == "poiChest" then
+		return objective.target == nil or objective.target == target
+	elseif kind == "dungeonBoss" or kind == "dungeon" or kind == "dungeonSecret" or kind == "dungeonObjective" then
 		return objective.target == nil or objective.target == target
 	end
 	return true
@@ -147,6 +152,18 @@ local function grantReward(player, reward, title, category, def)
 	end
 	if reward.chest then
 		ShopService.grant(player, reward.chest)
+	end
+	-- item fixo (exóticos): { base, rarity }; exoticWeapon = a arma do Ciclo do tipo que você usa
+	local itemBase = reward.item and reward.item.base
+	if reward.exoticWeapon then
+		local weaponType = player:GetAttribute("WeaponType") or "sword"
+		itemBase = Items.ExoticWeapons[weaponType] or Items.ExoticWeapons.sword
+	end
+	if itemBase and Items.Bases[itemBase] then
+		local data = DataService.get(player)
+		local item = Items.create(itemBase, (reward.item and reward.item.rarity) or "Exotico", math.max(20, data and data.level or 20))
+		PlayerService.addItem(player, item, { force = true })
+		Remotes.Notify:FireAllClients({ kind = "announce", text = ("%s conquistou o item EXÓTICO %s!"):format(player.DisplayName, Items.Bases[itemBase].name), rarity = "Exotico" })
 	end
 end
 

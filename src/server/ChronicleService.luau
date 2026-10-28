@@ -98,6 +98,12 @@ function ChronicleService.onQuestDone(player, def)
 	if reward and reward.faction and Factions.ById[reward.faction.id] then
 		addRep(player, data, reward.faction.id, reward.faction.amount or 0)
 	end
+	-- páginas da história liberadas por missão (unlock = { "quest", id })
+	for _, page in Lore.Pages do
+		if page.unlock[1] == "quest" and page.unlock[2] == def.id then
+			unlockPage(player, data, page)
+		end
+	end
 end
 
 -- resumo para a interface

@@ -127,7 +127,7 @@ function TradeService.setOffer(player, offer)
 		if #items >= Config.TradeMaxItems then
 			break
 		end
-		if type(uid) == "string" and not seen[uid] and data.inventory[uid] and not isEquipped(data, uid) then
+		if type(uid) == "string" and not seen[uid] and data.inventory[uid] and not isEquipped(data, uid) and not (Items.Bases[data.inventory[uid].base] or {}).exotic then
 			seen[uid] = true
 			table.insert(items, uid)
 		end

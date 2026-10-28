@@ -23,7 +23,7 @@ local function eligible()
 	local list = {}
 	for _, item in State.data and State.data.inventory or {} do
 		local rarity = Rarities.ById[item.rarity]
-		if rarity and not item.equipped and not item.unique and item.rarity == selectedRarity then
+		if rarity and not item.equipped and not item.unique and not item.exotic and item.rarity == selectedRarity then
 			table.insert(list, item)
 		end
 	end
@@ -96,7 +96,7 @@ local function render(force)
 		if rarity.order < Rarities.ById.Secreto.order then
 			local count = 0
 			for _, item in data.inventory do
-				if item.rarity == rarity.id and not item.equipped and not item.unique then
+				if item.rarity == rarity.id and not item.equipped and not item.unique and not item.exotic then
 					count += 1
 				end
 			end

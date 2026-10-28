@@ -62,6 +62,9 @@ function CombatService.dealDamage(player, rec, mult, info)
 	if s and s.nextCrit and not info.dot then
 		crit = true
 		s.nextCrit = false
+	elseif s and (s.critCharges or 0) > 0 and not info.dot then
+		crit = true -- exótico Passos do Tempo
+		s.critCharges -= 1
 	end
 	local damage = stats.attack * stats.damageMult * mult * (0.9 + math.random() * 0.2) * (1 + PlayerService.buffValue(player, "damage"))
 	if crit then

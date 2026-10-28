@@ -84,6 +84,16 @@ function PerkService.modify(player, rec, damage, info, stats)
 	if perks.quebra_escudo then
 		postureMult *= 1.35
 	end
+	-- exóticos
+	if perks.caca_infinita and now < (s.huntUntil or 0) then
+		mult *= 1 + 0.02 * (s.huntStacks or 0)
+	end
+	if perks.arquimagos and rec.def and rec.def.boss then
+		mult *= 1.25
+	end
+	if perks.horizonte and info.fromPosition and (rec.pos - info.fromPosition).Magnitude > 15 then
+		mult *= 1.25
+	end
 	return damage * mult, postureMult
 end
 
@@ -132,6 +142,15 @@ function PerkService.afterHit(player, rec, dealt, info, stats, crit)
 	if perks.sangria then
 		EnemyService.applyDot(rec, player, dealt * 0.1, 3, "burn")
 	end
+	-- exótico Ciclo Eterno: o tempo volta e o golpe se repete
+	if perks.ciclo_eterno and s.hitCount % 6 == 0 then
+		task.delay(0.15, function()
+			if not rec.dead then
+				Remotes.Fx:FireAllClients("explosion", EnemyService.centerOf(rec), 4, "arcane")
+				EnemyService.damage(rec, dealt, player, { perk = true, element = "arcane", crit = crit, color = Color3.fromRGB(255, 228, 92) })
+			end
+		end)
+	end
 	-- raide: Chuva Estelar (uma estrela cai no alvo)
 	if perks.chuva_estelar and not info.perk and math.random() < 0.12 then
 		local center = rec.pos
@@ -166,6 +185,26 @@ end
 
 -- Chamado para quem deu o golpe final
 function PerkService.onKill(player, rec)
+	-- exótico Coração Partido: o abate explode em luz e cura
+	local killerStats = PlayerService.getStats(player)
+	if killerStats.perks and killerStats.perks.caca_infinita then
+		local hunt = getState(player)
+		hunt.huntStacks = if os.clock() < (hunt.huntUntil or 0) then math.min(20, (hunt.huntStacks or 0) + 1) else 1
+		hunt.huntUntil = os.clock() + 20
+	end
+	if killerStats.perks and killerStats.perks.coracao_partido then
+		local center = rec.pos
+		Remotes.Fx:FireAllClients("explosion", center, 10, "holy")
+		for _, other in EnemyService.inRadius(center, 10, nil, player) do
+			if other ~= rec and not other.dead then
+				EnemyService.damage(other, killerStats.attack * killerStats.damageMult * 0.8, player, { perk = true, element = "holy", fromPosition = center })
+			end
+		end
+		local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			PlayerService.heal(player, humanoid.MaxHealth * 0.05)
+		end
+	end
 	local stats = PlayerService.getStats(player)
 	local perks = stats.perks
 	if not perks or next(perks) == nil then
@@ -226,6 +265,13 @@ end
 
 function PerkService.onPerfectDodge(player)
 	getState(player).dodgeUntil = os.clock() + 3
+	-- exótico Passos do Tempo: 3 críticos garantidos
+	if PlayerService.getStats(player).perks.passos_tempo then
+		local s = PlayerService.getState(player)
+		if s then
+			s.critCharges = 3
+		end
+	end
 end
 
 -- Golpe pesado carregado ao máximo (Impacto Brutal)

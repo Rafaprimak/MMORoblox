@@ -265,6 +265,9 @@ function MarketService.sell(player, what, price)
 		if isEquipped(data, what.uid) then
 			return { ok = false, msg = "Desequipe o item antes de anunciar." }
 		end
+		if (Items.Bases[item.base] or {}).exotic then
+			return { ok = false, msg = "Itens Exóticos são presos à sua conta: não podem ser vendidos." }
+		end
 		entry = { item = item, name = Items.displayName(item) }
 	elseif type(what.material) == "string" and typeof(what.count) == "number" then
 		local def = Items.Materials[what.material]

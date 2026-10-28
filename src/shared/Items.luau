@@ -158,7 +158,28 @@ Items.Bases = {
 	couraca_guardiao = { name = "Couraça do Guardião Eterno", slot = "armor", power = 105, tier = 4, unique = true, signature = "bastiao", bonus = { stamina = 30 } },
 	coroa_rei_goblin = { name = "Coroa do Rei Goblin", slot = "helmet", power = 34, tier = 4, unique = true, signature = "tirania", bonus = { mana = 30 } },
 	anel_lich = { name = "Anel do Lich", slot = "ring", power = 9, tier = 4, unique = true, signature = "filacterio", stats = { critDamage = 0.1, damage = 0.04 } },
+
+	-- ===== EXÓTICOS (raridade Exótica; missões depois do nível 20; só UM equipado por vez) =====
+	-- Arsenal do Ciclo: uma arma por tipo (a missão entrega a do tipo que você usa)
+	lamina_ciclo = { name = "Lâmina do Ciclo Eterno", slot = "weapon", weaponType = "sword", power = 29, tier = 4, exotic = true, signature = "ciclo_eterno" },
+	machado_ciclo = { name = "Machado do Ciclo Eterno", slot = "weapon", weaponType = "axe", power = 33, tier = 4, exotic = true, signature = "ciclo_eterno" },
+	martelo_ciclo = { name = "Martelo do Ciclo Eterno", slot = "weapon", weaponType = "hammer", power = 40, tier = 4, exotic = true, signature = "ciclo_eterno" },
+	lanca_ciclo = { name = "Lança do Ciclo Eterno", slot = "weapon", weaponType = "spear", power = 30, tier = 4, exotic = true, signature = "ciclo_eterno" },
+	katana_ciclo = { name = "Katana do Ciclo Eterno", slot = "weapon", weaponType = "katana", power = 28, tier = 4, exotic = true, signature = "ciclo_eterno" },
+	adagas_ciclo = { name = "Adagas do Ciclo Eterno", slot = "weapon", weaponType = "dagger", power = 22, tier = 4, exotic = true, signature = "ciclo_eterno" },
+	arco_ciclo = { name = "Arco do Ciclo Eterno", slot = "weapon", weaponType = "bow", power = 26, tier = 4, exotic = true, signature = "ciclo_eterno" },
+	cajado_ciclo = { name = "Cajado do Ciclo Eterno", slot = "weapon", weaponType = "staff", power = 26, tier = 4, exotic = true, signature = "ciclo_eterno" },
+	egide_aurora = { name = "Égide de Aurora", slot = "armor", power = 120, tier = 4, exotic = true, signature = "egide", bonus = { stamina = 30 } },
+	coroa_arquimagos = { name = "Coroa dos Três Arquimagos", slot = "helmet", power = 44, tier = 4, exotic = true, signature = "arquimagos", bonus = { mana = 60 } },
+	passos_tempo = { name = "Passos do Tempo", slot = "boots", power = 36, tier = 4, exotic = true, signature = "passos_tempo", bonus = { stamina = 40 } },
+	coracao_partido = { name = "Coração Partido da Estrela", slot = "amulet", power = 11, tier = 4, exotic = true, signature = "coracao_partido", stats = { damage = 0.08, critDamage = 0.15 } },
+	elmo_caca_infinita = { name = "Elmo da Caçada Infinita", slot = "helmet", power = 46, tier = 4, exotic = true, signature = "caca_infinita", bonus = { mana = 40 } },
+	amuleto_colecionador = { name = "Amuleto do Colecionador", slot = "amulet", power = 11, tier = 4, exotic = true, signature = "colecionador", stats = { damage = 0.05 } },
+	anel_horizonte = { name = "Anel do Horizonte", slot = "ring", power = 11, tier = 4, exotic = true, signature = "horizonte", stats = { damage = 0.06, crit = 0.05 } },
 }
+
+-- arma exótica do Arsenal do Ciclo para cada tipo de arma
+Items.ExoticWeapons = { sword = "lamina_ciclo", axe = "machado_ciclo", hammer = "martelo_ciclo", spear = "lanca_ciclo", katana = "katana_ciclo", dagger = "adagas_ciclo", bow = "arco_ciclo", staff = "cajado_ciclo" }
 
 -- Conjuntos: peças (base.set = id) e bônus por quantidade equipada (stats somados; perk liga um efeito)
 Items.Sets = {
@@ -199,7 +220,7 @@ Items.Sets = {
 -- Itens que podem sair do Baú Celestial: todo equipamento de tier 3 (sem Únicos nem exclusivos de masmorra/raide)
 Items.PremiumPool = {}
 for baseId, base in Items.Bases do
-	if (base.tier or 0) >= 3 and not base.unique and not base.dungeon and not base.raid then
+	if (base.tier or 0) >= 3 and not base.unique and not base.dungeon and not base.raid and not base.exotic then
 		table.insert(Items.PremiumPool, baseId)
 	end
 end
@@ -483,6 +504,7 @@ function Items.describe(item, equipped)
 		unique = base.unique == true,
 		dungeon = base.dungeon,
 		raid = base.raid == true,
+		exotic = base.exotic == true,
 		equipped = equipped == true,
 	}
 end

@@ -444,6 +444,18 @@ function PlayerService.damagePlayer(player, amount, sourcePosition, options)
 			Remotes.Fx:FireClient(player, "guardBreak")
 		end
 	end
+	-- exótico Égide de Aurora: ao levar um golpe, 25% menos dano por 4 s e cura 5% (a cada 12 s)
+	if stats.perks.egide then
+		if now >= (s.egideReadyAt or 0) then
+			s.egideReadyAt = now + 12
+			s.egideUntil = now + 4
+			humanoid.Health = math.min(humanoid.MaxHealth, humanoid.Health + humanoid.MaxHealth * 0.05)
+			Remotes.Fx:FireAllClients("heal", player, math.floor(humanoid.MaxHealth * 0.05))
+		end
+		if now < (s.egideUntil or 0) then
+			amount *= 0.75
+		end
+	end
 	local defense = stats.defense * (1 + PlayerService.buffValue(player, "defense"))
 	local reduction = defense / (defense + 100)
 	local level = (DataService.get(player) or {}).level or 1
@@ -808,11 +820,23 @@ function PlayerService.addItem(player, item, options)
 			Remotes.Notify:FireAllClients(announcement)
 		end)
 	end
-	if base and not data.equipped[base.slot] then
+	if base and not data.equipped[base.slot] and not (base.exotic and PlayerService.equippedExotic(data)) then
 		data.equipped[base.slot] = item.uid
 		PlayerService.refreshCharacter(player, { weapon = base.slot == "weapon", armor = base.slot ~= "weapon" })
 	end
 	PlayerService.markDirty(player)
+end
+
+-- item exótico equipado (base com slot), ou nil
+function PlayerService.equippedExotic(data)
+	for slot, uid in data.equipped do
+		local item = data.inventory[uid]
+		local base = item and Items.Bases[item.base]
+		if base and base.exotic then
+			return { slot = slot, name = base.name }
+		end
+	end
+	return nil
 end
 
 function PlayerService.equip(player, uid)
@@ -827,6 +851,13 @@ function PlayerService.equip(player, uid)
 	end
 	if data.equipped[base.slot] == uid then
 		return { ok = true }
+	end
+	-- só UM item exótico equipado por vez (trocar no mesmo espaço pode)
+	if base.exotic then
+		local other = PlayerService.equippedExotic(data)
+		if other and other.slot ~= base.slot then
+			return { ok = false, msg = ("Só dá para usar um item Exótico por vez. Tire primeiro: %s."):format(other.name) }
+		end
 	end
 	data.equipped[base.slot] = uid
 	PlayerService.refreshCharacter(player, { weapon = base.slot == "weapon", armor = base.slot ~= "weapon" })

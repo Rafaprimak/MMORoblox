@@ -48,6 +48,15 @@ Perks.List = {
 	bastiao = { pool = "gear", exclusive = "unique", name = "Bastião", icon = "checked-shield", text = "Bloquear não gasta estamina e devolve 40% do dano bloqueado ao atacante." },
 	tirania = { pool = "gear", exclusive = "unique", name = "Tirania", icon = "crown", text = "Recebe 15% menos dano e ganha +25% de ouro.", stats = { goldFind = 0.25 } },
 	filacterio = { pool = "gear", exclusive = "unique", name = "Filactério", icon = "skull-crack", text = "Um golpe fatal faz você voltar com 50% da vida (a cada 120 s)." },
+	-- ===== EXÓTICOS (missões depois do nível 20; só um item exótico equipado por vez) =====
+	ciclo_eterno = { pool = "weapon", exclusive = "exotic", major = true, name = "Ciclo Eterno", icon = "cycle", text = "A cada 6 golpes o tempo volta e o golpe se repete com 100% do dano. +10% de dano crítico.", stats = { critDamage = 0.1 } },
+	egide = { pool = "gear", exclusive = "exotic", major = true, name = "Égide de Aurora", icon = "barrier", text = "Ao levar um golpe: 25% menos dano por 4 s e cura 5% da vida (a cada 12 s)." },
+	arquimagos = { pool = "gear", exclusive = "exotic", major = true, name = "Saber dos Arquimagos", icon = "wizard-staff", text = "+30% de dano das habilidades e +25% de dano contra chefes.", stats = { abilityDamage = 0.3 } },
+	passos_tempo = { pool = "gear", exclusive = "exotic", major = true, name = "Passos do Tempo", icon = "hourglass", text = "Esquiva perfeita para o tempo: os 3 golpes seguintes são críticos garantidos." },
+	coracao_partido = { pool = "gear", exclusive = "exotic", major = true, name = "Coração Partido", icon = "broken-heart", text = "Abates explodem em luz estelar (80% do ataque em volta) e curam 5% da vida." },
+	caca_infinita = { pool = "gear", exclusive = "exotic", major = true, name = "Caçada Infinita", icon = "wolf-howl", text = "Cada abate dá +2% de dano por 20 s (acumula até +40%)." },
+	colecionador = { pool = "gear", exclusive = "exotic", major = true, name = "Colecionador", icon = "open-treasure-chest", text = "+35% de ouro, +25% de chance de drop e +20% de XP.", stats = { goldFind = 0.35, dropFind = 0.25, xpGain = 0.2 } },
+	horizonte = { pool = "gear", exclusive = "exotic", major = true, name = "Horizonte", icon = "horizon-road", text = "+25% de dano em alvos a mais de 15 studs e +15% de XP.", stats = { xpGain = 0.15 } },
 	-- ===== BÔNUS DE CONJUNTO (4 peças; ver Items.Sets) =====
 	chuva_estelar = { pool = "weapon", exclusive = "raide", major = true, name = "Chuva Estelar", icon = "falling-star", text = "12% de chance por golpe de uma estrela cair no alvo: 120% de dano em área. +8% de dano crítico.", stats = { critDamage = 0.08 } },
 	manto_estelar = { pool = "gear", exclusive = "raide", name = "Manto Estelar", icon = "galaxy", text = "+8% de vida, +5% de defesa e +8% de dano das habilidades.", stats = { health = 0.08, defense = 0.05, abilityDamage = 0.08 } },

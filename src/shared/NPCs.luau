@@ -60,7 +60,7 @@ NPCs.List = {
 		shirt = Color3.fromRGB(40, 70, 150),
 		pants = Color3.fromRGB(50, 50, 60),
 		hat = "helmet",
-		greeting = "Hunter! A vila precisa de gente como você. Os monstros estão cada vez mais ousados.",
+		greeting = "Hunter! Você lembra de ontem, não é? Então a vila precisa de você. Os monstros estão cada vez mais ousados.",
 	}),
 	service("bruno", {
 		name = "Bruno",
@@ -88,7 +88,7 @@ NPCs.List = {
 	}),
 	service("elric", {
 		name = "Elric",
-		title = "Encantador",
+		title = "Arquimago da Torre",
 		skin = Color3.fromRGB(230, 200, 180),
 		shirt = Color3.fromRGB(90, 50, 160),
 		pants = Color3.fromRGB(50, 30, 90),
@@ -96,7 +96,7 @@ NPCs.List = {
 		services = { "enchant" },
 		building = "tower",
 		indoor = 14.5,
-		greeting = "A essência mágica dos monstros pode despertar o poder escondido nas armas.",
+		greeting = "Eu, Serafina e Valdrik erguemos o Orbe para salvar este vale. Às vezes me pergunto se não o prendemos também.",
 	}),
 	service("otto", {
 		name = "Otto",
@@ -201,7 +201,7 @@ NPCs.List = {
 		pants = Color3.fromRGB(150, 150, 160),
 		hat = "wizard",
 		yaw = math.rad(-90),
-		greeting = "Já viajei por toda esta terra. Ainda há muito a descobrir, jovem.",
+		greeting = "Às vezes eu lembro de ontem, sabia? Deve ser a mana da minha mestra, Serafina, dormindo no lago.",
 	}),
 	make({
 		id = "tomas",

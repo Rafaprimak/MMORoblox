@@ -8,6 +8,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local World = require(Shared.World)
 local Points = require(Shared.Points)
+local Dungeons = require(Shared.Dungeons)
+local Raids = require(Shared.Raids)
 local NPCs = require(Shared.NPCs)
 local Quests = require(Shared.Quests)
 local Enemies = require(Shared.Enemies)
@@ -162,6 +164,13 @@ local function objectiveTarget(def, entry, from)
 				if ex and ez then
 					return Vector3.new(ex, World.height(ex, ez), ez), objective.text
 				end
+			elseif kind == "dungeonFloor" or kind == "dungeonBoss" then
+				local dungeon = Dungeons.ById[objective.target or "toca"]
+				if dungeon and dungeon.position then
+					return dungeon.position, objective.text
+				end
+			elseif kind == "raid" then
+				return Vector3.new(Raids.PortalX, Raids.PortalY, Raids.PortalZ), objective.text
 			elseif kind == "discover" then
 				local stone = World.WaystoneById[objective.target]
 				if stone then

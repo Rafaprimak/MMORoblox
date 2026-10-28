@@ -70,7 +70,9 @@ function ItemGrid.render(frame, items, selectedUid, onSelect, filter)
 			Fx.registerRainbow(stroke, "Color")
 		end
 		ItemIcon.new(cell, item.base, item.rarity, { Size = UDim2.fromScale(0.72, 0.56), Position = UDim2.fromScale(0.5, 0.02), AnchorPoint = Vector2.new(0.5, 0) })
-		if item.unique then
+		if item.exotic then
+			UI.label({ Text = "EXÓTICO", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 2), Size = UDim2.fromOffset(56, 13), TextColor3 = rarity.color, TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, ZIndex = 4, Parent = cell }, { UI.textStroke(1) })
+		elseif item.unique then
 			UI.label({ Text = "ÚNICO", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 2), Size = UDim2.fromOffset(46, 13), TextColor3 = rarity.color, TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, ZIndex = 4, Parent = cell }, { UI.textStroke(1) })
 		elseif item.set then
 			UI.iconImage("emerald", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -4, 0.58, 0), Size = UDim2.fromOffset(14, 14), Color = Color3.fromRGB(120, 255, 170), ZIndex = 4, Parent = cell }, { UI.textStroke(1) })

@@ -11,7 +11,7 @@ Raids.Boss = "devorador"
 Raids.MinLevel = 18
 Raids.MaxPlayers = 8
 Raids.TimeLimit = 15 * 60
-Raids.Text = "Uma estrela vermelha caiu atrás das montanhas e algo saiu de dentro dela. Juntem até 8 caçadores: o Devorador tem fases, chuva de estrelas e servos. Prêmio garantido uma vez por semana: baú Real, um item Lendário e ouro."
+Raids.Text = "O meteoro de mana que rachou o Orbe Infinito caiu na passagem do norte, e dentro dele nasceu o Devorador de Estrelas. Juntem até 8 caçadores: o Devorador tem fases, chuva de estrelas e servos. Prêmio garantido uma vez por semana: baú Real, um item Lendário e ouro."
 
 -- fases pela vida do chefe (fração restante)
 Raids.Phases = {

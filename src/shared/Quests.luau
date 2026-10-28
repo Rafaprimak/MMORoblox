@@ -5,7 +5,10 @@
 --   craft(item|"forge"|"alchemy")         enchant   upgrade   upgradeTo(nível +N)
 --   level(n)            mastery(n)        mount     chest     dodge   ability   finisher
 --   parry (aparar)      perfectDodge      rhythm (golpe no ritmo)   stagger (quebrar guarda)   fullCharge
---   poi(target = local) poiSecret(target = local)   worldBoss   invasion
+--   poi(target = local) poiSecret(target = local)   worldBoss   invasion   raid   arenaWin
+--   dungeonFloor(target = masmorra, amount = andar: recorde de andar limpo)   dungeonBoss(target = masmorra)
+-- reward.item = { base, rarity } (item fixo) | reward.exoticWeapon = true (arma do Ciclo do seu tipo)
+-- lore = id da página das Crônicas liberada ao entregar a missão
 -- reward.faction = { id, amount }: reputação extra com uma facção (Factions)
 local Quests = {}
 
@@ -15,47 +18,54 @@ local function q(def)
 end
 
 Quests.List = {
-	-- ===================== HISTÓRIA =====================
+	-- ===================== HISTÓRIA: O ORBE INFINITO =====================
+	-- A Vila Aurora vive dentro do Orbe Infinito, a barreira de mana erguida pelos três arquimagos
+	-- (Elric, Serafina e Valdrik). A barreira protege da Maré de Mana lá fora, que muda quem não tem
+	-- resistência (a origem dos monstros), mas também é uma bolha de tempo: o dia volta e se repete
+	-- (por isso monstros renascem e os moradores repetem as mesmas falas). Só quem tem resistência à
+	-- mana lembra do dia anterior: os Hunters. XP pensado para chegar ao nível 20 com folga.
+
+	-- ===== ATO I: A AURORA QUE SE REPETE (níveis 1-5) =====
 	q({
-		id = "h01", chain = "main", name = "O Novo Hunter", giver = "lyra", turnIn = "kael",
-		text = "Todo Hunter começa no pátio de treino. Procure o Mestre Kael e mostre do que é capaz.",
+		id = "h01", chain = "main", name = "O Hunter que Lembra", giver = "lyra", turnIn = "kael",
+		text = "Toda manhã a Vila Aurora acorda igual: o mesmo sol, as mesmas conversas. Mas você lembra do dia anterior, e isso faz de você um Hunter. Procure o Mestre Kael no pátio de treino.",
 		objectives = {
 			{ type = "talk", npc = "kael", amount = 1, text = "Fale com o Mestre Kael" },
 			{ type = "hit", target = "boneco", amount = 12, text = "Golpeie o boneco de treino" },
 			{ type = "dodge", amount = 3, text = "Esquive (tecla Q)" },
 			{ type = "parry", amount = 2, text = "Apare o golpe do boneco (F quando aparecer !)" },
 		},
-		reward = { xp = 80, gold = 60, consumables = { pocao_vida = 3 } },
+		reward = { xp = 300, gold = 60, consumables = { pocao_vida = 3 } },
 	}),
 	q({
 		id = "h02", chain = "main", name = "Gosma na Estrada", giver = "kael", turnIn = "lyra",
-		text = "Os slimes estão tomando os campos ao norte da vila. Limpe a área e traga provas.",
+		text = "Slimes são a mutação mais simples que existe: água parada que bebeu mana demais. Eles voltam todo dia, mas hoje alguém precisa limpar os campos ao norte.",
 		requires = { quests = { "h01" } },
 		objectives = {
 			{ type = "kill", target = "slime", amount = 6, text = "Derrote Slimes" },
 			{ type = "deliver", item = "gosma", amount = 3, text = "Entregue Gosmas de Slime" },
 		},
-		reward = { xp = 120, gold = 80 },
+		reward = { xp = 500, gold = 80 },
 	}),
 	q({
 		id = "h03", chain = "main", name = "Minério para a Forja", giver = "lyra", turnIn = "bruno",
-		text = "O ferreiro Bruno precisa de cobre. As rochas alaranjadas nos campos têm bastante.",
+		text = "O ferreiro Bruno precisa de cobre. As rochas alaranjadas dos campos têm bastante. Ele vai jurar que pediu isso pela primeira vez.",
 		requires = { quests = { "h02" } },
 		objectives = {
 			{ type = "gather", item = "minerio_cobre", amount = 6, text = "Minere Cobre (segure E na rocha)" },
 			{ type = "gather", item = "madeira", amount = 3, text = "Corte Madeira das árvores marcadas" },
 		},
-		reward = { xp = 150, gold = 60, materials = { minerio_cobre = 2 } },
+		reward = { xp = 600, gold = 60, materials = { minerio_cobre = 2 } },
 	}),
 	q({
 		id = "h04", chain = "main", name = "Mãos na Bigorna", giver = "bruno", turnIn = "bruno",
-		text = "Agora forje algo! Escolha uma receita na forja.",
+		text = "\"Aço não esquece\", diz o Bruno. O que você forja hoje continua com você amanhã, mesmo quando o dia volta.",
 		requires = { quests = { "h03" } },
 		objectives = {
 			{ type = "craft", item = "forge", amount = 1, text = "Forje um equipamento" },
 			{ type = "upgrade", amount = 1, text = "Aprimore um item" },
 		},
-		reward = { xp = 220, gold = 100 },
+		reward = { xp = 800, gold = 100 },
 	}),
 	q({
 		id = "h05", chain = "main", name = "Ervas da Curandeira", giver = "bruno", turnIn = "mira",
@@ -65,32 +75,44 @@ Quests.List = {
 			{ type = "gather", item = "erva_verde", amount = 5, text = "Colha Ervas Verdes" },
 			{ type = "craft", item = "pocao_vida", amount = 1, text = "Prepare uma Poção de Vida" },
 		},
-		reward = { xp = 250, gold = 80, consumables = { pocao_mana = 2 } },
+		reward = { xp = 900, gold = 80, consumables = { pocao_mana = 2 } },
 	}),
 	q({
-		id = "h06", chain = "main", name = "A Encruzilhada", giver = "mira", turnIn = "nia",
-		text = "A caçadora Nia está na encruzilhada ao norte. Ative a pedra de viagem de lá.",
+		id = "h05b", chain = "main", name = "O Dia que Volta", giver = "mira", turnIn = "elric",
+		lore = "orbe",
+		text = "\"Você também percebeu? Ontem o Bruno me disse exatamente a mesma frase.\" Mira está assustada. Converse com a Capitã Lyra e com o Bruno e depois suba a torre do Elric: ele sabe mais do que conta.",
 		requires = { quests = { "h05" } },
+		objectives = {
+			{ type = "talk", npc = "lyra", amount = 1, text = "Converse com a Capitã Lyra" },
+			{ type = "talk", npc = "bruno", amount = 1, text = "Converse com o Bruno" },
+			{ type = "talk", npc = "elric", amount = 1, text = "Suba a torre do Arquimago Elric" },
+		},
+		reward = { xp = 1000, gold = 120 },
+	}),
+	q({
+		id = "h06", chain = "main", name = "A Encruzilhada", giver = "elric", turnIn = "nia",
+		text = "Elric quer saber até onde a mana engrossou. A caçadora Nia vigia a encruzilhada ao norte: ative a pedra de viagem de lá e fale com ela.",
+		requires = { quests = { "h05b" } },
 		objectives = {
 			{ type = "discover", target = "encruzilhada", amount = 1, text = "Ative a Pedra da Encruzilhada" },
 			{ type = "talk", npc = "nia", amount = 1, text = "Fale com Nia" },
 		},
-		reward = { xp = 200, gold = 60 },
+		reward = { xp = 1200, gold = 80 },
 	}),
 	q({
 		id = "h07", chain = "main", name = "Caça na Planície", giver = "nia", turnIn = "nia",
-		text = "Lobos e javalis atacam viajantes. Mostre que a estrada é segura de novo.",
+		text = "Lobos e javalis que bebem a mana dos riachos ficam maiores a cada dia que volta. Mostre que a estrada é segura de novo.",
 		requires = { quests = { "h06" } },
 		objectives = {
 			{ type = "kill", target = "lobo", amount = 5, text = "Derrote Lobos" },
 			{ type = "kill", target = "javali", amount = 3, text = "Derrote Javalis (cuidado com a investida!)" },
 			{ type = "deliver", item = "couro", amount = 4, text = "Entregue Couro" },
 		},
-		reward = { xp = 450, gold = 150 },
+		reward = { xp = 1600, gold = 150 },
 	}),
 	q({
 		id = "h08", chain = "main", name = "Uma Montaria Fiel", giver = "nia", turnIn = "pedro",
-		text = "Andar a pé é lento. Pedro, o cavalariço da vila, vai te emprestar um cavalo.",
+		text = "O vale é grande demais para ir a pé. Pedro, o cavalariço da vila, vai te emprestar um cavalo.",
 		requires = { quests = { "h07" } },
 		grantsMount = true,
 		objectives = {
@@ -98,82 +120,327 @@ Quests.List = {
 			{ type = "mount", amount = 1, text = "Monte no cavalo (tecla H)" },
 			{ type = "discover", target = "bosque", amount = 1, text = "Cavalgue até a Pedra do Bosque" },
 		},
-		reward = { xp = 300, gold = 100 },
+		reward = { xp = 1600, gold = 100 },
 	}),
+
+	-- ===== ATO II: A MARÉ DE MANA (níveis 5-10) =====
 	q({
 		id = "h09", chain = "main", name = "Sombras no Bosque", giver = "pedro", turnIn = "lyra",
-		text = "Goblins montaram acampamentos no Bosque Sombrio. Acabe com eles.",
+		text = "Goblins nunca foram tão organizados. Alguém está dando mana para eles. Desmanche os acampamentos do Bosque Sombrio.",
 		requires = { quests = { "h08" }, level = 5 },
 		objectives = {
 			{ type = "explore", location = "bosque", amount = 1, text = "Explore o Bosque Sombrio" },
 			{ type = "kill", target = "goblin", amount = 8, text = "Derrote Goblins" },
 			{ type = "kill", target = "goblin_arqueiro", amount = 3, text = "Derrote Goblins Arqueiros" },
 		},
-		reward = { xp = 800, gold = 250 },
+		reward = { xp = 4000, gold = 250 },
+	}),
+	q({
+		id = "h09b", chain = "main", name = "A Toca dos Goblins", giver = "lyra", turnIn = "lyra",
+		text = "Os goblins cavaram túneis sob as colinas do leste: a Toca. Junte até 4 Hunters no portal, desçam e derrubem o Capitão Goblin no 5º andar.",
+		requires = { quests = { "h09" }, level = 6 },
+		objectives = {
+			{ type = "dungeonFloor", target = "toca", amount = 5, text = "Toca dos Goblins: limpe até o andar 5" },
+		},
+		reward = { xp = 6000, gold = 400, chest = "prata" },
 	}),
 	q({
 		id = "h10", chain = "main", name = "O Despertar da Essência", giver = "lyra", turnIn = "elric",
-		text = "Elric, o encantador, pode despertar o poder das suas armas com essência mágica.",
-		requires = { quests = { "h09" } },
+		lore = "mutacao",
+		text = "A essência que cai dos monstros é mana condensada: o mesmo veneno que os criou. Nas mãos certas, vira poder. Leve essência ao Elric.",
+		requires = { quests = { "h09b" } },
 		objectives = {
 			{ type = "deliver", item = "essencia", amount = 3, text = "Junte Essência (monstros ou desmontando itens)" },
 			{ type = "enchant", amount = 1, text = "Encante um item com Elric" },
 		},
-		reward = { xp = 700, gold = 200, materials = { essencia = 2 } },
+		reward = { xp = 4500, gold = 200, materials = { essencia = 2 } },
 	}),
 	q({
-		id = "h11", chain = "main", name = "Ossos Inquietos", giver = "elric", turnIn = "elric",
-		text = "Algo desperta os mortos no Planalto das Ruínas. Investigue o templo.",
-		requires = { quests = { "h10" }, level = 9 },
+		id = "h10b", chain = "main", name = "O Ninho", giver = "elric", turnIn = "nia",
+		text = "Elric sente mana demais vindo do leste. As aranhas do Ninho cresceram além do normal: descubra por quê.",
+		requires = { quests = { "h10" }, level = 7 },
+		objectives = {
+			{ type = "explore", location = "toca_aranhas", amount = 1, text = "Encontre o Ninho das Aranhas" },
+			{ type = "kill", target = "aranha", amount = 10, text = "Derrote Aranhas Gigantes" },
+		},
+		reward = { xp = 6500, gold = 300 },
+	}),
+	q({
+		id = "h10c", chain = "main", name = "A Arquimaga do Lago", giver = "nia", turnIn = "orin",
+		lore = "serafina",
+		text = "Nia ouviu do Velho Orin uma história: a segunda arquimaga, Serafina, dorme dentro do Santuário do Lago, segurando a barreira. Vá até lá.",
+		requires = { quests = { "h10b" } },
+		objectives = {
+			{ type = "explore", location = "santuario_lago", amount = 1, text = "Visite o Santuário do Lago" },
+			{ type = "talk", npc = "orin", amount = 1, text = "Fale com o Velho Orin, aprendiz de Serafina" },
+		},
+		reward = { xp = 6000, gold = 300 },
+	}),
+	q({
+		id = "h10d", chain = "main", name = "Pedras que Lembram", giver = "orin", turnIn = "orin",
+		text = "\"O Círculo de Pedras é o único lugar do vale que não volta no tempo\", diz Orin. \"Toque a runa e ele vai te mostrar o que a barreira esconde.\"",
+		requires = { quests = { "h10c" } },
+		objectives = {
+			{ type = "poi", target = "circulo", amount = 1, text = "Descubra o Círculo de Pedras" },
+			{ type = "poiSecret", target = "circulo", amount = 1, text = "Desperte a runa do Círculo" },
+		},
+		reward = { xp = 7000, gold = 350, faction = { id = "circulo", amount = 120 } },
+	}),
+	q({
+		id = "h10e", chain = "main", name = "O Fundo da Toca", giver = "orin", turnIn = "lyra",
+		text = "A runa mostrou um cristal de mana roubado brilhando no fundo da Toca: é ele que alimenta os goblins. Desça até o 10º andar e derrube a Rainha Aranha que o guarda.",
+		requires = { quests = { "h10d" }, level = 8 },
+		objectives = {
+			{ type = "dungeonFloor", target = "toca", amount = 10, text = "Toca dos Goblins: limpe até o andar 10" },
+		},
+		reward = { xp = 12000, gold = 800, materials = { chave_cripta = 1 } },
+	}),
+
+	-- ===== ATO III: AS TRÊS ÂNCORAS (níveis 10-15) =====
+	q({
+		id = "h11", chain = "main", name = "Ossos Inquietos", giver = "lyra", turnIn = "elric",
+		text = "Com a barreira enfraquecendo, até os mortos do Planalto das Ruínas sentem a mana. Investigue o templo.",
+		requires = { quests = { "h10e" }, level = 10 },
 		objectives = {
 			{ type = "explore", location = "templo_ruinas", amount = 1, text = "Encontre o Templo em Ruínas" },
 			{ type = "kill", target = "esqueleto", amount = 10, text = "Derrote Esqueletos" },
 			{ type = "kill", target = "esqueleto_mago", amount = 3, text = "Derrote Esqueletos Magos" },
 			{ type = "deliver", item = "osso", amount = 5, text = "Entregue Ossos Antigos" },
 		},
-		reward = { xp = 1800, gold = 400 },
+		reward = { xp = 13000, gold = 600 },
+	}),
+	q({
+		id = "h11b", chain = "main", name = "A Cripta Esquecida", giver = "elric", turnIn = "elric",
+		lore = "cripta",
+		text = "Embaixo do cemitério dormem os primeiros guardiões, que sustentavam a barreira antes dos arquimagos. Algo os acordou. Use a Chave da Cripta e chegue ao 5º andar.",
+		requires = { quests = { "h11" } },
+		objectives = {
+			{ type = "dungeonFloor", target = "cripta", amount = 5, text = "Cripta Esquecida: limpe até o andar 5" },
+		},
+		reward = { xp = 16000, gold = 900, chest = "prata" },
 	}),
 	q({
 		id = "h12", chain = "main", name = "O Guardião de Pedra", giver = "elric", turnIn = "gus",
-		text = "O mineiro Gus pediu ajuda: golems tomaram a mina ao norte das ruínas.",
-		requires = { quests = { "h11" } },
+		text = "O mineiro Gus pediu ajuda: golems de pedra viva tomaram a mina ao norte das ruínas.",
+		requires = { quests = { "h11b" } },
 		objectives = {
 			{ type = "explore", location = "mina", amount = 1, text = "Vá até a Mina Abandonada" },
 			{ type = "kill", target = "golem", amount = 2, text = "Derrote Golems de Pedra" },
 			{ type = "gather", item = "minerio_ferro", amount = 5, text = "Minere Ferro" },
 		},
-		reward = { xp = 2200, gold = 500, materials = { minerio_ferro = 5 } },
+		reward = { xp = 14000, gold = 700, materials = { minerio_ferro = 5 } },
 	}),
 	q({
-		id = "h13", chain = "main", name = "O Portão Selado", giver = "gus", turnIn = "tomas",
-		text = "O covil do Rei Goblin fica além da Passagem do Norte. Só Hunters de Rank C passam pelo portão.",
+		id = "h12b", chain = "main", name = "O Diário de Valdrik", giver = "gus", turnIn = "elric",
+		lore = "valdrik",
+		text = "Gus achou na mina as anotações de Valdrik, o terceiro arquimago. Ele queria quebrar o ciclo e foi para o norte estudar as estrelas. Siga os passos dele até o Observatório.",
 		requires = { quests = { "h12" } },
+		objectives = {
+			{ type = "poi", target = "observatorio", amount = 1, text = "Descubra o Observatório" },
+			{ type = "poiSecret", target = "observatorio", amount = 1, text = "Alinhe a lente do astrolábio" },
+		},
+		reward = { xp = 15000, gold = 800, faction = { id = "circulo", amount = 200 } },
+	}),
+	q({
+		id = "h13", chain = "main", name = "O Portão Selado", giver = "elric", turnIn = "tomas",
+		text = "O astrolábio aponta para o norte, além do Portão Selado. Só Hunters de Rank C passam por ele.",
+		requires = { quests = { "h12b" } },
 		objectives = {
 			{ type = "level", amount = 10, text = "Alcance o Nível 10 (Rank C)" },
 			{ type = "discover", target = "passagem", amount = 1, text = "Ative a Pedra da Passagem" },
 			{ type = "talk", npc = "tomas", amount = 1, text = "Fale com o Sargento Tomás" },
 		},
-		reward = { xp = 1500, gold = 300 },
+		reward = { xp = 10000, gold = 500 },
 	}),
 	q({
 		id = "h14", chain = "main", name = "A Queda do Rei Goblin", giver = "tomas", turnIn = "lyra",
-		text = "Entre no covil e derrube o Rei Goblin. Junte outros Hunters se precisar!",
+		text = "O cristal roubado está com o Rei Goblin, no covil da cratera. Entre e derrube-o. Junte outros Hunters se precisar!",
 		requires = { quests = { "h13" } },
 		objectives = {
 			{ type = "explore", location = "cratera", amount = 1, text = "Entre no Covil do Rei Goblin" },
 			{ type = "kill", target = "rei_goblin", amount = 1, text = "Derrote o Rei Goblin" },
 		},
-		reward = { xp = 5000, gold = 1500, chest = "real" },
+		reward = { xp = 20000, gold = 1500, chest = "real" },
 	}),
 	q({
+		id = "h14b", chain = "main", name = "O Guardião da Cripta", giver = "lyra", turnIn = "elric",
+		text = "Com o cristal de volta, Elric consegue ouvir a primeira âncora: ela pede socorro do fundo da Cripta. Desça até o 10º andar.",
+		requires = { quests = { "h14" }, level = 12 },
+		objectives = {
+			{ type = "dungeonFloor", target = "cripta", amount = 10, text = "Cripta Esquecida: limpe até o andar 10" },
+		},
+		reward = { xp = 24000, gold = 1200, materials = { chave_abismo = 1 } },
+	}),
+	q({
+		id = "h14c", chain = "main", name = "Juramento da Guarda", giver = "elric", turnIn = "lyra",
+		text = "A Maré de Mana engrossa: magos esqueletos e golems saem das ruínas toda noite. A Capitã Lyra pede ajuda para segurar a linha.",
+		requires = { quests = { "h14b" } },
+		objectives = {
+			{ type = "kill", target = "esqueleto_mago", amount = 12, text = "Derrote Esqueletos Magos" },
+			{ type = "kill", target = "golem", amount = 4, text = "Derrote Golems de Pedra" },
+		},
+		reward = { xp = 20000, gold = 1000, faction = { id = "guarda", amount = 300 } },
+	}),
+
+	-- ===== ATO IV: A ESTRELA VERMELHA (níveis 15-20) =====
+	q({
 		id = "h15", chain = "main", name = "Mestre de Armas", giver = "lyra", turnIn = "kael",
-		text = "Você salvou a vila. Agora torne-se uma lenda: domine sua arma por completo.",
-		requires = { quests = { "h14" } },
+		text = "O que vem pela frente pede um Hunter de verdade. Mestre Kael quer ver você dominar a sua arma.",
+		requires = { quests = { "h14c" }, level = 14 },
 		objectives = {
 			{ type = "mastery", amount = 10, text = "Alcance maestria 10 em alguma arma" },
-			{ type = "level", amount = 15, text = "Alcance o Nível 15" },
 		},
-		reward = { xp = 6000, gold = 2500, chest = "real" },
+		reward = { xp = 20000, gold = 2500, chest = "real" },
+	}),
+	q({
+		id = "h15b", chain = "main", name = "O Abismo de Pedra", giver = "kael", turnIn = "elric",
+		text = "A terceira âncora, a de Valdrik, fica no coração das montanhas: o Abismo de Pedra. Use a Chave do Abismo e chegue ao 5º andar.",
+		requires = { quests = { "h15" }, level = 15 },
+		objectives = {
+			{ type = "dungeonFloor", target = "abismo", amount = 5, text = "Abismo de Pedra: limpe até o andar 5" },
+		},
+		reward = { xp = 30000, gold = 2000 },
+	}),
+	q({
+		id = "h15c", chain = "main", name = "A Âncora do Norte", giver = "elric", turnIn = "elric",
+		lore = "ancora",
+		text = "Lá embaixo, a âncora de Valdrik está rachada. E a rachadura não veio de dentro: veio do céu. Desça até o 10º andar e descubra o que aconteceu.",
+		requires = { quests = { "h15b" } },
+		objectives = {
+			{ type = "dungeonFloor", target = "abismo", amount = 10, text = "Abismo de Pedra: limpe até o andar 10" },
+		},
+		reward = { xp = 35000, gold = 2500 },
+	}),
+	q({
+		id = "h15d", chain = "main", name = "A Estrela Vermelha", giver = "elric", turnIn = "tomas",
+		lore = "estrela",
+		text = "Os soldados da Torre de Vigia viram uma estrela vermelha cair no norte, na noite em que tudo começou a piorar. Procure o último relatório deles.",
+		requires = { quests = { "h15c" } },
+		objectives = {
+			{ type = "poi", target = "vigia", amount = 1, text = "Descubra a Torre de Vigia" },
+			{ type = "poiSecret", target = "vigia", amount = 1, text = "Abra o alçapão e leia o relatório" },
+			{ type = "talk", npc = "tomas", amount = 1, text = "Mostre o relatório ao Sargento Tomás" },
+		},
+		reward = { xp = 35000, gold = 2500 },
+	}),
+	q({
+		id = "h15e", chain = "main", name = "O Coração do Abismo", giver = "tomas", turnIn = "elric",
+		text = "Valdrik ainda está lá embaixo, preso na âncora, tentando fechar a rachadura sozinho. Desça até o 15º andar do Abismo e libere a passagem.",
+		requires = { quests = { "h15d" }, level = 17 },
+		objectives = {
+			{ type = "dungeonFloor", target = "abismo", amount = 15, text = "Abismo de Pedra: limpe até o andar 15" },
+		},
+		reward = { xp = 45000, gold = 3000, chest = "real" },
+	}),
+	q({
+		id = "h16", chain = "main", name = "O Coração da Estrela", giver = "elric", turnIn = "lyra",
+		lore = "coracao",
+		text = "A estrela vermelha era um meteoro de mana, e dentro dele nasceu o Devorador de Estrelas, que come a barreira por dentro. Junte um grupo (até 8) na estrela caída do norte e destrua o coração do meteoro.",
+		requires = { quests = { "h15e" }, level = 18 },
+		objectives = {
+			{ type = "raid", amount = 1, text = "Derrote o Devorador de Estrelas na raide" },
+		},
+		reward = { xp = 60000, gold = 5000, chest = "real" },
+	}),
+
+	-- ===== EPÍLOGO: NOVOS HORIZONTES =====
+	q({
+		id = "h17", chain = "main", name = "Novos Horizontes", giver = "lyra", turnIn = "elric",
+		lore = "horizontes",
+		text = "Com o meteoro destruído, a rachadura parou de crescer. Elric diz que agora a barreira pode ter uma porta, e que ela vai abrir sob a sua proteção.",
+		requires = { quests = { "h16" } },
+		objectives = {
+			{ type = "level", amount = 20, text = "Alcance o Nível 20" },
+			{ type = "talk", npc = "elric", amount = 1, text = "Fale com o Arquimago Elric" },
+		},
+		reward = { xp = 10000, gold = 5000, chest = "real" },
+	}),
+
+	-- ===================== LENDAS (depois do nível 20): ITENS EXÓTICOS =====================
+	-- Cada missão dá um item Exótico (só um equipado por vez). Todas liberam juntas depois de "Novos Horizontes".
+	q({
+		id = "x_ciclo", chain = "lenda", name = "Lenda: O Arsenal do Ciclo", giver = "kael", turnIn = "kael",
+		text = "Kael guarda o molde de uma arma forjada no primeiro dia do Orbe. Prove que dominou o ciclo: limpe a Toca inteira e derrube 1.500 monstros.",
+		requires = { quests = { "h17" }, level = 20 },
+		objectives = {
+			{ type = "dungeonFloor", target = "toca", amount = 20, text = "Toca dos Goblins: limpe os 20 andares" },
+			{ type = "kill", target = "any", amount = 1500, text = "Derrote monstros" },
+		},
+		reward = { xp = 20000, gold = 5000, exoticWeapon = true },
+	}),
+	q({
+		id = "x_egide", chain = "lenda", name = "Lenda: A Égide de Aurora", giver = "lyra", turnIn = "lyra",
+		text = "A couraça do primeiro capitão da Guarda só aceita quem sabe defender. Limpe a Cripta inteira e apare 200 golpes.",
+		requires = { quests = { "h17" }, level = 20 },
+		objectives = {
+			{ type = "dungeonFloor", target = "cripta", amount = 20, text = "Cripta Esquecida: limpe os 20 andares" },
+			{ type = "parry", amount = 200, text = "Apare golpes" },
+		},
+		reward = { xp = 20000, gold = 5000, item = { base = "egide_aurora", rarity = "Exotico" } },
+	}),
+	q({
+		id = "x_coroa", chain = "lenda", name = "Lenda: A Coroa dos Arquimagos", giver = "elric", turnIn = "elric",
+		text = "Elric, Serafina e Valdrik dividiram uma coroa de cristal. Valdrik quer que ela fique com você. Limpe o Abismo inteiro e encante 25 itens.",
+		requires = { quests = { "h17" }, level = 20 },
+		objectives = {
+			{ type = "dungeonFloor", target = "abismo", amount = 20, text = "Abismo de Pedra: limpe os 20 andares" },
+			{ type = "enchant", amount = 25, text = "Encante itens" },
+		},
+		reward = { xp = 20000, gold = 5000, item = { base = "coroa_arquimagos", rarity = "Exotico" } },
+	}),
+	q({
+		id = "x_passos", chain = "lenda", name = "Lenda: Os Passos do Tempo", giver = "nia", turnIn = "nia",
+		text = "Nia diz que existem botas que andam entre um segundo e outro. Faça 250 esquivas perfeitas e ajude a derrubar o Behemoth de Mana duas vezes.",
+		requires = { quests = { "h17" }, level = 20 },
+		objectives = {
+			{ type = "perfectDodge", amount = 250, text = "Faça esquivas perfeitas" },
+			{ type = "worldBoss", amount = 2, text = "Ajude a derrotar o Behemoth de Mana" },
+		},
+		reward = { xp = 20000, gold = 5000, item = { base = "passos_tempo", rarity = "Exotico" } },
+	}),
+	q({
+		id = "x_coracao", chain = "lenda", name = "Lenda: O Coração Partido", giver = "orin", turnIn = "orin",
+		text = "Dos restos do meteoro, Serafina pode moldar um amuleto. Ela só precisa de mais pedaços do coração: derrote o Devorador mais 5 vezes.",
+		requires = { quests = { "h17" }, level = 20 },
+		objectives = {
+			{ type = "raid", amount = 5, text = "Derrote o Devorador de Estrelas na raide" },
+		},
+		reward = { xp = 25000, gold = 6000, item = { base = "coracao_partido", rarity = "Exotico" } },
+	}),
+	q({
+		id = "x_horizonte", chain = "lenda", name = "Lenda: O Anel do Horizonte", giver = "tomas", turnIn = "tomas",
+		text = "O anel do primeiro explorador que saiu do vale passa de campeão em campeão. Vença 25 lutas na Arena e mostre que é digno.",
+		requires = { quests = { "h17" }, level = 20 },
+		objectives = {
+			{ type = "arenaWin", amount = 25, text = "Vença lutas na Arena" },
+		},
+		reward = { xp = 20000, gold = 5000, item = { base = "anel_horizonte", rarity = "Exotico" } },
+	}),
+	-- grind pesado (pedido para durar semanas): as duas exóticas mais difíceis do jogo
+	q({
+		id = "x_caca", chain = "lenda", name = "Lenda: A Caçada Infinita", giver = "kael", turnIn = "kael",
+		text = "Dizem que o primeiro Hunter caçou por mil dias repetidos até o elmo dele aprender a caçar sozinho. Kael quer ver se você aguenta o mesmo.",
+		requires = { quests = { "x_ciclo" }, level = 20 },
+		objectives = {
+			{ type = "kill", target = "any", amount = 6000, text = "Derrote monstros" },
+			{ type = "dungeonBoss", amount = 40, text = "Derrote chefes de masmorra" },
+			{ type = "worldBoss", amount = 3, text = "Ajude a derrotar o Behemoth de Mana" },
+			{ type = "stagger", amount = 500, text = "Quebre a guarda de inimigos" },
+		},
+		reward = { xp = 40000, gold = 15000, item = { base = "elmo_caca_infinita", rarity = "Exotico" } },
+	}),
+	q({
+		id = "x_colecionador", chain = "lenda", name = "Lenda: O Colecionador do Vale", giver = "otto", turnIn = "otto",
+		text = "Otto tem um amuleto que nunca vendeu: \"só para quem já pegou tudo o que este vale tem\". Colete, forje, prepare e abra baús até ele acreditar em você.",
+		requires = { quests = { "h17" }, level = 20 },
+		objectives = {
+			{ type = "gather", item = "any", amount = 2000, text = "Colete recursos (minério, ervas, madeira)" },
+			{ type = "craft", item = "forge", amount = 60, text = "Forje equipamentos" },
+			{ type = "craft", item = "alchemy", amount = 150, text = "Prepare poções" },
+			{ type = "chest", amount = 120, text = "Abra baús" },
+			{ type = "upgradeTo", amount = 10, text = "Aprimore um item até +10" },
+		},
+		reward = { xp = 40000, gold = 15000, item = { base = "amuleto_colecionador", rarity = "Exotico" } },
 	}),
 
 	-- ===================== SECUNDÁRIAS =====================
@@ -472,6 +739,11 @@ function Quests.rewardText(reward)
 	end
 	if reward.consumables or reward.materials then
 		table.insert(parts, "Itens")
+	end
+	if reward.exoticWeapon then
+		table.insert(parts, "Arma EXÓTICA do seu tipo")
+	elseif reward.item then
+		table.insert(parts, "Item EXÓTICO")
 	end
 	if reward.faction then
 		table.insert(parts, ("+%d de reputação"):format(reward.faction.amount or 0))

@@ -64,8 +64,8 @@ function FusionService.fuse(player, uids)
 		if isEquipped(data, uid) then
 			return { ok = false, msg = "Tire o item equipado antes de fundir." }
 		end
-		if rarity.unique then
-			return { ok = false, msg = "Itens Únicos não podem ser fundidos." }
+		if rarity.unique or rarity.exotic then
+			return { ok = false, msg = "Itens Únicos e Exóticos não podem ser fundidos." }
 		end
 		if rarityOrder and rarity.order ~= rarityOrder then
 			return { ok = false, msg = "Todos os itens precisam ter a mesma raridade." }

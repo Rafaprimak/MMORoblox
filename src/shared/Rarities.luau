@@ -14,6 +14,8 @@ Rarities.List = {
 	-- Único: itens com efeito próprio que só caem de chefes específicos (chance fixa por item, ver
 	-- Enemies.Defs[x].uniques). Nunca sai de baú nem de sorteio de raridade (peso 0).
 	{ id = "Unico", name = "Único", upper = "ÚNICO", order = 8, color = Color3.fromRGB(60, 255, 215), weight = 0, chestWeight = 0, dungeonWeight = 0, premiumWeight = 0, mult = 5.5, unique = true },
+	-- Exótico: recompensa das missões depois do nível 20 (efeito próprio). Só UM equipado por vez.
+	{ id = "Exotico", name = "Exótico", upper = "EXÓTICO", order = 9, color = Color3.fromRGB(255, 228, 92), weight = 0, chestWeight = 0, dungeonWeight = 0, premiumWeight = 0, mult = 6.2, exotic = true },
 }
 
 Rarities.ById = {}

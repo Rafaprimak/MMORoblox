@@ -83,11 +83,13 @@ function Inventory.describeLines(item)
 	for _, perkId in item.perks or {} do
 		local perk = Perks.List[perkId]
 		if perk then
-			local color = if perk.exclusive == "unique" then Color3.fromRGB(60, 255, 215) elseif perk.exclusive then Color3.fromRGB(200, 170, 255) elseif perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255)
+			local color = if perk.exclusive == "unique" then Color3.fromRGB(60, 255, 215) elseif perk.exclusive == "exotic" then Color3.fromRGB(255, 228, 92) elseif perk.exclusive then Color3.fromRGB(200, 170, 255) elseif perk.major then UI.Colors.Gold else Color3.fromRGB(150, 220, 255)
 			table.insert(lines, { ("%s: %s"):format(perk.name, perk.text), color, 36 })
 		end
 	end
-	if item.unique then
+	if item.exotic then
+		table.insert(lines, { "» EXÓTICO: recompensa de missão lendária. Só um item Exótico equipado por vez.", Color3.fromRGB(255, 228, 92), 18 })
+	elseif item.unique then
 		table.insert(lines, { "» ÚNICO: só cai de chefes, muito raro.", Color3.fromRGB(60, 255, 215), 18 })
 	elseif item.raid then
 		table.insert(lines, { "» EXCLUSIVO DA RAIDE: só cai do Devorador de Estrelas.", Color3.fromRGB(255, 140, 230), 18 })
