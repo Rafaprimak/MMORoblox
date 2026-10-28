@@ -62,6 +62,23 @@ function SkillService.addXP(player, skillId, amount)
 	SkillService.OnChanged(player, leveled)
 end
 
+-- Teste no Studio: todas as maestrias e profissões no nível máximo (sem um aviso por nível)
+function SkillService.maxAll(player)
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	for skillId in Skills.List do
+		local skill = entry(data, skillId)
+		if skill.level < Config.SkillMaxLevel then
+			skill.level = Config.SkillMaxLevel
+			skill.xp = 0
+			SkillService.OnLevelUp(player, skillId, skill.level)
+		end
+	end
+	SkillService.OnChanged(player, true)
+end
+
 function SkillService.bestMastery(player)
 	local data = DataService.get(player)
 	if not data then

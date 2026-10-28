@@ -42,7 +42,7 @@ tools/rojo.exe serve default.project.json
 
 Ferramentas esperadas em `tools/` (não versionadas): `rojo.exe` ([releases](https://github.com/rojo-rbx/rojo/releases)), `luau-compile.exe` e `luau-analyze.exe` ([releases](https://github.com/luau-lang/luau/releases)).
 
-**No Studio:** botões de teste à esquerda (+XP, +Ouro, +Materiais, +Perícias) só aparecem e só funcionam no Studio (`RunService:IsStudio()`). Use-os para chegar rápido em conteúdo de nível alto.
+**No Studio:** botões de teste no menu da esquerda (Nível máximo, Ouro máximo, Materiais máximos, Perícias máximas, dia/noite, chefe de mundo, invasão, evento) só aparecem e só funcionam no Studio (`RunService:IsStudio()`). O menu inteiro esconde e aparece pelo botão acima dele.
 
 ## 4. Arquitetura
 

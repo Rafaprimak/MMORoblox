@@ -176,16 +176,30 @@ function HUD.init(screen, callbacks)
 		{ "Auto (missões)", "N", callbacks.onAutoHunt, "autohunt", "crossed-swords" },
 		{ "Configurações", "P", callbacks.onSettings, nil, "cog" },
 	}
-	-- celular: a tela é baixa demais para 15 botões; o menu fica recolhido atrás do botão MENU
+	-- botão de esconder/mostrar o menu (no celular ele já começa escondido: a tela é baixa demais)
 	local touchOnly = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+	local toggle = UI.button({ Text = "", AnchorPoint = Vector2.new(0, 1), Size = UDim2.fromOffset(150, 26), BackgroundColor3 = UI.Colors.Panel, Parent = screen })
+	local function placeToggle()
+		if touchOnly then
+			toggle.Size = UDim2.fromOffset(90, 40)
+			toggle.AnchorPoint = Vector2.new(0, 0.5)
+			toggle.Position = UDim2.new(0, 12, 0.5, 30)
+			toggle.Text = "MENU"
+		else
+			-- logo acima do menu; com o menu escondido, fica no mesmo lugar
+			toggle.Position = UDim2.new(0, 12, 0.5, 50 - menu.Size.Y.Offset / 2 - 4)
+			toggle.Text = if menu.Visible then "Esconder menu" else "Mostrar menu"
+		end
+	end
 	if touchOnly then
 		menu.Visible = false
 		menu.Position = UDim2.new(0, 110, 0.5, 30)
-		local toggle = UI.button({ Text = "MENU", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 30), Size = UDim2.fromOffset(90, 40), BackgroundColor3 = UI.Colors.PanelLight, Parent = screen })
-		toggle.MouseButton1Click:Connect(function()
-			menu.Visible = not menu.Visible
-		end)
 	end
+	toggle.MouseButton1Click:Connect(function()
+		menu.Visible = not menu.Visible
+		placeToggle()
+	end)
+	placeToggle()
 	for i, entry in entries do
 		local button = UI.button({ Text = entry[1] .. (if entry[2] ~= "" and not touchOnly then "  [" .. entry[2] .. "]" else ""), Size = UDim2.fromOffset(150, 27), LayoutOrder = i, BackgroundColor3 = UI.Colors.PanelLight, TextXAlignment = Enum.TextXAlignment.Left, Parent = menu })
 		button.MouseButton1Click:Connect(function()
@@ -205,7 +219,7 @@ function HUD.init(screen, callbacks)
 	end
 	refs.devPanel = UI.new("Frame", { Size = UDim2.fromOffset(150, 228), BackgroundTransparency = 1, LayoutOrder = 10, Visible = false, Parent = menu }, { UI.list(3) })
 	UI.label({ Text = "TESTE (só Studio)", Size = UDim2.fromOffset(150, 14), TextColor3 = UI.Colors.SubText, LayoutOrder = 0, Parent = refs.devPanel }, { UI.textStroke(1) })
-	for i, entry in { { "+5.000 XP", "xp" }, { "+5.000 Ouro", "gold" }, { "+Materiais", "materials" }, { "+Perícias", "skills" }, { "Pular dia/noite", "night" }, { "Chefe de mundo", "worldboss" }, { "Invasão", "invasion" }, { "Evento", "event" } } do
+	for i, entry in { { "Nível máximo", "xp" }, { "Ouro máximo", "gold" }, { "Materiais máximos", "materials" }, { "Perícias máximas", "skills" }, { "Pular dia/noite", "night" }, { "Chefe de mundo", "worldboss" }, { "Invasão", "invasion" }, { "Evento", "event" } } do
 		local button = UI.button({ Text = entry[1], Size = UDim2.fromOffset(150, 24), LayoutOrder = i, BackgroundColor3 = UI.Colors.Dark, Parent = refs.devPanel })
 		button.MouseButton1Click:Connect(function()
 			State.request("dev", entry[2])

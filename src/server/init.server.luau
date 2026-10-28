@@ -248,16 +248,33 @@ Remotes.Action.OnServerEvent:Connect(function(player, action, a, b, c)
 end)
 
 local function devGift(player, kind)
+	local data = DataService.get(player)
 	if kind == "xp" then
-		PlayerService.addXP(player, 5000)
+		-- nível máximo: soma todo o XP que falta de uma vez (um aviso só)
+		if data then
+			local missing = -data.xp
+			for level = data.level, Config.MaxLevel - 1 do
+				missing += Config.xpToNext(level)
+			end
+			PlayerService.addXP(player, math.max(missing, 0))
+		end
 	elseif kind == "gold" then
-		PlayerService.addGold(player, 5000)
+		if data then
+			PlayerService.addGold(player, math.max(0, 99999999 - data.gold))
+		end
 	elseif kind == "materials" then
+		-- 999 de cada material e 99 de cada consumível
 		for id in Items.Materials do
-			PlayerService.addMaterial(player, id, 10, true)
+			local have = data and data.materials[id] or 0
+			if have < 999 then
+				PlayerService.addMaterial(player, id, 999 - have, true)
+			end
 		end
 		for id in Items.Consumables do
-			PlayerService.addConsumable(player, id, 5, true)
+			local have = data and data.consumables[id] or 0
+			if have < 99 then
+				PlayerService.addConsumable(player, id, 99 - have, true)
+			end
 		end
 	elseif kind == "night" then
 		DayNightService.skip()
@@ -269,11 +286,7 @@ local function devGift(player, kind)
 		local event = EventService.cycle()
 		Remotes.Notify:FireClient(player, { kind = "message", text = if event then "Evento forçado: " .. event.name else "Evento pelo calendário de novo." })
 	elseif kind == "skills" then
-		for _, id in { "mineracao", "herbalismo", "lenhador", "ferraria", "alquimia", "encantamento" } do
-			SkillService.addXP(player, id, 3000)
-		end
-		local stats = PlayerService.getStats(player)
-		SkillService.addXP(player, stats.masteryId, 3000)
+		SkillService.maxAll(player)
 	end
 	PlayerService.markDirty(player)
 	return { ok = true }
