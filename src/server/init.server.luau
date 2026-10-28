@@ -549,6 +549,27 @@ local built = WorldGen.build(function(status, fraction)
 	workspace:SetAttribute("WorldProgress", fraction)
 end)
 
+-- paredes invisíveis na borda do mapa (ninguém cai para fora, nem escalando as montanhas da beirada)
+do
+	local limits = Instance.new("Folder")
+	limits.Name = "LimitesDoMapa"
+	local half = World.Half
+	local height = 3000
+	for _, side in { { 0, -half, 2 * half + 20, 8 }, { 0, half, 2 * half + 20, 8 }, { -half, 0, 8, 2 * half + 20 }, { half, 0, 8, 2 * half + 20 } } do
+		local wall = Instance.new("Part")
+		wall.Name = "Limite"
+		wall.Anchored = true
+		wall.CanCollide = true
+		wall.CanQuery = false
+		wall.Transparency = 1
+		wall.CastShadow = false
+		wall.Size = Vector3.new(side[3], height, side[4])
+		wall.Position = Vector3.new(side[1], World.SeaLevel - 100 + height / 2, side[2])
+		wall.Parent = limits
+	end
+	limits.Parent = workspace
+end
+
 local spawn = Instance.new("SpawnLocation")
 spawn.Name = "Spawn"
 spawn.Anchored = true

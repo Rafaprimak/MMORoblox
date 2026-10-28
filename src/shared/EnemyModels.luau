@@ -312,6 +312,77 @@ function builders.devorador(add, def)
 	return 10.2
 end
 
+-- Behemoth de Mana (chefe de mundo): fera gigante deformada pela mana. Quatro patas grossas com garras,
+-- couro rachado com veias de mana acesas, espinhos de cristal nas costas, cabeça de chifres curvos com
+-- três olhos, mandíbula de presas, cauda com clava de cristal e fragmentos de mana girando em volta.
+function builders.behemoth(add, def)
+	local hide = def.color
+	local dark = hide:Lerp(BLACK, 0.4)
+	local bone = Color3.fromRGB(225, 215, 190)
+	local mana = Color3.fromRGB(120, 230, 255)
+	local violet = Color3.fromRGB(190, 110, 255)
+	local neon = Enum.Material.Neon
+	local rock = Enum.Material.Slate
+	-- tronco: peito alto na frente, quadril mais baixo atrás
+	add("body", Vector3.new(4.2, 3.4, 5.6), Vector3.new(0, 4.6, 0.4), hide, rock)
+	add("body", Vector3.new(4.8, 3.8, 3.0), Vector3.new(0, 5.2, -2.0), hide, rock)
+	add("body", Vector3.new(3.8, 3.0, 2.6), Vector3.new(0, 4.4, 2.8), dark, rock)
+	add("body", Vector3.new(3.6, 1.2, 4.6), Vector3.new(0, 2.9, -0.4), dark, rock)
+	-- veias de mana no couro (linhas acesas)
+	for _, v in { { -2.12, 5.0, -1.6, 0.4 }, { 2.12, 4.6, -0.6, -0.5 }, { -2.12, 4.2, 1.2, -0.3 }, { 2.12, 5.4, 1.8, 0.6 } } do
+		add("body", Vector3.new(0.1, 2.4, 0.18), Vector3.new(v[1], v[2], v[3]), mana, neon, CFrame.Angles(0, 0, v[4]))
+	end
+	-- espinhos de cristal nas costas (maiores no meio)
+	for i = 0, 6 do
+		local z = -2.8 + i * 0.95
+		local h = 1.6 + math.sin(i / 6 * math.pi) * 2.4
+		add("body", Vector3.new(0.7, h, 0.7), Vector3.new(0, 6.9 + h / 2 - 0.4, z), if i % 2 == 0 then mana else violet, neon, CFrame.Angles(math.rad(-15), math.rad(45), 0), nil, nil, 0.1)
+		for _, side in { -1, 1 } do
+			add("body", Vector3.new(0.45, h * 0.55, 0.45), Vector3.new(side * 1.3, 6.6 + h * 0.2, z + 0.3), violet, neon, CFrame.Angles(math.rad(-10), 0, side * 0.6), nil, nil, 0.15)
+		end
+	end
+	-- placas de osso no lombo
+	for i = 0, 3 do
+		add("body", Vector3.new(4.4, 0.4, 1.0), Vector3.new(0, 6.8 - i * 0.15, -2.2 + i * 1.4), bone, Enum.Material.Marble, CFrame.Angles(math.rad(-8), 0, 0))
+	end
+	-- cabeça: crânio, chifres curvos, três olhos e mandíbula de presas
+	local neck = Vector3.new(0, 5.6, -3.4)
+	add("head", Vector3.new(2.8, 2.4, 2.8), Vector3.new(0, 5.6, -4.6), hide, rock, nil, neck)
+	add("head", Vector3.new(2.2, 1.2, 1.8), Vector3.new(0, 4.6, -5.6), dark, rock, nil, neck)
+	add("head", Vector3.new(3.0, 0.5, 2.2), Vector3.new(0, 6.9, -4.4), bone, Enum.Material.Marble, nil, neck)
+	for _, side in { -1, 1 } do
+		add("head", Vector3.new(0.7, 2.2, 0.7), Vector3.new(side * 1.7, 7.4, -4.0), bone, Enum.Material.Marble, CFrame.Angles(math.rad(-20), 0, side * -0.6), neck)
+		add("head", Vector3.new(0.55, 1.6, 0.55), Vector3.new(side * 2.5, 8.6, -3.5), bone, Enum.Material.Marble, CFrame.Angles(math.rad(-50), 0, side * -1.1), neck)
+		add("head", Vector3.new(0.35, 0.9, 0.35), Vector3.new(side * 2.7, 9.1, -2.6), mana, neon, CFrame.Angles(math.rad(-90), 0, side * -1.3), neck)
+		add("head", Vector3.new(0.45, 0.3, 0.1), Vector3.new(side * 0.8, 6.0, -6.02), mana, neon, nil, neck)
+		-- presas
+		add("head", Vector3.new(0.3, 1.1, 0.3), Vector3.new(side * 0.8, 4.0, -6.3), bone, Enum.Material.Marble, CFrame.Angles(math.rad(-15), 0, side * 0.2), neck)
+	end
+	add("head", Vector3.new(0.4, 0.4, 0.1), Vector3.new(0, 6.5, -6.02), violet, neon, nil, neck)
+	add("head", Vector3.new(1.8, 0.2, 0.1), Vector3.new(0, 4.3, -6.52), mana, neon, nil, neck)
+	-- patas grossas com garras
+	for _, leg in { { "legFL", -1.9, -2.3 }, { "legFR", 1.9, -2.3 }, { "legBL", -1.8, 2.6 }, { "legBR", 1.8, 2.6 } } do
+		local joint = Vector3.new(leg[2], 4.2, leg[3])
+		add(leg[1], Vector3.new(1.6, 2.6, 1.8), Vector3.new(leg[2] * 1.05, 3.0, leg[3]), hide, rock, nil, joint)
+		add(leg[1], Vector3.new(1.4, 2.0, 1.5), Vector3.new(leg[2] * 1.05, 1.1, leg[3] - 0.2), dark, rock, nil, joint)
+		add(leg[1], Vector3.new(0.1, 1.6, 0.18), Vector3.new(leg[2] * 1.05 + (if leg[2] < 0 then -0.82 else 0.82), 2.4, leg[3]), mana, neon, nil, joint)
+		for k = -1, 1 do
+			add(leg[1], Vector3.new(0.3, 0.3, 0.8), Vector3.new(leg[2] * 1.05 + k * 0.45, 0.2, leg[3] - 1.1), bone, Enum.Material.Marble, CFrame.Angles(math.rad(20), 0, 0), joint)
+		end
+	end
+	-- cauda com clava de cristal
+	local tailJoint = Vector3.new(0, 5.0, 4.0)
+	add("tail", Vector3.new(1.2, 1.2, 2.6), Vector3.new(0, 4.8, 5.2), hide, rock, CFrame.Angles(math.rad(15), 0, 0), tailJoint)
+	add("tail", Vector3.new(0.8, 0.8, 2.4), Vector3.new(0, 4.1, 7.4), dark, rock, CFrame.Angles(math.rad(25), 0, 0), tailJoint)
+	add("tail", Vector3.new(1.6, 1.6, 1.6), Vector3.new(0, 3.4, 8.8), mana, neon, CFrame.Angles(math.rad(45), math.rad(45), 0), tailJoint, nil, 0.1)
+	-- fragmentos de mana girando em volta (anel que gira)
+	for k = 0, 7 do
+		local a = k / 8 * math.pi * 2
+		add(if k % 2 == 0 then "orbit" else "orbitR", Vector3.new(0.6, 1.2, 0.6), Vector3.new(math.cos(a) * 5.4, 7.6 + math.sin(a * 2) * 0.6, math.sin(a) * 5.4), if k % 2 == 0 then mana else violet, neon, CFrame.Angles(0, a, math.rad(20)), Vector3.new(0, 7.6, 0), nil, 0.2)
+	end
+	return 9.5
+end
+
 function builders.dummy(add, def)
 	local straw = def.color
 	add("body", Vector3.new(2, 0.3, 2), Vector3.new(0, 0.15, 0), WOOD, Enum.Material.Wood)

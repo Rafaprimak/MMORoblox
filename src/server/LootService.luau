@@ -171,7 +171,11 @@ task.spawn(function()
 			if near or vip or now >= drop.expire then
 				table.remove(drops, i)
 				drop.model:Destroy()
-				PlayerService.addItem(drop.owner, drop.item)
+				-- protegido: um erro ao entregar um item não pode parar a coleta de todos os outros
+				local ok, err = pcall(PlayerService.addItem, drop.owner, drop.item)
+				if not ok then
+					warn("[Loot] Falha ao entregar item:", err)
+				end
 			end
 		end
 	end

@@ -67,7 +67,7 @@ local function render()
 		return
 	end
 	local raid = State.data and State.data.raid or {}
-	local key = ("%s|%s|%s|%s|%s|%s"):format(table.concat(raid.members or {}, ","), table.concat((function()
+	local key = tostring(State.data and State.data.level) .. ("%s|%s|%s|%s|%s|%s"):format(table.concat(raid.members or {}, ","), table.concat((function()
 		local flags = {}
 		for _, flag in raid.ready or {} do
 			table.insert(flags, tostring(flag))
@@ -80,6 +80,10 @@ local function render()
 	lastKey = key
 	UI.clear(body)
 	text(body, { Text = Raids.Text, Size = UDim2.new(1, 0, 0, 72), TextColor3 = UI.Colors.SubText, LayoutOrder = 1 })
+	local level = State.data and State.data.level or 1
+	if level < Raids.MinLevel then
+		text(body, { Text = ("Nível necessário: %d (você está no %d). Siga a história com a Capitã Lyra para chegar lá."):format(Raids.MinLevel, level), Size = UDim2.new(1, 0, 0, 34), TextColor3 = Color3.fromRGB(255, 120, 110), LayoutOrder = 1 })
+	end
 	-- recompensas exclusivas
 	text(body, { Text = "RECOMPENSAS EXCLUSIVAS (só nesta raide)", Size = UDim2.new(1, 0, 0, 18), TextColor3 = MAGENTA, Font = Enum.Font.GothamBlack, LayoutOrder = 2 })
 	local showcase = UI.new("Frame", { Size = UDim2.new(1, 0, 0, 64), BackgroundTransparency = 1, LayoutOrder = 3 }, { UI.list(6, true) })

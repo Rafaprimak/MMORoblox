@@ -44,7 +44,9 @@ local STAMPS = { [3] = "RARO!", [4] = "ÉPICO!", [5] = "LENDÁRIO!!", [6] = "MÍ
 local function makeCard(parent, baseId, rarity, index)
 	local base = Items.Bases[baseId]
 	local card = UI.new("Frame", {
-		Position = UDim2.fromOffset((index - 1) * (CARD_W + CARD_GAP), 0),
+		-- âncora no meio: a lente (UIScale) cresce a carta em volta do centro, sem empurrá-la
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromOffset((index - 1) * (CARD_W + CARD_GAP) + CARD_W / 2, 75),
 		Size = UDim2.fromOffset(CARD_W, 150),
 		BackgroundColor3 = rarity.color:Lerp(Color3.new(0, 0, 0), 0.7),
 		Parent = parent,
@@ -220,37 +222,33 @@ function Chest.reveal(item, chestId)
 		end
 		cards[i] = makeCard(reel, baseId, rarity, i)
 	end
-	RunService.RenderStepped:Wait() -- espera a tela calcular o tamanho da fita
-	local holderWidth = reelHolder.AbsoluteSize.X
-	if holderWidth <= 0 then
-		holderWidth = workspace.CurrentCamera.ViewportSize.X * 0.9
-	end
-	local centerOffset = holderWidth / 2 - CARD_W / 2
+	-- a fita fica presa no MEIO da faixa (escala 0,5): x = deslocamento em relação à linha dourada,
+	-- então a conta não depende do tamanho da tela nem de escalas da interface
+	local step = CARD_W + CARD_GAP
 	local jitter = math.random(-CARD_W * 0.35, CARD_W * 0.35)
-	local finalX = -((WIN_INDEX - 1) * (CARD_W + CARD_GAP)) + centerOffset + jitter
-	reel.Position = UDim2.fromOffset(centerOffset, 0)
+	local startX = -CARD_W / 2
+	local finalX = -((WIN_INDEX - 1) * step + CARD_W / 2) + jitter
+	reel.Position = UDim2.new(0.5, startX, 0, 10)
 	skipping = false
 	skipButton.Visible = true
 
 	-- giro com desaceleração, "tic" a cada carta (cada vez mais agudo) e lente no centro
 	local duration = 5.4
 	local start = os.clock()
-	local startX = centerOffset
 	local lastIndex = 0
 	while true do
 		local t = if skipping then 1 else math.min((os.clock() - start) / duration, 1)
 		local eased = 1 - (1 - t) ^ 4
 		local x = startX + (finalX - startX) * eased
-		reel.Position = UDim2.fromOffset(x, 0)
+		reel.Position = UDim2.new(0.5, x, 0, 10)
 		for i, card in cards do
-			local cardCenter = x + (i - 1) * (CARD_W + CARD_GAP) + CARD_W / 2
-			local distance = math.abs(cardCenter - holderWidth / 2)
+			local distance = math.abs(x + (i - 1) * step + CARD_W / 2)
 			local lens = card:FindFirstChild("Lupa")
 			if lens then
 				lens.Scale = 1 + 0.16 * math.max(0, 1 - distance / (CARD_W * 1.4))
 			end
 		end
-		local index = math.floor((centerOffset - x) / (CARD_W + CARD_GAP)) + 1
+		local index = math.floor((-x) / step) + 1
 		if index ~= lastIndex and not skipping then
 			lastIndex = index
 			Sounds.play("ping", 0.85 + t * 0.75, 0.1 + t * 0.08)

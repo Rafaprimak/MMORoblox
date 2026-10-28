@@ -149,6 +149,19 @@ Enemies.Defs = {
 		leash = 110, dungeon = true,
 		uniques = { "couraca_guardiao" },
 	},
+	-- chefe de mundo (WorldEventService): feito para ~20 caçadores juntos (vida fixa enorme)
+	behemoth_mana = {
+		name = "Behemoth de Mana", level = 20, hp = 320000, damage = 62, speed = 11, attackCooldown = 1.7, attackRange = 13,
+		xp = 9000, gold = { 900, 1400 }, dropChance = 1, equipDrops = 2, minRarity = 4,
+		pool = { "espada_runica", "katana_lua", "adagas_vazio", "coroa_arcana", "amuleto_dragao", "anel_tempestade", "martelo_gigante", "armadura_placas" },
+		drops = { { id = "essencia", chance = 1, min = 6, max = 12 }, { id = "minerio_mitril", chance = 1, min = 3, max = 6 } },
+		aggro = 90, radius = 8, model = "behemoth", color = Color3.fromRGB(70, 60, 90), behavior = "boss", scale = 2.4, defense = 0.2,
+		posture = 9000,
+		charge = { speed = 55, time = 0.9, windup = 1.3, damage = 70, cooldown = 9 },
+		slam = { radius = 22, windup = 1.5, damage = 80, cooldown = 7 },
+		summon = { enemy = "slime", count = 4, cooldown = 25 },
+		leash = 160,
+	},
 	rei_lich = {
 		name = "Rei Lich", level = 17, hp = 14000, damage = 36, speed = 12, attackCooldown = 1.2, attackRange = 8,
 		xp = 4200, gold = { 400, 650 }, dropChance = 1, equipDrops = 2, minRarity = 4,

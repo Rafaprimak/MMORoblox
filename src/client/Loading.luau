@@ -10,7 +10,7 @@ function Loading.init()
 	local player = Players.LocalPlayer
 	local gui = UI.new("ScreenGui", { Name = "Carregando", DisplayOrder = 30, IgnoreGuiInset = true, ResetOnSpawn = false, ZIndexBehavior = Enum.ZIndexBehavior.Sibling, Parent = player:WaitForChild("PlayerGui") })
 	local back = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(10, 12, 20), Parent = gui })
-	UI.label({ Text = "HUNTER RPG ", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.4), Size = UDim2.fromOffset(600, 70), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = UI.Colors.Gold, Parent = back }, { UI.textStroke(3) })
+	UI.label({ Text = "INFINITE ORB", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.4), Size = UDim2.fromOffset(600, 70), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, TextColor3 = UI.Colors.Gold, Parent = back }, { UI.textStroke(3) })
 	local status = UI.label({ Text = "Conectando...", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.52), Size = UDim2.fromOffset(500, 24), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = UI.Colors.SubText, Parent = back })
 	local barBack, fill = UI.bar(back, { Position = UDim2.new(0.5, -200, 0.57, 0), Size = UDim2.fromOffset(400, 14), color = UI.Colors.Gold, text = false })
 	local _ = barBack

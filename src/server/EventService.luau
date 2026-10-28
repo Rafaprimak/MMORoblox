@@ -95,55 +95,9 @@ end
 
 -- ===================== ENFEITES =====================
 
-local function pumpkin(model, position, scale, lit)
-	local body = part(model, { Name = "Abobora", Shape = Enum.PartType.Ball, Size = Vector3.new(1.6, 1.25, 1.6) * scale, CFrame = CFrame.new(position + Vector3.new(0, 0.55 * scale, 0)) * CFrame.Angles(0, math.random() * 6, 0), Color = Color3.fromRGB(235, 120, 30), Material = Enum.Material.SmoothPlastic })
-	-- gomos
-	for k = 0, 2 do
-		part(model, { Name = "Gomo", Shape = Enum.PartType.Ball, Size = Vector3.new(0.5, 1.2, 1.55) * scale, CFrame = body.CFrame * CFrame.Angles(0, math.rad(60 * k), 0), Color = Color3.fromRGB(215, 100, 25), Material = Enum.Material.SmoothPlastic })
-	end
-	part(model, { Name = "Cabo", Size = Vector3.new(0.18, 0.4, 0.18) * scale, CFrame = body.CFrame * CFrame.new(0, 0.7 * scale, 0) * CFrame.Angles(0, 0, 0.3), Color = Color3.fromRGB(90, 120, 50), Material = Enum.Material.Wood })
-	if lit then
-		-- rosto aceso (olhos e boca de luz)
-		local face = body.CFrame * CFrame.new(0, 0, -0.78 * scale)
-		for side = -1, 1, 2 do
-			part(model, { Name = "Olho", Size = Vector3.new(0.3, 0.26, 0.05) * scale, CFrame = face * CFrame.new(side * 0.32 * scale, 0.15 * scale, 0) * CFrame.Angles(0, 0, side * 0.5), Color = Color3.fromRGB(255, 210, 80), Material = Enum.Material.Neon })
-		end
-		part(model, { Name = "Boca", Size = Vector3.new(0.75, 0.16, 0.05) * scale, CFrame = face * CFrame.new(0, -0.22 * scale, 0), Color = Color3.fromRGB(255, 210, 80), Material = Enum.Material.Neon })
-		light(body, Color3.fromRGB(255, 150, 50), 10 * scale, 1.2)
-	end
-end
-
 local function lantern(model, position, color)
 	local ball = part(model, { Name = "Lanterna", Shape = Enum.PartType.Ball, Size = Vector3.one * 0.9, CFrame = CFrame.new(position), Color = color, Material = Enum.Material.Neon, Transparency = 0.15 })
 	light(ball, color, 9, 0.8)
-end
-
-local function halloween(model)
-	for i, spot in lampSpots() do
-		pumpkin(model, spot, if i % 3 == 0 then 1.3 else 1, true)
-	end
-	-- montanha de abóboras com espantalho na praça (lado sul)
-	local wx, wz = rel(0, 17)
-	local base = Vector3.new(wx, Y, wz)
-	pumpkin(model, base, 3.2, true)
-	for k = 0, 5 do
-		local a = k / 6 * math.pi * 2
-		pumpkin(model, base + Vector3.new(math.cos(a) * 4.2, 0, math.sin(a) * 4.2), 1.1 + (k % 2) * 0.4, k % 2 == 0)
-	end
-	-- espantalho
-	local pole = part(model, { Name = "Espantalho", Size = Vector3.new(0.4, 9, 0.4), CFrame = CFrame.new(base + Vector3.new(0, 4.5, 3)), Color = Color3.fromRGB(110, 80, 50), Material = Enum.Material.Wood })
-	part(model, { Name = "Bracos", Size = Vector3.new(5, 0.35, 0.35), CFrame = pole.CFrame * CFrame.new(0, 2, 0), Color = Color3.fromRGB(110, 80, 50), Material = Enum.Material.Wood })
-	part(model, { Name = "Camisa", Size = Vector3.new(2.2, 2.6, 1), CFrame = pole.CFrame * CFrame.new(0, 1.2, 0), Color = Color3.fromRGB(120, 60, 140), Material = Enum.Material.Fabric })
-	pumpkin(model, pole.Position + Vector3.new(0, 3.1, 0), 1.2, true)
-	part(model, { Name = "Chapeu", Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.15, 3, 3), CFrame = CFrame.new(pole.Position + Vector3.new(0, 4.6, 0)) * CFrame.Angles(0, 0, math.rad(90)), Color = Color3.fromRGB(40, 30, 45), Material = Enum.Material.Fabric })
-	part(model, { Name = "Copa", Size = Vector3.new(1.3, 1.6, 1.3), CFrame = CFrame.new(pole.Position + Vector3.new(0, 5.4, 0)) * CFrame.Angles(0.15, 0, 0.1), Color = Color3.fromRGB(40, 30, 45), Material = Enum.Material.Fabric })
-	-- lanternas roxas e laranja penduradas nos cantos da praça
-	local corner = (TownPlan.PlazaHalf - 2)
-	for _, c in { { -corner, -corner }, { corner, corner }, { corner, -corner }, { -corner, corner } } do
-		local cx, cz = rel(c[1] * 0.92, c[2] * 0.92)
-		lantern(model, Vector3.new(cx, Y + 9, cz), Color3.fromRGB(170, 80, 255))
-		lantern(model, Vector3.new(cx, Y + 7.5, cz), Color3.fromRGB(255, 140, 40))
-	end
 end
 
 local function christmasTree(model, base, height)
@@ -249,7 +203,8 @@ local function junina(model)
 	bonfire(model, Vector3.new(wx, Y, wz))
 end
 
-local BUILDERS = { halloween = halloween, natal = christmas, carnaval = carnival, junina = junina }
+-- Halloween sem enfeites (pedido do dono do jogo): o evento fica só com o bônus e a meta
+local BUILDERS = { natal = christmas, carnaval = carnival, junina = junina }
 
 local function setDecor(event)
 	if decor then

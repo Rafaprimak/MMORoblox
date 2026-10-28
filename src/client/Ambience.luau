@@ -21,6 +21,9 @@ local channels = {} -- [canal] = { sound, id }
 local nextBird = 0
 local lastCombat = -100 -- última vez que você bateu ou apanhou
 local COMBAT_HOLD = 8 -- segundos de música de combate depois da última troca de golpes
+local SETTLE = 3 -- a música só troca depois que a "vontade" de trocar durar isto (sem vai e volta)
+local combatTrack = nil -- trilha da luta atual (fica a mesma até a luta acabar)
+local wantedMusic, wantedSince, playingMusic = nil, 0, nil
 
 -- Chamado quando você acerta um inimigo ou leva dano
 function Ambience.combatPing()
@@ -106,9 +109,13 @@ function Ambience.init()
 					fighting = true
 					lastCombat = math.max(lastCombat, os.clock() - COMBAT_HOLD + 3)
 				end
-				local combatId = if fighting and enemy then (SoundIds.Combat[enemy:GetAttribute("Type")] or SoundIds.Combat.padrao) else nil
-				if combatId and enemy:GetAttribute("Type") == "boneco" then
-					combatId = nil -- bonecos de treino não têm música de luta
+				local combatId = nil
+				if fighting and enemy and enemy:GetAttribute("Type") ~= "boneco" then
+					-- a trilha é escolhida no começo da luta e não muda a cada inimigo diferente
+					combatTrack = combatTrack or SoundIds.Combat[enemy:GetAttribute("Type")] or SoundIds.Combat.padrao
+					combatId = combatTrack
+				elseif not fighting then
+					combatTrack = nil
 				end
 				if combatId then
 					musicKey = "combate"
@@ -121,15 +128,25 @@ function Ambience.init()
 				else
 					musicKey = "exploracao"
 				end
+				local trackId
 				if dungeonSounds then
 					-- masmorra: só as trilhas dela (nada do mundo aberto)
 					local fightingHere = os.clock() - lastCombat < COMBAT_HOLD and enemy ~= nil
-					local trackId = if EnemyRenderer.nearestBoss(root.Position, 130) then dungeonSounds.boss elseif fightingHere then dungeonSounds.combat else dungeonSounds.music
-					setChannel("music", trackId)
+					trackId = if EnemyRenderer.nearestBoss(root.Position, 130) then dungeonSounds.boss elseif fightingHere then dungeonSounds.combat else dungeonSounds.music
 				elseif combatId then
-					setChannel("music", combatId)
+					trackId = combatId
 				else
-					setChannel("music", Sounds.loopId("Music", musicKey) or (if musicKey == "noite" then Sounds.loopId("Music", "exploracao") else nil))
+					trackId = Sounds.loopId("Music", musicKey) or (if musicKey == "noite" then Sounds.loopId("Music", "exploracao") else nil)
+				end
+				-- troca só quando a escolha se mantém por SETTLE segundos (entrar em luta troca na hora)
+				if trackId ~= wantedMusic then
+					wantedMusic, wantedSince = trackId, os.clock()
+				end
+				if trackId ~= playingMusic and (os.clock() - wantedSince >= SETTLE or (combatId ~= nil and trackId == combatId)) then
+					playingMusic = trackId
+					setChannel("music", trackId)
+				elseif trackId == playingMusic then
+					setChannel("music", trackId) -- só acerta o volume
 				end
 				-- pássaros cantando de vez em quando (de dia, fora das montanhas)
 				local now = os.clock()

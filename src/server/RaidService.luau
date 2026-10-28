@@ -408,8 +408,9 @@ function RaidService.join(player)
 	if not nearPortal(player) then
 		return { ok = false, msg = "Chegue perto do portal da raide." }
 	end
-	if data.level < Raids.MinLevel then
-		return { ok = false, msg = ("A raide libera no nível %d."):format(Raids.MinLevel) }
+	-- no Studio o nível não trava (para testar)
+	if data.level < Raids.MinLevel and not RunService:IsStudio() then
+		return { ok = false, msg = ("A raide libera no nível %d (você está no %d)."):format(Raids.MinLevel, data.level) }
 	end
 	if player:GetAttribute("Dungeon") then
 		return { ok = false, msg = "Saia da masmorra primeiro." }

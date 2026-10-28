@@ -29,6 +29,8 @@ Config.SprintDrain = 14 -- estamina por segundo
 -- eventos do mundo aberto (WorldEventService): primeiro chefe de mundo e intervalo entre eles (segundos)
 Config.WorldBossFirst = 8 * 60
 Config.WorldBossInterval = 25 * 60
+Config.InvasionChance = 0.35 -- chance de invasão numa noite (depois do intervalo abaixo)
+Config.InvasionGapNights = 2 -- noites sem invasão depois de uma
 Config.MountSpeed = 64 -- mapa em escala realista (bem maior): o cavalo compensa
 Config.MountPrice = 300
 Config.DodgeCost = 22
@@ -74,7 +76,7 @@ Config.MaxActiveQuests = 12
 Config.DailyCount = 3
 
 -- Salvamento (v2 usa outra chave: o progresso da v1 não é compatível)
-Config.DataStoreName = "HunterRPG_v2"
+Config.DataStoreName = "HunterRPG_v2" -- nome antigo do jogo; NÃO troque (apagaria o progresso de todos)
 Config.AutosaveInterval = 60
 
 Config.Ranks = {

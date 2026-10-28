@@ -1,4 +1,4 @@
-# Roadmap — Hunter RPG
+# Roadmap — Infinite Orb
 
 Lista do que já existe e do que vem a seguir, em ordem de prioridade. Antes de pegar um item, leia o [AGENTS.md](AGENTS.md).
 

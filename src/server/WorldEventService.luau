@@ -36,7 +36,8 @@ local BOSSES = {
 	{ boss = "capitao_goblin", place = "Encruzilhada", x = -60, z = -20 },
 	{ boss = "colosso_abismo", place = "Sopé das Montanhas", x = 150, z = -240 },
 }
-local BOSS_DURATION = 12 * 60
+local WORLD_BOSS = "behemoth_mana" -- chefe próprio do evento (modelo e vida feitos para ~20 jogadores)
+local BOSS_DURATION = 15 * 60
 local BOSS_RADIUS = 34
 
 local current = nil -- evento em andamento
@@ -79,16 +80,17 @@ local function startBoss()
 		return
 	end
 	local choice = BOSSES[math.random(1, #BOSSES)]
-	local def = Enemies.Defs[choice.boss]
+	local def = Enemies.Defs[WORLD_BOSS]
 	if not def then
 		return
 	end
 	local x, z = Points.resolve(choice.x * S, choice.z * S)
 	local camp = { id = "evento_chefe", center = Vector2.new(x, z), radius = BOSS_RADIUS, worldEvent = "boss" }
 	local players = playerCount()
-	local rec = EnemyService.spawn(camp, choice.boss, {
+	local rec = EnemyService.spawn(camp, WORLD_BOSS, {
 		position = Vector3.new(x, World.height(x, z), z),
-		hpMult = 1.5 + 0.6 * players,
+		-- vida fixa para ~20 caçadores; só cresce se o servidor tiver mais gente que isso
+		hpMult = math.max(1, players / 20),
 		levelBonus = 3,
 		damageMult = 1.15,
 		rewardMult = 5,
@@ -114,7 +116,7 @@ local function endBoss(defeated)
 			count += 1
 		end
 		announce(("%s foi derrotado por %d caçador(es)!"):format(event.name, count), "Os participantes ganharam baús", Color3.fromRGB(120, 230, 140))
-		rewardParticipants(event.participants, 600, "prata", "CHEFE DE MUNDO DERROTADO!", "worldBoss")
+		rewardParticipants(event.participants, 2500, "real", "CHEFE DE MUNDO DERROTADO!", "worldBoss")
 	else
 		EnemyService.despawn(event.rec)
 		announce(("%s voltou para as sombras..."):format(event.name), "Ninguém conseguiu derrotá-lo a tempo", Color3.fromRGB(180, 160, 200))
@@ -219,12 +221,18 @@ function WorldEventService.start()
 			task.wait(Config.WorldBossInterval)
 		end
 	end)
-	-- invasão quando a noite cai
+	-- invasão: não é toda noite. Depois de uma, passam pelo menos Config.InvasionGapNights noites;
+	-- depois disso, cada noite tem Config.InvasionChance de chance
+	local nightsSince = Config.InvasionGapNights
 	workspace:GetAttributeChangedSignal("Night"):Connect(function()
 		if workspace:GetAttribute("Night") then
-			task.delay(20, function()
-				pcall(startInvasion)
-			end)
+			nightsSince += 1
+			if nightsSince > Config.InvasionGapNights and math.random() < Config.InvasionChance then
+				nightsSince = 0
+				task.delay(20, function()
+					pcall(startInvasion)
+				end)
+			end
 		elseif current and current.kind == "invasion" then
 			endInvasion(false)
 		end

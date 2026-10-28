@@ -1,4 +1,4 @@
-# Hunter RPG — MMORPG no Roblox (protótipo)
+# Infinite Orb — MMORPG no Roblox (protótipo)
 
 MMORPG de Hunters em mundo aberto: terreno com biomas, 4 classes com 16 habilidades, estilo de luta diferente para cada tipo de arma, estamina, profissões, NPCs de ofício, missões com história e baús com roleta.
 
