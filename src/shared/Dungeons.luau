@@ -125,6 +125,32 @@ function Dungeons.floorInfo(dungeon, floor)
 	}
 end
 
+-- ===================== MODIFICADORES DA SEMANA =====================
+-- Toda segunda-feira duas regras novas valem para todas as masmorras (iguais em todos os servidores):
+-- deixam a run mais difícil e mais recompensadora (aplicadas no spawnOptions do DungeonService).
+Dungeons.Modifiers = {
+	{ id = "furia", name = "Fúria", icon = "enrage", text = "Inimigos causam +25% de dano", damage = 1.25, reward = 1.25 },
+	{ id = "fortificados", name = "Fortificados", icon = "checked-shield", text = "Inimigos com +40% de vida", hp = 1.4, reward = 1.3 },
+	{ id = "elite", name = "Horda de Elite", icon = "crown", text = "1 em cada 6 inimigos é Elite", elite = 1 / 6, reward = 1.2 },
+	{ id = "tirania", name = "Tirania", icon = "skull-crack", text = "Salas de chefe: +50% de vida e +20% de dano", bossHp = 1.5, bossDamage = 1.2, reward = 1.25 },
+	{ id = "veteranos", name = "Veteranos", icon = "medal", text = "Inimigos 3 níveis acima", levels = 3, reward = 1.2 },
+}
+
+function Dungeons.week(time)
+	return math.floor(((time or os.time()) - 4 * 86400) / 604800)
+end
+
+-- os 2 modificadores desta semana
+function Dungeons.weeklyModifiers(week)
+	local rng = Random.new((week or Dungeons.week()) * 104729 + 7)
+	local pool = table.clone(Dungeons.Modifiers)
+	local picked = {}
+	for _ = 1, 2 do
+		table.insert(picked, table.remove(pool, rng:NextInteger(1, #pool)))
+	end
+	return picked
+end
+
 Dungeons.List = {}
 Dungeons.ById = {}
 Dungeons.ByMaterial = {}

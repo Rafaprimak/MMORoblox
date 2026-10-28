@@ -8,6 +8,7 @@ local Items = require(Shared.Items)
 local Perks = require(Shared.Perks)
 
 local UI = require(script.Parent.UI)
+local Popups = require(script.Parent.Popups)
 local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Sounds = require(script.Parent.Sounds)
@@ -73,7 +74,26 @@ local function renderPortal()
 	local members = if inLobby then table.concat(names, "   ") else "você ainda não entrou no grupo"
 	text(portal.body, { Text = ("Grupo (%d/%d): %s"):format(if inLobby then #lobby.members else 0, Dungeons.MaxPlayers, members), Size = UDim2.new(1, 0, 0, 36), LayoutOrder = 5, Parent = portal.body })
 	text(portal.body, { Text = "Uma corrida só, do andar 1 ao 20: sair ou deixar o grupo é recomeçar. Começa quando TODOS derem Pronto. A vida dos inimigos cresce com o grupo; tanque, suporte e dano fazem diferença.", Size = UDim2.new(1, 0, 0, 36), TextSize = 13, TextColor3 = UI.Colors.SubText, LayoutOrder = 6, Parent = portal.body })
+	-- modificadores da semana (deixam mais difícil e mais recompensador)
+	local modifiers = {}
+	for _, modifier in Dungeons.weeklyModifiers() do
+		table.insert(modifiers, ("%s: %s"):format(modifier.name, modifier.text))
+	end
+	text(portal.body, { Text = "Semana: " .. table.concat(modifiers, "  •  ") .. "  (recompensas maiores)", Size = UDim2.new(1, 0, 0, 34), TextSize = 13, TextColor3 = Color3.fromRGB(255, 150, 110), LayoutOrder = 6, Parent = portal.body })
 	local row = UI.new("Frame", { Size = UDim2.new(1, 0, 0, 40), BackgroundTransparency = 1, LayoutOrder = 7, Parent = portal.body }, { UI.list(8, true) })
+	local rankingButton = UI.button({ Text = "Ranking da semana", Size = UDim2.fromOffset(170, 38), BackgroundColor3 = UI.Colors.Dark, LayoutOrder = 9, Parent = row })
+	rankingButton.MouseButton1Click:Connect(function()
+		local result = State.request("dungeonRanking", dungeon.id)
+		if not result or not result.ok then
+			Popups.message(result and result.msg or "Ranking indisponível.", UI.Colors.SubText)
+			return
+		end
+		local lines = {}
+		for _, entry in result.list do
+			table.insert(lines, ("%d. %d:%02d  —  %s"):format(entry.position, math.floor(entry.seconds / 60), entry.seconds % 60, entry.names))
+		end
+		Popups.banner(("MELHORES TEMPOS: %s"):format(string.upper(dungeon.name)), if #lines > 0 then table.concat(lines, "\n") else "Ninguém completou os 20 andares nesta semana. Seja o primeiro!", UI.Colors.Gold, 8)
+	end)
 	local joinButton = UI.button({ Text = if inLobby then "Sair do grupo" else "Entrar no grupo", Size = UDim2.fromOffset(180, 38), BackgroundColor3 = if inLobby then Color3.fromRGB(150, 60, 60) else UI.Colors.Accent, Parent = row })
 	joinButton.MouseButton1Click:Connect(function()
 		if inLobby then

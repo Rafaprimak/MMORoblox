@@ -7,6 +7,7 @@
 -- O grupo só entra quando TODOS dão "Pronto" no portal. Inimigos usam o EnemyService com
 -- "acampamentos" de sala (piso plano em floorY, paredes em bounds, sem renascer).
 local Players = game:GetService("Players")
+local DataStoreService = game:GetService("DataStoreService")
 local TweenService = game:GetService("TweenService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -173,8 +174,77 @@ local function destroyFloor(state)
 	end
 end
 
+-- opções de cada inimigo da sala + modificadores da semana (Dungeons.weeklyModifiers)
 local function spawnOptions(state, room)
-	return { hpMult = room.camp.hpMult, damageMult = room.camp.damageMult, levelBonus = room.camp.levelBonus, rewardMult = state.info.rewardMult }
+	local options = { hpMult = room.camp.hpMult or 1, damageMult = room.camp.damageMult or 1, levelBonus = room.camp.levelBonus or 0, rewardMult = state.info.rewardMult or 1 }
+	for _, modifier in Dungeons.weeklyModifiers() do
+		options.hpMult *= modifier.hp or 1
+		options.damageMult *= modifier.damage or 1
+		options.levelBonus += modifier.levels or 0
+		options.rewardMult *= modifier.reward or 1
+		if room.boss then
+			options.hpMult *= modifier.bossHp or 1
+			options.damageMult *= modifier.bossDamage or 1
+		end
+		if modifier.elite and math.random() < modifier.elite then
+			options.forceElite = true
+		end
+	end
+	return options
+end
+
+-- ===================== RANKING DE TEMPO =====================
+-- Melhor tempo da semana por masmorra (20 andares), guardado pelo líder do grupo.
+local function rankingStore(dungeonId)
+	return DataStoreService:GetOrderedDataStore(("MasmorraTempo_%s_%d"):format(dungeonId, Dungeons.week()))
+end
+
+local function saveTime(run, seconds)
+	local leader = run.leader
+	if not leader then
+		return
+	end
+	local names = {}
+	for member in run.members do
+		table.insert(names, member.DisplayName)
+	end
+	pcall(function()
+		rankingStore(run.dungeon.id):UpdateAsync(tostring(leader.UserId), function(best)
+			if best and best <= seconds then
+				return nil
+			end
+			return seconds
+		end)
+	end)
+	pcall(function()
+		DataStoreService:GetDataStore("MasmorraTempoGrupos"):SetAsync(("%s_%d_%d"):format(run.dungeon.id, Dungeons.week(), leader.UserId), names)
+	end)
+end
+
+local rankingCache = {}
+function DungeonService.ranking(_player, dungeonId)
+	local dungeon = typeof(dungeonId) == "string" and Dungeons.ById[dungeonId]
+	if not dungeon then
+		return { ok = false, msg = "Masmorra inválida." }
+	end
+	local cached = rankingCache[dungeonId]
+	if cached and os.clock() - cached.time < 60 then
+		return { ok = true, list = cached.list, modifiers = Dungeons.weeklyModifiers() }
+	end
+	local list = {}
+	local ok = pcall(function()
+		local page = rankingStore(dungeonId):GetSortedAsync(true, 10):GetCurrentPage()
+		local groups = DataStoreService:GetDataStore("MasmorraTempoGrupos")
+		for position, entry in page do
+			local names = groups:GetAsync(("%s_%d_%s"):format(dungeonId, Dungeons.week(), entry.key))
+			table.insert(list, { position = position, seconds = entry.value, names = if type(names) == "table" then table.concat(names, ", ") else "?" })
+		end
+	end)
+	if not ok then
+		return { ok = false, msg = "Ranking indisponível (precisa do jogo publicado).", modifiers = Dungeons.weeklyModifiers() }
+	end
+	rankingCache[dungeonId] = { time = os.clock(), list = list }
+	return { ok = true, list = list, modifiers = Dungeons.weeklyModifiers() }
 end
 
 -- ponto aleatório dentro de uma sala, longe das paredes
@@ -967,6 +1037,7 @@ local function launch(dungeonId)
 		floor = 1,
 		started = os.clock(),
 		finished = false,
+		leader = group[1],
 	}
 	table.insert(runs, run)
 	for _, member in group do
@@ -1226,6 +1297,7 @@ local function update(run)
 		for player in run.members do
 			DungeonService.QuestHook(player, "dungeon", run.dungeon.id, 1)
 		end
+		task.spawn(saveTime, run, math.floor(elapsed))
 	elseif room.boss then
 		notifyRun(run, { kind = "banner", text = "CHEFE DERROTADO!", sub = "Abram o baú; a escada para o próximo andar está aberta", color = Color3.fromRGB(255, 215, 90), duration = 4 })
 	else

@@ -390,6 +390,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return GuildService.chat(player, a)
 	elseif action == "guildRanking" then
 		return GuildService.ranking(player)
+	elseif action == "dungeonRanking" then
+		return DungeonService.ranking(player, a)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
