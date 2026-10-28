@@ -797,7 +797,7 @@ function DungeonService.claim(player, run, state, claimed, kind)
 	PlayerService.addMaterial(player, dungeon.material, (if secret then 3 else 4) + math.floor(floor / (if secret then 2 else 1)))
 	-- item exclusivo: sempre no baú do chefe (raridade mínima sobe a cada chefe); 35% no secreto
 	if not secret or math.random() < 0.35 then
-		local item = Items.rollDrop(dungeon.loot, data.level, "chestWeight", info.minRarity)
+		local item = Items.rollDrop(dungeon.loot, data.level, "dungeonWeight", math.max(3, info.minRarity))
 		PlayerService.addItem(player, item, { silent = true })
 		task.delay(0.6, function()
 			Remotes.Notify:FireClient(player, { kind = "chest", chest = if info.minRarity >= 4 or secret then "real" else "prata", item = Items.describe(item, false) })
@@ -815,7 +815,7 @@ local function objectiveReward(run, state)
 		PlayerService.addMaterial(player, dungeon.material, 2 + math.floor(state.floor / 4))
 		if math.random() < 0.12 then
 			local data = DataService.get(player)
-			local item = Items.rollDrop(dungeon.loot, data and data.level or 1, "weight", math.max(2, Dungeons.tier(state.floor)))
+			local item = Items.rollDrop(dungeon.loot, data and data.level or 1, "dungeonWeight", 3 + math.floor(Dungeons.tier(state.floor) / 3))
 			PlayerService.addItem(player, item)
 		end
 		DungeonService.QuestHook(player, "dungeonObjective", dungeon.id, 1)
@@ -1102,7 +1102,7 @@ function DungeonService.onEnemyKilled(player, rec)
 	end
 	if not rec.def.boss and math.random() < (if rec.elite then 0.08 else 0.02) then
 		local data = DataService.get(player)
-		local item = Items.rollDrop(dungeon.loot, data and data.level or rec.level, "weight", math.max(2, Dungeons.tier(camp.floor)))
+		local item = Items.rollDrop(dungeon.loot, data and data.level or rec.level, "dungeonWeight", 3 + math.floor(Dungeons.tier(camp.floor) / 3))
 		LootService.spawnDrop(player, item, rec.pos)
 	end
 end
@@ -1132,15 +1132,19 @@ function DungeonService.buy(player, index)
 	return { ok = true }
 end
 
--- Item exclusivo escolhido (raridade Rara, nível do jogador), pago com o material da masmorra dele
-function DungeonService.buyLoot(player, baseId)
+-- Item exclusivo escolhido (raridade escolhida em Dungeons.LootPrices, nível do jogador), pago com o
+-- material da masmorra dele
+function DungeonService.buyLoot(player, baseId, tierIndex)
 	local base = typeof(baseId) == "string" and Items.Bases[baseId]
 	local dungeon = base and base.dungeon and Dungeons.ById[base.dungeon]
 	local data = DataService.get(player)
 	if not dungeon or not data then
 		return { ok = false, msg = "Item inválido." }
 	end
-	local price = Dungeons.LootPrice
+	local price = Dungeons.LootPrices[tonumber(tierIndex) or 1]
+	if not price then
+		return { ok = false, msg = "Raridade inválida." }
+	end
 	local ok, msg = pay(player, price.gold, dungeon.material, price.material)
 	if not ok then
 		return { ok = false, msg = msg }

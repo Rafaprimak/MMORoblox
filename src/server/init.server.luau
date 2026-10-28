@@ -450,7 +450,7 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 	elseif action == "dungeonBuy" then
 		return DungeonService.buy(player, a)
 	elseif action == "dungeonBuyLoot" then
-		return DungeonService.buyLoot(player, a)
+		return DungeonService.buyLoot(player, a, b)
 	elseif action == "tutorial" then
 		return PlayerService.tutorial(player, a)
 	elseif action == "dev" and RunService:IsStudio() then

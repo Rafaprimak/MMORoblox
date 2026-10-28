@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Dungeons = require(Shared.Dungeons)
+local Rarities = require(Shared.Rarities)
 local Items = require(Shared.Items)
 local Perks = require(Shared.Perks)
 
@@ -177,8 +178,7 @@ local function renderShop(force)
 			end)
 		end
 	elseif shop.win.tab == "Exclusivos" then
-		local price = Dungeons.LootPrice
-		text(shop.list, { Text = ("Itens que só existem nas masmorras, sempre com o perk de assinatura. Aqui saem %s; nos baús dos chefes podem sair melhores."):format(price.rarity), Size = UDim2.new(1, 0, 0, 36), TextSize = 13, TextColor3 = UI.Colors.SubText, LayoutOrder = 1, Parent = shop.list })
+		text(shop.list, { Text = "Itens que só existem nas masmorras, sempre com o perk de assinatura. Escolha a raridade: Raro, Épico ou Lendário. Nos baús dos chefes podem sair até Míticos e Secretos.", Size = UDim2.new(1, 0, 0, 36), TextSize = 13, TextColor3 = UI.Colors.SubText, LayoutOrder = 1, Parent = shop.list })
 		local order = 2
 		for _, dungeon in Dungeons.List do
 			text(shop.list, { Text = string.upper(dungeon.name), LayoutOrder = order, TextColor3 = UI.Colors.Gold, Parent = shop.list })
@@ -188,20 +188,28 @@ local function renderShop(force)
 				local perk = Perks.List[base.signature]
 				local row = shopRow(shop.list, order, 58)
 				order += 1
-				ItemIcon.new(row, baseId, "Raro", { Size = UDim2.fromOffset(52, 52), Position = UDim2.fromOffset(2, 3) })
+				ItemIcon.new(row, baseId, "Epico", { Size = UDim2.fromOffset(52, 52), Position = UDim2.fromOffset(2, 3) })
 				local setName = base.set and Items.Sets[base.set] and ("  •  conjunto " .. Items.Sets[base.set].name) or ""
-				text(row, { Text = ("%s  •  %s%s"):format(base.name, if base.weaponType then Items.WeaponTypes[base.weaponType].name else Items.Slots[base.slot].name, setName), Position = UDim2.fromOffset(58, 5), Size = UDim2.new(1, -214, 0, 18), Parent = row })
-				text(row, { Text = ("%s: %s"):format(perk.name, perk.text), Position = UDim2.fromOffset(58, 24), Size = UDim2.new(1, -214, 0, 30), TextSize = 12, TextColor3 = Color3.fromRGB(200, 180, 255), Parent = row })
-				local button = UI.button({ Text = ("%d %s"):format(price.material, Items.Materials[dungeon.material].name), AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(140, 38), BackgroundColor3 = Color3.fromRGB(120, 70, 170), Parent = row })
-				button.MouseButton1Click:Connect(function()
-					local result = State.request("dungeonBuyLoot", baseId)
-					if result and result.ok then
-						Sounds.play("lootRare", 1, 0.6)
-					end
-				end)
+				text(row, { Text = ("%s  •  %s%s"):format(base.name, if base.weaponType then Items.WeaponTypes[base.weaponType].name else Items.Slots[base.slot].name, setName), Position = UDim2.fromOffset(58, 5), Size = UDim2.new(1, -300, 0, 18), Parent = row })
+				text(row, { Text = ("%s: %s"):format(perk.name, perk.text), Position = UDim2.fromOffset(58, 24), Size = UDim2.new(1, -300, 0, 30), TextSize = 12, TextColor3 = Color3.fromRGB(200, 180, 255), Parent = row })
+				local buttons = UI.new("Frame", { AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(234, 40), BackgroundTransparency = 1, Parent = row }, { UI.list(4, true) })
+				for tierIndex, price in Dungeons.LootPrices do
+					local rarity = Rarities.ById[price.rarity]
+					local button = UI.button({ Text = ("%s\n%d"):format(rarity.name, price.material), Size = UDim2.fromOffset(74, 40), LayoutOrder = tierIndex, BackgroundColor3 = rarity.color:Lerp(Color3.new(0, 0, 0), 0.45), TextSize = 12, TextScaled = false, Parent = buttons })
+					button.MouseButton1Click:Connect(function()
+						local result = State.request("dungeonBuyLoot", baseId, tierIndex)
+						if result and result.ok then
+							Sounds.play("lootRare", 1, 0.6)
+						end
+					end)
+				end
 			end
 		end
-		text(shop.list, { Text = ("Cada um custa %s ouro + %d do material da masmorra dele."):format(UI.formatNumber(price.gold), price.material), LayoutOrder = order, TextColor3 = UI.Colors.SubText, Parent = shop.list })
+		local prices = {}
+		for _, price in Dungeons.LootPrices do
+			table.insert(prices, ("%s: %s ouro + %d"):format(Rarities.ById[price.rarity].name, UI.formatNumber(price.gold), price.material))
+		end
+		text(shop.list, { Text = "Preço (ouro + material da masmorra do item): " .. table.concat(prices, "  •  "), LayoutOrder = order, TextColor3 = UI.Colors.SubText, Parent = shop.list })
 	else
 		local best = dungeonInfo(data).best or {}
 		for i, dungeon in Dungeons.List do

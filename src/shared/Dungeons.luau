@@ -99,7 +99,12 @@ Dungeons.Shop = {
 	{ kind = "key", id = "chave_abismo", gold = 1500, material = { "fragmento_alma", 30 } },
 }
 -- Preço de um item exclusivo (raridade Rara, nível do jogador) no mercador; o material é o da masmorra dele
-Dungeons.LootPrice = { gold = 400, material = 40, rarity = "Raro" }
+-- Mercador: o mesmo item exclusivo em três raridades (preço sobe muito)
+Dungeons.LootPrices = {
+	{ rarity = "Raro", gold = 400, material = 40 },
+	{ rarity = "Epico", gold = 1500, material = 120 },
+	{ rarity = "Lendario", gold = 5000, material = 350 },
+}
 
 -- Faixa (1 a 4) de um andar
 function Dungeons.tier(floor)
