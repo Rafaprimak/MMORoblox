@@ -1,4 +1,4 @@
--- Compras com Robux (developer products de Config.Products): Baú Celestial e Ovo Celestial.
+-- Compras com Robux (developer products de Config.Products): Baú Celestial, Ovo Celestial e Passe Premium.
 -- ProcessReceipt entrega uma única vez por compra (data.purchases guarda o PurchaseId) e salva na hora.
 -- Itens aleatórios pagos: as chances ficam sempre visíveis antes da compra (janelas do Baú e dos Ovos).
 local Players = game:GetService("Players")
@@ -12,6 +12,7 @@ local Config = require(Shared.Config)
 local DataService = require(script.Parent.DataService)
 local ShopService = require(script.Parent.ShopService)
 local PetService = require(script.Parent.PetService)
+local ProgressionService = require(script.Parent.ProgressionService)
 
 local MonetizationService = {}
 
@@ -30,6 +31,8 @@ local function grant(player, key)
 		ShopService.grant(player, product.target)
 	elseif product.kind == "egg" then
 		PetService.grantEgg(player, product.target)
+	elseif product.kind == "pass" then
+		ProgressionService.unlockPremium(player)
 	end
 end
 

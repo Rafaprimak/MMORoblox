@@ -107,7 +107,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Corrigido: o chefe nunca era marcado como chefe (`def.boss`), então a barra do chefe e a música de chefe não apareciam
 - ⬜ Novas regiões e níveis 20–40: Pântano Venenoso, Deserto de Âmbar, Pico Vulcânico, cada uma com 3 inimigos, 1 chefe e recursos tier 3 (G)
 - ⬜ World boss com horário e anúncio global, com recompensa por participação (M)
-- ⬜ Eventos sazonais com skins temporárias (Halloween, Natal), seguindo a ideia da "camada de meme rotativa" (M)
+- 🧪 Eventos sazonais por data (Noite das Abóboras 15/10–05/11, Festival de Inverno 10/12–06/01, Carnaval 05–25/02, Festa Junina em junho): enfeites na vila (abóboras acesas e espantalho; árvore de Natal, presentes e neve; bandeirinhas e confete; fogueira), bônus do evento (XP à noite, ouro, XP, drops), meta de 150 abates com título próprio e prêmio, cartão na Jornada; botão "Evento" no Studio para testar todos (M)
 - ⬜ Mais missões secundárias, missões repetíveis por região e uma cadeia da história para ranks B → S (M)
 - ⬜ Pesca como profissão (o píer e o lago já existem) (M)
 - ⬜ Culinária: comidas com buffs temporários (M)
@@ -149,6 +149,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 ## Fase 5 — Economia e monetização (sem pay-to-win)
 
 - 🧪 **VIP** (game pass, `Config.VipGamePassId`): Auto Caçar (tecla N), 100% AFK (reconecta no mesmo servidor antes do limite de 20 min do Roblox e volta caçando; quem morre volta ao ponto de caça). Falta criar o game pass no Creator Hub e colar o ID (P)
+- 🧪 **Temporadas** de 8 semanas (`Seasons`): o Passe do Hunter vira o passe da temporada (recomeça a cada temporada) com **trilha Premium** (Robux, `pass_premium`: uma recompensa a mais em cada tier, título arco-íris no 50, tudo visível antes de comprar); a pontuação da Arena também recomeça (metade da diferença para 1000); aba "Temporada" na Jornada. Falta criar o produto e colar o ID (M)
 - 🧪 **Baú Celestial e Ovo Celestial** (developer products em `Config.Products`): só Lendário/Mítico/Secreto (78% / 19,5% / 2,5%) e só pets Lendários para cima (4 pets novos), com as chances na janela antes da compra; entrega única por compra (`data.purchases`). Falta criar os produtos e colar os IDs (P)
 - 🧪 Presentes por tempo seguido no mesmo servidor: 8 presentes de 5 a 120 min (tecla U) (P)
 - 🧪 XP mais difícil: curva `60·nível^1,75` e inimigos muito abaixo do seu nível dão pouco XP (P)

@@ -1,4 +1,5 @@
--- Progressão de longo prazo: sequência de login diário, Passe do Hunter (trilha grátis de 50 tiers),
+-- Progressão de longo prazo: sequência de login diário, Passe do Hunter da temporada (50 tiers, trilha grátis
+-- e trilha Premium comprada com Robux; recomeça a cada temporada de Seasons),
 -- conquistas com tiers e títulos, e recompensas por marcos de nível.
 -- Recompensas aceitas: gold, materials, consumables, egg (id do ovo), chest (id do baú), title, passXp.
 local Progression = {}
@@ -57,6 +58,27 @@ function Progression.passReward(tier)
 		return { materials = { essencia = 2 + math.floor(tier / 8), minerio_ferro = 4 } }
 	end
 	return { gold = 100 + tier * 30, materials = { minerio_mitril = 1 + math.floor(tier / 15) } }
+end
+
+-- trilha Premium (Config.Products.pass_premium): uma recompensa a mais em cada tier, bem mais forte.
+-- Nada aleatório pago: o passe mostra todas as recompensas antes da compra.
+function Progression.passPremiumReward(tier)
+	if tier == 50 then
+		return { title = "lenda_temporada", egg = "lendario", chest = "real", gold = 10000 }
+	end
+	if tier % 10 == 0 then
+		return { egg = if tier >= 30 then "lendario" else "raro", gold = tier * 150 }
+	end
+	if tier % 5 == 0 then
+		return { chest = if tier < 25 then "prata" else "real", gold = tier * 80 }
+	end
+	local kind = tier % 3
+	if kind == 1 then
+		return { gold = 400 + tier * 80 }
+	elseif kind == 2 then
+		return { consumables = { elixir_forca = 1, pocao_vida = 3 }, materials = { essencia = 3 + math.floor(tier / 6) } }
+	end
+	return { materials = { minerio_mitril = 2 + math.floor(tier / 10), essencia = 2 } }
 end
 
 -- ===================== CONQUISTAS =====================
@@ -160,6 +182,7 @@ Progression.Titles = {
 	gladiador_platina = { name = "Gladiador de Platina", color = Color3.fromRGB(120, 230, 210) },
 	gladiador_diamante = { name = "Gladiador de Diamante", color = Color3.fromRGB(120, 180, 255) },
 	campeao_arena = { name = "Campeão da Arena", color = Color3.fromRGB(255, 90, 90), rainbow = true },
+	lenda_temporada = { name = "Lenda da Temporada", color = Color3.fromRGB(255, 220, 120), rainbow = true },
 	-- eventos sazonais (Seasons.Events)
 	cacador_aboboras = { name = "Caçador de Abóboras", color = Color3.fromRGB(255, 140, 40) },
 	espirito_inverno = { name = "Espírito do Inverno", color = Color3.fromRGB(150, 225, 255) },

@@ -147,6 +147,7 @@ Config.VipGamePassId = 0
 Config.Products = {
 	chest_celestial = { id = 0, robux = 159, kind = "chest", target = "celestial" },
 	egg_celestial = { id = 0, robux = 159, kind = "egg", target = "celestial" },
+	pass_premium = { id = 0, robux = 399, kind = "pass" }, -- Passe Premium da temporada atual (não é aleatório)
 }
 
 -- ===== Fusão de equipamentos (como o cubo do Task Bar Hero) =====

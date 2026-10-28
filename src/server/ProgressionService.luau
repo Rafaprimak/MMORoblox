@@ -1,4 +1,4 @@
--- Progressão viciante: login diário em sequência, Passe do Hunter, conquistas com títulos e marcos de nível.
+-- Progressão viciante: login diário em sequência, Passe do Hunter da temporada (grátis + Premium), conquistas com títulos e marcos de nível.
 -- Tudo é contado a partir dos ganchos de missão (QuestHook), que o init também repassa para cá.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -8,6 +8,7 @@ local Progression = require(Shared.Progression)
 local Items = require(Shared.Items)
 local Pets = require(Shared.Pets)
 local Chests = require(Shared.Chests)
+local Seasons = require(Shared.Seasons)
 local Remotes = require(Shared.Remotes)
 
 local DataService = require(script.Parent.DataService)
@@ -21,8 +22,19 @@ local function today()
 	return math.floor(os.time() / 86400)
 end
 
+-- o passe é da temporada: virou a temporada, recomeça do zero (trilha Premium também)
+local function checkSeason(p)
+	local season = Seasons.index()
+	if p.pass.season ~= season then
+		p.pass = { xp = 0, tier = 0, claimed = 0, claimedPremium = 0, premium = false, season = season }
+	end
+end
+
 local function progress(player)
 	local data = DataService.get(player)
+	if data and data.progress then
+		checkSeason(data.progress)
+	end
 	return data and data.progress, data
 end
 
@@ -97,18 +109,42 @@ function ProgressionService.claimPass(player)
 		return { ok = false, msg = "Dados indisponíveis." }
 	end
 	local pass = p.pass
-	if pass.claimed >= pass.tier then
+	local premiumPending = pass.premium and pass.claimedPremium < pass.tier
+	if pass.claimed >= pass.tier and not premiumPending then
 		return { ok = false, msg = "Nada para resgatar. Continue jogando para subir de tier!" }
 	end
-	local total = {}
+	local count = 0
 	while pass.claimed < pass.tier do
 		pass.claimed += 1
-		local reward = Progression.passReward(pass.claimed)
-		ProgressionService.grant(player, reward)
-		table.insert(total, pass.claimed)
+		ProgressionService.grant(player, Progression.passReward(pass.claimed))
+		count += 1
 	end
-	Remotes.Notify:FireClient(player, { kind = "reward", title = ("Passe do Hunter: %d recompensa(s)!"):format(#total), text = "Tiers " .. table.concat(total, ", ") })
-	return { ok = true, count = #total }
+	while pass.premium and pass.claimedPremium < pass.tier do
+		pass.claimedPremium += 1
+		ProgressionService.grant(player, Progression.passPremiumReward(pass.claimedPremium))
+		count += 1
+	end
+	Remotes.Notify:FireClient(player, { kind = "reward", title = ("Passe do Hunter: %d recompensa(s)!"):format(count), text = ("Até o tier %d%s"):format(pass.tier, if pass.premium then " (grátis + Premium)" else "") })
+	return { ok = true, count = count }
+end
+
+-- compra do Passe Premium (MonetizationService): libera a trilha Premium da temporada atual
+function ProgressionService.unlockPremium(player)
+	local p = progress(player)
+	if not p then
+		return
+	end
+	if p.pass.premium then
+		-- já tinha o Premium nesta temporada: a compra não fica sem nada
+		for _ = 1, 3 do
+			ShopService.grant(player, "real")
+		end
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "PASSE PREMIUM", sub = "Você já tinha o Premium: ganhou 3 baús Reais", color = Color3.fromRGB(255, 210, 100), duration = 4 })
+	else
+		p.pass.premium = true
+		Remotes.Notify:FireClient(player, { kind = "banner", text = "PASSE PREMIUM LIBERADO!", sub = "Resgate as recompensas Premium na Jornada (tecla K)", color = Color3.fromRGB(255, 210, 100), duration = 5 })
+	end
+	PlayerService.markDirty(player)
 end
 
 -- ===================== LOGIN DIÁRIO =====================
@@ -252,7 +288,7 @@ function ProgressionService.summary(player)
 	end
 	return {
 		login = { canClaim = canLogin, streak = streak, nextDay = (streak % #Progression.Login) + 1 },
-		pass = { tier = p.pass.tier, xp = p.pass.xp, need = if p.pass.tier >= Progression.PassMaxTier then 2000 else Progression.passXpFor(p.pass.tier + 1), claimed = p.pass.claimed },
+		pass = { tier = p.pass.tier, xp = p.pass.xp, need = if p.pass.tier >= Progression.PassMaxTier then 2000 else Progression.passXpFor(p.pass.tier + 1), claimed = p.pass.claimed, premium = p.pass.premium, claimedPremium = p.pass.claimedPremium, season = p.pass.season },
 		achievements = achievements,
 		titles = titles,
 		title = p.title or "",

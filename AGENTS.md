@@ -23,7 +23,7 @@ Este arquivo é a fonte da verdade sobre **como trabalhar neste projeto**. Leia 
 3. **Não quebre o determinismo do mundo.** `src/shared/World.luau` é usado pelo servidor (terreno, altura dos inimigos) e pelo cliente (mapa, nomes de região). Mudar ruído, sementes ou pesos muda o mapa inteiro e pode colocar acampamentos, NPCs e pedras dentro de montanhas ou da água. Se mudar, confira as posições em `Enemies.Camps`, `NPCs.List`, `World.Locations` e `World.Waystones`.
 4. **Evite `require` circular.** Use os *ganchos* (seção 5) em vez de um serviço exigir outro que já o exige.
 5. **Mudou o formato do save?** Mantenha compatibilidade em `DataService.defaultData()` (o `reconcile` completa campos novos). Se for incompatível, troque `Config.DataStoreName` (ex.: `HunterRPG_v3`) e anote no ROADMAP.
-6. **Nada aleatório pago com Robux sem mostrar as chances.** É regra do Roblox (*paid random items*): todas as chances em %, somando 100%, visíveis antes da compra. O Baú Celestial e o Ovo Celestial são pagos com Robux e usam as mesmas janelas de chances; qualquer produto aleatório novo precisa delas. Produto novo = entrada em `Config.Products` + entrega em `MonetizationService.grant` (nunca outro `ProcessReceipt`).
+6. **Nada aleatório pago com Robux sem mostrar as chances.** É regra do Roblox (*paid random items*): todas as chances em %, somando 100%, visíveis antes da compra. O Baú Celestial e o Ovo Celestial são pagos com Robux e usam as mesmas janelas de chances; qualquer produto aleatório novo precisa delas. O Passe Premium não é aleatório, mas mostra todas as recompensas antes da compra. Produto novo = entrada em `Config.Products` + entrega em `MonetizationService.grant` (nunca outro `ProcessReceipt`).
 7. **Atualize a documentação**: README (como rodar/controles), ROADMAP (marque o que fez) e este arquivo (se criar um padrão novo).
 8. **Commits pequenos e descritivos**, em português. Não faça commit do `tools/` nem do `.rbxlx` (já estão no `.gitignore`).
 
@@ -114,6 +114,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `PetService` | Ovos, equipar/soltar pets, XP do pet, bônus (`ExtraBonus`), drops raros |
 | `DungeonBuilder` | Peças das masmorras: salas por tema e tipo (`decor.*`), paredes com porta em arco, corredores com grade (`corridor`/`openGate`), escada, tochas |
 | `DungeonService` | Grupo no portal, cópia da masmorra longe do mapa (x ≈ 6000), um andar por vez com mecânica, objetivo extra, segredos e altar; chefes, baús, pontos de retorno, Mercador de Masmorras |
+| `EventService` | Eventos sazonais (`Seasons.Events`): enfeites na vila (`EnfeitesEvento`), bônus no `ExtraBonus` (`xpGain`, `goldFind`, `dropFind`), meta de abates com título (`data.events`), atributo `Evento` no workspace |
 | `ArenaService` | Arena PvP: fila, partidas em coliseus longe do mapa (x ≈ -12000), rodadas, pontos da temporada (`data.arena`), ranking (`Arena_T<temporada>`); preenche os ganchos `EnemyService.Proxies/ProxyDamage/ProxyDot/ProxyParried` e `AbilityService.IsAlly` |
 | `VipService` | VIP (game pass `Config.VipGamePassId`; no Studio todos são VIP) e o atributo `AutoFarm` (Auto Caçar, desliga nas masmorras) |
 | `MonetizationService` | Compras com Robux (`Config.Products`): o único `ProcessReceipt` do jogo; entrega uma vez por `PurchaseId` (`data.purchases`) e salva na hora |
@@ -225,6 +226,11 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - Regras da noite ficam em `Config.Night*` (dano e Elites dos inimigos, XP/ouro/drops). Para algo novo "só à noite", leia `workspace:GetAttribute("Night")`.
 - Configurações novas: adicione em `Config.DefaultSettings` (o `reconcile` completa saves antigos), na janela `SettingsWindow` e leia com `Prefs.get(chave)`. O servidor valida em `PlayerService.saveSettings`.
 - `Fx.hit` recebe o `element` do golpe (estilo da habilidade ou `fire`/`blood` pelo encantamento) para as faíscas do impacto.
+
+### Temporadas, passe e eventos
+- `Seasons.index()` dá a temporada (8 semanas desde `Seasons.Epoch`). Coisas "da temporada" guardam o número e recomeçam quando ele muda: o passe (`ProgressionService` `checkSeason`, `data.progress.pass.season`) e a Arena (`ArenaService` `arenaData`, `data.arena.season`).
+- Passe: trilha grátis `Progression.passReward(tier)` e Premium `Progression.passPremiumReward(tier)`; a compra (`Config.Products.pass_premium`, `kind = "pass"`) chama `ProgressionService.unlockPremium`.
+- Evento novo: entrada em `Seasons.Events` (datas, `bonus`, `goal`, `title`, `reward`) + título em `Progression.Titles` + função de enfeites em `EventService` (`BUILDERS`). Bônus de drop: `bonus.dropFind` (lido no abate do `init.server`).
 
 ### Arena PvP (dano entre jogadores)
 - Não existe "PvP solto": jogador só acerta jogador dentro de uma luta da arena. As consultas do `EnemyService` (`inCone`, `inRadius`, `alongSegment`, `nearest`) recebem o **atacante** como último argumento; se ele está numa luta, devolvem só os oponentes como registros `proxy = true` (com `pos`, `yaw`, `hp`, `maxHp`, `root`, `player`).

@@ -1,4 +1,5 @@
--- Jornada (tecla K): recompensa diária em sequência, Passe do Hunter, conquistas e títulos.
+-- Jornada (tecla K): temporada (Passe Premium e evento sazonal), recompensa diária em sequência,
+-- Passe do Hunter (trilha grátis + Premium), conquistas e títulos.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -6,6 +7,7 @@ local Progression = require(Shared.Progression)
 local Items = require(Shared.Items)
 local Pets = require(Shared.Pets)
 local Chests = require(Shared.Chests)
+local Seasons = require(Shared.Seasons)
 
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
@@ -13,6 +15,7 @@ local Window = require(script.Parent.Window)
 local Sounds = require(script.Parent.Sounds)
 local Popups = require(script.Parent.Popups)
 local Fx = require(script.Parent.Fx)
+local Store = require(script.Parent.Store)
 
 local JourneyWindow = {}
 
@@ -47,15 +50,64 @@ local function renderDaily(progress)
 	end)
 end
 
+-- ===================== TEMPORADA =====================
+local PREMIUM = Color3.fromRGB(255, 200, 90)
+
+local function renderSeason(progress)
+	local season = Seasons.info(os.time())
+	local pass = progress.pass
+	-- cabeçalho da temporada
+	local header = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 96), BackgroundColor3 = UI.Colors.PanelLight, LayoutOrder = 0, Parent = body }, { UI.corner(10), UI.stroke(season.color, 2, 0.3) })
+	UI.icon("star-formation", { Position = UDim2.fromOffset(12, 12), Size = UDim2.fromOffset(72, 72), Color = season.color, Parent = header })
+	UI.label({ Text = string.upper(season.name), Position = UDim2.fromOffset(96, 10), Size = UDim2.new(1, -110, 0, 28), FontFace = UI.TitleFont, TextColor3 = season.color, Parent = header }, { UI.textStroke(1) })
+	UI.label({ Text = ("Termina em %s. Na virada, o Passe do Hunter e a pontuação da Arena recomeçam (títulos e itens ficam com você)."):format(UI.formatTime(season.endsIn)), Position = UDim2.fromOffset(96, 42), Size = UDim2.new(1, -110, 0, 40), TextScaled = false, TextSize = 13, TextWrapped = true, Font = Enum.Font.GothamBold, TextColor3 = UI.Colors.SubText, Parent = header })
+	-- Passe Premium
+	local premium = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 120), BackgroundColor3 = Color3.fromRGB(50, 40, 20), BackgroundTransparency = 0.1, LayoutOrder = 1, Parent = body }, { UI.corner(10), UI.stroke(PREMIUM, 2, 0.2) })
+	UI.icon("crown", { Position = UDim2.fromOffset(12, 14), Size = UDim2.fromOffset(60, 60), Color = PREMIUM, Parent = premium })
+	UI.label({ Text = "PASSE PREMIUM DA TEMPORADA", Position = UDim2.fromOffset(84, 8), Size = UDim2.new(1, -96, 0, 24), FontFace = UI.TitleFont, TextColor3 = PREMIUM, Parent = premium }, { UI.textStroke(1) })
+	UI.label({ Text = "Uma recompensa a mais em cada um dos 50 tiers: muito ouro, baús Prata e Real, ovos Raros e Lendários e o título arco-íris \"Lenda da Temporada\". Todas as recompensas aparecem na aba Passe antes de comprar. Tiers que você já subiu são liberados na hora.", Position = UDim2.fromOffset(84, 34), Size = UDim2.new(1, -260, 0, 76), TextScaled = false, TextSize = 13, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.GothamBold, Parent = premium })
+	if pass.premium then
+		UI.label({ Text = "ATIVO", AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -16, 0.5, 0), Size = UDim2.fromOffset(150, 40), TextXAlignment = Enum.TextXAlignment.Center, FontFace = UI.TitleFont, TextColor3 = UI.Colors.Green, Parent = premium }, { UI.textStroke(1.5) })
+	else
+		local buy = UI.button({ Text = "Comprar  •  " .. Store.priceText("pass_premium"), AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -14, 0.5, 0), Size = UDim2.fromOffset(160, 44), BackgroundColor3 = Color3.fromRGB(220, 160, 40), Parent = premium })
+		buy.MouseButton1Click:Connect(function()
+			Store.buy("pass_premium")
+		end)
+	end
+	-- evento sazonal
+	local eventId = workspace:GetAttribute("Evento")
+	local event = eventId and Seasons.EventsById[eventId]
+	local eventState = State.data and State.data.event
+	if event then
+		local card = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 130), BackgroundColor3 = UI.Colors.PanelLight, LayoutOrder = 2, Parent = body }, { UI.corner(10), UI.stroke(event.color, 2, 0.2) })
+		UI.icon(event.icon, { Position = UDim2.fromOffset(12, 14), Size = UDim2.fromOffset(64, 64), Color = event.color, Parent = card })
+		UI.label({ Text = "EVENTO: " .. string.upper(event.name), Position = UDim2.fromOffset(88, 8), Size = UDim2.new(1, -100, 0, 24), FontFace = UI.TitleFont, TextColor3 = event.color, Parent = card }, { UI.textStroke(1) })
+		UI.label({ Text = event.text, Position = UDim2.fromOffset(88, 34), Size = UDim2.new(1, -100, 0, 40), TextScaled = false, TextSize = 13, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.GothamBold, TextColor3 = UI.Colors.SubText, Parent = card })
+		local title = Progression.Titles[event.title]
+		local kills = if eventState then eventState.kills else 0
+		local done = eventState ~= nil and eventState.done
+		local _, fill, label = UI.bar(card, { Position = UDim2.fromOffset(88, 82), Size = UDim2.new(1, -100, 0, 18), color = event.color })
+		UI.setBar(fill, if done then 1 else kills / event.goal)
+		label.Text = if done then "META COMPLETA" else ("%d / %d abates"):format(kills, event.goal)
+		UI.label({ Text = ("Prêmio: título \"%s\" + %s"):format(if title then title.name else "?", rewardText(event.reward or {})), Position = UDim2.fromOffset(88, 104), Size = UDim2.new(1, -100, 0, 18), TextScaled = false, TextSize = 13, Font = Enum.Font.GothamBold, TextColor3 = UI.Colors.Gold, Parent = card })
+	else
+		local nextText = {}
+		for _, entry in Seasons.Events do
+			table.insert(nextText, ("%s (%02d/%02d)"):format(entry.name, entry.from[2], entry.from[1]))
+		end
+		UI.label({ Text = "Nenhum evento agora. Próximos: " .. table.concat(nextText, ", "), Size = UDim2.new(1, -10, 0, 40), TextScaled = false, TextSize = 13, TextWrapped = true, Font = Enum.Font.GothamBold, TextColor3 = UI.Colors.SubText, LayoutOrder = 2, Parent = body })
+	end
+end
+
 -- ===================== PASSE =====================
 local function renderPass(progress)
 	local pass = progress.pass
-	UI.label({ Text = ("PASSE DO HUNTER  •  Tier %d/%d"):format(pass.tier, Progression.PassMaxTier), Size = UDim2.new(1, -10, 0, 24), TextColor3 = Color3.fromRGB(150, 210, 255), Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = body }, { UI.textStroke(1) })
+	UI.label({ Text = ("PASSE DO HUNTER  •  Tier %d/%d%s"):format(pass.tier, Progression.PassMaxTier, if pass.premium then "  •  PREMIUM" else ""), Size = UDim2.new(1, -10, 0, 24), TextColor3 = Color3.fromRGB(150, 210, 255), Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = body }, { UI.textStroke(1) })
 	local barHolder = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 20), BackgroundTransparency = 1, LayoutOrder = 1, Parent = body })
 	local _, fill, label = UI.bar(barHolder, { Size = UDim2.fromScale(1, 1), color = Color3.fromRGB(120, 190, 255) })
 	UI.setBar(fill, pass.xp / math.max(pass.need, 1))
 	label.Text = ("%s / %s XP  (ganhe XP derrotando inimigos, completando missões, fabricando e coletando)"):format(UI.formatNumber(pass.xp), UI.formatNumber(pass.need))
-	local pending = pass.tier - pass.claimed
+	local pending = pass.tier - pass.claimed + (if pass.premium then pass.tier - (pass.claimedPremium or 0) else 0)
 	local claim = UI.button({ Text = if pending > 0 then ("RESGATAR %d RECOMPENSA(S)"):format(pending) else "Suba de tier para ganhar recompensas", Size = UDim2.new(1, -10, 0, 40), BackgroundColor3 = if pending > 0 then UI.Colors.Green else UI.Colors.Dark, LayoutOrder = 2, Parent = body })
 	claim.MouseButton1Click:Connect(function()
 		if pending > 0 then
@@ -66,7 +118,7 @@ local function renderPass(progress)
 			end
 		end
 	end)
-	local grid = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, LayoutOrder = 3, Parent = body }, { UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(136, 92), CellPadding = UDim2.fromOffset(6, 6), SortOrder = Enum.SortOrder.LayoutOrder }) })
+	local grid = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, LayoutOrder = 3, Parent = body }, { UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(136, 132), CellPadding = UDim2.fromOffset(6, 6), SortOrder = Enum.SortOrder.LayoutOrder }) })
 	-- mostra a partir de alguns tiers antes do atual
 	local first = math.max(1, pass.claimed - 2)
 	for tier = first, math.min(Progression.PassMaxTier, first + 23) do
@@ -76,7 +128,12 @@ local function renderPass(progress)
 		local special = tier % 5 == 0
 		local cell = UI.new("Frame", { LayoutOrder = tier, BackgroundColor3 = if claimed then Color3.fromRGB(30, 55, 40) elseif reached then Color3.fromRGB(70, 60, 20) else UI.Colors.PanelLight, BackgroundTransparency = 0.1, Parent = grid }, { UI.corner(8), UI.stroke(if special then Color3.fromRGB(200, 150, 255) elseif reached then UI.Colors.Gold else UI.Colors.Stroke, if special then 2 else 1) })
 		UI.label({ Text = "Tier " .. tier .. (if claimed then "  (pego)" elseif reached then "  »" else ""), Position = UDim2.fromOffset(6, 4), Size = UDim2.new(1, -12, 0, 18), Font = Enum.Font.GothamBlack, Parent = cell })
-		UI.label({ Text = rewardText(reward), Position = UDim2.fromOffset(6, 26), Size = UDim2.new(1, -12, 1, -30), TextScaled = false, TextSize = 13, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.GothamBold, TextColor3 = if reached then UI.Colors.Text else UI.Colors.SubText, Parent = cell })
+		UI.label({ Text = rewardText(reward), Position = UDim2.fromOffset(6, 24), Size = UDim2.new(1, -12, 0, 48), TextScaled = false, TextSize = 13, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.GothamBold, TextColor3 = if reached then UI.Colors.Text else UI.Colors.SubText, Parent = cell })
+		-- trilha Premium (sempre visível, para saber o que se ganha antes de comprar)
+		local premiumClaimed = pass.premium and tier <= (pass.claimedPremium or 0)
+		local strip = UI.new("Frame", { Position = UDim2.new(0, 4, 1, -58), Size = UDim2.new(1, -8, 0, 54), BackgroundColor3 = Color3.fromRGB(60, 45, 15), BackgroundTransparency = if pass.premium then 0.1 else 0.45, Parent = cell }, { UI.corner(6), UI.stroke(PREMIUM, 1, if pass.premium then 0.3 else 0.7) })
+		UI.label({ Text = "PREMIUM" .. (if premiumClaimed then "  (pego)" elseif not pass.premium then "  (bloqueado)" else ""), Position = UDim2.fromOffset(4, 2), Size = UDim2.new(1, -8, 0, 14), TextScaled = false, TextSize = 11, Font = Enum.Font.GothamBlack, TextColor3 = PREMIUM, Parent = strip })
+		UI.label({ Text = rewardText(Progression.passPremiumReward(tier)), Position = UDim2.fromOffset(4, 16), Size = UDim2.new(1, -8, 1, -18), TextScaled = false, TextSize = 12, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.GothamBold, TextColor3 = if pass.premium and reached then UI.Colors.Text else UI.Colors.SubText, Parent = strip })
 	end
 end
 
@@ -150,7 +207,9 @@ local function render()
 		return
 	end
 	UI.clear(body)
-	if win.tab == "Passe" then
+	if win.tab == "Temporada" then
+		renderSeason(progress)
+	elseif win.tab == "Passe" then
 		renderPass(progress)
 	elseif win.tab == "Conquistas" then
 		renderAchievements(progress)
@@ -162,7 +221,7 @@ local function render()
 end
 
 function JourneyWindow.init(screen)
-	win = Window.create(screen, { icon = "star-formation", name = "Jornada", title = "JORNADA DO HUNTER", width = 820, height = 560, tabs = { "Diário", "Passe", "Conquistas", "Títulos" }, accent = UI.Colors.Gold })
+	win = Window.create(screen, { icon = "star-formation", name = "Jornada", title = "JORNADA DO HUNTER", width = 820, height = 560, tabs = { "Temporada", "Diário", "Passe", "Conquistas", "Títulos" }, accent = UI.Colors.Gold })
 	body = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, { UI.list(8) })
 	win.onTab = render
 	win.onOpen = render
@@ -190,7 +249,7 @@ end
 -- há algo para resgatar? (para o aviso no botão do HUD)
 function JourneyWindow.hasClaim(data)
 	local progress = data and data.progress
-	return progress ~= nil and (progress.login.canClaim or progress.pass.tier > progress.pass.claimed)
+	return progress ~= nil and (progress.login.canClaim or progress.pass.tier > progress.pass.claimed or (progress.pass.premium and progress.pass.tier > (progress.pass.claimedPremium or 0)))
 end
 
 -- avisos vindos do servidor

@@ -45,6 +45,7 @@ local GuildService = require(script.GuildService)
 local ChronicleService = require(script.ChronicleService)
 local RaidService = require(script.RaidService)
 local ArenaService = require(script.ArenaService)
+local EventService = require(script.EventService)
 local WorldEventService = require(script.WorldEventService)
 
 workspace:SetAttribute("WorldReady", false)
@@ -121,6 +122,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.chronicle = ChronicleService.summary(player)
 		payload.raid = RaidService.summary(player)
 		payload.arena = ArenaService.summary(player)
+		payload.event = EventService.summary(player)
 		payload.poiSecrets = data.poiSecrets
 	end
 end
@@ -191,6 +193,7 @@ EnemyService.OnKilled = function(rec, contributors)
 		DungeonService.onEnemyKilled(player, rec)
 		PetService.addXP(player, math.ceil(def.xp * 0.5) + 1)
 		ProgressionService.onKill(player, rec)
+		EventService.onKill(player)
 		PetService.rollDrop(player, rec)
 		-- Únicos: cada jogador que ajudou tem a sua chance (andar 20 das masmorras: dobro)
 		if def.uniques and not rec.summoned then
@@ -204,7 +207,7 @@ EnemyService.OnKilled = function(rec, contributors)
 		end
 		local rolls = (def.equipDrops or 1) + (if rec.elite then 1 else 0)
 		for _ = 1, rolls do
-			if math.random() <= def.dropChance * (if rec.elite then 3 else 1) * (if night then 1 + Config.NightDropBonus else 1) then
+			if math.random() <= def.dropChance * (if rec.elite then 3 else 1) * (if night then 1 + Config.NightDropBonus else 1) * (1 + (bonus.dropFind or 0)) then
 				local minRarity = math.max(def.minRarity or 1, if rec.elite then 2 else 1)
 				local item = Items.rollDrop(def.pool, rec.level, "weight", minRarity)
 				LootService.spawnDrop(player, item, rec.pos)
@@ -261,6 +264,9 @@ local function devGift(player, kind)
 		WorldEventService.forceBoss()
 	elseif kind == "invasion" then
 		WorldEventService.forceInvasion()
+	elseif kind == "event" then
+		local event = EventService.cycle()
+		Remotes.Notify:FireClient(player, { kind = "message", text = if event then "Evento forçado: " .. event.name else "Evento pelo calendário de novo." })
 	elseif kind == "skills" then
 		for _, id in { "mineracao", "herbalismo", "lenhador", "ferraria", "alquimia", "encantamento" } do
 			SkillService.addXP(player, id, 3000)
@@ -472,6 +478,7 @@ local function onPlayerAdded(player)
 	PlaytimeService.onPlayerAdded(player)
 	PetService.onPlayerReady(player)
 	ProgressionService.onPlayerReady(player)
+	EventService.onPlayerReady(player)
 	player.CharacterAdded:Connect(function(character)
 		player:SetAttribute("Mounted", false)
 		AntiCheat.onCharacterAdded(player)
@@ -562,6 +569,7 @@ safely("Mercado", MarketService.start)
 safely("Guildas", GuildService.start)
 safely("Raide", RaidService.init)
 safely("Arena", ArenaService.init)
+safely("Eventos sazonais", EventService.start)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)
