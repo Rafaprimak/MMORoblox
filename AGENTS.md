@@ -284,7 +284,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 | **Passiva/talento** | `Classes.Passives[classe]` (ramo, tier, máximo, stats por rank) |
 | **Recurso de coleta** | `Resources.Nodes` + regra em `Scatter` (`NODE_RULES`) + visual em `buildNode` |
 | **Objeto de cenário** | Função em `Props`, posicionamento com `Placement.canPlace` + `Placement.reserve` (obrigatório, evita sobreposição) |
-| **Local de interesse** | `Points` (kind, recompensa, baú) + construtor em `WorldGen/PointsOfInterest` (retorna onde fica o baú) |
+| **Local de interesse** | `Points` (kind, recompensa, baú, `secret` = recompensa do segredo, `guards` = inimigos do local) + construtor em `WorldGen/PointsOfInterest` (peça principal; retorna onde fica o baú) + entorno em `WorldGen/PoiAreas` (`extras[kind]`: construções em volta e o objeto do segredo, prompt `SegredoLocal`) |
 | **Local/pedra de viagem** | `World.Locations` / `World.Waystones` (+ estrada em `World.Roads` se quiser) |
 
 ## 7. Armadilhas já conhecidas (aprendidas testando)

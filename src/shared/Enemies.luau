@@ -207,10 +207,20 @@ Enemies.UniqueChance = 0.015
 
 -- Os centros acima estão em coordenadas de design; converte para studs reais (ver World.Scale)
 local World = require(script.Parent.World)
+local Points = require(script.Parent.Points)
+-- Guardas de cada local de interesse (Points[...].guards): acampamento no próprio local, já em studs reais
+for _, poi in Points.List do
+	if poi.guards then
+		table.insert(Enemies.Camps, { id = "local_" .. poi.id, poi = poi.id, center = Vector2.new(poi.x, poi.z), radius = poi.radius * 0.45, spawns = poi.guards, respawn = 20 })
+	end
+end
+
 for _, camp in Enemies.Camps do
 	-- town = true: centro relativo à praça, na escala da vila
-	camp.center = if camp.town then Vector2.new(World.TownCenter.X, World.TownCenter.Z) + camp.center * World.PropScale else camp.center * World.Scale
-	if camp.id ~= "treino" then
+	camp.center = if camp.poi then camp.center
+		elseif camp.town then Vector2.new(World.TownCenter.X, World.TownCenter.Z) + camp.center * World.PropScale
+		else camp.center * World.Scale
+	if camp.id ~= "treino" and not camp.poi then
 		camp.radius = camp.radius * 1.25
 	end
 end

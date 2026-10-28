@@ -11,6 +11,7 @@ local Remotes = require(Shared.Remotes)
 local DataService = require(script.Parent.DataService)
 local PlayerService = require(script.Parent.PlayerService)
 local ShopService = require(script.Parent.ShopService)
+local Items = require(Shared.Items)
 
 local ExploreService = {}
 
@@ -60,10 +61,47 @@ local function onChest(player, prompt)
 	PlayerService.markDirty(player)
 end
 
+-- Segredo do local: um mecanismo escondido (feno, runa, alçapão...). Recompensa uma vez por jogador.
+local function onSecret(player, prompt)
+	local poi = Points.ById[prompt:GetAttribute("PoiId") or ""]
+	local data = DataService.get(player)
+	local root = rootOf(player)
+	local holder = prompt.Parent
+	if not poi or not poi.secret or not data or not root or not holder or not holder:IsA("BasePart") then
+		return
+	end
+	if (holder.Position - root.Position).Magnitude > 16 then
+		return
+	end
+	if data.poiSecrets[poi.id] then
+		Remotes.Notify:FireClient(player, { kind = "message", text = "Você já descobriu o segredo deste lugar." })
+		return
+	end
+	data.poiSecrets[poi.id] = true
+	local reward = poi.secret
+	PlayerService.addGold(player, reward.gold or 0)
+	local extra = ""
+	if reward.material and Items.Materials[reward.material[1]] then
+		PlayerService.addMaterial(player, reward.material[1], reward.material[2])
+		extra = ("  •  +%d %s"):format(reward.material[2], Items.Materials[reward.material[1]].name)
+	end
+	Remotes.Notify:FireClient(player, {
+		kind = "banner",
+		text = "SEGREDO ENCONTRADO!",
+		sub = ("%s  +%d de ouro%s"):format(reward.text or "", reward.gold or 0, extra),
+		color = Color3.fromRGB(150, 230, 255),
+		duration = 6,
+	})
+	ExploreService.QuestHook(player, "poiSecret", poi.id, 1)
+	PlayerService.markDirty(player)
+end
+
 function ExploreService.start()
 	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 		if prompt.Name == "BauLocal" then
 			onChest(player, prompt)
+		elseif prompt.Name == "SegredoLocal" then
+			onSecret(player, prompt)
 		end
 	end)
 	task.spawn(function()

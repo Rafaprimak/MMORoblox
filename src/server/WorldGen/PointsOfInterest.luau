@@ -10,6 +10,7 @@ local Points = require(Shared.Points)
 
 local Props = require(script.Parent.Props)
 local Placement = require(script.Parent.Placement)
+local PoiAreas = require(script.Parent.PoiAreas)
 
 local PointsOfInterest = {}
 
@@ -17,7 +18,7 @@ local M = Enum.Material
 local C = Props.Colors
 local part = Props.part
 local S = World.Scale
-local SIZE = World.PropScale * 1.35
+local SIZE = World.PropScale * 1.2
 
 local STONE = Color3.fromRGB(150, 145, 135)
 local OLD_STONE = Color3.fromRGB(120, 118, 110)
@@ -402,9 +403,14 @@ function PointsOfInterest.build(parent, rng)
 				chestFrame = cf * CFrame.new(0, 0, 4)
 			end
 			treasureChest(model, chestFrame, poi)
+			-- entorno: construções, detalhes e o segredo do local
+			local okArea, areaError = pcall(PoiAreas.build, model, cf, poi, rng, SIZE, groundAt)
+			if not okArea then
+				warn("[Locais] Falha no entorno de " .. poi.id .. ": " .. tostring(areaError))
+			end
 			model.Parent = folder
 			Props.scaleModel(model, cf, SIZE)
-			Placement.reserve(poi.x, poi.z, poi.radius * 0.6, "local")
+			Placement.reserve(poi.x, poi.z, poi.radius * 0.85, "local")
 		end
 	end
 end

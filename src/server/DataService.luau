@@ -51,6 +51,7 @@ function DataService.defaultData()
 		pets = {},
 		poi = {},
 		poiChests = {},
+		poiSecrets = {}, -- [localId] = true: segredo do local já encontrado
 		dungeons = {}, -- [masmorraId] = maior andar limpo (recorde)
 		purchases = {}, -- [PurchaseId] = true (compras com Robux já entregues; evita entregar duas vezes)
 		tradeLog = {}, -- últimas 20 trocas com outros jogadores
@@ -81,7 +82,7 @@ end
 -- Campos que são dicionários livres (não devem ser "completados" com o modelo)
 local FREE_KEYS = {
 	inventory = true, equipped = true, materials = true, consumables = true, skills = true,
-	abilityRanks = true, talents = true, loadout = true, pets = true, poi = true, poiChests = true, counters = true, achievements = true, titles = true, levelRewards = true, active = true, done = true, offered = true, discovered = true,
+	abilityRanks = true, talents = true, loadout = true, pets = true, poi = true, poiChests = true, poiSecrets = true, counters = true, achievements = true, titles = true, levelRewards = true, active = true, done = true, offered = true, discovered = true,
 	dungeons = true, purchases = true, tradeLog = true,
 }
 
