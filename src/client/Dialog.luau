@@ -30,6 +30,7 @@ local SERVICE_LABELS = {
 	stable = "Montaria",
 	dungeon = "Mercado das Masmorras",
 	fusion = "Fusão de equipamentos (9 em 1)",
+	market = "Mercado dos Caçadores (leilão entre servidores)",
 }
 local SERVICE_ICONS = {
 	forge = "anvil-impact",
@@ -42,6 +43,7 @@ local SERVICE_ICONS = {
 	stable = "horse-head",
 	dungeon = "castle",
 	fusion = "round-bottom-flask",
+	market = "scales",
 }
 
 local function objectiveText(objective)

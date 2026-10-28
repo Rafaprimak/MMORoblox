@@ -50,6 +50,7 @@ local PlaytimeWindow = require(script.PlaytimeWindow)
 local FusionWindow = require(script.FusionWindow)
 local TradeWindow = require(script.TradeWindow)
 local PartyUI = require(script.PartyUI)
+local MarketWindow = require(script.MarketWindow)
 local EventTracker = require(script.EventTracker)
 local DetailCulling = require(script.DetailCulling)
 local Sounds = require(script.Sounds)
@@ -93,6 +94,7 @@ Inventory.onFusion = function()
 end
 TradeWindow.init(screen)
 PartyUI.init(screen)
+MarketWindow.init(screen)
 EventTracker.init(screen)
 PetRenderer.init()
 ClassSelect.init()
@@ -208,6 +210,7 @@ Dialog.services = {
 	pets = PetsWindow.openEggs,
 	dungeon = DungeonWindow.openShop,
 	fusion = FusionWindow.open,
+	market = MarketWindow.open,
 	classes = function()
 		Window.closeAll()
 		ClassSelect.open(true)

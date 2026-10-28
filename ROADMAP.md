@@ -119,7 +119,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Fusão de equipamentos (estilo Task Bar Hero): 9 da mesma raridade → 1 pelo menos uma raridade acima (91% +1, 8% +2, 1% +3 em `Config.Fusion`), no inventário e no Bruno (M)
 - 🧪 Pets com modelos novos e muito mais detalhados (formas arredondadas, orelhas, patinhas, asas em penas, chifres, crina, listras, coleira...) (M)
 - 🧪 VIP: loot recolhido sozinho assim que cai
-- ⬜ Leilão/mercado global (com DataStore/MemoryStore) (G)
+- 🧪 Mercado dos Caçadores (leilão entre servidores, no Otto): anunciar equipamento ou material com preço, buscar por nome/tipo/raridade, comprar de qualquer servidor, cancelar; 48 h por anúncio, taxa de 1% para anunciar e 10% na venda; à prova de duplicação (custódia no perfil + `UpdateAsync` atômico + acerto de minuto em minuto) (G)
 - ⬜ Rankings: nível, poder de equipamento, kills do chefe, por semana (M)
 - ⬜ Arena PvP opcional (duelo 1v1 e 3v3) com rank próprio (G)
 - ⬜ Emotes e chat com balões (P)

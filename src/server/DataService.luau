@@ -55,6 +55,7 @@ function DataService.defaultData()
 		dungeons = {}, -- [masmorraId] = maior andar limpo (recorde)
 		purchases = {}, -- [PurchaseId] = true (compras com Robux já entregues; evita entregar duas vezes)
 		tradeLog = {}, -- últimas 20 trocas com outros jogadores
+		market = { selling = {}, buying = {} }, -- mercado: custódia dos anúncios e das compras em andamento
 		progress = {
 			counters = {},
 			achievements = {},
@@ -83,7 +84,7 @@ end
 local FREE_KEYS = {
 	inventory = true, equipped = true, materials = true, consumables = true, skills = true,
 	abilityRanks = true, talents = true, loadout = true, pets = true, poi = true, poiChests = true, poiSecrets = true, counters = true, achievements = true, titles = true, levelRewards = true, active = true, done = true, offered = true, discovered = true,
-	dungeons = true, purchases = true, tradeLog = true,
+	dungeons = true, purchases = true, tradeLog = true, selling = true, buying = true,
 }
 
 local function reconcile(data, template)
@@ -192,8 +193,11 @@ end
 
 -- Grava (e renova a trava). release = true solta o perfil para outros servidores.
 local function write(player, data, release)
-	if not store or blockedSaves[player] then
-		return true
+	if not store then
+		return true -- save desligado (Studio sem publicar): nada a perder
+	end
+	if blockedSaves[player] then
+		return false -- perfil não abriu direito ou foi tomado: não grava (e quem depende disso, como o mercado, desiste)
 	end
 	local stolen = false
 	local ok = withRetries("Salvar " .. player.Name, function()
@@ -215,16 +219,18 @@ local function write(player, data, release)
 		if player.Parent == Players then
 			player:Kick("Seu perfil foi aberto em outro servidor.")
 		end
+		return false
 	end
 	return ok
 end
 
+-- grava agora; retorna true se gravou (ou se o save está desligado, como no Studio sem publicar)
 function DataService.save(player)
 	local data = profiles[player]
 	if not data or releasing[player] then
-		return
+		return false
 	end
-	write(player, data, false)
+	return write(player, data, false) == true
 end
 
 -- Saída do jogador: grava, solta a trava e faz a cópia de segurança

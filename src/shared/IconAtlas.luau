@@ -150,5 +150,6 @@ return {
 		["ice-spell-cast"] = { 3, 14 },
 		["magic-shield"] = { 3, 15 },
 		["shouting"] = { 3, 16 },
+		["team-idea"] = { 3, 17 },
 	},
 }

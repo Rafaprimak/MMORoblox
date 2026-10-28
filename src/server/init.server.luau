@@ -40,6 +40,7 @@ local MonetizationService = require(script.MonetizationService)
 local FusionService = require(script.FusionService)
 local TradeService = require(script.TradeService)
 local PartyService = require(script.PartyService)
+local MarketService = require(script.MarketService)
 local WorldEventService = require(script.WorldEventService)
 
 workspace:SetAttribute("WorldReady", false)
@@ -77,6 +78,7 @@ TravelService.QuestHook = questHook
 NPCService.QuestHook = questHook
 PetService.QuestHook = questHook
 ExploreService.QuestHook = questHook
+MarketService.QuestHook = questHook
 DungeonService.QuestHook = questHook
 FusionService.QuestHook = questHook
 PetService.init()
@@ -346,6 +348,16 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return PartyService.setLooking(player, a, b)
 	elseif action == "partyList" then
 		return PartyService.lookingList(player)
+	elseif action == "marketSell" then
+		return MarketService.sell(player, a, b)
+	elseif action == "marketBuy" then
+		return MarketService.buy(player, a)
+	elseif action == "marketCancel" then
+		return MarketService.cancel(player, a)
+	elseif action == "marketBrowse" then
+		return MarketService.browse(player, a)
+	elseif action == "marketMine" then
+		return MarketService.mine(player)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
 	elseif action == "autoFarm" then
@@ -386,6 +398,7 @@ local function onPlayerAdded(player)
 		return
 	end
 	QuestService.setup(player)
+	MarketService.onProfileLoaded(player)
 	VipService.onPlayerAdded(player)
 	PlaytimeService.onPlayerAdded(player)
 	PetService.onPlayerReady(player)
@@ -417,6 +430,7 @@ end
 Players.PlayerRemoving:Connect(function(player)
 	TradeService.onPlayerRemoving(player)
 	PartyService.onPlayerRemoving(player)
+	MarketService.onPlayerRemoving(player)
 	PlaytimeService.onPlayerRemoving(player)
 	DungeonService.onPlayerRemoving(player)
 	TravelService.dismount(player)
@@ -470,6 +484,7 @@ safely("Masmorras", DungeonService.init)
 safely("Robux", MonetizationService.init)
 safely("Anti-trapaça", AntiCheat.start)
 safely("Eventos do mundo", WorldEventService.start)
+safely("Mercado", MarketService.start)
 
 worldReady = true
 workspace:SetAttribute("WorldReady", true)

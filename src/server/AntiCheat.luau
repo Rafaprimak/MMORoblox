@@ -141,6 +141,11 @@ AntiCheat.ServiceActions = {
 	sellMaterial = "shop",
 	dungeonBuy = "dungeon",
 	dungeonBuyLoot = "dungeon",
+	marketSell = "market",
+	marketBuy = "market",
+	marketCancel = "market",
+	marketBrowse = "market",
+	marketMine = "market",
 }
 local SERVICE_RANGE = 40 -- studs (folga para quem anda um pouco com a janela aberta)
 
