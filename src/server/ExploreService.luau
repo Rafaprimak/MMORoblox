@@ -70,7 +70,7 @@ local function onSecret(player, prompt)
 	if not poi or not poi.secret or not data or not root or not holder or not holder:IsA("BasePart") then
 		return
 	end
-	if (holder.Position - root.Position).Magnitude > 16 then
+	if (holder.Position - root.Position).Magnitude > 22 then
 		return
 	end
 	if data.poiSecrets[poi.id] then

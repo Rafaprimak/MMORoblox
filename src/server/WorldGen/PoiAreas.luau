@@ -87,15 +87,18 @@ local function deadTree(area, dx, dz, scale)
 	Props.deadTree(area.model, ground(area, dx, dz, area.rng:NextNumber(0, 6)), scale or 0.9, area.rng)
 end
 
--- objeto do segredo: discreto, o prompt só aparece bem perto
+-- objeto do segredo: discreto, o prompt aparece perto dele. O local inteiro é ampliado depois (SIZE) e,
+-- em terreno inclinado, o objeto pode ficar um pouco acima/abaixo do personagem: por isso o alcance é
+-- folgado e o prompt aparece sempre (não some atrás do prompt do baú ou de uma placa mais perto).
 local function secret(area, cf, action, object)
-	local holder = part(area.model, { Name = "Segredo", Size = Vector3.new(1.2, 0.6, 1.2), CFrame = cf, Transparency = 1, CanCollide = false })
+	local holder = part(area.model, { Name = "Segredo", Size = Vector3.new(2, 2, 2), CFrame = cf, Transparency = 1, CanCollide = false })
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "SegredoLocal"
 	prompt.ActionText = action
 	prompt.ObjectText = object
 	prompt.HoldDuration = 1.2
-	prompt.MaxActivationDistance = 7
+	prompt.MaxActivationDistance = 12
+	prompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
 	prompt.RequiresLineOfSight = false
 	prompt:SetAttribute("PoiId", area.poi.id)
 	prompt.Parent = holder

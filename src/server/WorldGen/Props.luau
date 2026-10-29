@@ -150,13 +150,14 @@ function Props.engrave(target, text, color, faces)
 end
 
 -- Peça que dá para ler (E perto dela): o cliente abre a placa com título e texto (SignReader)
-function Props.readable(target, title, text)
+-- maxDistance: alcance do prompt (placas altas, como as das lojas, precisam de mais)
+function Props.readable(target, title, text, maxDistance)
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "LerPlaca"
 	prompt.ActionText = "Ler"
 	prompt.ObjectText = title
 	prompt.HoldDuration = 0
-	prompt.MaxActivationDistance = 12
+	prompt.MaxActivationDistance = maxDistance or 12
 	prompt.RequiresLineOfSight = false
 	prompt.KeyboardKeyCode = Enum.KeyCode.E
 	prompt:SetAttribute("Titulo", title)
