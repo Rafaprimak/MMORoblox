@@ -122,6 +122,16 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - ⬜ World boss com horário e anúncio global, com recompensa por participação (M)
 - 🧪 Eventos sazonais por data (Noite das Abóboras 15/10–05/11, Festival de Inverno 10/12–06/01, Carnaval 05–25/02, Festa Junina em junho): enfeites na vila (abóboras acesas e espantalho; árvore de Natal, presentes e neve; bandeirinhas e confete; fogueira), bônus do evento (XP à noite, ouro, XP, drops), meta de 150 abates com título próprio e prêmio, cartão na Jornada; botão "Evento" no Studio para testar todos (M)
 - ⬜ Mais missões secundárias, missões repetíveis por região e uma cadeia da história para ranks B → S (M)
+- 🧪 **Começo e meio do jogo mais cheios:**
+  - 🧪 Exame de Rank (D, C, B, A, S) com a Capitã Lyra: o nível só libera a prova; promoção com cerimônia (coluna de luz), anúncio, aura e título
+  - 🧪 Treino de cada habilidade nova (níveis 3, 6 e 10) com o Mestre Kael
+  - 🧪 Eventos dinâmicos perto do jogador a cada 4–7 min fora da vila: Fenda de Mana (2 ondas), Caravana Atacada, Morador Capturado (abrir a jaula); XP de 10% do nível
+  - 🧪 7 chefes de campo nomeados (Presa-Negra, Rasga-Terra, Tenaz, Olho-Vermelho, Tecelã Cinzenta, Sir Ossário, Musgo-Antigo), níveis 5 a 15, voltam em 7–10 min e sempre deixam Raro ou melhor
+  - 🧪 3 conjuntos do mundo (Caçador Alfa, Bando do Olho Vermelho, Juramento Caído) que caem desses chefes
+  - 🧪 18 missões secundárias novas (2 cadeias por região, Pedro, Otto e Bruno também dão missões)
+  - 🧪 XP de abate maior até o nível 20 (+100% no 1, caindo até 0) e 3 presas do dia com XP em dobro (diário, tecla J)
+  - 🧪 Aviso de novidade ao liberar masmorras, troca, Arena, guildas, raide e Lendas
+  - ⬜ Conteúdo dos níveis 20–60 (hoje a história acaba perto do 20 e o inimigo mais forte é 24)
 - ⬜ Pesca como profissão (o píer e o lago já existem) (M)
 - ⬜ Culinária: comidas com buffs temporários (M)
 

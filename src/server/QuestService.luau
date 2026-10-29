@@ -115,6 +115,14 @@ local function canAccept(data, def)
 	if def.requires.level and data.level < def.requires.level then
 		return false
 	end
+	-- treino de habilidade: só para a classe dela
+	if def.requires.class and data.class ~= def.requires.class then
+		return false
+	end
+	-- exame de rank: só o próximo rank (saves antigos já podem estar acima)
+	if def.rankExam and (data.rank or 1) ~= def.rankExam - 1 then
+		return false
+	end
 	for _, required in def.requires.quests or {} do
 		if not data.quests.done[required] then
 			return false
@@ -142,6 +150,8 @@ local function matches(objective, kind, target)
 	elseif kind == "poi" or kind == "poiSecret" or kind == "poiChest" then
 		return objective.target == nil or objective.target == target
 	elseif kind == "dungeonBoss" or kind == "dungeon" or kind == "dungeonSecret" or kind == "dungeonObjective" then
+		return objective.target == nil or objective.target == target
+	elseif kind == "ability" then
 		return objective.target == nil or objective.target == target
 	end
 	return true

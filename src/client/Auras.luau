@@ -1,4 +1,5 @@
--- Aura de rank em volta de cada jogador (desenhada no cliente, a partir do atributo "Level").
+-- Aura de rank em volta de cada jogador (desenhada no cliente, a partir do atributo "Rank", o índice
+-- em Config.Ranks que sobe nos exames).
 -- Rank E não tem aura; do D ao S ela fica mais densa e brilhante, na cor do rank.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -17,14 +18,8 @@ local Auras = {}
 -- por posição do rank em Config.Ranks
 local RATE = { 0, 2, 5, 9, 14, 22 }
 
-local function rankIndex(level)
-	local index = 1
-	for i, rank in Config.Ranks do
-		if level >= rank.minLevel then
-			index = i
-		end
-	end
-	return index
+local function rankIndex(player)
+	return math.clamp(math.floor(tonumber(player:GetAttribute("Rank")) or 1), 1, #Config.Ranks)
 end
 
 local function refresh(player)
@@ -33,7 +28,7 @@ local function refresh(player)
 	if not root then
 		return
 	end
-	local index = rankIndex(player:GetAttribute("Level") or 1)
+	local index = rankIndex(player)
 	local rank = Config.Ranks[index]
 	local emitter = root:FindFirstChild("AuraRank")
 	local light = root:FindFirstChild("LuzRank")
@@ -111,7 +106,7 @@ local function watch(player)
 		refresh(player)
 		refreshTitle(player)
 	end)
-	player:GetAttributeChangedSignal("Level"):Connect(function()
+	player:GetAttributeChangedSignal("Rank"):Connect(function()
 		refresh(player)
 	end)
 	player:GetAttributeChangedSignal("TitleId"):Connect(function()

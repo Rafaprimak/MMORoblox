@@ -133,6 +133,19 @@ Items.Bases = {
 	elmo_vigia = { name = "Elmo do Vigia", slot = "helmet", power = 26, tier = 3, dungeon = "cripta", signature = "mortalha", set = "cripta" },
 	grevas_vigia = { name = "Grevas do Vigia", slot = "boots", power = 21, tier = 3, dungeon = "cripta", signature = "mortalha", set = "cripta" },
 	elmo_magma = { name = "Elmo de Magma", slot = "helmet", power = 32, tier = 3, dungeon = "abismo", signature = "casca_abissal", set = "abismo" },
+	-- ===== conjuntos do mundo aberto (field = true: só caem dos chefes de campo; fora dos baús) =====
+	elmo_alfa = { name = "Elmo do Alfa", slot = "helmet", power = 10, tier = 1, bonus = { stamina = 10 }, set = "alfa", field = true },
+	pele_alfa = { name = "Pele do Alfa", slot = "armor", power = 26, tier = 1, bonus = { stamina = 20 }, set = "alfa", field = true },
+	botas_alfa = { name = "Botas do Alfa", slot = "boots", power = 8, tier = 1, bonus = { stamina = 15 }, set = "alfa", field = true },
+	presa_alfa = { name = "Colar de Presa Negra", slot = "amulet", power = 3, tier = 1, stats = { crit = 0.02, damage = 0.02 }, set = "alfa", field = true },
+	capuz_bando = { name = "Capuz do Bando", slot = "helmet", power = 15, tier = 2, bonus = { stamina = 15 }, set = "bando", field = true },
+	gibao_bando = { name = "Gibão do Bando", slot = "armor", power = 40, tier = 2, bonus = { stamina = 25 }, set = "bando", field = true },
+	botas_bando = { name = "Botas do Bando", slot = "boots", power = 12, tier = 2, bonus = { stamina = 20 }, set = "bando", field = true },
+	anel_bando = { name = "Anel do Olho Vermelho", slot = "ring", power = 3, tier = 2, stats = { crit = 0.02, goldFind = 0.05 }, set = "bando", field = true },
+	elmo_caido = { name = "Elmo do Cavaleiro Caído", slot = "helmet", power = 22, tier = 3, set = "caido", field = true },
+	couraca_caida = { name = "Couraça do Juramento", slot = "armor", power = 62, tier = 3, bonus = { stamina = 20 }, set = "caido", field = true },
+	grevas_caidas = { name = "Grevas do Cavaleiro Caído", slot = "boots", power = 18, tier = 3, bonus = { stamina = 15 }, set = "caido", field = true },
+	amuleto_caido = { name = "Medalhão do Juramento", slot = "amulet", power = 5, tier = 3, stats = { damage = 0.03, health = 0.04 }, set = "caido", field = true },
 	botas_brasa = { name = "Botas de Brasa", slot = "boots", power = 26, tier = 3, bonus = { stamina = 20 }, dungeon = "abismo", signature = "casca_abissal", set = "abismo" },
 
 	-- ===== RAIDE: CONJUNTO ESTELAR (só cai do Devorador de Estrelas) =====
@@ -215,12 +228,37 @@ Items.Sets = {
 			[4] = { stats = { dungeonDamage = 0.2, heavyDamage = 0.2 }, perk = "erupcao", text = "+20% de dano em masmorras, +20% de golpe pesado e Erupção (abates explodem)" },
 		},
 	},
+	-- conjuntos do mundo aberto (peças dos chefes de campo; o perk do bônus de 4 é um perk comum)
+	alfa = {
+		name = "Caçador Alfa",
+		pieces = { "elmo_alfa", "pele_alfa", "botas_alfa", "presa_alfa" },
+		bonuses = {
+			[2] = { stats = { health = 0.08, crit = 0.03 }, text = "+8% de vida e +3% de crítico" },
+			[4] = { stats = { damage = 0.06, stamina = 0.1 }, perk = "sanguessuga", text = "+6% de dano, +10% de estamina e Sanguessuga (cada abate cura 6%)" },
+		},
+	},
+	bando = {
+		name = "Bando do Olho Vermelho",
+		pieces = { "capuz_bando", "gibao_bando", "botas_bando", "anel_bando" },
+		bonuses = {
+			[2] = { stats = { goldFind = 0.1, crit = 0.03 }, text = "+10% de ouro e +3% de crítico" },
+			[4] = { stats = { damage = 0.08, dropFind = 0.1 }, perk = "golpe_final", text = "+8% de dano, +10% de chance de drop e Golpe Final (+25% nos 3 golpes depois de um abate)" },
+		},
+	},
+	caido = {
+		name = "Juramento Caído",
+		pieces = { "elmo_caido", "couraca_caida", "grevas_caidas", "amuleto_caido" },
+		bonuses = {
+			[2] = { stats = { health = 0.1, defense = 0.03 }, text = "+10% de vida e +3% de redução de dano" },
+			[4] = { stats = { damage = 0.08, critDamage = 0.1 }, perk = "contragolpe", text = "+8% de dano, +10% de dano crítico e Contragolpe (+40% de dano por 4 s depois de aparar)" },
+		},
+	},
 }
 
 -- Itens que podem sair do Baú Celestial: todo equipamento de tier 3 (sem Únicos nem exclusivos de masmorra/raide)
 Items.PremiumPool = {}
 for baseId, base in Items.Bases do
-	if (base.tier or 0) >= 3 and not base.unique and not base.dungeon and not base.raid and not base.exotic then
+	if (base.tier or 0) >= 3 and not base.unique and not base.dungeon and not base.raid and not base.exotic and not base.field then
 		table.insert(Items.PremiumPool, baseId)
 	end
 end

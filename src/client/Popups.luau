@@ -220,7 +220,7 @@ function Popups.pickup(id, count)
 	Sounds.play("ping", 2.4, 0.12)
 end
 
-local QUEST_LABELS = { daily = "CONTRATO", guild = "CONTRATO DA GUILDA", bonus = "BÔNUS DIÁRIO", main = "MISSÃO", side = "MISSÃO", lenda = "LENDA" }
+local QUEST_LABELS = { daily = "CONTRATO", guild = "CONTRATO DA GUILDA", bonus = "BÔNUS DIÁRIO", main = "MISSÃO", side = "MISSÃO", lenda = "LENDA", rank = "EXAME DE RANK", treino = "TREINO" }
 
 function Popups.handle(notification)
 	local kind = notification.kind
@@ -235,7 +235,8 @@ function Popups.handle(notification)
 		Fx.levelUp()
 	elseif kind == "rankup" then
 		local rank = Config.getRankByName(notification.rank)
-		Popups.banner("RANK " .. notification.rank .. " ALCANÇADO!", "Novas áreas e inimigos esperam por você", rank.color, 5)
+		Popups.burst("PROMOVIDO!", rank.color, "Hunter Rank " .. notification.rank)
+		task.delay(1.8, Popups.banner, "HUNTER RANK " .. notification.rank, "Aura nova e o título Hunter Rank " .. notification.rank .. " (equipe na Jornada, tecla K)", rank.color, 6)
 		Fx.shake(0.4, 0.5)
 	elseif kind == "skillup" then
 		local skill = Skills.List[notification.skill]
@@ -250,8 +251,15 @@ function Popups.handle(notification)
 				Popups.banner("Habilidade avançada disponível: " .. ability.name, "Aprenda com 1 ponto de talento (tecla C, aba Habilidades)", Color3.fromRGB(255, 220, 140), 5)
 			else
 				Popups.burst("NOVA HABILIDADE!", Color3.fromRGB(150, 220, 255), ability.name)
+				task.delay(2.2, Popups.banner, "Treino com o Mestre Kael: " .. ability.name, "Coloque na barra (tecla C) e teste no boneco de treino da vila", Color3.fromRGB(150, 220, 255), 5)
 			end
 		end
+	elseif kind == "unlock" then
+		-- novidade liberada (masmorra, arena, exame de rank...): chega depois do aviso de nível
+		task.delay(2.5, function()
+			Popups.banner("NOVIDADE: " .. tostring(notification.title), notification.text, notification.color or Color3.fromRGB(255, 215, 120), 6)
+			Sounds.play("ping", 1.3, 0.5)
+		end)
 	elseif kind == "quest" then
 		Popups.banner((QUEST_LABELS[notification.category] or "MISSÃO") .. " COMPLETA: " .. notification.title, notification.reward, UI.Colors.Green, 4.5)
 		Sounds.play("quest", 1, 0.6)

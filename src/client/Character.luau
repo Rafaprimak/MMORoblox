@@ -170,7 +170,7 @@ local function renderStats(data)
 	local weaponType = Items.WeaponTypes[stats.weaponType]
 	local rows = {
 		{ "Classe", if class then class.name else "—" },
-		{ "Nível / Rank", ("%d  •  Rank %s"):format(data.level, Config.getRank(data.level).name) },
+		{ "Nível / Rank", ("%d  •  Rank %s"):format(data.level, Config.rankAt(data.rank).name) },
 		{ "Arma", ("%s %s (maestria %d)"):format(weaponType and weaponType.icon or "", weaponType and weaponType.name or "", stats.masteryLevel) },
 		{ "Afinidade de classe", if stats.affinity then "Sim: +15% de dano" else "Não: arma de outra classe" },
 		{ "Ataque", UI.formatNumber(stats.attack) },

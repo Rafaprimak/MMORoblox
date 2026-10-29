@@ -215,9 +215,14 @@ local function draw()
 			for enemyId in camp.spawns do
 				level = math.max(level, Enemies.Defs[enemyId].level)
 			end
-			local color = if camp.boss then Color3.fromRGB(255, 90, 70) else Color3.fromRGB(255, 200, 190)
-			local holder = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz), Size = UDim2.fromOffset(40, 16), BackgroundTransparency = 1, ZIndex = 3, Parent = markers })
-			UI.icon(if camp.boss then "crown" else "skull-crack", { Size = UDim2.fromOffset(15, 15), Color = color, ZIndex = 3, Parent = holder })
+			-- chefe de campo (nomeado): coroa laranja, um pouco ao lado do acampamento da região
+			local field = false
+			for enemyId in camp.spawns do
+				field = field or Enemies.Defs[enemyId].field == true
+			end
+			local color = if field then Color3.fromRGB(255, 160, 60) elseif camp.boss then Color3.fromRGB(255, 90, 70) else Color3.fromRGB(255, 200, 190)
+			local holder = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz) + (if field then UDim2.fromOffset(18, -14) else UDim2.new()), Size = UDim2.fromOffset(40, 16), BackgroundTransparency = 1, ZIndex = 3, Parent = markers })
+			UI.icon(if camp.boss or field then "crown" else "skull-crack", { Size = UDim2.fromOffset(15, 15), Color = color, ZIndex = 3, Parent = holder })
 			UI.label({ Text = tostring(level), Position = UDim2.fromOffset(16, 1), Size = UDim2.fromOffset(24, 14), TextColor3 = color, ZIndex = 3, Parent = holder }, { UI.textStroke(1.5) })
 		end
 	end

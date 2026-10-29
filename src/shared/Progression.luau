@@ -141,6 +141,12 @@ Progression.LevelRewards = {
 -- ===================== TÍTULOS =====================
 Progression.Titles = {
 	novato = { name = "Novato", color = Color3.fromRGB(200, 200, 210) },
+	-- exames de rank (Config.Ranks[i].title)
+	hunter_d = { name = "Hunter Rank D", color = Color3.fromRGB(80, 200, 100) },
+	hunter_c = { name = "Hunter Rank C", color = Color3.fromRGB(70, 140, 255) },
+	hunter_b = { name = "Hunter Rank B", color = Color3.fromRGB(175, 85, 255) },
+	hunter_a = { name = "Hunter Rank A", color = Color3.fromRGB(255, 170, 40) },
+	hunter_s = { name = "Hunter Rank S", color = Color3.fromRGB(255, 60, 70) },
 	-- facções (ChronicleService: degraus Honrado e Exaltado)
 	guarda_honrado = { name = "Defensor de Aurora", color = Color3.fromRGB(110, 160, 255) },
 	guarda_exaltado = { name = "Escudo da Vila", color = Color3.fromRGB(150, 190, 255) },

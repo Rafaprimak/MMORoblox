@@ -443,6 +443,64 @@ Quests.List = {
 		reward = { xp = 40000, gold = 15000, item = { base = "amuleto_colecionador", rarity = "Exotico" } },
 	}),
 
+	-- ===================== EXAMES DE RANK (Capitã Lyra) =====================
+	-- O nível só libera o exame; o rank sobe na entrega (rankExam = índice em Config.Ranks)
+	q({
+		id = "exame_d", chain = "rank", rankExam = 2, name = "Exame de Rank D", giver = "lyra", turnIn = "lyra",
+		text = "Todo Hunter começa no Rank E. Para subir, prove que sabe sobreviver: derrote a fera que comanda os lobos dos campos e mostre que sabe aparar e esquivar na hora certa.",
+		requires = { level = 5 },
+		objectives = {
+			{ type = "kill", target = "presa_negra", amount = 1, text = "Derrote Presa-Negra, o Lobo Alfa" },
+			{ type = "parry", amount = 3, text = "Apare 3 golpes (F na hora do aviso)" },
+			{ type = "perfectDodge", amount = 2, text = "Faça 2 esquivas perfeitas (Q)" },
+		},
+		reward = { xp = 1500, gold = 500, chest = "prata" },
+	}),
+	q({
+		id = "exame_c", chain = "rank", rankExam = 3, name = "Exame de Rank C", giver = "lyra", turnIn = "lyra",
+		text = "Um Hunter de Rank C desce às masmorras e volta. Derrote o chefe da Toca dos Goblins e mostre que sabe quebrar a guarda de um inimigo.",
+		requires = { level = 10 },
+		objectives = {
+			{ type = "dungeonBoss", target = "toca", amount = 1, text = "Derrote um chefe da Toca dos Goblins" },
+			{ type = "stagger", amount = 5, text = "Quebre a guarda de 5 inimigos" },
+			{ type = "rhythm", amount = 15, text = "Acerte 15 golpes no ritmo" },
+		},
+		reward = { xp = 6000, gold = 1500, chest = "real" },
+	}),
+	q({
+		id = "exame_b", chain = "rank", rankExam = 4, name = "Exame de Rank B", giver = "lyra", turnIn = "lyra",
+		text = "Rank B é para quem enfrenta reis. Derrote o Rei Goblin no Covil e um chefe da Cripta Esquecida.",
+		requires = { level = 18 },
+		objectives = {
+			{ type = "kill", target = "rei_goblin", amount = 1, text = "Derrote o Rei Goblin" },
+			{ type = "dungeonBoss", target = "cripta", amount = 1, text = "Derrote um chefe da Cripta Esquecida" },
+			{ type = "fullCharge", amount = 10, text = "Acerte 10 golpes pesados carregados (R)" },
+		},
+		reward = { xp = 30000, gold = 5000, chest = "real" },
+	}),
+	q({
+		id = "exame_a", chain = "rank", rankExam = 5, name = "Exame de Rank A", giver = "lyra", turnIn = "lyra",
+		text = "Poucos chegam ao Rank A. Desça ao Abismo de Pedra, enfrente um chefe de mundo e vença a raide.",
+		requires = { level = 28 },
+		objectives = {
+			{ type = "dungeonBoss", target = "abismo", amount = 2, text = "Derrote 2 chefes do Abismo de Pedra" },
+			{ type = "worldBoss", amount = 1, text = "Lute contra um chefe de mundo" },
+			{ type = "raid", amount = 1, text = "Vença a raide do Coração da Estrela" },
+		},
+		reward = { xp = 120000, gold = 15000, chest = "real" },
+	}),
+	q({
+		id = "exame_s", chain = "rank", rankExam = 6, name = "Exame de Rank S", giver = "lyra", turnIn = "lyra",
+		text = "O Rank S é uma lenda viva. Chegue ao fundo do Abismo, vença a raide de novo e prove o seu valor na Arena.",
+		requires = { level = 40 },
+		objectives = {
+			{ type = "dungeonFloor", target = "abismo", amount = 20, text = "Limpe o andar 20 do Abismo de Pedra" },
+			{ type = "raid", amount = 3, text = "Vença a raide 3 vezes" },
+			{ type = "arenaWin", amount = 5, text = "Vença 5 lutas na Arena" },
+		},
+		reward = { xp = 400000, gold = 50000, chest = "real" },
+	}),
+
 	-- ===================== SECUNDÁRIAS =====================
 	-- ===================== CADEIAS DAS REGIÕES =====================
 	-- Campos (Orin, no lago): fazenda, pedras e o herói de pedra
@@ -600,6 +658,188 @@ Quests.List = {
 		reward = { xp = 3500, gold = 800, chest = "real", faction = { id = "liga", amount = 300 } },
 	}),
 
+	-- ===================== MAIS CADEIAS DAS REGIÕES (chefes de campo nomeados) =====================
+	-- Campos: o lobo alfa e a torre de vigia
+	q({
+		id = "r_alfa1", chain = "campos", name = "Uivos na Estátua", giver = "orin", turnIn = "orin",
+		text = "Os lobos da estátua andam mais ousados. Alguém os comanda: um alfa de pelo negro.",
+		requires = { level = 4 },
+		objectives = {
+			{ type = "kill", target = "lobo", amount = 10, text = "Derrote Lobos" },
+			{ type = "gather", item = "presa", amount = 5, text = "Junte Presas de Lobo" },
+		},
+		reward = { xp = 500, gold = 180 },
+	}),
+	q({
+		id = "r_alfa2", chain = "campos", name = "Presa-Negra", giver = "orin", turnIn = "orin",
+		text = "O alfa aparece perto da estátua de tempos em tempos. Derrote-o e a matilha se espalha.",
+		requires = { quests = { "r_alfa1" } },
+		objectives = {
+			{ type = "kill", target = "presa_negra", amount = 1, text = "Derrote Presa-Negra, o Lobo Alfa" },
+		},
+		reward = { xp = 900, gold = 300, chest = "prata" },
+	}),
+	q({
+		id = "r_vigia1", chain = "campos", name = "A Torre Abandonada", giver = "pedro", turnIn = "pedro",
+		text = "Os cavalos não passam mais perto da torre de vigia. Vá ver o que tem lá.",
+		requires = { level = 4 },
+		objectives = {
+			{ type = "poi", target = "vigia", amount = 1, text = "Descubra a Torre de Vigia" },
+			{ type = "poiSecret", target = "vigia", amount = 1, text = "Encontre o segredo da Torre" },
+		},
+		reward = { xp = 550, gold = 200 },
+	}),
+	q({
+		id = "r_vigia2", chain = "campos", name = "Rasga-Terra", giver = "pedro", turnIn = "pedro",
+		text = "Um javali ancião, grande como uma carroça, revira a terra a oeste. Os outros javalis o seguem.",
+		requires = { quests = { "r_vigia1" } },
+		objectives = {
+			{ type = "kill", target = "rasga_terra", amount = 1, text = "Derrote Rasga-Terra, o Javali Ancião" },
+			{ type = "gather", item = "couro", amount = 6, text = "Junte Couro" },
+		},
+		reward = { xp = 1100, gold = 350, chest = "prata" },
+	}),
+	-- Costa: o caranguejo rei e o barco
+	q({
+		id = "r_tenaz1", chain = "costa", name = "Pinças Gigantes", giver = "sol", turnIn = "sol",
+		text = "Os caranguejos estão maiores a cada maré. Junte as cascas e veja de onde vêm.",
+		requires = { level = 6 },
+		objectives = {
+			{ type = "kill", target = "caranguejo", amount = 12, text = "Derrote Caranguejos" },
+			{ type = "gather", item = "carapaca", amount = 6, text = "Junte Carapaças" },
+		},
+		reward = { xp = 1100, gold = 300 },
+	}),
+	q({
+		id = "r_tenaz2", chain = "costa", name = "Tenaz, o Caranguejo Rei", giver = "sol", turnIn = "sol",
+		text = "O rei das pinças sai da água na praia leste. A casca dele vale uma fortuna.",
+		requires = { quests = { "r_tenaz1" } },
+		objectives = {
+			{ type = "kill", target = "tenaz", amount = 1, text = "Derrote Tenaz, o Caranguejo Rei" },
+		},
+		reward = { xp = 1500, gold = 450, chest = "prata" },
+	}),
+	q({
+		id = "r_barco1", chain = "costa", name = "Remendos no Casco", giver = "sol", turnIn = "sol",
+		text = "Meu barco está furado. Madeira para as tábuas e gosma de slime para vedar.",
+		requires = { level = 6 },
+		objectives = {
+			{ type = "deliver", item = "madeira", amount = 10, text = "Entregue Madeira" },
+			{ type = "deliver", item = "gosma", amount = 10, text = "Entregue Gosma de Slime" },
+		},
+		reward = { xp = 1100, gold = 350 },
+	}),
+	q({
+		id = "r_barco2", chain = "costa", name = "Velas Novas", giver = "sol", turnIn = "sol",
+		text = "Com o casco pronto, faltam as velas. Seda de aranha e pano aguentam qualquer vento.",
+		requires = { quests = { "r_barco1" } },
+		objectives = {
+			{ type = "deliver", item = "seda", amount = 6, text = "Entregue Seda de Aranha" },
+			{ type = "deliver", item = "pano", amount = 6, text = "Entregue Retalhos de Pano" },
+		},
+		reward = { xp = 1500, gold = 450, chest = "prata" },
+	}),
+	-- Bosque: o chefe de bando goblin e a tecelã
+	q({
+		id = "r_olho1", chain = "bosque", name = "Flechas na Estrada", giver = "nia", turnIn = "nia",
+		text = "Arqueiros goblins atacam quem passa pelo bosque. Eles usam o pano das caravanas nas flechas.",
+		requires = { level = 8 },
+		objectives = {
+			{ type = "kill", target = "goblin_arqueiro", amount = 8, text = "Derrote Arqueiros Goblins" },
+			{ type = "gather", item = "pano", amount = 6, text = "Recupere Retalhos de Pano" },
+		},
+		reward = { xp = 2000, gold = 450 },
+	}),
+	q({
+		id = "r_olho2", chain = "bosque", name = "Olho-Vermelho", giver = "nia", turnIn = "nia",
+		text = "O chefe do bando tem um olho só, vermelho como brasa. Ele aparece no acampamento do norte.",
+		requires = { quests = { "r_olho1" } },
+		objectives = {
+			{ type = "kill", target = "olho_vermelho", amount = 1, text = "Derrote Olho-Vermelho, Chefe de Bando" },
+		},
+		reward = { xp = 2800, gold = 600, chest = "prata" },
+	}),
+	q({
+		id = "r_tecela1", chain = "bosque", name = "Fios de Prata", giver = "otto", turnIn = "otto",
+		text = "Tenho um comprador para seda fina. Mas cuidado: o ninho das aranhas tem uma mãe que não dorme.",
+		requires = { level = 9 },
+		objectives = {
+			{ type = "gather", item = "seda", amount = 8, text = "Junte Seda de Aranha" },
+			{ type = "kill", target = "aranha", amount = 10, text = "Derrote Aranhas Gigantes" },
+		},
+		reward = { xp = 2600, gold = 600 },
+	}),
+	q({
+		id = "r_tecela2", chain = "bosque", name = "A Tecelã Cinzenta", giver = "otto", turnIn = "otto",
+		text = "A aranha mais velha do ninho tece teias que prendem até cavalos. Acabe com ela.",
+		requires = { quests = { "r_tecela1" } },
+		objectives = {
+			{ type = "kill", target = "tecela", amount = 1, text = "Derrote a Tecelã Cinzenta" },
+		},
+		reward = { xp = 3500, gold = 800, chest = "prata" },
+	}),
+	-- Ruínas: o cavaleiro caído e o golem ancestral
+	q({
+		id = "r_ossario1", chain = "ruinas", name = "O Juramento Quebrado", giver = "gus", turnIn = "gus",
+		text = "Um cavaleiro da antiga guarda jurou proteger o cemitério. Ainda protege, mesmo morto.",
+		requires = { level = 11 },
+		objectives = {
+			{ type = "gather", item = "osso", amount = 10, text = "Junte Ossos Antigos" },
+			{ type = "kill", target = "esqueleto", amount = 12, text = "Derrote Esqueletos" },
+		},
+		reward = { xp = 4000, gold = 800 },
+	}),
+	q({
+		id = "r_ossario2", chain = "ruinas", name = "Sir Ossário", giver = "gus", turnIn = "elric",
+		text = "Liberte o cavaleiro do juramento e conte ao Elric o que ele disse antes de cair.",
+		requires = { quests = { "r_ossario1" } },
+		objectives = {
+			{ type = "kill", target = "sir_ossario", amount = 1, text = "Derrote Sir Ossário, o Cavaleiro Caído" },
+		},
+		reward = { xp = 5500, gold = 1000, chest = "real" },
+	}),
+	q({
+		id = "r_musgo1", chain = "ruinas", name = "Pedras que Andam", giver = "bruno", turnIn = "bruno",
+		text = "Núcleo de golem é o melhor combustível para a forja. Mas os golems não entregam de graça.",
+		requires = { level = 13 },
+		objectives = {
+			{ type = "kill", target = "golem", amount = 4, text = "Derrote Golems de Pedra" },
+			{ type = "gather", item = "nucleo_golem", amount = 2, text = "Junte Núcleos de Golem" },
+		},
+		reward = { xp = 6000, gold = 1100 },
+	}),
+	q({
+		id = "r_musgo2", chain = "ruinas", name = "Musgo-Antigo", giver = "bruno", turnIn = "bruno",
+		text = "O golem mais antigo está coberto de musgo e dorme entre os outros. O núcleo dele é lendário.",
+		requires = { quests = { "r_musgo1" } },
+		objectives = {
+			{ type = "kill", target = "musgo_antigo", amount = 1, text = "Derrote Musgo-Antigo, o Golem Ancestral" },
+		},
+		reward = { xp = 8000, gold = 1400, chest = "real" },
+	}),
+	-- Norte: patrulha e treino do sargento
+	q({
+		id = "r_patrulha1", chain = "norte", name = "Patrulha do Norte", giver = "tomas", turnIn = "tomas",
+		text = "Os magos esqueletos estão chegando perto do posto. Patrulhe e mostre que sabe se defender.",
+		requires = { level = 14 },
+		objectives = {
+			{ type = "kill", target = "esqueleto_mago", amount = 10, text = "Derrote Esqueletos Magos" },
+			{ type = "parry", amount = 10, text = "Apare 10 golpes" },
+		},
+		reward = { xp = 7000, gold = 1200 },
+	}),
+	q({
+		id = "r_patrulha2", chain = "norte", name = "Exercícios do Sargento", giver = "tomas", turnIn = "tomas",
+		text = "Bom soldado treina até cansar. Esquive, acerte no ritmo e termine com força.",
+		requires = { quests = { "r_patrulha1" } },
+		objectives = {
+			{ type = "perfectDodge", amount = 8, text = "Faça 8 esquivas perfeitas" },
+			{ type = "rhythm", amount = 30, text = "Acerte 30 golpes no ritmo" },
+			{ type = "fullCharge", amount = 8, text = "Acerte 8 golpes pesados carregados" },
+		},
+		reward = { xp = 8000, gold = 1400, chest = "real" },
+	}),
+
 	q({
 		id = "s_presas", name = "Colar de Presas", giver = "nia", turnIn = "nia",
 		text = "Quero um colar de presas de lobo. Me traga algumas?",
@@ -733,6 +973,28 @@ Quests.GuildPool = {
 	{ id = "g_arena", name = "Guilda: Honra na Arena", minLevel = 10, objectives = { { type = "arenaWin", amount = 2, text = "Vença lutas na Arena" } }, reward = { xp = 1500, gold = 700 } },
 	{ id = "g_segredos", name = "Guilda: Histórias para o Escaldo", minLevel = 4, objectives = { { type = "chest", amount = 3, text = "Abra baús" } }, reward = { xp = 600, gold = 400 } },
 }
+
+-- Treino de habilidade: cada habilidade básica nova (níveis 3, 6 e 10) vem com uma missão do Mestre
+-- Kael para testá-la (requires.class = só quem é dessa classe)
+do
+	local Classes = require(script.Parent.Classes)
+	for classId, class in Classes.List do
+		for _, abilityId in class.abilities do
+			local ability = Classes.Abilities[abilityId]
+			if ability and (ability.unlock or 1) > 1 and not ability.advanced then
+				table.insert(Quests.List, q({
+					id = "treino_" .. abilityId, chain = "treino", name = "Treino: " .. ability.name, giver = "kael", turnIn = "kael",
+					text = ("Você despertou %s. Coloque na barra de habilidades (tecla C) e use em combate até pegar o jeito. O boneco de treino da vila serve."):format(ability.name),
+					requires = { level = ability.unlock, class = classId },
+					objectives = {
+						{ type = "ability", target = abilityId, amount = 5, text = "Use " .. ability.name .. " 5 vezes" },
+					},
+					reward = { xp = math.floor(120 * ability.unlock ^ 1.6), gold = 40 * ability.unlock },
+				}))
+			end
+		end
+	end
+end
 
 Quests.ById = {}
 for _, quest in Quests.List do

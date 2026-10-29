@@ -661,7 +661,7 @@ local function updateLeaderstats(player, data)
 	if not leaderstats then
 		return
 	end
-	leaderstats.Rank.Value = Config.getRank(data.level).name
+	leaderstats.Rank.Value = Config.rankAt(data.rank).name
 	leaderstats["Nível"].Value = data.level
 	local class = Classes.List[data.class]
 	leaderstats.Classe.Value = if class then class.name else "—"
@@ -690,7 +690,7 @@ function PlayerService.addXP(player, amount)
 	if not data or data.level >= Config.MaxLevel then
 		return
 	end
-	local oldRank = Config.getRank(data.level)
+	local oldLevel = data.level
 	data.xp += amount
 	local leveled = false
 	while data.level < Config.MaxLevel and data.xp >= Config.xpToNext(data.level) do
@@ -712,10 +712,16 @@ function PlayerService.addXP(player, amount)
 	if leveled then
 		player:SetAttribute("Level", data.level)
 		Remotes.Notify:FireClient(player, { kind = "levelup", level = data.level })
-		local newRank = Config.getRank(data.level)
-		if newRank.name ~= oldRank.name then
-			Remotes.Notify:FireClient(player, { kind = "rankup", rank = newRank.name })
-			Remotes.Notify:FireAllClients({ kind = "announce", text = ("%s alcançou o Rank %s!"):format(player.DisplayName, newRank.name), color = newRank.color })
+		-- o rank não sobe sozinho: o nível libera o exame com a Capitã Lyra
+		local nextRank = Config.Ranks[(data.rank or 1) + 1]
+		if nextRank and oldLevel < nextRank.minLevel and data.level >= nextRank.minLevel then
+			Remotes.Notify:FireClient(player, { kind = "unlock", title = "Exame de Rank " .. nextRank.name .. " liberado!", text = "Fale com a Capitã Lyra na vila para fazer a prova.", color = nextRank.color })
+		end
+		-- avisos de novidade (masmorras, arena, guildas...)
+		for _, unlock in Config.Unlocks do
+			if oldLevel < unlock.level and data.level >= unlock.level then
+				Remotes.Notify:FireClient(player, { kind = "unlock", title = unlock.title, text = unlock.text })
+			end
 		end
 		PlayerService.refreshCharacter(player, { heal = true })
 		local s = state[player]
@@ -726,6 +732,25 @@ function PlayerService.addXP(player, amount)
 		end
 		updateLeaderstats(player, data)
 		PlayerService.QuestHook(player, "level", nil, 0)
+	end
+	PlayerService.markDirty(player)
+end
+
+-- Promoção de rank (entrega do exame): rank novo, aura, anúncio para todos e cerimônia na vila
+function PlayerService.promoteRank(player, index)
+	local data = DataService.get(player)
+	if not data or (data.rank or 1) >= index or not Config.Ranks[index] then
+		return
+	end
+	data.rank = index
+	local rank = Config.Ranks[index]
+	player:SetAttribute("Rank", index)
+	updateLeaderstats(player, data)
+	Remotes.Notify:FireClient(player, { kind = "rankup", rank = rank.name })
+	Remotes.Notify:FireAllClients({ kind = "announce", text = ("%s foi promovido(a) a Hunter Rank %s!"):format(player.DisplayName, rank.name), color = rank.color })
+	local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+	if root then
+		Remotes.Fx:FireAllClients("rankCeremony", root.Position, rank.color)
 	end
 	PlayerService.markDirty(player)
 end
@@ -1233,6 +1258,8 @@ function PlayerService.sync(player)
 	end
 	local payload = {
 		level = data.level,
+		rank = data.rank or 1,
+		prey = Config.preyOfDay(),
 		xp = data.xp,
 		xpNext = Config.xpToNext(data.level),
 		gold = data.gold,
@@ -1353,6 +1380,11 @@ function PlayerService.onPlayerAdded(player)
 	state[player] = newState(player)
 	player:SetAttribute("Level", data.level)
 	player:SetAttribute("Class", data.class)
+	-- rank (índice em Config.Ranks): saves de antes dos exames ficam com o rank que o nível dava
+	if type(data.rank) ~= "number" then
+		data.rank = Config.rankIndexForLevel(data.level)
+	end
+	player:SetAttribute("Rank", data.rank)
 	setupLeaderstats(player, data)
 	player.CharacterAdded:Connect(function(character)
 		onCharacterAdded(player, character)

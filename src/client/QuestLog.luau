@@ -4,6 +4,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Quests = require(Shared.Quests)
 local NPCs = require(Shared.NPCs)
+local Enemies = require(Shared.Enemies)
+local Config = require(Shared.Config)
 
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
@@ -118,6 +120,15 @@ local function render()
 	end
 	order += 1
 	UI.label({ Text = if daily.bonusClaimed then "Bônus do dia recebido" else "Pegue no Quadro de Recompensas da vila", Size = UDim2.new(1, -8, 0, 16), TextColor3 = UI.Colors.SubText, Font = Enum.Font.Gotham, LayoutOrder = order, Parent = listFrame })
+	-- presas do dia: XP em dobro nesses inimigos (Config.preyOfDay, igual em todos os servidores)
+	header(("PRESAS DO DIA  (XP x%d)"):format(Config.PreyXpMult), Color3.fromRGB(255, 170, 90))
+	for _, enemyId in data.prey or {} do
+		local def = Enemies.Defs[enemyId]
+		if def then
+			order += 1
+			UI.label({ Text = ("• %s (nível %d)"):format(def.name, def.level), Size = UDim2.new(1, -8, 0, 18), TextColor3 = UI.Colors.SubText, LayoutOrder = order, Parent = listFrame })
+		end
+	end
 	renderDetail(data)
 end
 

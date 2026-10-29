@@ -48,6 +48,7 @@ local ArenaService = require(script.ArenaService)
 local EventService = require(script.EventService)
 local AdminService = require(script.AdminService)
 local WorldEventService = require(script.WorldEventService)
+local DynamicEventService = require(script.DynamicEventService)
 
 workspace:SetAttribute("WorldReady", false)
 workspace:SetAttribute("WorldStatus", "Preparando o mundo")
@@ -67,6 +68,14 @@ QuestService.OnComplete = function(player, daily, def)
 	-- contrato da guilda entregue: pontos e meta semanal da guilda
 	if def and def.guild then
 		questHook(player, "guildContract", def.id, 1)
+	end
+	-- exame de rank entregue: promoção (aura, anúncio, cerimônia) e título do rank
+	if def and def.rankExam then
+		PlayerService.promoteRank(player, def.rankExam)
+		local rank = Config.Ranks[def.rankExam]
+		if rank and rank.title then
+			ProgressionService.grant(player, { title = rank.title })
+		end
 	end
 end
 PlayerService.QuestHook = questHook
@@ -101,6 +110,7 @@ ExploreService.QuestHook = questHook
 MarketService.QuestHook = questHook
 GuildService.QuestHook = questHook
 WorldEventService.QuestHook = questHook
+DynamicEventService.QuestHook = questHook
 RaidService.QuestHook = questHook
 ArenaService.QuestHook = questHook
 -- Arena PvP: os oponentes viram alvos do combate (ver EnemyService.Proxies)
@@ -172,14 +182,19 @@ EnemyService.OnKilled = function(rec, contributors)
 		end
 	end
 	WorldEventService.onKilled(rec, contributors)
+	DynamicEventService.onKilled(rec, contributors)
 	RaidService.onKilled(rec)
 	local night = DayNightService.isNight()
 	local rewardMult = (if night then 1 + Config.NightRewardBonus else 1) * (rec.rewardMult or 1)
+	local prey = Config.preyOfDay()
 	for player in contributors do
 		local bonus = PlayerService.getStats(player).bonus
 		local playerData = DataService.get(player)
-		local gapFactor = Config.xpLevelFactor(playerData and playerData.level or 1, rec.level)
-		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.xpGain or 0)) * gapFactor * PartyService.xpBonus(player, rec.pos))
+		local playerLevel = playerData and playerData.level or 1
+		local gapFactor = Config.xpLevelFactor(playerLevel, rec.level)
+		-- começo do jogo (caçar também sobe de nível) e presas do dia (XP em dobro)
+		local earlyFactor = Config.earlyXpMult(playerLevel) * (if table.find(prey, rec.id) then Config.PreyXpMult else 1)
+		local xp = math.floor(def.xp * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.xpGain or 0)) * gapFactor * earlyFactor * PartyService.xpBonus(player, rec.pos))
 		PlayerService.addXP(player, xp)
 		local gold = math.floor(math.random(def.gold[1], def.gold[2]) * (if rec.elite then 3 else 1) * rewardMult * (1 + (bonus.goldFind or 0)))
 		if gold > 0 then
@@ -290,6 +305,10 @@ local function devGift(player, kind)
 		WorldEventService.forceBoss()
 	elseif kind == "invasion" then
 		WorldEventService.forceInvasion()
+	elseif kind == "dynamic" then
+		if not DynamicEventService.force(player) then
+			Remotes.Notify:FireClient(player, { kind = "message", text = "Sem evento: saia da vila (e de masmorras) e tente de novo." })
+		end
 	elseif kind == "event" then
 		local event = EventService.cycle()
 		Remotes.Notify:FireClient(player, { kind = "message", text = if event then "Evento forçado: " .. event.name else "Evento pelo calendário de novo." })
@@ -652,6 +671,7 @@ safely("Masmorras", DungeonService.init)
 safely("Robux", MonetizationService.init)
 safely("Anti-trapaça", AntiCheat.start)
 safely("Eventos do mundo", WorldEventService.start)
+safely("Eventos dinâmicos", DynamicEventService.start)
 safely("Mercado", MarketService.start)
 safely("Guildas", GuildService.start)
 safely("Raide", RaidService.init)

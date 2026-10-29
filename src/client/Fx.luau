@@ -539,6 +539,28 @@ function Fx.sanctuary(center, radius, duration)
 	Debris:AddItem(pillar, duration + 0.1)
 end
 
+-- Promoção de rank: coluna de luz na cor do rank, anéis subindo e brilho (todos veem)
+function Fx.rankCeremony(center, color)
+	if typeof(center) ~= "Vector3" then
+		return
+	end
+	color = if typeof(color) == "Color3" then color else Color3.fromRGB(255, 215, 120)
+	local pillar = effectPart({ Shape = Enum.PartType.Cylinder, Size = Vector3.new(60, 6, 6), CFrame = CFrame.new(center + Vector3.new(0, 27, 0)) * CFrame.Angles(0, 0, math.rad(90)), Color = color, Material = Enum.Material.Neon, Transparency = 0.35 })
+	TweenService:Create(pillar, TweenInfo.new(2.6, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Size = Vector3.new(60, 0.4, 0.4), Transparency = 1 }):Play()
+	Debris:AddItem(pillar, 2.7)
+	local light = Instance.new("PointLight")
+	light.Color = color
+	light.Range = 30
+	light.Brightness = 4
+	light.Parent = pillar
+	for i = 0, 4 do
+		task.delay(i * 0.35, ring, center + Vector3.new(0, 0.3 + i * 2.2, 0), 6 + i * 3, color, 1.1, 0.5)
+	end
+	if player.Character and player.Character:FindFirstChild("HumanoidRootPart") and (player.Character.HumanoidRootPart.Position - center).Magnitude < 120 then
+		Sounds.play("levelup", 0.8, 0.6)
+	end
+end
+
 -- Inimigo provocado: "!" vermelho em cima dele
 function Fx.taunted(enemyRoot, by)
 	if typeof(enemyRoot) ~= "Instance" then

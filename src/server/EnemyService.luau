@@ -177,7 +177,7 @@ local function respawnLater(camp, enemyId)
 	task.delay(camp.respawn, function()
 		local rec = EnemyService.spawn(camp, enemyId)
 		if rec and rec.def.boss then
-			Remotes.Notify:FireAllClients({ kind = "announce", text = ("O %s voltou ao Covil!"):format(rec.def.name), sub = "Passagem do Norte, além do Portão Selado" })
+			Remotes.Notify:FireAllClients({ kind = "announce", text = ("%s voltou!"):format(rec.def.name), sub = camp.place })
 		end
 	end)
 end
@@ -198,7 +198,8 @@ local function kill(rec, killer)
 		rec.root:Destroy()
 	end)
 	if rec.def.boss and rec.camp.respawn then
-		Remotes.Notify:FireAllClients({ kind = "announce", text = ("O %s foi derrotado!"):format(rec.def.name), sub = ("Volta em %d segundos"):format(rec.camp.respawn) })
+		local wait = rec.camp.respawn
+		Remotes.Notify:FireAllClients({ kind = "announce", text = ("%s foi derrotado!"):format(rec.def.name), sub = if wait >= 120 then ("Volta em %d minutos"):format(math.floor(wait / 60)) else ("Volta em %d segundos"):format(wait) })
 	end
 	if not rec.summoned then
 		respawnLater(rec.camp, rec.id)

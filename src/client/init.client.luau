@@ -355,6 +355,7 @@ local FX_HANDLERS = {
 	-- suporte e tanque
 	heal = Fx.heal,
 	sanctuary = Fx.sanctuary,
+	rankCeremony = Fx.rankCeremony,
 	taunted = Fx.taunted,
 	chain = Fx.chain,
 	-- combate dinâmico

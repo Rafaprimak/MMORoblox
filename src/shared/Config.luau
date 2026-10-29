@@ -80,14 +80,33 @@ Config.GuildContractCount = 3 -- contratos da guilda por dia (Ulf, Salão das Gu
 Config.DataStoreName = "HunterRPG_v2" -- nome antigo do jogo; NÃO troque (apagaria o progresso de todos)
 Config.AutosaveInterval = 60
 
+-- Ranks do Hunter. O nível só LIBERA o exame (exam = id da missão em Quests, dada pela Capitã Lyra);
+-- o rank sobe quando o exame é entregue (data.rank = índice nesta lista; PlayerService.promoteRank).
+-- title = título ganho na promoção (Progression.Titles)
 Config.Ranks = {
 	{ name = "E", minLevel = 1, color = Color3.fromRGB(150, 150, 160) },
-	{ name = "D", minLevel = 5, color = Color3.fromRGB(80, 200, 100) },
-	{ name = "C", minLevel = 10, color = Color3.fromRGB(70, 140, 255) },
-	{ name = "B", minLevel = 18, color = Color3.fromRGB(175, 85, 255) },
-	{ name = "A", minLevel = 28, color = Color3.fromRGB(255, 170, 40) },
-	{ name = "S", minLevel = 40, color = Color3.fromRGB(255, 60, 70) },
+	{ name = "D", minLevel = 5, color = Color3.fromRGB(80, 200, 100), exam = "exame_d", title = "hunter_d" },
+	{ name = "C", minLevel = 10, color = Color3.fromRGB(70, 140, 255), exam = "exame_c", title = "hunter_c" },
+	{ name = "B", minLevel = 18, color = Color3.fromRGB(175, 85, 255), exam = "exame_b", title = "hunter_b" },
+	{ name = "A", minLevel = 28, color = Color3.fromRGB(255, 170, 40), exam = "exame_a", title = "hunter_a" },
+	{ name = "S", minLevel = 40, color = Color3.fromRGB(255, 60, 70), exam = "exame_s", title = "hunter_s" },
 }
+
+-- índice do maior rank que o nível permite (saves antigos: o rank vira esse na primeira entrada)
+function Config.rankIndexForLevel(level)
+	local index = 1
+	for i, rank in Config.Ranks do
+		if level >= rank.minLevel then
+			index = i
+		end
+	end
+	return index
+end
+
+-- rank pelo índice guardado em data.rank (atributo "Rank" do jogador)
+function Config.rankAt(index)
+	return Config.Ranks[math.clamp(math.floor(tonumber(index) or 1), 1, #Config.Ranks)]
+end
 
 function Config.getRank(level)
 	local current = Config.Ranks[1]
@@ -202,6 +221,44 @@ Config.StartClock = 9 -- hora em que o servidor começa
 Config.NightEnemyDamage = 1.2 -- dano dos inimigos à noite
 Config.NightEliteMultiplier = 2.5 -- chance de Elite à noite
 Config.NightRewardBonus = 0.3 -- XP e ouro extras à noite
+
+-- XP de abate extra no começo do jogo: +100% no nível 1, caindo até 0 no nível 20 (caçar também sobe
+-- de nível, não só as missões)
+Config.EarlyXpBonus = 1.0
+Config.EarlyXpUntil = 20
+function Config.earlyXpMult(level)
+	return 1 + Config.EarlyXpBonus * math.max(0, (Config.EarlyXpUntil - level) / (Config.EarlyXpUntil - 1))
+end
+
+-- Presas do dia: um inimigo de cada faixa dá XP em dobro (mesmo sorteio em todos os servidores)
+Config.PreyBands = {
+	{ "slime", "lobo", "javali", "caranguejo" },
+	{ "goblin", "goblin_arqueiro", "aranha" },
+	{ "esqueleto", "esqueleto_mago", "golem" },
+}
+Config.PreyXpMult = 2
+function Config.preyOfDay(time)
+	local day = math.floor((time or os.time()) / 86400)
+	local list = {}
+	for i, band in Config.PreyBands do
+		local pick = (day * 7 + i * 13) % #band + 1
+		table.insert(list, band[pick])
+	end
+	return list
+end
+
+-- Avisos de novidade: quando o jogador chega no nível, aparece o aviso grande e quem procurar
+-- (PlayerService.addXP). Os exames de rank e as habilidades novas têm aviso próprio.
+Config.Unlocks = {
+	{ level = 5, title = "Masmorra liberada: Toca dos Goblins", text = "O portal fica marcado no mapa (M). Vá em grupo ou entre sozinho." },
+	{ level = 5, title = "Troca liberada", text = "Chegue perto de outro jogador e use o botão Trocar." },
+	{ level = 8, title = "Arena liberada", text = "Lute contra outros Hunters: abra a Arena no menu da esquerda." },
+	{ level = 10, title = "Masmorra liberada: Cripta Esquecida", text = "O portal fica marcado no mapa (M)." },
+	{ level = 10, title = "Guildas liberadas", text = "Funde a sua guilda com a Helena, no Salão das Guildas (tecla L)." },
+	{ level = 15, title = "Masmorra liberada: Abismo de Pedra", text = "O portal fica marcado no mapa (M)." },
+	{ level = 18, title = "Raide liberada: Coração da Estrela", text = "Junte um grupo e enfrente o Devorador de Estrelas no portal da estrela caída." },
+	{ level = 20, title = "Missões Lenda liberadas", text = "Itens exóticos: procure os NPCs com missões Lenda (depois de Novos Horizontes)." },
+}
 Config.NightDropBonus = 0.25 -- chance extra de equipamento à noite
 
 -- Configurações do jogador (valores padrão; o jogador muda na janela de Configurações)
