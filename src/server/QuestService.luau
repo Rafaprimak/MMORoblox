@@ -34,28 +34,39 @@ local function nearNpc(player, npcId, distance)
 	return dx * dx + dz * dz <= (distance or 45) ^ 2
 end
 
-local function ensureDaily(data)
-	local day = today()
-	if data.daily.day == day then
-		return
-	end
+-- sorteia `count` contratos do pool que o nível já libera
+local function rollContracts(data, pool, count)
 	local available = {}
-	for _, def in Quests.DailyPool do
+	for _, def in pool do
 		if data.level >= (def.minLevel or 1) then
 			table.insert(available, def.id)
 		end
 	end
 	local offered = {}
-	for _ = 1, math.min(Config.DailyCount, #available) do
+	for _ = 1, math.min(count, #available) do
 		table.insert(offered, table.remove(available, math.random(1, #available)))
 	end
+	return offered
+end
+
+local function ensureDaily(data)
+	local day = today()
+	if data.daily.day == day then
+		-- saves de antes dos Contratos do Clã ainda não têm o sorteio do dia
+		if not data.daily.guildOffered then
+			data.daily.guildOffered = rollContracts(data, Quests.GuildPool, Config.GuildContractCount)
+		end
+		return
+	end
+	local offered = rollContracts(data, Quests.DailyPool, Config.DailyCount)
+	local guildOffered = rollContracts(data, Quests.GuildPool, Config.GuildContractCount)
 	-- remove contratos ativos de dias anteriores
 	for qid, entry in data.quests.active do
 		if entry.daily then
 			data.quests.active[qid] = nil
 		end
 	end
-	data.daily = { day = day, offered = offered, done = {}, bonusClaimed = false }
+	data.daily = { day = day, offered = offered, guildOffered = guildOffered, done = {}, bonusClaimed = false }
 end
 
 -- Progresso atual de um objetivo (alguns são calculados na hora)
@@ -91,6 +102,10 @@ local function isComplete(player, data, def, entry)
 end
 
 local function canAccept(data, def)
+	-- contrato do clã: só com guilda
+	if def.guild then
+		return data.guild ~= nil and table.find(data.daily.guildOffered or {}, def.id) ~= nil and not data.daily.done[def.id] and not data.quests.active[def.id]
+	end
 	if def.daily then
 		return table.find(data.daily.offered, def.id) ~= nil and not data.daily.done[def.id] and not data.quests.active[def.id]
 	end
@@ -177,7 +192,7 @@ local function complete(player, data, def)
 	if data.quests.tracked == def.id then
 		data.quests.tracked = next(data.quests.active)
 	end
-	grantReward(player, def.reward, def.name, if def.daily then "daily" else def.chain or "side", def)
+	grantReward(player, def.reward, def.name, if def.guild then "guild" elseif def.daily then "daily" else def.chain or "side", def)
 	-- bônus das diárias
 	if def.daily and not data.daily.bonusClaimed then
 		local allDone = #data.daily.offered > 0
@@ -371,12 +386,19 @@ function QuestService.summary(player)
 			table.insert(available.quadro, qid)
 		end
 	end
+	for _, qid in data.daily.guildOffered or {} do
+		local def = Quests.ById[qid]
+		if def and canAccept(data, def) then
+			available.ulf = available.ulf or {}
+			table.insert(available.ulf, qid)
+		end
+	end
 	return {
 		active = active,
 		tracked = data.quests.tracked,
 		available = available,
 		done = data.quests.done,
-		daily = { offered = data.daily.offered, done = data.daily.done, bonusClaimed = data.daily.bonusClaimed, resetIn = DAY - (os.time() % DAY) },
+		daily = { offered = data.daily.offered, guildOffered = data.daily.guildOffered or {}, done = data.daily.done, bonusClaimed = data.daily.bonusClaimed, resetIn = DAY - (os.time() % DAY) },
 	}
 end
 

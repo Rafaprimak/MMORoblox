@@ -10,11 +10,14 @@
 --   * Pontos: as ações dos membros (abates, chefes, masmorras, segredos...) somam XP da guilda e o progresso
 --     das metas da semana; ficam num buffer por servidor e vão para o registro de minuto em minuto.
 --   * Nível da guilda: +1% de XP e +1% de ouro por nível para os membros (até o nível 20).
+--   * Salão dos Clãs (WorldGen/GuildHall): brinde no barril de hidromel (prompt "BrindeSalao", uma vez
+--     por dia, data.hallToastDay/hallToastUntil) e o Mural de Honra (ranking da semana + metas).
 local DataStoreService = game:GetService("DataStoreService")
 local MessagingService = game:GetService("MessagingService")
 local TextService = game:GetService("TextService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -179,6 +182,11 @@ function GuildService.applyBonus(_player, data, bonus)
 		local level = Guilds.level(record.xp or 0)
 		bonus.xpGain = (bonus.xpGain or 0) + level * Guilds.BonusPerLevel
 		bonus.goldFind = (bonus.goldFind or 0) + level * Guilds.BonusPerLevel
+	end
+	-- brinde no Salão dos Clãs
+	if data and data.guild and (data.hallToastUntil or 0) > os.time() then
+		bonus.xpGain = (bonus.xpGain or 0) + Guilds.Toast.bonus
+		bonus.goldFind = (bonus.goldFind or 0) + Guilds.Toast.bonus
 	end
 end
 
@@ -747,6 +755,123 @@ function GuildService.ranking(_player)
 	return { ok = true, list = rankingCache.list }
 end
 
+-- ===================== SALÃO DOS CLÃS =====================
+
+-- brinde no barril de hidromel: +10% de XP e ouro por 30 min, uma vez por dia (só com guilda)
+local function toast(player, prompt)
+	local data = DataService.get(player)
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local barrel = prompt.Parent
+	if not data or not root or not barrel or not barrel:IsA("BasePart") or (barrel.Position - root.Position).Magnitude > 20 then
+		return
+	end
+	if not data.guild then
+		Remotes.Notify:FireClient(player, { kind = "message", text = "Só quem tem guilda brinda no salão. Funde a sua com a Helena ou peça um convite." })
+		return
+	end
+	local day = math.floor(os.time() / 86400)
+	if data.hallToastDay == day then
+		local left = math.max(0, (data.hallToastUntil or 0) - os.time())
+		Remotes.Notify:FireClient(player, { kind = "message", text = if left > 0 then ("Seu brinde ainda vale por %d min. Volte amanhã para outro!"):format(math.ceil(left / 60)) else "Você já brindou hoje. Volte amanhã!" })
+		return
+	end
+	data.hallToastDay = day
+	data.hallToastUntil = os.time() + Guilds.Toast.duration
+	GuildService.track(player, "hallToast", 1)
+	Remotes.Notify:FireClient(player, {
+		kind = "banner",
+		text = "UM BRINDE AO CLÃ!",
+		sub = ("+%d%% de XP e de ouro por %d minutos  •  +%d pontos para a guilda"):format(Guilds.Toast.bonus * 100, Guilds.Toast.duration / 60, Guilds.Points.hallToast),
+		color = Color3.fromRGB(255, 200, 90),
+		duration = 4,
+	})
+	PlayerService.markDirty(player)
+end
+
+-- cor do estandarte de uma guilda no salão (sai da sigla: cada guilda tem sempre a mesma)
+local function bannerColor(tag)
+	local hash = 0
+	for i = 1, #tag do
+		hash = (hash * 31 + string.byte(tag, i)) % 360
+	end
+	return Color3.fromHSV(hash / 360, 0.65, 0.75)
+end
+
+-- Mural de Honra: as 5 guildas da semana, as metas da semana e os estandartes das 3 primeiras
+local mural = nil
+local function renderMural()
+	local board = mural or workspace:FindFirstChild("MuralHonra", true)
+	if not board then
+		return
+	end
+	mural = board
+	local gui = board:FindFirstChild("Ranking")
+	if not gui then
+		gui = Instance.new("SurfaceGui")
+		gui.Name = "Ranking"
+		gui.Face = Enum.NormalId.Front
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = 40
+		gui.LightInfluence = 0.3
+		gui.Parent = board
+		local layout = Instance.new("UIListLayout")
+		layout.Padding = UDim.new(0, 6)
+		layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Parent = gui
+		local padding = Instance.new("UIPadding")
+		padding.PaddingTop = UDim.new(0, 18)
+		padding.PaddingLeft = UDim.new(0, 24)
+		padding.PaddingRight = UDim.new(0, 24)
+		padding.Parent = gui
+	end
+	for _, child in gui:GetChildren() do
+		if child:IsA("TextLabel") then
+			child:Destroy()
+		end
+	end
+	local order = 0
+	local function line(text, size, color, height)
+		order += 1
+		local label = Instance.new("TextLabel")
+		label.BackgroundTransparency = 1
+		label.Size = UDim2.new(1, 0, 0, height or size + 8)
+		label.Text = text
+		label.TextSize = size
+		label.TextColor3 = color
+		label.TextWrapped = true
+		label.FontFace = Font.new("rbxasset://fonts/families/Merriweather.json", Enum.FontWeight.Bold)
+		label.TextStrokeTransparency = 0.6
+		label.LayoutOrder = order
+		label.Parent = gui
+	end
+	line("MURAL DE HONRA", 46, Color3.fromRGB(255, 205, 90))
+	line("As guildas mais fortes da semana", 22, Color3.fromRGB(220, 200, 170))
+	local result = GuildService.ranking(nil)
+	local list = if result.ok then result.list else {}
+	if #list == 0 then
+		line(if result.ok then "Nenhuma guilda pontuou ainda nesta semana. Seja a primeira!" else "O ranking aparece com o jogo publicado.", 26, Color3.fromRGB(230, 230, 230), 70)
+	end
+	for i = 1, math.min(5, #list) do
+		local entry = list[i]
+		line(("%d.  [%s] %s  —  %d pontos"):format(i, entry.tag, entry.name, entry.points), if i == 1 then 32 else 27, if i == 1 then Color3.fromRGB(255, 220, 120) else Color3.fromRGB(240, 235, 225))
+	end
+	local goals = {}
+	for _, goal in Guilds.goalsForWeek(week()) do
+		table.insert(goals, goal.text)
+	end
+	line("Metas da semana: " .. table.concat(goals, "  •  "), 20, Color3.fromRGB(170, 210, 255), 64)
+	-- estandartes de honra acima do estrado: as cores das 3 primeiras guildas (cinza se ninguém)
+	for i = 1, 3 do
+		local banner = board.Parent and board.Parent:FindFirstChild("EstandarteHonra" .. i, true)
+		if banner then
+			local entry = list[i]
+			banner.Color = if entry then bannerColor(entry.tag) else Color3.fromRGB(90, 85, 80)
+		end
+	end
+end
+
 -- ===================== CICLO =====================
 
 local function onMessage(packet)
@@ -819,6 +944,17 @@ function GuildService.start()
 			task.wait(60)
 			pcall(flush)
 			pcall(verify)
+		end
+	end)
+	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
+		if prompt.Name == "BrindeSalao" then
+			toast(player, prompt)
+		end
+	end)
+	task.spawn(function()
+		while true do
+			pcall(renderMural)
+			task.wait(300)
 		end
 	end)
 end

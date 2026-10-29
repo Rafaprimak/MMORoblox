@@ -64,6 +64,10 @@ end
 QuestService.OnComplete = function(player, daily, def)
 	ProgressionService.onQuestDone(player, daily)
 	ChronicleService.onQuestDone(player, def)
+	-- contrato do clã entregue: pontos e meta semanal da guilda
+	if def and def.guild then
+		questHook(player, "guildContract", def.id, 1)
+	end
 end
 PlayerService.QuestHook = questHook
 PlayerService.QuestSummary = QuestService.summary

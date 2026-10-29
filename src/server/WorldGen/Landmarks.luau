@@ -8,6 +8,7 @@ local Enemies = require(Shared.Enemies)
 
 local Props = require(script.Parent.Props)
 local Placement = require(script.Parent.Placement)
+local GuildHall = require(script.Parent.GuildHall)
 
 local Landmarks = {}
 
@@ -58,6 +59,7 @@ local REGION_TEXT = {
 	ruinas = "Planalto das Ruínas. Restos da academia dos astrólogos e do cemitério dos primeiros guardiões. Os mortos daqui sentem a mana mais do que ninguém. Embaixo do cemitério fica a Cripta Esquecida.",
 	praia = "Costa Dourada. O mar parece não ter fim, mas a água vira parede onde o Orbe termina. Quem tentou sair navegando acordou na mesma praia na manhã seguinte.",
 	lago = "Lago Espelhado. No fundo do Santuário do Lago dorme Serafina, a segunda arquimaga, que virou a âncora viva da barreira. Nas noites calmas, a água brilha no ritmo de uma respiração.",
+	salao = "Salão dos Clãs. A casa longa onde as guildas se reúnem: Helena funda e organiza as guildas, Ulf dá os Contratos do Clã e o barril de hidromel garante um brinde por dia a quem tem guilda.",
 	passagem = "Passagem do Norte. Além do Portão Selado ficam a cratera do Rei Goblin e, mais para cima, o lugar onde a estrela vermelha caiu. A âncora de Valdrik está no coração das montanhas: o Abismo de Pedra.",
 }
 function Landmarks.waystones(parent)
@@ -359,6 +361,10 @@ function Landmarks.build(parent, rng)
 	lighthouse(folder)
 	pier(folder)
 	crater(folder, rng)
+	local ok, err = pcall(GuildHall.build, folder, rng)
+	if not ok then
+		warn("[Locais] Falha ao montar o Salão dos Clãs: " .. tostring(err))
+	end
 	return { barrier = passGate(folder) }
 end
 

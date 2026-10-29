@@ -220,7 +220,7 @@ function Popups.pickup(id, count)
 	Sounds.play("ping", 2.4, 0.12)
 end
 
-local QUEST_LABELS = { daily = "CONTRATO", bonus = "BÔNUS DIÁRIO", main = "MISSÃO", side = "MISSÃO", lenda = "LENDA" }
+local QUEST_LABELS = { daily = "CONTRATO", guild = "CONTRATO DO CLÃ", bonus = "BÔNUS DIÁRIO", main = "MISSÃO", side = "MISSÃO", lenda = "LENDA" }
 
 function Popups.handle(notification)
 	local kind = notification.kind

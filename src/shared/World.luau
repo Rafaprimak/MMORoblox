@@ -141,6 +141,7 @@ local DESIGN_ROADS = {
 	{ { 0, 10 }, { -90, -15 }, { -185, -38 } },
 	{ { 50, 150 }, { 80, 210 }, { 112, 280 } },
 	{ { -50, 150 }, { -80, 160 }, { -108, 166 } },
+	{ { 47, 150 }, { 62, 151 }, { 77, 150 } }, -- vila → Salão dos Clãs
 }
 World.Roads = {}
 for i, road in DESIGN_ROADS do
@@ -268,6 +269,7 @@ local DESIGN_LOCATIONS = {
 	passagem = { "Passagem do Norte", 0, -240, 25 },
 	portao_norte = { "Portão Selado", 0, -330, 22 },
 	cratera = { "Covil do Rei Goblin", 0, -445, 55 },
+	salao = { "Salão dos Clãs", 105, 150, 30 },
 }
 World.Locations = {}
 for id, loc in DESIGN_LOCATIONS do
@@ -279,6 +281,20 @@ for _, id in { "templo_ruinas", "mina", "santuario_lago", "farol" } do
 	World.addPad(loc.x, loc.z, 18 * P, 16 * P)
 end
 
+-- Salão dos Clãs (guildas): casa longa viking a leste da vila, com a porta virada para a vila (oeste).
+-- Montado em unidades de projeto (× PropScale) num referencial próprio: x = largura, z = comprimento,
+-- -Z = porta. World.guildHallPoint converte um ponto desse referencial para studs reais.
+do
+	local loc = World.Locations.salao
+	World.GuildHall = { x = loc.x, z = loc.z, yaw = math.rad(90), width = 40, length = 80 }
+	World.GuildHall.y = World.addPad(loc.x, loc.z, 95, 50)
+end
+function World.guildHallPoint(localX, localZ)
+	local hall = World.GuildHall
+	local point = CFrame.new(hall.x, 0, hall.z) * CFrame.Angles(0, hall.yaw, 0) * Vector3.new(localX * P, 0, localZ * P)
+	return point.X, point.Z
+end
+
 -- Pedras de viagem rápida (descobertas ao chegar perto)
 local DESIGN_WAYSTONES = {
 	{ "vila", "Vila Aurora", -16, 134 },
@@ -288,6 +304,7 @@ local DESIGN_WAYSTONES = {
 	{ "praia", "Costa Dourada", 104, 276 },
 	{ "lago", "Lago Espelhado", -98, 176 },
 	{ "passagem", "Passagem do Norte", 16, -236 },
+	{ "salao", "Salão dos Clãs", 75.7, 158 },
 }
 World.Waystones = {}
 World.WaystoneById = {}

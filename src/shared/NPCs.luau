@@ -45,6 +45,16 @@ local function at(x, z, facing, def)
 	return make(def, true)
 end
 
+-- NPC dentro do Salão dos Clãs: posição no referencial do salão (World.guildHallPoint), olhando para a
+-- porta. startY: o chão é procurado logo abaixo do telhado (cai no piso do salão, não no telhado).
+local function hall(id, localX, localZ, def)
+	def.id = id
+	def.x, def.z = World.guildHallPoint(localX, localZ)
+	def.yaw = World.GuildHall.yaw
+	def.startY = World.GuildHall.y + 9
+	return def
+end
+
 -- NPC da vila na posição do traçado (TownPlan.Services)
 local function service(id, def)
 	local spot = TownPlan.Services[id]
@@ -145,7 +155,7 @@ NPCs.List = {
 		indoor = 10,
 		greeting = "Desceu nas masmorras e voltou com saque? Eu troco por chaves, poções e armas que você não acha em lugar nenhum.",
 	}),
-	service("helena", {
+	hall("helena", -8.5, 34, {
 		name = "Helena",
 		title = "Mestra das Guildas",
 		skin = Color3.fromRGB(225, 180, 140),
@@ -153,9 +163,17 @@ NPCs.List = {
 		pants = Color3.fromRGB(60, 45, 35),
 		hat = "wide",
 		services = { "guild" },
-		building = "guildhall",
-		indoor = 8,
-		greeting = "Sozinho você vai longe; com uma guilda, vai mais longe ainda. Quer fundar a sua? Custa 5.000 de ouro e o nível 10.",
+		greeting = "Bem-vindo ao Salão dos Clãs! Sozinho você vai longe; com uma guilda, vai mais longe ainda. Quer fundar a sua? Custa 5.000 de ouro e o nível 10.",
+	}),
+	hall("ulf", 8.5, 34, {
+		name = "Ulf",
+		title = "Mestre dos Contratos",
+		skin = Color3.fromRGB(230, 190, 160),
+		shirt = Color3.fromRGB(110, 40, 35),
+		pants = Color3.fromRGB(70, 55, 40),
+		hat = "helmet",
+		guildBoard = true,
+		greeting = "Contratos do clã! Só para quem tem guilda: cada contrato entregue aqui rende ouro, XP e pontos para a sua guilda. Renovam à meia-noite.",
 	}),
 	service("quadro", {
 		name = "Quadro de Recompensas",

@@ -491,42 +491,6 @@ function builders.dungeonShop(parent, npc, rng)
 	return model
 end
 
--- SALÃO DAS GUILDAS: prédio de pedra clara com estandartes na fachada, mesa longa, mural com os
--- emblemas e flâmulas penduradas; Helena fica no fundo.
-function builders.guildhall(parent, npc, rng)
-	local cf = doorFrame(npc)
-	local model = Props.building(parent, cf, 12, 11, 10, Color3.fromRGB(205, 195, 175), Color3.fromRGB(120, 40, 45), {
-		name = "SalaoGuildas",
-		doorWidth = 4.5,
-		wallMaterial = M.Cobblestone,
-		roofMaterial = M.Slate,
-		floor = "planks",
-		trim = Color3.fromRGB(150, 110, 40),
-		lights = { Vector3.new(-3, 8.5, 4), Vector3.new(3, 8.5, 8) },
-	})
-	local inside = cf * CFrame.new(0, 1.2, 0)
-	-- mesa longa com bancos
-	Props.table(model, inside * CFrame.new(0, 0, 5), 2.4, 6.5, 1.9, Color3.fromRGB(95, 60, 35))
-	for _, side in { -1, 1 } do
-		part(model, { Name = "Banco", Size = Vector3.new(0.9, 1.1, 6), CFrame = inside * CFrame.new(side * 2.2, 0.55, 5), Color = Color3.fromRGB(110, 75, 45), Material = M.Wood })
-	end
-	-- mural dos emblemas no fundo (os quadros coloridos lembram as guildas)
-	part(model, { Name = "Mural", Size = Vector3.new(8, 4.5, 0.3), CFrame = inside * CFrame.new(0, 5, 10.3), Color = Color3.fromRGB(70, 50, 35), Material = M.Wood })
-	for i = 0, 5 do
-		local col, row = i % 3, math.floor(i / 3)
-		part(model, { Name = "Emblema", Size = Vector3.new(1.6, 1.6, 0.12), CFrame = inside * CFrame.new(-2.4 + col * 2.4, 6 - row * 2, 10.12) * CFrame.Angles(0, 0, math.rad(45)), Color = Color3.fromHSV(rng:NextNumber(), 0.55, 0.8), Material = M.Fabric })
-	end
-	-- flâmulas penduradas no teto
-	for i = 0, 3 do
-		part(model, { Name = "Flamula", Size = Vector3.new(1.2, 2.4, 0.08), CFrame = inside * CFrame.new(-3 + i * 2, 7.6, 2 + (i % 2) * 4), Color = if i % 2 == 0 then Color3.fromRGB(150, 40, 45) else Color3.fromRGB(40, 70, 150), Material = M.Fabric, CanCollide = false })
-	end
-	-- estandartes na fachada
-	for _, side in { -1, 1 } do
-		Props.banner(model, cf * CFrame.new(side * 4.2, 0, -0.6), if side < 0 then Color3.fromRGB(150, 40, 45) else Color3.fromRGB(40, 70, 150))
-	end
-	return model
-end
-
 -- TREINO
 -- Pátio de treino cercado (os bonecos são inimigos do tipo "boneco")
 function builders.training(parent, npc)

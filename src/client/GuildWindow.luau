@@ -3,7 +3,7 @@
 --           nível e bônus, membros (cargo, online/visto) com ações conforme o cargo, convidar jogadores
 --           deste servidor, histórico e "Sair".
 --   Banco: saldo, depositar (todos) e sacar (líder e oficiais).
---   Metas: 3 metas da semana com progresso e "Resgatar" (cada membro uma vez).
+--   Metas: Guilds.WeeklyGoals metas da semana com progresso e "Resgatar" (cada membro uma vez).
 --   Ranking: top 20 guildas da semana.
 -- Chat da guilda (todos os servidores): /gu mensagem (ou /guilda). Convite recebido: painel Entrar/Recusar.
 local Players = game:GetService("Players")
@@ -67,7 +67,7 @@ end
 -- ===================== ABA GUILDA =====================
 
 local function renderCreate(page, info)
-	text(page, { Text = ("Você não tem guilda. Fundar custa %d de ouro e o nível %d; fale com a Helena (Salão das Guildas, na vila)."):format(Guilds.CreateCost, Guilds.CreateLevel), Size = UDim2.new(1, 0, 0, 40), TextColor3 = UI.Colors.SubText })
+	text(page, { Text = ("Você não tem guilda. Fundar custa %d de ouro e o nível %d; fale com a Helena no Salão dos Clãs (a leste da vila)."):format(Guilds.CreateCost, Guilds.CreateLevel), Size = UDim2.new(1, 0, 0, 40), TextColor3 = UI.Colors.SubText })
 	if info and info.invite then
 		text(page, { Text = ("Convite pendente: %s (de %s)"):format(info.invite.name, info.invite.from), Position = UDim2.fromOffset(0, 44), Size = UDim2.new(1, 0, 0, 20), TextColor3 = UI.Colors.Green })
 	end
@@ -212,10 +212,10 @@ local function renderGoals(page, guild)
 		text(page, { Text = "Entre numa guilda para participar das metas da semana.", Size = UDim2.new(1, 0, 0, 30), TextColor3 = UI.Colors.SubText })
 		return
 	end
-	text(page, { Text = "Metas da semana (renovam toda segunda-feira). Todo mundo da guilda ajuda; cada membro resgata o prêmio uma vez.", Size = UDim2.new(1, 0, 0, 36), TextColor3 = UI.Colors.SubText })
+	text(page, { Text = "Metas da semana (renovam toda segunda-feira). Todo mundo da guilda ajuda; cada membro resgata o prêmio uma vez. Contratos do Clã (Ulf) e o brinde no Salão dos Clãs também dão pontos.", Size = UDim2.new(1, 0, 0, 36), TextColor3 = UI.Colors.SubText })
 	for i, goal in guild.goals do
-		local y = 44 + (i - 1) * 96
-		local card = UI.new("Frame", { Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 0, 86), BackgroundColor3 = UI.Colors.PanelLight, Parent = page }, { UI.corner(10) })
+		local y = 44 + (i - 1) * 92
+		local card = UI.new("Frame", { Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 0, 84), BackgroundColor3 = UI.Colors.PanelLight, Parent = page }, { UI.corner(10) })
 		UI.icon(goal.icon, { Position = UDim2.fromOffset(10, 16), Size = UDim2.fromOffset(52, 52), Parent = card })
 		text(card, { Text = goal.text, Position = UDim2.fromOffset(74, 8), Size = UDim2.new(1, -230, 0, 20), Font = Enum.Font.GothamBlack })
 		local _, fill, label = UI.bar(card, { Position = UDim2.fromOffset(74, 36), Size = UDim2.new(1, -230, 0, 18), color = UI.Colors.Green })

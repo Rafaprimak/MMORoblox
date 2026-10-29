@@ -258,7 +258,7 @@ local function createNpc(npc)
 		model, head = blockNpc(npc)
 	end
 	model.Name = npc.name
-	local ground = NPCService.groundHeight(npc.x, npc.z, if npc.indoor then World.TownHeight + 5 * World.PropScale else nil)
+	local ground = NPCService.groundHeight(npc.x, npc.z, npc.startY or (if npc.indoor then World.TownHeight + 5 * World.PropScale else nil))
 	-- altura da raiz acima do chão: em R15 é HipHeight + metade da raiz
 	local humanoid = model:FindFirstChildOfClass("Humanoid")
 	local root = model.PrimaryPart
