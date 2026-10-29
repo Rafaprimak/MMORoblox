@@ -310,13 +310,14 @@ local function armorStand(parent, base, set)
 	showItem(parent, set[2], set[4], base * CFrame.new(0, 5.75, 0))
 end
 
--- panóplia: duas armas cruzadas atrás de um escudo (face na parede, -Z para dentro) — tamanho real
+-- panóplia: escudo encostado na parede e duas armas cruzadas na frente dele (face na parede, -Z para
+-- dentro) — tamanho real
 local function panoply(parent, face, weapons, color)
+	roundShield(parent, face * CFrame.new(0, 0, -0.35), 3.4, color)
 	for i, entry in weapons do
 		local side = if i == 1 then -1 else 1
-		showItem(parent, entry[1], entry[2], face * CFrame.new(0, 0, -0.4) * CFrame.Angles(0, 0, math.rad(side * 38)) * CFrame.new(0, -1.8, 0))
+		showItem(parent, entry[1], entry[2], face * CFrame.new(0, 0, -1.55 - (i - 1) * 0.45) * CFrame.Angles(0, 0, math.rad(side * 38)) * CFrame.new(0, -1.8, 0))
 	end
-	roundShield(parent, face * CFrame.new(0, 0, -0.95), 3.4, color)
 end
 
 function GuildHall.build(parent, rng)
@@ -672,6 +673,18 @@ function GuildHall.build(parent, rng)
 	prompt.MaxActivationDistance = 10
 	prompt.RequiresLineOfSight = false
 	prompt.Parent = mead
+	-- lanterna pendurada em cima do barril e tocha na parede do canto: o brinde precisa ser achado
+	-- (pendurada no caibro de z = -36)
+	local meadLamp = cf * CFrame.new(16.6, F + 6.6, -36)
+	local chain = T + 2.6 - (F + 6.6 + 0.65)
+	part(model, { Name = "Corrente", Size = Vector3.new(0.1, chain, 0.1), CFrame = meadLamp * CFrame.new(0, 0.65 + chain / 2, 0), Color = IRON, Material = M.Metal, CanCollide = false })
+	part(model, { Name = "Tampa", Size = Vector3.new(0.9, 0.2, 0.9), CFrame = meadLamp * CFrame.new(0, 0.55, 0), Color = IRON, Material = M.Metal, CanCollide = false })
+	part(model, { Name = "Fundo", Size = Vector3.new(0.8, 0.15, 0.8), CFrame = meadLamp * CFrame.new(0, -0.5, 0), Color = IRON, Material = M.Metal, CanCollide = false })
+	for _, corner in { { -1, -1 }, { -1, 1 }, { 1, -1 }, { 1, 1 } } do
+		part(model, { Name = "Grade", Size = Vector3.new(0.08, 1.0, 0.08), CFrame = meadLamp * CFrame.new(corner[1] * 0.36, 0, corner[2] * 0.36), Color = IRON, Material = M.Metal, CanCollide = false })
+	end
+	Props.flame(model, (meadLamp * CFrame.new(0, -0.4, 0)).Position, 0.45, { light = 22, brightness = 1.4, sparks = false, rate = 12 })
+	wallTorch(model, cf * CFrame.new(halfW - 1, F + 5.6, -31) * CFrame.Angles(0, math.rad(90), 0))
 	-- mesinha dos chifres de beber
 	part(model, { Name = "Mesinha", Size = Vector3.new(2.4, 0.25, 1.6), CFrame = cf * CFrame.new(12.6, F + 1.9, -37.4), Color = Color3.fromRGB(105, 70, 45), Material = M.WoodPlanks })
 	part(model, { Name = "Pe", Size = Vector3.new(0.4, 1.78, 0.4), CFrame = cf * CFrame.new(12.6, F + 0.89, -37.4), Color = DARK, Material = M.Wood })

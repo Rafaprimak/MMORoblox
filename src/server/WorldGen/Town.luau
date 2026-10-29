@@ -660,6 +660,18 @@ local function fountain(parent)
 	spray.EmissionDirection = Enum.NormalId.Right -- eixo X do cilindro aponta para cima
 	spray.Parent = top
 	water.Name = "Agua"
+	-- luz da água (acende à noite) e quatro lampiões baixos na borda
+	local glow = part(model, { Name = "LuzAgua", Size = Vector3.new(1, 0.2, 1), CFrame = cf * CFrame.new(0, 1.7, 0), Transparency = 1, CanCollide = false, CanQuery = false })
+	Props.light(glow, Color3.fromRGB(150, 205, 255), 26, 1.2)
+	Props.nightLight(glow)
+	for i = 0, 3 do
+		local post = cf * CFrame.Angles(0, math.rad(45 + i * 90), 0) * CFrame.new(0, 0, -8.6)
+		part(model, { Name = "PosteLampiao", Size = Vector3.new(0.35, 3.6, 0.35), CFrame = post * CFrame.new(0, 1.8, 0), Color = Color3.fromRGB(40, 40, 45), Material = M.Metal })
+		part(model, { Name = "Tampa", Size = Vector3.new(0.9, 0.2, 0.9), CFrame = post * CFrame.new(0, 4.35, 0), Color = Color3.fromRGB(40, 40, 45), Material = M.Metal })
+		local lamp = part(model, { Name = "Lampiao", Size = Vector3.new(0.7, 0.8, 0.7), CFrame = post * CFrame.new(0, 3.85, 0), Color = Color3.fromRGB(255, 220, 150), Material = M.Neon, CanCollide = false })
+		Props.light(lamp, Color3.fromRGB(255, 205, 145), 20, 1.2)
+		Props.nightLight(lamp)
+	end
 	model.Parent = parent
 	Props.scaleModel(model, cf, K)
 	Placement.reserve(cf.X, cf.Z, 9 * K, "chafariz")

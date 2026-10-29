@@ -40,7 +40,9 @@ local function attachNpcGui(instance)
 		return
 	end
 	local adornee = if instance:IsA("Model") then (instance:FindFirstChild("Head") or instance.PrimaryPart) else instance
-	local gui = UI.new("BillboardGui", { Size = UDim2.fromOffset(220, 74), StudsOffset = Vector3.new(0, 2.6, 0), MaxDistance = 110, LightInfluence = 0, Adornee = adornee, Parent = adornee })
+	-- quadro (peça solta, com telhadinho em cima): o nome vai acima do telhado, não dentro dele
+	local offsetY = if instance:IsA("BasePart") then 7 else 2.6
+	local gui = UI.new("BillboardGui", { Size = UDim2.fromOffset(220, 74), StudsOffset = Vector3.new(0, offsetY, 0), MaxDistance = 110, LightInfluence = 0, Adornee = adornee, Parent = adornee })
 	local marker = UI.icon(nil, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, 0), Size = UDim2.fromOffset(36, 36), Parent = gui })
 	-- "!" de missão nova: letra grande dourada (sinal clássico de MMO)
 	local sign = UI.label({ Text = "!", Visible = false, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.fromScale(0.5, -0.08), Size = UDim2.fromOffset(40, 40), TextXAlignment = Enum.TextXAlignment.Center, FontFace = UI.TitleFont, TextColor3 = UI.Colors.Gold, Parent = gui }, { UI.textStroke(2.5) })

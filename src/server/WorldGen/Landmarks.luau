@@ -51,17 +51,6 @@ local function platform(parent, x, z, size, color, material, yaw)
 end
 
 -- ===================== PEDRAS DE VIAGEM =====================
--- texto da placa ao lado de cada pedra (a história da região)
-local REGION_TEXT = {
-	vila = "Vila Aurora. Protegida pelo Orbe Infinito, a barreira dos três arquimagos, a vila vive o mesmo dia de novo e de novo. Só os Hunters lembram de ontem. Esta pedra, como as outras do vale, foi plantada por Elric para os Hunters viajarem rápido.",
-	encruzilhada = "Encruzilhada. Os caminhos do vale se cruzam aqui: campos ao sul, bosque a leste, ruínas a oeste e a passagem ao norte. Lobos e javalis que bebem dos riachos de mana rondam as estradas.",
-	bosque = "Bosque Sombrio. As árvores aqui são velhas demais para o tempo voltar nelas por inteiro. Goblins acampam entre as raízes, e mais a leste fica o Ninho das Aranhas. O portal da Toca dos Goblins abre embaixo das colinas.",
-	ruinas = "Planalto das Ruínas. Restos da academia dos astrólogos e do cemitério dos primeiros guardiões. Os mortos daqui sentem a mana mais do que ninguém. Embaixo do cemitério fica a Cripta Esquecida.",
-	praia = "Costa Dourada. O mar parece não ter fim, mas a água vira parede onde o Orbe termina. Quem tentou sair navegando acordou na mesma praia na manhã seguinte.",
-	lago = "Lago Espelhado. No fundo do Santuário do Lago dorme Serafina, a segunda arquimaga, que virou a âncora viva da barreira. Nas noites calmas, a água brilha no ritmo de uma respiração.",
-	salao = "Salão das Guildas. A casa longa onde as guildas se reúnem: Helena funda e organiza as guildas, Ulf dá os Contratos da Guilda e o barril de hidromel garante um brinde por dia a quem tem guilda.",
-	passagem = "Passagem do Norte. Além do Portão Selado ficam a cratera do Rei Goblin e, mais para cima, o lugar onde a estrela vermelha caiu. A âncora de Valdrik está no coração das montanhas: o Abismo de Pedra.",
-}
 function Landmarks.waystones(parent)
 	local folder = Instance.new("Folder")
 	folder.Name = "PedrasDeViagem"
@@ -89,7 +78,6 @@ function Landmarks.waystones(parent)
 		prompt.RequiresLineOfSight = false
 		prompt.Parent = obelisk
 		Props.engrave(obelisk, stone.name, Color3.fromRGB(170, 225, 255), { Enum.NormalId.Front, Enum.NormalId.Back })
-		Props.signpost(model, cf * CFrame.new(2.9, 0, 2.9) * CFrame.Angles(0, math.rad(45), 0), stone.name, REGION_TEXT[stone.id] or "Uma pedra de viagem dos arquimagos. Toque nela para viajar entre as pedras que você já ativou.")
 		model.Parent = folder
 		Props.scaleModel(model, cf, K)
 		Placement.reserve(stone.x, stone.z, 6 * K, "pedra")

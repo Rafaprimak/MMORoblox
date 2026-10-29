@@ -154,7 +154,7 @@ local LOOKS = {
 	tomas = { hair = Color3.fromRGB(60, 45, 30), beard = Color3.fromRGB(60, 45, 30), outfit = "armor" },
 	sol = { hair = Color3.fromRGB(20, 15, 10), long = true, outfit = "vest" },
 	varg = { hair = Color3.fromRGB(70, 65, 70), beard = Color3.fromRGB(80, 75, 80), longBeard = true, outfit = "merchant" },
-	helena = { hair = Color3.fromRGB(150, 85, 45), long = true, braid = true, outfit = "noble", robe = Color3.fromRGB(35, 70, 95) },
+	helena = { hair = Color3.fromRGB(120, 65, 35), long = true, hairTop = true, braid = true, outfit = "noble", robe = Color3.fromRGB(45, 85, 150) },
 	ulf = { hair = Color3.fromRGB(170, 85, 40), beard = Color3.fromRGB(170, 85, 40), longBeard = true, beardBraid = true, outfit = "viking", weapon = "machado_berserker" },
 }
 
@@ -176,6 +176,10 @@ local function addLook(model, npc)
 	piece(head, Vector3.new(hs.X * 1.08, hs.Y * (if look.long then 1.25 else 0.7), hs.Z * 0.35), CFrame.new(0, if look.long then -0.05 else 0.2, hs.Z * 0.42), look.hair, Enum.Material.SmoothPlastic)
 	for _, side in { -1, 1 } do
 		piece(head, Vector3.new(hs.X * 0.12, hs.Y * 0.55, hs.Z * 0.5), CFrame.new(side * hs.X * 0.52, 0.15, 0.15), look.hair, Enum.Material.SmoothPlastic)
+	end
+	if look.hairTop then
+		-- cabelo em cima da cabeça (para quem usa diadema em vez de chapéu)
+		piece(head, Vector3.new(hs.X * 1.05, hs.Y * 0.3, hs.Z * 1.05), CFrame.new(0, hs.Y * 0.42, 0.02), look.hair, Enum.Material.SmoothPlastic)
 	end
 	if look.braid then
 		-- trança descendo pelas costas
@@ -247,18 +251,20 @@ local function addLook(model, npc)
 			end
 		end
 	elseif look.outfit == "noble" then
-		-- vestido longo de mestra de guilda: barra dourada, faixa com o emblema, gola de pele e capa
-		local robe = look.robe or Color3.fromRGB(35, 70, 95)
-		local gold = Color3.fromRGB(220, 180, 90)
-		piece(torso, ts + Vector3.new(0.15, 0.05, 0.15), CFrame.new(), robe, Enum.Material.Fabric)
-		piece(torso, Vector3.new(ts.X * 1.15, 0.45, ts.Z * 1.35), CFrame.new(0, ts.Y / 2 - 0.05, 0), Color3.fromRGB(235, 228, 215), Enum.Material.Fabric) -- gola de pele
-		piece(torso, Vector3.new(0.32, ts.Y * 1.15, 0.08), CFrame.new(0, -0.05, -ts.Z / 2 - 0.12) * CFrame.Angles(0, 0, math.rad(-32)), gold, Enum.Material.Fabric) -- faixa
-		piece(torso, Vector3.new(0.42, 0.42, 0.06), CFrame.new(-0.2, 0.15, -ts.Z / 2 - 0.18) * CFrame.Angles(0, 0, math.rad(45)), Color3.fromRGB(150, 35, 40), Enum.Material.Fabric) -- emblema
-		piece(torso, Vector3.new(ts.X * 1.05, 4.3, 0.12), CFrame.new(0, ts.Y / 2 - 2.15, ts.Z / 2 + 0.16) * CFrame.Angles(math.rad(-4), 0, 0), Color3.fromRGB(110, 30, 35), Enum.Material.Fabric) -- capa
+		-- vestido longo de mestra de guilda (liso, sem textura de tecido), barra e cinto dourados, faixa
+		-- com o emblema, gola dourada e capa
+		local robe = look.robe or Color3.fromRGB(45, 85, 150)
+		local gold = Color3.fromRGB(225, 185, 95)
+		local smooth = Enum.Material.SmoothPlastic
+		piece(torso, ts + Vector3.new(0.1, 0.04, 0.1), CFrame.new(), robe, smooth)
+		piece(torso, Vector3.new(ts.X * 0.55, 0.16, ts.Z + 0.16), CFrame.new(0, ts.Y / 2 - 0.02, 0), gold, Enum.Material.Metal) -- gola
+		piece(torso, Vector3.new(0.24, ts.Y * 1.1, 0.06), CFrame.new(0, -0.05, -ts.Z / 2 - 0.09) * CFrame.Angles(0, 0, math.rad(-30)), gold, smooth) -- faixa
+		piece(torso, Vector3.new(0.34, 0.34, 0.05), CFrame.new(-0.22, 0.2, -ts.Z / 2 - 0.14) * CFrame.Angles(0, 0, math.rad(45)), Color3.fromRGB(160, 40, 45), smooth) -- emblema
+		piece(torso, Vector3.new(ts.X * 1.02, 4.1, 0.1), CFrame.new(0, ts.Y / 2 - 2.05, ts.Z / 2 + 0.13) * CFrame.Angles(math.rad(-3), 0, 0), Color3.fromRGB(120, 30, 40), smooth) -- capa
 		if lower then
-			piece(lower, Vector3.new(lower.Size.X + 0.45, 2.7, lower.Size.Z + 0.55), CFrame.new(0, -1.2, 0), robe, Enum.Material.Fabric)
-			piece(lower, Vector3.new(lower.Size.X + 0.5, 0.22, lower.Size.Z + 0.6), CFrame.new(0, -2.45, 0), gold, Enum.Material.Fabric)
-			piece(lower, Vector3.new(lower.Size.X + 0.5, 0.25, lower.Size.Z + 0.6), CFrame.new(0, 0.1, 0), gold, Enum.Material.Metal)
+			piece(lower, Vector3.new(lower.Size.X + 0.3, 2.6, lower.Size.Z + 0.35), CFrame.new(0, -1.15, 0), robe, smooth)
+			piece(lower, Vector3.new(lower.Size.X + 0.34, 0.16, lower.Size.Z + 0.39), CFrame.new(0, -2.38, 0), gold, smooth)
+			piece(lower, Vector3.new(lower.Size.X + 0.34, 0.16, lower.Size.Z + 0.39), CFrame.new(0, 0.12, 0), gold, Enum.Material.Metal)
 		end
 	elseif look.outfit == "viking" then
 		-- gibão de couro, manto de pele nos ombros, capa, cinturão com fivela redonda e braçadeiras
