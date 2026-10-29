@@ -64,7 +64,7 @@ end
 -- quem morre com o Auto Caçar ligado nasce de volta no ponto de caça
 function VipService.onCharacterAdded(player, character)
 	local anchor = player:GetAttribute("AutoAnchor")
-	if (player:GetAttribute("AutoFarm") or player:GetAttribute("ResumeAutoFarm")) and validAnchor(anchor) and not player:GetAttribute("Dungeon") then
+	if (player:GetAttribute("AutoFarm") or player:GetAttribute("ResumeAutoFarm")) and validAnchor(anchor) and not VipService.inInstance(player) then
 		task.delay(0.6, function()
 			if character.Parent and character:FindFirstChild("HumanoidRootPart") then
 				AntiCheat.allowTeleport(player, 3)
@@ -101,6 +101,11 @@ function VipService.afkRejoin(player)
 	return { ok = true }
 end
 
+-- dentro de masmorra, raide ou luta da arena (o Auto nunca roda lá)
+function VipService.inInstance(player)
+	return player:GetAttribute("Dungeon") ~= nil or player:GetAttribute("Raid") ~= nil or player:GetAttribute("Arena") ~= nil
+end
+
 -- Liga/desliga o Auto Caçar (anchor = ponto de caça, mandado pelo cliente ao ligar)
 function VipService.setAutoFarm(player, on, anchor)
 	if on ~= true then
@@ -111,8 +116,8 @@ function VipService.setAutoFarm(player, on, anchor)
 	if not VipService.isVip(player) then
 		return { ok = false, msg = "O Auto Caçar é exclusivo para VIP." }
 	end
-	if player:GetAttribute("Dungeon") then
-		return { ok = false, msg = "O Auto Caçar não funciona dentro das masmorras." }
+	if VipService.inInstance(player) then
+		return { ok = false, msg = "O Auto não funciona em masmorras, raide e arena." }
 	end
 	local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
 	if not humanoid or humanoid.Health <= 0 then
@@ -140,7 +145,7 @@ task.spawn(function()
 	while true do
 		task.wait(1)
 		for _, player in Players:GetPlayers() do
-			if player:GetAttribute("AutoFarm") and player:GetAttribute("Dungeon") then
+			if player:GetAttribute("AutoFarm") and VipService.inInstance(player) then
 				player:SetAttribute("AutoFarm", false)
 			end
 		end

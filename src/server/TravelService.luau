@@ -177,6 +177,10 @@ function TravelService.travel(player, stoneId)
 	if PlayerService.inCombat(player) then
 		return { ok = false, msg = "Não dá para viajar em combate!" }
 	end
+	-- pedra de viagem não tira ninguém de masmorra, raide ou arena (saia pelo botão de sair)
+	if player:GetAttribute("Dungeon") or player:GetAttribute("Raid") or player:GetAttribute("Arena") then
+		return { ok = false, msg = "Saia da masmorra, da raide ou da arena antes de viajar." }
+	end
 	TravelService.dismount(player)
 	local x, z = stone.x + 6, stone.z + 6
 	local y = World.height(x, z)

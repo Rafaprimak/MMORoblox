@@ -75,6 +75,10 @@ function AutoHunt.toggle()
 		State.request("autoFarm", false)
 		return
 	end
+	if player:GetAttribute("Dungeon") or player:GetAttribute("Raid") or player:GetAttribute("Arena") then
+		Popups.message("O Auto não funciona em masmorras, raide e arena.", UI.Colors.Gold)
+		return
+	end
 	if not player:GetAttribute("Vip") then
 		if Config.VipGamePassId > 0 then
 			MarketplaceService:PromptGamePassPurchase(player, Config.VipGamePassId)
@@ -623,6 +627,10 @@ end
 -- ===================== LAÇO =====================
 
 local function step()
+	-- nunca roda dentro de masmorra, raide ou arena (o servidor também desliga)
+	if player:GetAttribute("Dungeon") or player:GetAttribute("Raid") or player:GetAttribute("Arena") then
+		return
+	end
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
 	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
