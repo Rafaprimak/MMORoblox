@@ -47,15 +47,16 @@ SoundIds.Effects = {
 
 -- Ambiente em loop (por região). Fica em silêncio enquanto o id estiver vazio.
 SoundIds.Ambience = {
-	-- Vila e campos sem som de ambiente (só a música). Testados e removidos: APM "Nature" (trecho de 34 s
-	-- com assobios em loop) e APM "Light Wind" (é uma música, não vento: tocava junto com a música da vila).
+	-- SÓ áudio do tipo "SoundEffect" aqui (a API do Roblox mostra audioDetails.audioType). Tudo da APM é
+	-- "Music", mesmo com nome de ambiente ("Forest Ambience", "Ocean Waves", "Crickets A", "Wind Cave",
+	-- "Nature", "Light Wind"): tocavam como uma segunda música por cima da música da região. Removidos.
 	vila = { id = "", desc = "Vila: sem ambiente" },
 	campo = { id = "", desc = "Campos: sem ambiente" },
-	bosque = { id = "rbxassetid://1842179318", desc = "Floresta (APM: Forest Ambience)" },
-	costa = { id = "rbxassetid://1846173482", desc = "Praia: ondas (APM: Ocean Waves)" },
-	montanha = { id = "rbxassetid://15675021174", desc = "Montanha: vento forte" },
-	ruinas = { id = "rbxassetid://1839778801", desc = "Ruínas: vento com eco (APM: Wind Cave)" },
-	noite = { id = "rbxassetid://1846652276", desc = "Noite: grilos, toca junto com a região (APM: Crickets A)" },
+	bosque = { id = "rbxassetid://139786277679262", desc = "Floresta: coro de pássaros (SoundEffect, 167 s)" },
+	costa = { id = "rbxassetid://137826155053556", desc = "Praia: ondas na areia (SoundEffect, 183 s)" },
+	montanha = { id = "", desc = "Montanha: sem ambiente" },
+	ruinas = { id = "", desc = "Ruínas: sem ambiente" },
+	noite = { id = "", desc = "Noite: sem ambiente" },
 }
 
 -- Música em loop (crossfade ao trocar)

@@ -49,6 +49,9 @@ local player = Players.LocalPlayer
 local anchor = nil
 local banner, statusLabel
 local lastPotion, lastAbility, abilitySlot, lastDodge = 0, 0, 1, 0
+local lastHurt = 0 -- última vez que o personagem levou dano (reage a quem ataca de longe)
+local lockedTarget = nil -- inimigo em luta: só troca quando ele morre ou fica muito longe
+local LOCK_RANGE = 70
 local lastChores, lastTravel, lastMount, lastTalk, lastPromptAt, lastRequest = 0, 0, 0, 0, 0, 0
 
 local MOVE_KEYS = {
@@ -182,6 +185,11 @@ local function enemyAt(origin, center, range, typeFilter)
 end
 
 local function fight(humanoid, root, target, distance, options)
+	-- trava no alvo até ele morrer (bonecos de treino nunca morrem: não trava neles)
+	local targetDef = Enemies.Defs[target:GetAttribute("Type") or ""]
+	if targetDef and targetDef.behavior ~= "dummy" then
+		lockedTarget = target
+	end
 	local weaponType = player:GetAttribute("WeaponType")
 	local reach = REACH[weaponType or ""] or MELEE_REACH
 	local radius = target.Size.X / 2
@@ -602,9 +610,31 @@ local function step()
 		lastChores = os.clock()
 		task.spawn(chores)
 	end
-	-- inimigo atacando por perto: defende-se primeiro
-	local threat, threatDistance = enemyAt(root.Position, root.Position, 14, nil)
+	-- 1) termina a luta começada: não larga um inimigo pela metade
+	if lockedTarget and (lockedTarget.Parent == nil or lockedTarget:GetAttribute("Dead") or (lockedTarget.Position - root.Position).Magnitude > LOCK_RANGE) then
+		lockedTarget = nil
+	end
+	-- 2) quem está atacando: perto (14), arqueiros/magos (até 45) e, se levou dano há pouco, até 55
+	local threatRange = if os.clock() - lastHurt < 5 then 55 else 14
+	local threat, threatDistance = enemyAt(root.Position, root.Position, threatRange, nil)
+	if not threat then
+		local folder = workspace:FindFirstChild("Inimigos")
+		local bestDistance = 45
+		for _, enemyRoot in if folder then folder:GetChildren() else {} do
+			local def = Enemies.Defs[enemyRoot:GetAttribute("Type") or ""]
+			if def and def.behavior == "ranged" and enemyRoot:IsA("BasePart") and not enemyRoot:GetAttribute("Dead") then
+				local distance = (enemyRoot.Position - root.Position).Magnitude
+				if distance < bestDistance then
+					threat, threatDistance, bestDistance = enemyRoot, distance, distance
+				end
+			end
+		end
+	end
+	if lockedTarget and not threat then
+		threat, threatDistance = lockedTarget, (lockedTarget.Position - root.Position).Magnitude
+	end
 	if threat then
+		lockedTarget = threat
 		setStatus("Lutando")
 		fight(humanoid, root, threat, threatDistance)
 		return
@@ -621,10 +651,33 @@ local function step()
 		end
 		return
 	end
+	lockedTarget = target
 	fight(humanoid, root, target, distance)
 end
 
+-- dano recebido: o Auto passa a procurar quem está atacando mais longe
+local function watchCharacter(character)
+	local humanoid = character:WaitForChild("Humanoid", 10)
+	if not humanoid then
+		return
+	end
+	local last = humanoid.Health
+	humanoid.HealthChanged:Connect(function(health)
+		if health < last then
+			lastHurt = os.clock()
+		end
+		last = health
+	end)
+end
+
 function AutoHunt.init(screen)
+	if player.Character then
+		task.spawn(watchCharacter, player.Character)
+	end
+	player.CharacterAdded:Connect(function(character)
+		lockedTarget = nil
+		watchCharacter(character)
+	end)
 	banner = UI.new("Frame", {
 		Name = "AutoCacar",
 		AnchorPoint = Vector2.new(0.5, 0),
