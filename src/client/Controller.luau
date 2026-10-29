@@ -9,7 +9,6 @@
 -- No celular aparecem botões na tela para cada ação.
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -22,7 +21,6 @@ local State = require(script.Parent.State)
 local Animator = require(script.Parent.Animator)
 local Sounds = require(script.Parent.Sounds)
 local LockOn = require(script.Parent.LockOn)
-local UI = require(script.Parent.UI)
 
 local Controller = {}
 
@@ -442,6 +440,20 @@ function Controller.isAttacking()
 	return os.clock() < lockUntil
 end
 
+-- Ações usadas pelos botões de toque (TouchControls)
+Controller.touch = {
+	attack = function()
+		lightAttack()
+	end,
+	heavyStart = startHeavy,
+	heavyRelease = releaseHeavy,
+	block = setBlock,
+	dodge = function()
+		dodge()
+	end,
+	sprint = setSprint,
+}
+
 local KEY_ABILITY = { [Enum.KeyCode.One] = 1, [Enum.KeyCode.Two] = 2, [Enum.KeyCode.Three] = 3, [Enum.KeyCode.Four] = 4 }
 local KEY_POTION = { [Enum.KeyCode.Z] = "pocao_vida", [Enum.KeyCode.X] = "pocao_mana", [Enum.KeyCode.V] = "pocao_vigor" }
 
@@ -479,50 +491,6 @@ function Controller.init()
 			setBlock(false)
 		end
 	end)
-
-	-- botões de toque (aparecem só no celular)
-	local function touchAction(name, title, position, onBegin, onEnd)
-		ContextActionService:BindAction(name, function(_, inputState)
-			if inputState == Enum.UserInputState.Begin then
-				onBegin()
-			elseif inputState == Enum.UserInputState.End and onEnd then
-				onEnd()
-			end
-			return Enum.ContextActionResult.Pass
-		end, true)
-		ContextActionService:SetPosition(name, position)
-		-- título curto (número) ou ícone do atlas desenhado dentro do botão
-		local button = ContextActionService:GetButton(name)
-		if button and #title > 2 then
-			ContextActionService:SetTitle(name, "")
-			UI.icon(title, { Size = UDim2.fromScale(0.58, 0.58), Position = UDim2.fromScale(0.21, 0.21), Parent = button })
-		else
-			ContextActionService:SetTitle(name, title)
-		end
-	end
-	if UserInputService.TouchEnabled then
-		touchAction("Atacar", "crossed-swords", UDim2.new(1, -95, 1, -170), lightAttack)
-		touchAction("Pesado", "explosion-rays", UDim2.new(1, -160, 1, -130), startHeavy, releaseHeavy)
-		touchAction("Bloquear", "checked-shield", UDim2.new(1, -225, 1, -150), function()
-			setBlock(true)
-		end, function()
-			setBlock(false)
-		end)
-		touchAction("Esquivar", "wind-slap", UDim2.new(1, -160, 1, -200), dodge)
-		touchAction("Correr", "run", UDim2.new(1, -95, 1, -240), function()
-			setSprint(true)
-		end, function()
-			setSprint(false)
-		end)
-		touchAction("Montar", "horse-head", UDim2.new(1, -230, 1, -240), function()
-			State.action("mount")
-		end)
-		for slot = 1, 4 do
-			touchAction("Habilidade" .. slot, tostring(slot), UDim2.new(1, -60 - slot * 62, 1, -310), function()
-				useAbility(slot)
-			end)
-		end
-	end
 
 	-- velocidade conforme corrida/guarda/montaria
 	RunService.Heartbeat:Connect(function()

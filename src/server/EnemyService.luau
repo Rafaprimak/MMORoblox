@@ -102,8 +102,13 @@ function EnemyService.spawn(camp, enemyId, options)
 	local elite = options.forceElite == true or (canBeElite and math.random() < Enemies.EliteChance * (if isNight() then Config.NightEliteMultiplier else 1))
 	local height = EnemyModels.height(def, elite)
 	local radius = def.radius * (if elite then 1.35 else 1)
-	local hp = math.floor(def.hp * (if elite then 3 else 1) * (options.hpMult or 1) * EnemyService.GlobalHpMult)
 	local level = def.level + (if elite then 2 else 0) + (options.levelBonus or 0)
+	-- vida e dano crescem com o nível (Config.enemyScale); chefe de mundo e raide já escalam por jogadores
+	local hpScale, damageScale = 1, 1
+	if not def.noScale and def.behavior ~= "dummy" then
+		hpScale, damageScale = Config.enemyScale(level)
+	end
+	local hp = math.floor(def.hp * (if elite then 3 else 1) * hpScale * (options.hpMult or 1) * EnemyService.GlobalHpMult)
 	local pos = options.position or randomPointInCamp(camp)
 
 	local root = Instance.new("Part")
@@ -139,7 +144,8 @@ function EnemyService.spawn(camp, enemyId, options)
 		radius = radius,
 		elite = elite,
 		level = level,
-		damageMult = (if elite then 1.5 else 1) * (options.damageMult or 1),
+		damageMult = (if elite then 1.5 else 1) * damageScale * (options.damageMult or 1),
+		attackCooldown = def.attackCooldown / Config.EnemyAttackSpeed,
 		rewardMult = options.rewardMult or 1, -- masmorras: andares mais fundos dão mais XP e ouro
 		damageBy = {},
 		threat = {},
@@ -646,7 +652,7 @@ local function updateEnemy(rec, now, targets)
 		end
 		for _, candidate in targets do
 			local toPlayer = flat(candidate.root.Position - rec.pos)
-			if toPlayer.Magnitude < def.attackRange + rec.radius + 2 and now - rec.lastAttack >= def.attackCooldown then
+			if toPlayer.Magnitude < def.attackRange + rec.radius + 2 and now - rec.lastAttack >= rec.attackCooldown then
 				rec.lastAttack = now
 				rec.yaw = yawTowards(toPlayer)
 				rec.state = "windup"
@@ -774,7 +780,7 @@ local function updateEnemy(rec, now, targets)
 				moveToward(rec, -toTarget, def.speed * 0.8, TICK)
 			elseif distance > def.attackRange then
 				moveToward(rec, toTarget, def.speed, TICK)
-			elseif now - rec.lastAttack >= def.attackCooldown then
+			elseif now - rec.lastAttack >= rec.attackCooldown then
 				rec.lastAttack = now
 				rec.state = "recover"
 				rec.stateUntil = now + 0.7
@@ -806,7 +812,7 @@ local function updateEnemy(rec, now, targets)
 			local reach = def.attackRange + rec.radius
 			if distance > reach then
 				moveToward(rec, toTarget, def.speed * speedMult, TICK)
-			elseif now - rec.lastAttack >= def.attackCooldown / speedMult then
+			elseif now - rec.lastAttack >= rec.attackCooldown / speedMult then
 				rec.lastAttack = now
 				rec.state = "windup"
 				rec.stateUntil = now + (if boss then 0.65 else 0.5)

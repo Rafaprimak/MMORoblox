@@ -220,6 +220,7 @@ Enemies.Defs = {
 	},
 	-- chefe de mundo (WorldEventService): feito para ~20 caçadores juntos (vida fixa enorme)
 	behemoth_mana = {
+		noScale = true, -- já escala pelo número de jogadores
 		name = "Behemoth de Mana", level = 20, hp = 320000, damage = 62, speed = 11, attackCooldown = 1.7, attackRange = 13,
 		xp = 9000, gold = { 900, 1400 }, dropChance = 1, equipDrops = 2, minRarity = 4,
 		pool = { "espada_runica", "katana_lua", "adagas_vazio", "coroa_arcana", "amuleto_dragao", "anel_tempestade", "martelo_gigante", "armadura_placas" },
@@ -257,6 +258,7 @@ Enemies.Defs = {
 	},
 	-- chefe da raide (RaidService): fases, chuva de estrelas e servos ficam no serviço
 	devorador = {
+		noScale = true, -- já escala pelo número de jogadores
 		name = "Devorador de Estrelas", level = 24, hp = 240000, damage = 52, speed = 10, attackCooldown = 1.6, attackRange = 12,
 		xp = 15000, gold = { 1500, 2500 }, dropChance = 1, equipDrops = 3, minRarity = 5,
 		-- só o conjunto Estelar (exclusivo da raide)
@@ -305,7 +307,7 @@ Enemies.Camps = {
 	{ id = "chefe_musgo", center = Vector2.new(-150, -150), radius = 14, spawns = { musgo_antigo = 1 }, respawn = 600, place = "Entre os golems, ao sul das ruínas" },
 }
 
-Enemies.EliteChance = 0.06
+Enemies.EliteChance = 0.09
 -- Chance de CADA jogador que ajudou a matar o chefe ganhar um dos seus Únicos (no andar 20 das masmorras: dobro)
 Enemies.UniqueChance = 0.015
 

@@ -386,11 +386,17 @@ function MapWindow.init(screen)
 		local button = UI.button({ Text = spec[1], Position = UDim2.new(1, -40, 0, 8 + (i - 1) * 38), Size = UDim2.fromOffset(32, 32), BackgroundColor3 = UI.Colors.PanelLight, ZIndex = 8, Parent = mapFrame })
 		button.MouseButton1Click:Connect(spec[2])
 	end
-	playerArrow = UI.iconImage("plain-arrow", { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(22, 22), Color = Color3.fromRGB(255, 240, 80), ZIndex = 6, Parent = markers })
+	-- você: ponto amarelo com a seta para onde o personagem olha (desenhada com peças da interface, sem
+	-- depender de ícone; o quadro todo gira)
+	playerArrow = UI.new("Frame", { Name = "Voce", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(34, 34), BackgroundTransparency = 1, ZIndex = 7, Parent = markers })
+	UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(13, 13), BackgroundColor3 = Color3.fromRGB(255, 225, 60), ZIndex = 7, Parent = playerArrow }, { UI.corner(7), UI.stroke(Color3.new(0, 0, 0), 2) })
+	UI.label({ Text = "▲", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(0.5, 0, 0.5, -12), Size = UDim2.fromOffset(18, 16), TextColor3 = Color3.fromRGB(255, 225, 60), Font = Enum.Font.GothamBlack, TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 8, Parent = playerArrow }, { UI.textStroke(2) })
 	info = UI.label({ Text = "Seta = você • losango dourado = objetivo • ! / ? = NPC com missão • caveira = inimigos (nível) • roda do mouse = zoom", TextScaled = false, TextSize = 12, TextWrapped = true, Position = UDim2.fromOffset(0, SIZE + 6), Size = UDim2.new(1, 0, 0, 34), TextColor3 = UI.Colors.SubText, Parent = win.content })
 	win.onOpen = function()
 		task.spawn(draw)
 		refreshStones()
+		-- abre já centrado em você (com zoom suficiente para ver o entorno)
+		centerOnPlayer()
 	end
 	State.Changed:Connect(function()
 		refreshStones()
@@ -406,7 +412,7 @@ function MapWindow.init(screen)
 			local mx, mz = toMap(root.Position.X, root.Position.Z)
 			playerArrow.Position = at(mx, mz)
 			local look = root.CFrame.LookVector
-			playerArrow.Rotation = math.deg(math.atan2(look.X, -look.Z)) + 180 -- a seta do ícone aponta para baixo
+			playerArrow.Rotation = math.deg(math.atan2(look.X, -look.Z)) -- 0 = para cima no mapa (norte, -Z)
 		end
 		-- colegas do grupo
 		local mates = PartyUI.members()

@@ -40,6 +40,12 @@ UI.Colors = {
 	Icon = Color3.fromRGB(255, 234, 180), -- tinta padrão dos ícones (marfim dourado)
 }
 
+-- só toque (celular/tablet sem mouse): controles na tela e HUD reorganizado
+function UI.touchOnly()
+	local UserInputService = game:GetService("UserInputService")
+	return UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+end
+
 function UI.new(className, props, children)
 	local instance = Instance.new(className)
 	local parent = nil

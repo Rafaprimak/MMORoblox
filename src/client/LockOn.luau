@@ -185,22 +185,6 @@ function LockOn.init()
 			flick.amount = 0
 		end
 	end)
-	if UserInputService.TouchEnabled then
-		local ContextActionService = game:GetService("ContextActionService")
-		ContextActionService:BindAction("Travar", function(_, inputState)
-			if inputState == Enum.UserInputState.Begin then
-				LockOn.toggle()
-			end
-			return Enum.ContextActionResult.Pass
-		end, true)
-		ContextActionService:SetTitle("Travar", "")
-		ContextActionService:SetPosition("Travar", UDim2.new(1, -290, 1, -200))
-		local button = ContextActionService:GetButton("Travar")
-		if button then
-			UI.icon("archery-target", { Size = UDim2.fromScale(0.58, 0.58), Position = UDim2.fromScale(0.21, 0.21), Parent = button })
-		end
-	end
-
 	-- câmera e rosto do personagem (roda depois da câmera padrão do Roblox)
 	RunService:BindToRenderStep("TravarAlvo", Enum.RenderPriority.Camera.Value + 1, function(dt)
 		if not target then

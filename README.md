@@ -70,16 +70,17 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 
 | Ação | PC | Celular |
 |---|---|---|
-| Atacar / emendar combo | Clique **no ritmo** (barra embaixo do retículo: clicar cedo demais quebra o combo) | Botão ⚔ |
+| Atacar / emendar combo | Clique **no ritmo** (barra embaixo do retículo: clicar cedo demais quebra o combo) | Botão grande de espadas (segurar repete o combo, mas só o toque no ritmo dá o bônus) |
 | Travar a mira no inimigo | **T** ou botão do meio do mouse (mexa o mouse rápido para o lado para trocar de alvo) | Botão 🎯 |
 | Ataque pesado carregado | Segure e solte **R** (maestria 5 da arma) | Segure 💥 |
 | Bloquear / aparar | Segure **F** (soltar e apertar logo antes do golpe = aparar) | Segure 🛡 |
 | Esquivar (rolamento) | **Q** (no último instante = esquiva perfeita) | Botão ↩ |
 | Correr | **Shift** (gasta estamina) | Botão 🏃 |
-| Habilidades da classe | **1, 2, 3, 4** | Botões 1–4 |
+| Habilidades da classe | **1, 2, 3, 4** | Quadros 1–4 em arco em volta do ataque (com a recarga) |
+| Pular | **Espaço** | Botão ▲ no canto (o pulo padrão do Roblox some) |
 | Poções | **Z** vida, **X** mana, **V** vigor | Toque na barra |
 | Montar / desmontar | **H** | Botão 🐴 |
-| Inventário / Personagem / Missões / Mapa / Baús | **I / C / J / M / B** | Botões à esquerda (no mapa: roda do mouse = zoom, arrastar = mover) |
+| Inventário / Personagem / Missões / Mapa / Baús | **I / C / J / M / B** | Botão MENU ao lado do painel do jogador; o quadro de missões fica à esquerda e fecha tocando no título (no mapa: roda do mouse = zoom, arrastar = mover) |
 | Baús ganhos (missões, conquistas, eventos) | **B** → aba do baú → **ABRIR GUARDADO** | Ficam guardados até você abrir; o botão Baús mostra quantos tem (!3) |
 | Jornada (recompensa diária, passe, conquistas, títulos) | **K** | Botão ⭐ |
 | Pets | **G** | Botão 🐾 |

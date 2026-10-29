@@ -117,7 +117,7 @@ local function render(force)
 		ItemIcon.new(cell, item.base, item.rarity, { Size = UDim2.fromScale(0.8, 0.62), Position = UDim2.fromScale(0.5, 0.02), AnchorPoint = Vector2.new(0.5, 0), glow = false })
 		UI.label({ Text = item.name, Size = UDim2.new(1, -4, 0.3, 0), Position = UDim2.new(0, 2, 0.66, 0), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = rarity.color, Parent = cell }, { UI.textStroke(1) })
 		if chosen then
-			UI.iconImage("check-mark", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -3, 0, 2), Size = UDim2.fromOffset(18, 18), Color = UI.Colors.Green, ZIndex = 3, Parent = cell })
+			UI.label({ Text = "✔", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -3, 0, 2), Size = UDim2.fromOffset(18, 18), TextColor3 = UI.Colors.Green, Font = Enum.Font.GothamBlack, TextXAlignment = Enum.TextXAlignment.Center, ZIndex = 3, Parent = cell }, { UI.textStroke(1.5) })
 		end
 		cell.MouseButton1Click:Connect(function()
 			local at = table.find(selected, item.uid)

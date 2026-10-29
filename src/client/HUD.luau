@@ -63,9 +63,48 @@ local function slot(parent, layoutOrder, key, size)
 end
 
 local hudCallbacks = nil
+local touchOnly = false
+local trackerCollapsed = false
+local lastTrackerData = nil
+
+-- quadros das habilidades (os controles de toque levam para o leque do polegar)
+function HUD.abilitySlots()
+	return abilitySlots
+end
+
+-- Celular: a direita é dos controles de toque, então missões, buffs e menu vão para a esquerda/topo.
+-- scale = a escala do HUD (EscalaTela); as posições acompanham o tamanho do painel do jogador.
+function HUD.fitTouch(scale)
+	if not touchOnly or not refs.screen then
+		return
+	end
+	local left = 12 + 336 * scale -- logo à direita do painel do jogador
+	local toggleScale = math.max(scale, 0.85)
+	local own = refs.menuToggle:FindFirstChild("EscalaPropria")
+	if own then
+		own.Scale = toggleScale
+	end
+	refs.menuToggle.Position = UDim2.fromOffset(left, 12)
+	refs.menu.Position = UDim2.fromOffset(left, 12 + 46 * toggleScale)
+	refs.buffs.Position = UDim2.fromOffset(12, 12 + 118 * scale)
+	refs.clock.AnchorPoint = Vector2.new(0.5, 0)
+	refs.clock.Position = UDim2.new(0.5, 0, 0, 30)
+	refs.clock.TextXAlignment = Enum.TextXAlignment.Center
+	refs.tracker.Size = UDim2.fromOffset(250, 40)
+	-- coluna da esquerda: missões (ou o painel da masmorra/raide, que fica no lugar delas), embaixo dos buffs
+	for _, name in { "Missoes", "PainelMasmorra", "PainelRaide" } do
+		local panel = refs.screen:FindFirstChild(name)
+		if panel then
+			panel.AnchorPoint = Vector2.zero
+			panel.Position = UDim2.fromOffset(12, 12 + 152 * scale)
+		end
+	end
+end
 
 function HUD.init(screen, callbacks)
 	hudCallbacks = callbacks
+	touchOnly = UI.touchOnly()
+	refs.screen = screen
 	-- ===== painel do jogador =====
 	local panel = UI.new("Frame", { Name = "Jogador", Position = UDim2.fromOffset(12, 12), Size = UDim2.fromOffset(330, 112), BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.12, Parent = screen }, {
 		UI.corner(12),
@@ -106,9 +145,11 @@ function HUD.init(screen, callbacks)
 	for i = 1, 4 do
 		local s = slot(bar, i, tostring(i), 62)
 		abilitySlots[i] = s
-		s.button.MouseButton1Click:Connect(function()
-			callbacks.onAbility(i)
-		end)
+		if not touchOnly then -- no toque o TouchControls usa a habilidade ao encostar
+			s.button.MouseButton1Click:Connect(function()
+				callbacks.onAbility(i)
+			end)
+		end
 	end
 	UI.new("Frame", { Size = UDim2.fromOffset(10, 62), BackgroundTransparency = 1, LayoutOrder = 5, Parent = bar })
 	for i, id in { "pocao_vida", "pocao_mana", "pocao_vigor" } do
@@ -178,14 +219,14 @@ function HUD.init(screen, callbacks)
 		{ "Configurações", "P", callbacks.onSettings, nil, "cog" },
 	}
 	-- botão de esconder/mostrar o menu (no celular ele já começa escondido: a tela é baixa demais)
-	local touchOnly = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 	local toggle = UI.button({ Text = "", AnchorPoint = Vector2.new(0, 1), Size = UDim2.fromOffset(150, 26), BackgroundColor3 = UI.Colors.Panel, Parent = screen })
+	refs.menu, refs.menuToggle = menu, toggle
 	local function placeToggle()
 		if touchOnly then
+			-- ao lado do painel do jogador (a posição sai do HUD.fitTouch, que conhece a escala da tela)
 			toggle.Size = UDim2.fromOffset(90, 40)
-			toggle.AnchorPoint = Vector2.new(0, 0.5)
-			toggle.Position = UDim2.new(0, 12, 0.5, 30)
-			toggle.Text = "MENU"
+			toggle.AnchorPoint = Vector2.new(0, 0)
+			toggle.Text = if menu.Visible then "FECHAR" else "MENU"
 		else
 			-- logo acima do menu; com o menu escondido, fica no mesmo lugar
 			toggle.Position = UDim2.new(0, 12, 0.5, 50 - menu.Size.Y.Offset / 2 - 4)
@@ -194,7 +235,9 @@ function HUD.init(screen, callbacks)
 	end
 	if touchOnly then
 		menu.Visible = false
-		menu.Position = UDim2.new(0, 110, 0.5, 30)
+		menu.AnchorPoint = Vector2.new(0, 0)
+		UI.new("UIScale", { Name = "EscalaPropria", Parent = toggle }) -- fica grande o bastante para o dedo
+		HUD.fitTouch(1)
 	end
 	toggle.MouseButton1Click:Connect(function()
 		menu.Visible = not menu.Visible
@@ -206,6 +249,7 @@ function HUD.init(screen, callbacks)
 		button.MouseButton1Click:Connect(function()
 			if touchOnly then
 				menu.Visible = false
+				placeToggle()
 			end
 			entry[3]()
 		end)
@@ -419,9 +463,23 @@ end
 
 local function updateTracker(data)
 	local tracker = refs.tracker
+	lastTrackerData = data
 	UI.clear(tracker)
 	local quests = data.quests
-	UI.label({ Text = "MISSÕES  (J)", Size = UDim2.new(1, 0, 0, 18), TextColor3 = UI.Colors.Gold, Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = tracker }, { UI.textStroke(1) })
+	local header = UI.label({ Text = if touchOnly then (if trackerCollapsed then "MISSÕES  ▼" else "MISSÕES  ▲") else "MISSÕES  (J)", Size = UDim2.new(1, 0, 0, 18), TextColor3 = UI.Colors.Gold, Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = tracker }, { UI.textStroke(1) })
+	if touchOnly then
+		-- no celular o quadro fica compacto e se fecha com um toque no título
+		local hit = UI.new("TextButton", { Text = "", BackgroundTransparency = 1, Size = UDim2.new(1, 20, 1, 16), Position = UDim2.fromOffset(-10, -8), Parent = header })
+		hit.Activated:Connect(function()
+			trackerCollapsed = not trackerCollapsed
+			if lastTrackerData then
+				updateTracker(lastTrackerData)
+			end
+		end)
+		if trackerCollapsed then
+			return
+		end
+	end
 	if not quests or #quests.active == 0 then
 		local hint = "Procure NPCs com ! na cabeça"
 		UI.label({ Text = hint, Size = UDim2.new(1, 0, 0, 16), TextColor3 = UI.Colors.SubText, LayoutOrder = 1, Parent = tracker })
@@ -453,7 +511,7 @@ local function updateTracker(data)
 	end
 	local others = 0
 	for _, entry in quests.active do
-		if entry ~= tracked and others < 3 then
+		if entry ~= tracked and others < (if touchOnly then 0 else 3) then
 			local otherDef = Quests.ById[entry.id]
 			if otherDef then
 				others += 1

@@ -158,7 +158,7 @@ function RaidWindow.init(screen)
 	body = UI.new("ScrollingFrame", { Position = UDim2.new(0.42, 12, 0, 0), Size = UDim2.new(0.58, -12, 1, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), Parent = win.content }, { UI.list(8) })
 	win.onOpen = render
 	-- painel durante a luta
-	tracker = UI.new("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 230), Size = UDim2.fromOffset(240, 96), BackgroundColor3 = Color3.fromRGB(24, 14, 44), BackgroundTransparency = 0.1, Visible = false, Parent = screen }, { UI.corner(10), UI.stroke(MAGENTA, 2, 0.3) })
+	tracker = UI.new("Frame", { Name = "PainelRaide", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 230), Size = UDim2.fromOffset(240, 96), BackgroundColor3 = Color3.fromRGB(24, 14, 44), BackgroundTransparency = 0.1, Visible = false, Parent = screen }, { UI.corner(10), UI.stroke(MAGENTA, 2, 0.3) })
 	UI.label({ Text = "RAIDE", Position = UDim2.fromOffset(10, 4), Size = UDim2.new(1, -20, 0, 20), TextColor3 = MAGENTA, Font = Enum.Font.GothamBlack, Parent = tracker })
 	trackerPhase = UI.label({ Text = "", Position = UDim2.fromOffset(10, 24), Size = UDim2.new(1, -20, 0, 18), Parent = tracker })
 	trackerTime = UI.label({ Text = "", Position = UDim2.fromOffset(10, 42), Size = UDim2.new(1, -20, 0, 16), TextColor3 = UI.Colors.SubText, Parent = tracker })

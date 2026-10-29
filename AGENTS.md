@@ -171,7 +171,8 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
 | `TownLife` | Desenha e anima moradores, animais, pássaros, borboletas e vaga-lumes da vila (só perto dela) |
-| `Controller` | Entrada do jogador (combo, esquiva, corrida, habilidades, celular) |
+| `Controller` | Entrada do jogador (combo, esquiva, corrida, habilidades); `Controller.touch` = ações para os botões de toque |
+| `TouchControls` | Celular (`UI.touchOnly()`): leque para o polegar direito (ataque grande no centro; esquiva, pesado, bloquear e correr perto; as 4 habilidades do HUD, travar, montar e pular no anel de fora), segurar o ataque repete o combo sem o bônus de ritmo, esconde o pulo padrão do Roblox. O `HUD.fitTouch` passa missões, buffs, relógio e o botão MENU para a esquerda/topo (painéis `Missoes`, `PainelMasmorra`, `PainelRaide`). Nada novo no canto inferior direito no celular |
 | `Animator` | TODAS as animações dos jogadores, procedurais (escreve `Motor6D.Transform` em `RunService.Stepped`; o `Animate` padrão do Roblox é desligado): locomoção, montaria, golpes, hit-stop |
 | `EnemyRenderer` | Desenha/anima inimigos a partir das raízes do servidor |
 | `WorldMarkers` | ❗/❓ nos NPCs e o feixe do objetivo |
@@ -261,6 +262,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - **Rank do Hunter = exame**, não nível: `Config.Ranks[i].minLevel` só libera o exame (`exam`, missão `chain = "rank"`, `rankExam = i`, dada pela Capitã Lyra). A entrega chama `PlayerService.promoteRank` (no `QuestService.OnComplete` do init: `data.rank`, atributo `Rank`, aura, anúncio, `Fx.rankCeremony`, título `hunter_*`). Saves antigos ganham o rank que o nível dava (`Config.rankIndexForLevel`). Exame só aparece para quem está exatamente um rank abaixo. Use `Config.rankAt(data.rank)`, nunca o rank pelo nível.
 - **Avisos de novidade:** `Config.Unlocks` (nível, título, texto) vira o aviso `unlock` no `PlayerService.addXP`. Sistema novo com nível mínimo = entrada lá.
 - **Treino de habilidade:** `Quests` gera `treino_<habilidade>` (Mestre Kael, `requires.class`) para cada habilidade básica com `unlock > 1`; o objetivo `ability` aceita `target`.
+- **Força dos inimigos pelo nível:** `Config.enemyScale(nível)` multiplica vida (+8%/nível até ×2,2) e dano (+6%/nível até ×1,9) no `EnemyService.spawn`; `Config.EnemyAttackSpeed` encurta a recarga de ataque (`rec.attackCooldown`); `Enemies.EliteChance` 9%. Chefe com vida/dano já afinados à mão: `noScale = true`. Os multiplicadores remotos (`GlobalHpMult`/`GlobalDamageMult`) continuam por cima.
 - **XP de abate:** `Config.earlyXpMult(nível)` (+100% no nível 1 até 0 no 20) e presas do dia (`Config.preyOfDay()`, uma por faixa de `Config.PreyBands`, XP × `Config.PreyXpMult`, lista no diário J).
 - **Chefes de campo:** defs com `field = true` e `behavior = "boss"` + acampamento com `respawn` longo e `place` (texto do aviso "voltou"); `minRarity = 3`. Coroa laranja no mapa. Conjuntos do mundo (`alfa`, `bando`, `caido`): bases com `field = true` (fora do Baú Celestial); o perk do bônus de 4 pode ser um perk comum com gatilho.
 

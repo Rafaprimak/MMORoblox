@@ -219,6 +219,19 @@ Config.DayMinutes = 14
 Config.NightMinutes = 6
 Config.StartClock = 9 -- hora em que o servidor começa
 Config.NightEnemyDamage = 1.2 -- dano dos inimigos à noite
+
+-- Dificuldade dos inimigos pelo nível deles: as armas crescem com o nível do item, a raridade e o
+-- aprimoramento, então vida e dano dos inimigos também crescem (com teto). Nível 1 = valores da tabela.
+-- Defs com noScale (chefe de mundo e raide, que já escalam pelo número de jogadores) ficam fora.
+Config.EnemyHpPerLevel = 0.08
+Config.EnemyHpScaleMax = 2.2
+Config.EnemyDamagePerLevel = 0.06
+Config.EnemyDamageScaleMax = 1.9
+Config.EnemyAttackSpeed = 1.15 -- ataques um pouco mais seguidos (divide o attackCooldown)
+function Config.enemyScale(level)
+	local l = math.max(0, (level or 1) - 1)
+	return math.min(Config.EnemyHpScaleMax, 1 + Config.EnemyHpPerLevel * l), math.min(Config.EnemyDamageScaleMax, 1 + Config.EnemyDamagePerLevel * l)
+end
 Config.NightEliteMultiplier = 2.5 -- chance de Elite à noite
 Config.NightRewardBonus = 0.3 -- XP e ouro extras à noite
 

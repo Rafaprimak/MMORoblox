@@ -36,6 +36,7 @@ local Auras = require(script.Auras)
 local SettingsWindow = require(script.SettingsWindow)
 local Tutorial = require(script.Tutorial)
 local LockOn = require(script.LockOn)
+local TouchControls = require(script.TouchControls)
 local PetRenderer = require(script.PetRenderer)
 local PetsWindow = require(script.PetsWindow)
 local JourneyWindow = require(script.JourneyWindow)
@@ -167,8 +168,7 @@ HUD.init(screen, {
 		return PlaytimeWindow.readyCount()
 	end,
 	onAbility = function(slot)
-		local aim, point = Controller.getAim()
-		State.action("ability", slot, aim, point)
+		Controller.useAbility(slot)
 	end,
 })
 
@@ -190,6 +190,7 @@ local function fitHud()
 			uiScale.Scale = scale
 		end
 	end
+	HUD.fitTouch(scale)
 end
 task.defer(fitHud)
 task.delay(3, fitHud) -- pega os painéis criados depois
@@ -221,6 +222,7 @@ Controller.onCharge = HUD.setCharge
 Controller.onEvent = Tutorial.event
 Controller.init()
 LockOn.init()
+TouchControls.init(HUD.abilitySlots())
 
 Services.openChest = Chest.open
 Dialog.services = {
