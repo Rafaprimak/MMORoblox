@@ -61,6 +61,7 @@ function DataService.defaultData()
 		lore = {}, -- [página] = true (diário de lore)
 		raidWeek = -1, -- semana em que já pegou o prêmio da raide
 		events = {}, -- [evento_ano] = { kills, done } (eventos sazonais)
+		chestBag = {}, -- [baú] = quantidade guardada (baús ganhos, abertos quando o jogador quiser)
 		arena = { season = 0, rating = 1000, best = 1000, wins = 0, losses = 0, history = {} }, -- Arena PvP (pontos da temporada)
 		market = { selling = {}, buying = {} }, -- mercado: custódia dos anúncios e das compras em andamento
 		progress = {
@@ -91,7 +92,7 @@ end
 local FREE_KEYS = {
 	inventory = true, equipped = true, materials = true, consumables = true, skills = true,
 	abilityRanks = true, talents = true, loadout = true, pets = true, poi = true, poiChests = true, poiSecrets = true, counters = true, achievements = true, titles = true, levelRewards = true, active = true, done = true, offered = true, discovered = true,
-	dungeons = true, purchases = true, tradeLog = true, selling = true, buying = true, factions = true, factionTiers = true, lore = true, events = true,
+	dungeons = true, purchases = true, tradeLog = true, selling = true, buying = true, factions = true, factionTiers = true, lore = true, events = true, chestBag = true,
 }
 
 local function reconcile(data, template)

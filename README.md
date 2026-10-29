@@ -80,6 +80,7 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Poções | **Z** vida, **X** mana, **V** vigor | Toque na barra |
 | Montar / desmontar | **H** | Botão 🐴 |
 | Inventário / Personagem / Missões / Mapa / Baús | **I / C / J / M / B** | Botões à esquerda (no mapa: roda do mouse = zoom, arrastar = mover) |
+| Baús ganhos (missões, conquistas, eventos) | **B** → aba do baú → **ABRIR GUARDADO** | Ficam guardados até você abrir; o botão Baús mostra quantos tem (!3) |
 | Jornada (recompensa diária, passe, conquistas, títulos) | **K** | Botão ⭐ |
 | Pets | **G** | Botão 🐾 |
 | Configurações (volume, música, sensibilidade, qualidade gráfica, números de dano...) | **P** | Botão ⚙ |

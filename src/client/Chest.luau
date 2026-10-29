@@ -32,6 +32,8 @@ local win, odds, possible, buyButton
 local overlayGui, overlay, reel, reelHolder, resultPanel, resultName, resultInfo, againButton, rays, sceneHolder
 local currentScene = nil
 local selectedChest = "bronze"
+local storedButton -- abre um baú guardado (bolsa de baús)
+local openingStored = false -- a última roleta veio da bolsa (o "abrir outro" abre outro guardado)
 local revealing = false
 local possibleTitle = nil
 local raysConnection = nil
@@ -126,6 +128,14 @@ local function confetti(color, count)
 	end
 end
 
+-- depois de abrir um guardado, o "abrir outro" da roleta abre outro guardado do mesmo tipo
+local function storedAgain(stored)
+	if openingStored then
+		againButton.Text = if stored > 0 then ("ABRIR OUTRO (%d)"):format(stored) else "Sem mais guardados"
+		againButton.BackgroundColor3 = if stored > 0 then UI.Colors.Green else UI.Colors.Dark
+	end
+end
+
 local function renderWindow()
 	local chest = Chests.List[selectedChest]
 	local data = State.data
@@ -150,6 +160,13 @@ local function renderWindow()
 		UI.label({ Text = Items.Bases[baseId].name, Position = UDim2.new(0, 3, 0.58, 0), Size = UDim2.new(1, -6, 0.36, 0), TextXAlignment = Enum.TextXAlignment.Center, TextWrapped = true, Parent = cell })
 		cell.Parent = possible
 	end
+	-- baús guardados deste tipo: botão de abrir de graça à esquerda
+	local stored = (data and data.chestBag and data.chestBag[selectedChest]) or 0
+	storedButton.Visible = stored > 0
+	storedButton.Text = ("ABRIR GUARDADO (%d)"):format(stored)
+	buyButton.AnchorPoint = if stored > 0 then Vector2.new(1, 1) else Vector2.new(0.5, 1)
+	buyButton.Position = if stored > 0 then UDim2.new(1, 0, 1, 0) else UDim2.new(0.5, 0, 1, 0)
+	buyButton.Size = if stored > 0 then UDim2.new(0.48, 0, 0, 50) else UDim2.new(0.6, 0, 0, 50)
 	if chest.robux then
 		-- pago com Robux: as chances acima ficam sempre visíveis antes da compra
 		local price = Store.priceText(chest.product)
@@ -157,6 +174,7 @@ local function renderWindow()
 		buyButton.BackgroundColor3 = Color3.fromRGB(40, 150, 210)
 		againButton.Text = "COMPRAR OUTRO  " .. price
 		againButton.BackgroundColor3 = Color3.fromRGB(40, 150, 210)
+		storedAgain(stored)
 		return
 	end
 	local affordable = data and data.gold >= chest.price
@@ -164,6 +182,7 @@ local function renderWindow()
 	buyButton.BackgroundColor3 = if affordable then Color3.fromRGB(230, 155, 30) else UI.Colors.Dark
 	againButton.Text = if affordable then ("ABRIR OUTRO  %s ouro"):format(UI.formatNumber(chest.price)) else "Ouro insuficiente"
 	againButton.BackgroundColor3 = if affordable then Color3.fromRGB(230, 155, 30) else UI.Colors.Dark
+	storedAgain(stored)
 end
 
 local function closeOverlay()
@@ -346,10 +365,22 @@ function Chest.reveal(item, chestId)
 	revealing = false
 end
 
+local function openStored()
+	if revealing then
+		return
+	end
+	local result = State.request("openStoredChest", selectedChest)
+	if result and result.ok then
+		openingStored = true
+		task.spawn(Chest.reveal, result.item, result.chest)
+	end
+end
+
 local function buy()
 	if revealing then
 		return
 	end
+	openingStored = false
 	local chest = Chests.List[selectedChest]
 	if chest and chest.robux then
 		overlayGui.Enabled = false
@@ -371,6 +402,8 @@ function Chest.init(screen)
 	})
 	buyButton = UI.button({ Text = "ABRIR", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, 0), Size = UDim2.new(0.6, 0, 0, 50), BackgroundColor3 = Color3.fromRGB(230, 155, 30), Parent = win.content })
 	buyButton.MouseButton1Click:Connect(buy)
+	storedButton = UI.button({ Text = "ABRIR GUARDADO", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(0.48, 0, 0, 50), BackgroundColor3 = UI.Colors.Green, Visible = false, Parent = win.content })
+	storedButton.MouseButton1Click:Connect(openStored)
 	win.onTab = function(name)
 		selectedChest = if name == "Prata" then "prata" elseif name == "Real" then "real" elseif name == "Celestial" then "celestial" else "bronze"
 		renderWindow()
@@ -407,7 +440,13 @@ function Chest.init(screen)
 	local okButton = UI.button({ Text = "OK", Position = UDim2.fromOffset(60, 84), Size = UDim2.fromOffset(160, 50), BackgroundColor3 = UI.Colors.Green, ZIndex = 7, Parent = resultPanel })
 	okButton.MouseButton1Click:Connect(closeOverlay)
 	againButton = UI.button({ Text = "ABRIR OUTRO", Position = UDim2.fromOffset(232, 84), Size = UDim2.fromOffset(230, 50), BackgroundColor3 = Color3.fromRGB(230, 155, 30), ZIndex = 7, Parent = resultPanel })
-	againButton.MouseButton1Click:Connect(buy)
+	againButton.MouseButton1Click:Connect(function()
+		if openingStored then
+			openStored()
+		else
+			buy()
+		end
+	end)
 	State.Changed:Connect(function()
 		if win:isOpen() then
 			renderWindow()

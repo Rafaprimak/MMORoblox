@@ -163,7 +163,7 @@ function HUD.init(screen, callbacks)
 		{ "Personagem", "C", callbacks.onCharacter, nil, "wizard-face" },
 		{ "Missões", "J", callbacks.onQuests, nil, "scroll-unfurled" },
 		{ "Mapa", "M", callbacks.onMap, nil, "treasure-map" },
-		{ "Baús", "B", callbacks.onChest, nil, "present" },
+		{ "Baús", "B", callbacks.onChest, "chests", "present" },
 		{ "Montar", "H", function()
 			State.action("mount")
 		end, nil, "horse-head" },
@@ -526,6 +526,15 @@ function HUD.update(data)
 		auto.button.BackgroundColor3 = if on then Color3.fromRGB(40, 110, 60) else UI.Colors.PanelLight
 	end
 	-- aviso de recompensa para resgatar na Jornada
+	local chestsButton = refs.menuButtons and refs.menuButtons.chests
+	if chestsButton then
+		local stored = 0
+		for _, count in data.chestBag or {} do
+			stored += count
+		end
+		chestsButton.button.Text = chestsButton.text .. (if stored > 0 then ("  !%d"):format(stored) else "")
+		chestsButton.button.BackgroundColor3 = if stored > 0 then Color3.fromRGB(120, 95, 25) else UI.Colors.PanelLight
+	end
 	local journey = refs.menuButtons and refs.menuButtons.journey
 	if journey then
 		local progress = data.progress

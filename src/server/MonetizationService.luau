@@ -28,7 +28,7 @@ end
 local function grant(player, key)
 	local product = Config.Products[key]
 	if product.kind == "chest" then
-		ShopService.grant(player, product.target)
+		ShopService.grant(player, product.target, { reveal = true })
 	elseif product.kind == "egg" then
 		PetService.grantEgg(player, product.target)
 	elseif product.kind == "pass" then

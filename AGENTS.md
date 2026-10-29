@@ -107,7 +107,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `LootService` | Drops de equipamento com feixe de luz, rolagem de materiais |
 | `ResourceService` | Coleta (minerar, colher, cortar) |
 | `CraftingService` | Forja, aprimorar, encantar, desmontar, alquimia, loja |
-| `ShopService` | Baús |
+| `ShopService` | Baús: compra com ouro (`open`), bolsa de baús ganhos (`grant` guarda em `data.chestBag`; `openStored` abre), compra com Robux abre na hora (`grant(..., { reveal = true })`) |
 | `QuestService` | Aceitar, progresso, entrega, diárias, exploração |
 | `TravelService` | Pedras de viagem, montaria, portão do norte |
 | `NPCService` | Cria NPCs e prompts de conversa |

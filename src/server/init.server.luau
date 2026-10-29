@@ -125,6 +125,7 @@ PlayerService.ExtraSync = function(player, payload)
 		payload.arena = ArenaService.summary(player)
 		payload.event = EventService.summary(player)
 		payload.poiSecrets = data.poiSecrets
+		payload.chestBag = data.chestBag
 	end
 end
 EnemyService.FireProjectile = ProjectileService.fire
@@ -438,6 +439,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return RaidService.setReady(player, a)
 	elseif action == "raidExit" then
 		return RaidService.exit(player)
+	elseif action == "openStoredChest" then
+		return ShopService.openStored(player, a)
 	elseif action == "arenaJoin" then
 		return ArenaService.join(player, a)
 	elseif action == "arenaLeave" then
