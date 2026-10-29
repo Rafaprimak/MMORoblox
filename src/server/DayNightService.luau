@@ -14,9 +14,9 @@ local DayNightService = {}
 local TRANSITION = 25 -- segundos de transição da luz
 
 local NIGHT_LOOK = {
-	lighting = { Brightness = 1.1, Ambient = Color3.fromRGB(45, 50, 80), OutdoorAmbient = Color3.fromRGB(85, 95, 145) },
-	atmosphere = { Color = Color3.fromRGB(110, 120, 175), Decay = Color3.fromRGB(50, 50, 100), Density = 0.38 },
-	color = { TintColor = Color3.fromRGB(205, 215, 255), Saturation = -0.05 },
+	lighting = { Brightness = 1.9, Ambient = Color3.fromRGB(90, 98, 135), OutdoorAmbient = Color3.fromRGB(135, 145, 195), ExposureCompensation = 0.35 },
+	atmosphere = { Color = Color3.fromRGB(125, 135, 190), Decay = Color3.fromRGB(70, 72, 120), Density = 0.3 },
+	color = { TintColor = Color3.fromRGB(215, 225, 255), Saturation = -0.03 },
 }
 
 local dayLook = nil
@@ -26,7 +26,7 @@ local function capture()
 	local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
 	local color = Lighting:FindFirstChildOfClass("ColorCorrectionEffect")
 	dayLook = {
-		lighting = { Brightness = Lighting.Brightness, Ambient = Lighting.Ambient, OutdoorAmbient = Lighting.OutdoorAmbient },
+		lighting = { Brightness = Lighting.Brightness, Ambient = Lighting.Ambient, OutdoorAmbient = Lighting.OutdoorAmbient, ExposureCompensation = Lighting.ExposureCompensation },
 		atmosphere = atmosphere and { Color = atmosphere.Color, Decay = atmosphere.Decay, Density = atmosphere.Density },
 		color = color and { TintColor = color.TintColor, Saturation = color.Saturation },
 	}

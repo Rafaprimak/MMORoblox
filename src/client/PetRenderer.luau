@@ -535,10 +535,29 @@ local function animate(entry, t, moving, flying)
 	return entry.offset * CFrame.new(pivot) * angle * CFrame.new(-pivot)
 end
 
-local function groundY(position, owner)
-	rayParams.FilterDescendantsInstances = { folder, owner.Character, workspace:FindFirstChild("Efeitos") }
-	local result = workspace:Raycast(position + Vector3.new(0, 12, 0), Vector3.new(0, -40, 0), rayParams)
-	return if result then result.Position.Y else nil
+-- chão embaixo do pet: o raio começa na altura do dono (assim dentro de casa ele não "sobe" no telhado)
+-- e atravessa peças sem colisão (folhas, enfeites, efeitos)
+local function groundY(position, owner, ownerY)
+	local ignore = { folder, workspace:FindFirstChild("Efeitos"), workspace:FindFirstChild("Drops") }
+	for _, other in Players:GetPlayers() do
+		if other.Character then
+			table.insert(ignore, other.Character)
+		end
+	end
+	local origin = Vector3.new(position.X, ownerY + 1.5, position.Z)
+	for _ = 1, 4 do
+		rayParams.FilterDescendantsInstances = ignore
+		local result = workspace:Raycast(origin, Vector3.new(0, -(origin.Y - ownerY) - 30, 0), rayParams)
+		if not result then
+			return nil
+		end
+		local hit = result.Instance
+		if hit:IsA("Terrain") or (hit:IsA("BasePart") and hit.CanCollide) then
+			return result.Position.Y
+		end
+		table.insert(ignore, hit)
+	end
+	return nil
 end
 
 local function update(owner, rec, dt, now)
@@ -572,7 +591,7 @@ local function update(owner, rec, dt, now)
 		rec.groundTimer = (rec.groundTimer or 0) - dt
 		if rec.groundTimer <= 0 or not rec.ground then
 			rec.groundTimer = 0.15
-			rec.ground = groundY(position, owner) or (root.Position.Y - 3)
+			rec.ground = groundY(position, owner, root.Position.Y) or (root.Position.Y - 3)
 		end
 		local hop = if moving and rec.def.shape ~= "turtle" then math.abs(math.sin(now * 9)) * 0.45 else 0
 		y = rec.ground + hop

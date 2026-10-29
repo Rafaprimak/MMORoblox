@@ -135,15 +135,15 @@ end
 
 -- gradação pela hora: { hora, tinta, saturação, contraste }
 local GRADE = {
-	{ 0, Color3.fromRGB(205, 215, 255), -0.05, 0.08 },
+	{ 0, Color3.fromRGB(215, 225, 255), -0.03, 0.02 },
 	{ 5.5, Color3.fromRGB(215, 215, 255), 0, 0.05 },
 	{ 6.6, Color3.fromRGB(255, 222, 196), 0.08, 0.06 },
 	{ 9, Color3.fromRGB(255, 248, 238), 0.06, 0.04 },
 	{ 15.5, Color3.fromRGB(255, 246, 232), 0.06, 0.04 },
 	{ 17.6, Color3.fromRGB(255, 214, 178), 0.12, 0.08 },
 	{ 18.7, Color3.fromRGB(235, 205, 235), 0.04, 0.07 },
-	{ 20, Color3.fromRGB(205, 215, 255), -0.05, 0.08 },
-	{ 24, Color3.fromRGB(205, 215, 255), -0.05, 0.08 },
+	{ 20, Color3.fromRGB(215, 225, 255), -0.03, 0.02 },
+	{ 24, Color3.fromRGB(215, 225, 255), -0.03, 0.02 },
 }
 
 local function gradeAt(clock)

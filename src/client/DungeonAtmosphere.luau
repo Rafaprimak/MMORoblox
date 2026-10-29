@@ -52,6 +52,7 @@ local function save()
 		Ambient = Lighting.Ambient,
 		OutdoorAmbient = Lighting.OutdoorAmbient,
 		Brightness = Lighting.Brightness,
+		ExposureCompensation = Lighting.ExposureCompensation,
 		EnvironmentDiffuseScale = Lighting.EnvironmentDiffuseScale,
 		EnvironmentSpecularScale = Lighting.EnvironmentSpecularScale,
 		atmosphere = atmosphere and { Density = atmosphere.Density, Color = atmosphere.Color, Decay = atmosphere.Decay, Glare = atmosphere.Glare, Haze = atmosphere.Haze, Offset = atmosphere.Offset },
@@ -140,6 +141,7 @@ local function apply(mood)
 	Lighting.Ambient = mood.ambient
 	Lighting.OutdoorAmbient = mood.outdoor
 	Lighting.Brightness = mood.brightness
+	Lighting.ExposureCompensation = 0 -- a exposição extra da noite do mundo não vale aqui dentro
 	Lighting.EnvironmentDiffuseScale = 0.25
 	Lighting.EnvironmentSpecularScale = 0.3
 	Lighting.ClockTime = 0

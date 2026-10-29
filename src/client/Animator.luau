@@ -612,18 +612,21 @@ local function locomotion(s, root, humanoid, now, dt, acting)
 	if s.swim > 0.01 then
 		s.swimPhase = (s.swimPhase + dt * lerp(2.2, 5.5, move)) % (math.pi * 2)
 		local q = s.swimPhase
-		local stroke = math.deg(q)
+		-- braçada alternada que vai e volta (sem dar a volta inteira no ombro): misturar com a pose parada
+		-- nunca passa de 180 graus, então o braço não "pula" para o outro lado no meio da mistura
+		local pull = math.sin(q)
+		local kick = math.sin(q * 2)
 		local crawl = {
-			RT = R(-78),
-			N = R(55),
-			RS = R(stroke, 0, 12),
-			LS = R(stroke + 180, 0, -12),
-			RE = R(20),
-			LE = R(20),
-			RH = R(math.sin(q * 3) * 20),
-			LH = R(-math.sin(q * 3) * 20),
-			RK = R(-12),
-			LK = R(-12),
+			RT = CFrame.new(0, 0.8, 0) * R(-70), -- corpo deitado e um pouco acima, com a cabeça fora d'água
+			N = R(48),
+			RS = R(75 + 95 * pull, 0, 14),
+			LS = R(75 - 95 * pull, 0, -14),
+			RE = R(12 + 28 * math.max(0, -pull)),
+			LE = R(12 + 28 * math.max(0, pull)),
+			RH = R(kick * 16),
+			LH = R(-kick * 16),
+			RK = R(-8 - math.max(0, kick) * 18),
+			LK = R(-8 - math.max(0, -kick) * 18),
 		}
 		local tread = {
 			RT = R(-8),
