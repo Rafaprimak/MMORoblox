@@ -155,7 +155,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DungeonAtmosphere` | Clima das masmorras no cliente (luz, névoa, tom, poeira/brasas) enquanto o jogador tem o atributo `Dungeon` |
 | `AutoHunt` | Auto Caçar no cliente (só com `AutoFarm`): anda até o inimigo mais perto, ataca no ritmo (`Controller.autoAttack`), toma poção e volta ao ponto de partida |
 | `Store` | Cliente: abre a compra com Robux (`Store.buy(chave)`) e mostra o preço; produto com id 0 = no Studio entrega de graça para testar |
-| `AdminWindow` | Painel de admin (botão ADMIN no canto, só com o atributo `Admin`): jogadores, balanceamento, mundo, registro |
+| `AdminWindow` | Painel de admin (botão ADMIN no canto, só com o atributo `Admin`): jogadores, balanceamento, mundo, "Para mim" (nível, ouro, materiais e perícias no máximo no próprio admin, pelo gancho `AdminService.SelfGift`), registro |
 | `SignReader` | Abre o texto das placas do mundo (prompt `LerPlaca`; servidor cria com `Props.readable`/`Props.signpost`) |
 | `ArenaWindow` | Janela da Arena (menu, sem tecla): fila, divisão, ranking, histórico; placar no topo durante a luta |
 | `FusionWindow`, `TradeWindow` | Janelas de fusão e de troca (o botão "Trocar" é um ProximityPrompt local em cada outro jogador) |

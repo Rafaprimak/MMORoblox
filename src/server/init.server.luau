@@ -296,6 +296,9 @@ local function devGift(player, kind)
 	return { ok = true }
 end
 
+-- painel de admin, aba "Para mim" (o AdminService confere se é admin)
+AdminService.SelfGift = devGift
+
 Remotes.Request.OnServerInvoke = function(player, action, a, b)
 	if not AntiCheat.allow(player, "request") then
 		return { ok = false, msg = "Calma! Muitos pedidos seguidos." }

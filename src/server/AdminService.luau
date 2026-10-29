@@ -29,6 +29,9 @@ local EventService = require(script.Parent.EventService)
 
 local AdminService = {}
 
+-- gancho (preenchido no init.server): dá ao próprio admin o máximo de XP, ouro, materiais ou perícias
+AdminService.SelfGift = function(_player, _kind) end
+
 local TOPIC = "Admin"
 local values = RemoteConfig.defaults()
 local logCache = {}
@@ -409,6 +412,21 @@ function handlers.bring(admin, args)
 	target.Character:PivotTo(from.CFrame * CFrame.new(0, 0, -5))
 	log(admin, "trazer", target.Name)
 	return { ok = true }
+end
+
+-- "Para mim": o admin enche o próprio personagem (nível, ouro, materiais, perícias)
+local SELF_KINDS = { xp = "nível máximo", gold = "ouro máximo", materials = "materiais máximos", skills = "perícias máximas" }
+function handlers.self(admin, args)
+	local kind = type(args) == "table" and args.kind
+	local kinds = if kind == "all" then { "xp", "gold", "materials", "skills" } elseif SELF_KINDS[kind] then { kind } else nil
+	if not kinds then
+		return { ok = false, msg = "Opção inválida." }
+	end
+	for _, k in kinds do
+		AdminService.SelfGift(admin, k)
+	end
+	log(admin, "para mim", if kind == "all" then "tudo no máximo" else SELF_KINDS[kind])
+	return { ok = true, msg = "Pronto." }
 end
 
 function handlers.worldboss(admin)

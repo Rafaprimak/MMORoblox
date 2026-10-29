@@ -1,10 +1,11 @@
 -- Painel de administrador (só aparece com o atributo "Admin", que o servidor dá): jogadores do servidor
 -- (ir até, trazer, dar ouro/XP, expulsar, banir), balanceamento ao vivo (RemoteConfig, vale em todos os
--- servidores), aviso global, eventos e o registro das ações. O servidor confere tudo de novo.
+-- servidores), aviso global, eventos, "Para mim" (o admin enche o próprio personagem) e o registro das ações. O servidor confere tudo de novo.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config = require(Shared.Config)
 local RemoteConfig = require(Shared.RemoteConfig)
 
 local UI = require(script.Parent.UI)
@@ -177,6 +178,30 @@ local function renderWorld(page)
 	end
 end
 
+-- ===================== PARA MIM =====================
+-- O admin enche o próprio personagem; dá para clicar de novo sempre que gastar (repõe até o máximo)
+local function renderSelf(page)
+	text(page, { Text = "PARA MIM (só no seu personagem; fica no registro)", Size = UDim2.new(1, 0, 0, 18), TextColor3 = ACCENT, Font = Enum.Font.GothamBlack })
+	text(page, { Text = "Cada botão repõe até o máximo: clique de novo quando gastar.", Position = UDim2.fromOffset(0, 22), Size = UDim2.new(1, 0, 0, 16), TextSize = 13, TextColor3 = UI.Colors.SubText })
+	local grid = UI.new("Frame", { Position = UDim2.fromOffset(0, 50), Size = UDim2.new(1, 0, 1, -50), BackgroundTransparency = 1, Parent = page }, {
+		UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(260, 64), CellPadding = UDim2.fromOffset(10, 10), SortOrder = Enum.SortOrder.LayoutOrder }),
+	})
+	for order, action in {
+		{ "Tudo no máximo", "all", "Nível, ouro, materiais e perícias", ACCENT },
+		{ "Nível máximo", "xp", "XP até o nível " .. Config.MaxLevel, UI.Colors.Dark },
+		{ "Ouro infinito", "gold", "Enche até 99.999.999 de ouro", UI.Colors.Dark },
+		{ "Materiais infinitos", "materials", "999 de cada material, 99 de cada poção", UI.Colors.Dark },
+		{ "Perícias máximas", "skills", "Maestrias e profissões no máximo", UI.Colors.Dark },
+	} do
+		local button = UI.button({ Text = "", LayoutOrder = order, BackgroundColor3 = action[4], Parent = grid })
+		text(button, { Text = action[1], Position = UDim2.fromOffset(12, 8), Size = UDim2.new(1, -24, 0, 24), Font = Enum.Font.GothamBlack, TextXAlignment = Enum.TextXAlignment.Left })
+		text(button, { Text = action[3], Position = UDim2.fromOffset(12, 34), Size = UDim2.new(1, -24, 0, 18), TextSize = 13, TextColor3 = UI.Colors.SubText, TextXAlignment = Enum.TextXAlignment.Left })
+		button.MouseButton1Click:Connect(function()
+			command("self", { kind = action[2] })
+		end)
+	end
+end
+
 -- ===================== REGISTRO =====================
 local function renderLog(page)
 	local scroll = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), Parent = page }, { UI.list(3) })
@@ -192,7 +217,7 @@ function render()
 	if not win or not win:isOpen() or not snapshot then
 		return
 	end
-	for _, name in { "Jogadores", "Balanceamento", "Mundo", "Registro" } do
+	for _, name in { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Registro" } do
 		UI.clear(pages[name])
 	end
 	local page = pages[win.tab]
@@ -202,6 +227,8 @@ function render()
 		renderBalance(page)
 	elseif win.tab == "Mundo" then
 		renderWorld(page)
+	elseif win.tab == "Para mim" then
+		renderSelf(page)
 	else
 		renderLog(page)
 	end
@@ -219,8 +246,8 @@ function AdminWindow.toggle()
 end
 
 function AdminWindow.init(screen)
-	win = Window.create(screen, { icon = "cog", name = "Admin", title = "PAINEL DE ADMIN", width = 860, height = 560, tabs = { "Jogadores", "Balanceamento", "Mundo", "Registro" }, accent = ACCENT })
-	for _, name in { "Jogadores", "Balanceamento", "Mundo", "Registro" } do
+	win = Window.create(screen, { icon = "cog", name = "Admin", title = "PAINEL DE ADMIN", width = 860, height = 560, tabs = { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Registro" }, accent = ACCENT })
+	for _, name in { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Registro" } do
 		pages[name] = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false, Parent = win.content })
 	end
 	win.onTab = function(name)
