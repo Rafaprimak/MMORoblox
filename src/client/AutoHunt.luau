@@ -34,7 +34,7 @@ local RANGE = 70 -- caça livre: até onde ele vai buscar inimigos a partir do p
 local QUEST_FIGHT_RANGE = 90 -- missão de caça: raio em volta do acampamento do alvo
 local REACH = { bow = 34, staff = 30 } -- alcance de ataque por arma (o resto: corpo a corpo)
 local MELEE_REACH = 6.5
-local POTION_AT = 0.35
+local POTION_AT = 0.45 -- vida (%) para tomar poção de vida (a grande abaixo de 30%)
 local TALK_RANGE = 12
 local TRAVEL_MIN = 650 -- studs: acima disso tenta uma pedra de viagem
 
@@ -48,7 +48,9 @@ local AUTO_OBJECTIVES = {
 local player = Players.LocalPlayer
 local anchor = nil
 local banner, statusLabel
-local lastPotion, lastAbility, abilitySlot, lastDodge = 0, 0, 1, 0
+local lastAbility, abilitySlot, lastDodge = 0, 1, 0
+local abilityReadyAt = {} -- [slot] = quando a habilidade sai da recarga (conta do cliente)
+local potionUsedAt = {} -- [poção] = última vez usada
 local lastHurt = 0 -- última vez que o personagem levou dano (reage a quem ataca de longe)
 local lockedTarget = nil -- inimigo em luta: só troca quando ele morre ou fica muito longe
 local LOCK_RANGE = 70
@@ -184,6 +186,20 @@ local function enemyAt(origin, center, range, typeFilter)
 	return best, bestDistance
 end
 
+-- toma uma poção se tiver e se já passou o tempo mínimo desde a última vez
+local function usePotion(id, minInterval)
+	local data = State.data
+	if not data or (data.consumables[id] or 0) <= 0 then
+		return false
+	end
+	if os.clock() - (potionUsedAt[id] or -1000) < minInterval then
+		return false
+	end
+	potionUsedAt[id] = os.clock()
+	State.action("potion", id)
+	return true
+end
+
 local function fight(humanoid, root, target, distance, options)
 	-- trava no alvo até ele morrer (bonecos de treino nunca morrem: não trava neles)
 	local targetDef = Enemies.Defs[target:GetAttribute("Type") or ""]
@@ -201,14 +217,29 @@ local function fight(humanoid, root, target, distance, options)
 	end
 	humanoid:MoveTo(root.Position)
 	local now = os.clock()
-	-- habilidades (gira entre 1 e 4; o servidor recusa se estiver em recarga)
-	if not (options and options.noAbilities) and now - lastAbility > 2.5 then
-		lastAbility = now
-		Controller.autoAimPoint = target.Position
-		local aim, point = Controller.getAim()
-		Controller.autoAimPoint = nil
-		State.action("ability", abilitySlot, aim, point)
-		abilitySlot = abilitySlot % 4 + 1
+	-- habilidades: usa a próxima liberada que já saiu da recarga (e só com mana sobrando)
+	local abilities = State.data and State.data.abilities
+	local mana, maxMana = player:GetAttribute("Mana") or 0, player:GetAttribute("MaxMana") or 1
+	if abilities and not (options and options.noAbilities) and now - lastAbility > 0.7 and mana / math.max(maxMana, 1) > 0.1 then
+		for _ = 1, 4 do
+			local slot = abilitySlot
+			abilitySlot = abilitySlot % 4 + 1
+			local ability = abilities[slot]
+			if ability and ability.unlocked and now >= (abilityReadyAt[slot] or 0) then
+				lastAbility = now
+				abilityReadyAt[slot] = now + (ability.cooldown or 5) + 0.3
+				Controller.autoAimPoint = target.Position
+				local aim, point = Controller.getAim()
+				Controller.autoAimPoint = nil
+				State.action("ability", slot, aim, point)
+				break
+			end
+		end
+	end
+	-- chefe ou Elite: elixir de força e tônico de pedra (se tiver)
+	if targetDef and (targetDef.behavior == "boss" or target:GetAttribute("Elite")) then
+		usePotion("elixir_forca", 60)
+		usePotion("tonico_pedra", 90)
 	end
 	-- esquiva de vez em quando (também conta para missões de esquiva)
 	if options and options.dodge and now - lastDodge > 4 then
@@ -600,10 +631,18 @@ local function step()
 	end
 	anchor = anchor or root.Position
 	local data = State.data
-	-- poção de vida quando está mal
-	if humanoid.Health / humanoid.MaxHealth < POTION_AT and os.clock() - lastPotion > 6 and data and (data.consumables.pocao_vida or 0) > 0 then
-		lastPotion = os.clock()
-		State.action("potion", "pocao_vida")
+	-- poções: vida (a grande quando está muito mal), mana e vigor
+	local health = humanoid.Health / math.max(humanoid.MaxHealth, 1)
+	if health < 0.3 and not usePotion("pocao_grande", 10) then
+		usePotion("pocao_vida", 6)
+	elseif health < POTION_AT then
+		usePotion("pocao_vida", 6)
+	end
+	if (player:GetAttribute("Mana") or 0) / math.max(player:GetAttribute("MaxMana") or 1, 1) < 0.25 then
+		usePotion("pocao_mana", 6)
+	end
+	if (player:GetAttribute("Stamina") or 0) / math.max(player:GetAttribute("MaxStamina") or 1, 1) < 0.15 then
+		usePotion("pocao_vigor", 6)
 	end
 	-- rotina a cada 15 s
 	if os.clock() - lastChores > 15 then
