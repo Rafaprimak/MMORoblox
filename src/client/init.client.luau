@@ -136,6 +136,7 @@ HUD.init(screen, {
 	onSettings = SettingsWindow.toggle,
 	onPets = PetsWindow.toggle,
 	onJourney = JourneyWindow.toggle,
+	onPass = JourneyWindow.openPass,
 	onGuild = GuildWindow.toggle,
 	onChronicles = ChroniclesWindow.toggle,
 	onArena = ArenaWindow.toggle,

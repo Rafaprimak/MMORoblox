@@ -102,8 +102,26 @@ end
 -- ===================== PASSE =====================
 local function renderPass(progress)
 	local pass = progress.pass
-	UI.label({ Text = ("PASSE DO HUNTER  •  Tier %d/%d%s"):format(pass.tier, Progression.PassMaxTier, if pass.premium then "  •  PREMIUM" else ""), Size = UDim2.new(1, -10, 0, 24), TextColor3 = Color3.fromRGB(150, 210, 255), Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = body }, { UI.textStroke(1) })
-	local barHolder = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 20), BackgroundTransparency = 1, LayoutOrder = 1, Parent = body })
+	-- cabeçalho em destaque: tier grande, temporada e o Premium
+	local season = Seasons.info(os.time())
+	local hero = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 96), BackgroundColor3 = Color3.fromRGB(40, 32, 70), LayoutOrder = 0, Parent = body }, {
+		UI.corner(12),
+		UI.stroke(if pass.premium then PREMIUM else Color3.fromRGB(150, 210, 255), 2.5, 0.1),
+		UI.new("UIGradient", { Color = ColorSequence.new(Color3.fromRGB(255, 255, 255), Color3.fromRGB(150, 140, 200)), Rotation = 90 }),
+	})
+	UI.icon("ribbon-medal", { Position = UDim2.fromOffset(12, 12), Size = UDim2.fromOffset(72, 72), Color = if pass.premium then PREMIUM else Color3.fromRGB(150, 210, 255), Parent = hero })
+	UI.label({ Text = "PASSE DO HUNTER", Position = UDim2.fromOffset(96, 6), Size = UDim2.new(1, -320, 0, 30), FontFace = UI.TitleFont, TextColor3 = UI.Colors.Gold, Parent = hero }, { UI.textStroke(1.5) })
+	UI.label({ Text = ("%s  •  termina em %s"):format(season.name, UI.formatTime(season.endsIn)), Position = UDim2.fromOffset(96, 38), Size = UDim2.new(1, -320, 0, 18), TextScaled = false, TextSize = 13, Font = Enum.Font.GothamBold, TextColor3 = season.color, Parent = hero })
+	UI.label({ Text = if pass.premium then "PREMIUM ATIVO: duas recompensas por tier" else "Trilha grátis  •  Premium dá uma recompensa a mais em cada tier", Position = UDim2.fromOffset(96, 60), Size = UDim2.new(1, -320, 0, 18), TextScaled = false, TextSize = 13, Font = Enum.Font.GothamBold, TextColor3 = if pass.premium then PREMIUM else UI.Colors.SubText, Parent = hero })
+	UI.label({ Text = ("TIER %d"):format(pass.tier), AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -14, 0, 8), Size = UDim2.fromOffset(200, 44), TextXAlignment = Enum.TextXAlignment.Right, FontFace = UI.TitleFont, TextColor3 = UI.Colors.Gold, Parent = hero }, { UI.textStroke(2) })
+	UI.label({ Text = ("de %d"):format(Progression.PassMaxTier), AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -14, 0, 52), Size = UDim2.fromOffset(200, 18), TextXAlignment = Enum.TextXAlignment.Right, TextScaled = false, TextSize = 14, TextColor3 = UI.Colors.SubText, Parent = hero })
+	if not pass.premium then
+		local buyPremium = UI.button({ Text = "Premium  " .. Store.priceText("pass_premium"), AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, -230, 1, -10), Size = UDim2.fromOffset(150, 30), BackgroundColor3 = Color3.fromRGB(220, 160, 40), Parent = hero })
+		buyPremium.MouseButton1Click:Connect(function()
+			Store.buy("pass_premium")
+		end)
+	end
+	local barHolder = UI.new("Frame", { Size = UDim2.new(1, -10, 0, 24), BackgroundTransparency = 1, LayoutOrder = 1, Parent = body })
 	local _, fill, label = UI.bar(barHolder, { Size = UDim2.fromScale(1, 1), color = Color3.fromRGB(120, 190, 255) })
 	UI.setBar(fill, pass.xp / math.max(pass.need, 1))
 	label.Text = ("%s / %s XP  (ganhe XP derrotando inimigos, completando missões, fabricando e coletando)"):format(UI.formatNumber(pass.xp), UI.formatNumber(pass.need))
@@ -221,7 +239,7 @@ local function render()
 end
 
 function JourneyWindow.init(screen)
-	win = Window.create(screen, { icon = "star-formation", name = "Jornada", title = "JORNADA DO HUNTER", width = 820, height = 560, tabs = { "Temporada", "Diário", "Passe", "Conquistas", "Títulos" }, accent = UI.Colors.Gold })
+	win = Window.create(screen, { icon = "star-formation", name = "Jornada", title = "JORNADA DO HUNTER", width = 820, height = 560, tabs = { "Passe", "Temporada", "Diário", "Conquistas", "Títulos" }, accent = UI.Colors.Gold })
 	body = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, { UI.list(8) })
 	win.onTab = render
 	win.onOpen = render
@@ -244,6 +262,16 @@ end
 
 function JourneyWindow.toggle()
 	win:toggle()
+end
+
+-- abre direto no Passe do Hunter (botão do menu)
+function JourneyWindow.openPass()
+	if win:isOpen() and win.tab == "Passe" then
+		win:close()
+		return
+	end
+	win:open()
+	win:setTab("Passe")
 end
 
 -- há algo para resgatar? (para o aviso no botão do HUD)

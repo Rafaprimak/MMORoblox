@@ -156,8 +156,8 @@ function HUD.init(screen, callbacks)
 	refs.bossFrame, refs.bossFill, refs.bossText = bossFrame, bossFill, bossText
 
 	-- ===== botões do menu =====
-	-- ícones: "eagle-emblem", "book-cover", "laurel-crown", "backpack", "wizard-face", "scroll-unfurled", "treasure-map", "present", "horse-head", "star-formation", "paw-print", "sands-of-time", "crossed-swords", "cog", "help"
-	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 50), Size = UDim2.fromOffset(150, 490), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
+	-- ícones: "eagle-emblem", "book-cover", "laurel-crown", "ribbon-medal", "backpack", "wizard-face", "scroll-unfurled", "treasure-map", "present", "horse-head", "star-formation", "paw-print", "sands-of-time", "crossed-swords", "cog", "help"
+	local menu = UI.new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12, 0.5, 50), Size = UDim2.fromOffset(150, 520), BackgroundTransparency = 1, Parent = screen }, { UI.list(4) })
 	local entries = {
 		{ "Inventário", "I", callbacks.onInventory, nil, "backpack" },
 		{ "Personagem", "C", callbacks.onCharacter, nil, "wizard-face" },
@@ -167,6 +167,7 @@ function HUD.init(screen, callbacks)
 		{ "Montar", "H", function()
 			State.action("mount")
 		end, nil, "horse-head" },
+		{ "Passe do Hunter", "", callbacks.onPass, "pass", "ribbon-medal" },
 		{ "Jornada", "K", callbacks.onJourney, "journey", "star-formation" },
 		{ "Guilda", "L", callbacks.onGuild, nil, "eagle-emblem" },
 		{ "Crônicas", "Y", callbacks.onChronicles, nil, "book-cover" },
@@ -526,6 +527,14 @@ function HUD.update(data)
 		auto.button.BackgroundColor3 = if on then Color3.fromRGB(40, 110, 60) else UI.Colors.PanelLight
 	end
 	-- aviso de recompensa para resgatar na Jornada
+	-- Passe do Hunter em destaque: tier no botão, dourado quando dá para resgatar
+	local passButton = refs.menuButtons and refs.menuButtons.pass
+	if passButton and data.progress and data.progress.pass then
+		local pass = data.progress.pass
+		local ready = (pass.tier - pass.claimed) + (if pass.premium then pass.tier - (pass.claimedPremium or 0) else 0)
+		passButton.button.Text = passButton.text .. ("  T%d"):format(pass.tier) .. (if ready > 0 then "  !" else "")
+		passButton.button.BackgroundColor3 = if ready > 0 then Color3.fromRGB(150, 110, 20) else Color3.fromRGB(60, 50, 95)
+	end
 	local chestsButton = refs.menuButtons and refs.menuButtons.chests
 	if chestsButton then
 		local stored = 0

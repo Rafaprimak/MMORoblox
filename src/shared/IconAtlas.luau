@@ -163,5 +163,6 @@ return {
 		["wizard-staff"] = { 3, 27 },
 		["wolf-howl"] = { 3, 28 },
 		["wooden-sign"] = { 3, 29 },
+		["ribbon-medal"] = { 3, 30 },
 	},
 }
