@@ -138,7 +138,7 @@ end
 
 -- ===== VIP (game pass) =====
 -- Coloque aqui o ID do game pass "VIP" depois de criá-lo no Creator Hub (0 = ainda não está à venda).
--- No Studio todo mundo é VIP, para testar.
+-- No Studio começa sem VIP: use o botão de teste "VIP liga/desliga" no menu da esquerda.
 Config.VipGamePassId = 2057651679
 
 -- ===== Administradores =====

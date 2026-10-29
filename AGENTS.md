@@ -42,7 +42,7 @@ tools/rojo.exe serve default.project.json
 
 Ferramentas esperadas em `tools/` (não versionadas): `rojo.exe` ([releases](https://github.com/rojo-rbx/rojo/releases)), `luau-compile.exe` e `luau-analyze.exe` ([releases](https://github.com/luau-lang/luau/releases)).
 
-**No Studio:** botões de teste no menu da esquerda (Nível máximo, Ouro máximo, Materiais máximos, Perícias máximas, dia/noite, chefe de mundo, invasão, evento) só aparecem e só funcionam no Studio (`RunService:IsStudio()`). O menu inteiro esconde e aparece pelo botão acima dele.
+**No Studio:** botões de teste no menu da esquerda (Nível máximo, Ouro máximo, Materiais máximos, Perícias máximas, dia/noite, chefe de mundo, invasão, evento, VIP liga/desliga) só aparecem e só funcionam no Studio (`RunService:IsStudio()`). O menu inteiro esconde e aparece pelo botão acima dele.
 
 ## 4. Arquitetura
 
@@ -119,7 +119,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `AdminService` | Admins (`isAdmin`), configuração remota (DataStore `ConfigRemota_v1` + MessagingService "Admin"), banimento (`Banidos_v1`, `checkBan` antes de carregar o perfil), comandos do painel (`handle`) e registro (`AdminLog_v1`) |
 | `EventService` | Eventos sazonais (`Seasons.Events`): enfeites na vila (`EnfeitesEvento`), bônus no `ExtraBonus` (`xpGain`, `goldFind`, `dropFind`), meta de abates com título (`data.events`), atributo `Evento` no workspace |
 | `ArenaService` | Arena PvP: fila, partidas em coliseus longe do mapa (x ≈ -12000), rodadas, pontos da temporada (`data.arena`), ranking (`Arena_T<temporada>`); preenche os ganchos `EnemyService.Proxies/ProxyDamage/ProxyDot/ProxyParried` e `AbilityService.IsAlly` |
-| `VipService` | VIP (game pass `Config.VipGamePassId`; no Studio todos são VIP) e o atributo `AutoFarm` (Auto Caçar, desliga nas masmorras) |
+| `VipService` | VIP (game pass `Config.VipGamePassId`; só quem comprou; no Studio começa sem VIP e o botão de teste "VIP liga/desliga" troca) e o atributo `AutoFarm` (Auto Caçar, desliga nas masmorras e para quem não é VIP) |
 | `MonetizationService` | Compras com Robux (`Config.Products`): o único `ProcessReceipt` do jogo; entrega uma vez por `PurchaseId` (`data.purchases`) e salva na hora |
 | `FusionService` | Fusão de equipamentos: 9 da mesma raridade → 1 acima (`Config.Fusion`) |
 | `TradeService` | Troca entre jogadores com Pronto/Confirmar, validação na hora de trocar e `data.tradeLog` |

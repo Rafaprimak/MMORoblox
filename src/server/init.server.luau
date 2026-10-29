@@ -249,6 +249,9 @@ Remotes.Action.OnServerEvent:Connect(function(player, action, a, b, c)
 end)
 
 local function devGift(player, kind)
+	if kind == "vip" then
+		return VipService.devToggle(player)
+	end
 	local data = DataService.get(player)
 	if kind == "xp" then
 		-- nível máximo: soma todo o XP que falta de uma vez (um aviso só)

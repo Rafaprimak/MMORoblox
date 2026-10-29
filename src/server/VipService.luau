@@ -43,7 +43,7 @@ function VipService.onPlayerAdded(player)
 	task.spawn(function()
 		local vip = false
 		if RunService:IsStudio() then
-			vip = true -- no Studio todo mundo é VIP, para testar
+			vip = false -- no Studio começa sem VIP; o botão de teste "VIP" liga e desliga (VipService.devToggle)
 		elseif Config.VipGamePassId > 0 then
 			local ok, owns = pcall(function()
 				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, Config.VipGamePassId)
@@ -59,6 +59,21 @@ function VipService.onPlayerAdded(player)
 			end
 		end
 	end)
+end
+
+-- Teste no Studio: liga/desliga o VIP (para ver o jogo com e sem a compra)
+function VipService.devToggle(player)
+	if not RunService:IsStudio() then
+		return { ok = false }
+	end
+	local vip = not VipService.isVip(player)
+	player:SetAttribute("Vip", vip)
+	if not vip then
+		player:SetAttribute("AutoFarm", false)
+		player:SetAttribute("AutoAnchor", nil)
+	end
+	PlayerService.markDirty(player)
+	return { ok = true, msg = if vip then "VIP ligado (teste)." else "VIP desligado (teste)." }
 end
 
 -- quem morre com o Auto Caçar ligado nasce de volta no ponto de caça
@@ -186,12 +201,13 @@ MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gameP
 	end
 end)
 
--- entrar numa masmorra desliga o Auto Caçar
+-- entrar numa masmorra (ou não ser VIP) desliga o Auto Caçar
 task.spawn(function()
 	while true do
 		task.wait(1)
 		for _, player in Players:GetPlayers() do
-			if player:GetAttribute("AutoFarm") and VipService.inInstance(player) then
+			-- Auto só para VIP (quem não comprou nunca fica com ele ligado) e nunca em masmorra/raide/arena
+			if player:GetAttribute("AutoFarm") and (VipService.inInstance(player) or not VipService.isVip(player)) then
 				player:SetAttribute("AutoFarm", false)
 			end
 		end
