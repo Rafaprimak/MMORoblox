@@ -455,6 +455,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return AdminService.handle(player, a, b)
 	elseif action == "claimPlaytime" then
 		return PlaytimeService.claim(player, a)
+	elseif action == "autoUnstuck" then
+		return VipService.autoUnstuck(player, a)
 	elseif action == "autoFarm" then
 		return VipService.setAutoFarm(player, a, b)
 	elseif action == "afkRejoin" then

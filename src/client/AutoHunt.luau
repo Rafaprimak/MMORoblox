@@ -42,7 +42,7 @@ local TRAVEL_MIN = 650 -- studs: acima disso tenta uma pedra de viagem
 local AUTO_OBJECTIVES = {
 	kill = true, hit = true, gather = true, deliver = true, talk = true, explore = true, discover = true,
 	poi = true, poiSecret = true, level = true, mastery = true, mount = true, dodge = true, ability = true,
-	rhythm = true, finisher = true,
+	rhythm = true, finisher = true, parry = true,
 }
 
 local player = Players.LocalPlayer
@@ -51,6 +51,7 @@ local banner, statusLabel
 local lastAbility, abilitySlot, lastDodge = 0, 1, 0
 local abilityReadyAt = {} -- [slot] = quando a habilidade sai da recarga (conta do cliente)
 local potionUsedAt = {} -- [poção] = última vez usada
+local lastParryTap = 0
 local lastHurt = 0 -- última vez que o personagem levou dano (reage a quem ataca de longe)
 local lockedTarget = nil -- inimigo em luta: só troca quando ele morre ou fica muito longe
 local LOCK_RANGE = 70
@@ -99,12 +100,13 @@ end
 
 -- ===================== ANDAR (caminho com desvio de obstáculos) =====================
 
-local nav = { goal = nil, waypoints = nil, index = 1, computedAt = 0, computing = false, lastPos = nil, lastCheck = 0, stuck = 0 }
+local nav = { goal = nil, waypoints = nil, index = 1, computedAt = 0, computing = false, lastPos = nil, lastCheck = 0, stuck = 0, detour = nil, detourUntil = 0 }
 
 local function computePath(from, to)
 	nav.computing = true
 	task.spawn(function()
-		local path = PathfindingService:CreatePath({ AgentRadius = 2, AgentHeight = 5, AgentCanJump = true, WaypointSpacing = 8 })
+		-- raio maior: o caminho passa longe de quinas, postes e cercas (menos chance de enroscar)
+		local path = PathfindingService:CreatePath({ AgentRadius = 3, AgentHeight = 6, AgentCanJump = true, AgentCanClimb = true, WaypointSpacing = 6 })
 		local ok = pcall(function()
 			path:ComputeAsync(from, to)
 		end)
@@ -139,6 +141,12 @@ local function moveTo(humanoid, root, goal)
 			computePath(root.Position, sub)
 		end
 	end
+	-- desvio em andamento (depois de ficar preso): anda de lado por um instante
+	if nav.detour and os.clock() < nav.detourUntil then
+		humanoid:MoveTo(nav.detour)
+		return distance
+	end
+	nav.detour = nil
 	local waypoint = nav.waypoints and nav.waypoints[nav.index]
 	if waypoint then
 		if flat(waypoint.Position - root.Position).Magnitude < 4 then
@@ -154,12 +162,28 @@ local function moveTo(humanoid, root, goal)
 	else
 		humanoid:MoveTo(sub)
 	end
-	-- preso: pula e recalcula
-	if os.clock() - nav.lastCheck > 2 then
-		if nav.lastPos and (root.Position - nav.lastPos).Magnitude < 1.5 then
+	-- preso? (a cada 1 s, só enquanto ele quer andar). Escada de saída que nunca deixa travado:
+	-- 1) pula e recalcula  2) anda de lado  3) volta um pouco  4+) pede ao servidor para tirar dali
+	if os.clock() - nav.lastCheck > 3 then
+		nav.lastPos = nil -- ficou um tempo sem andar (lutando): começa a medir de novo
+	end
+	if os.clock() - nav.lastCheck > 1 then
+		if nav.lastPos and (root.Position - nav.lastPos).Magnitude < 1.2 then
 			nav.stuck += 1
-			humanoid.Jump = true
 			nav.computedAt = 0
+			local side = Vector3.new(-offset.Unit.Z, 0, offset.Unit.X) * (if nav.stuck % 2 == 0 then 1 else -1)
+			if nav.stuck == 1 then
+				humanoid.Jump = true
+			elseif nav.stuck == 2 then
+				nav.detour, nav.detourUntil = root.Position + side * 8, os.clock() + 1.2
+				humanoid.Jump = true
+			elseif nav.stuck == 3 then
+				nav.detour, nav.detourUntil = root.Position - offset.Unit * 6 + side * 4, os.clock() + 1.2
+			else
+				humanoid.Jump = true
+				task.spawn(State.request, "autoUnstuck", goal)
+				nav.stuck = 1
+			end
 		else
 			nav.stuck = 0
 		end
@@ -534,7 +558,28 @@ local function questStep(humanoid, root)
 			end
 		end
 	end
-	-- 2) objetivo da primeira missão que dá para fazer sozinho
+	-- 2) a história vem antes de tudo: missão principal disponível e nenhuma principal em andamento
+	local hasMain = false
+	for _, item in activeEntries(data) do
+		if item.def.chain == "main" then
+			hasMain = true
+		end
+	end
+	if not hasMain then
+		local nextQuest = questToAccept(data)
+		if nextQuest and nextQuest.def.chain == "main" then
+			local position = npcPosition(nextQuest.npc)
+			if position then
+				setStatus(("História: pegando %s"):format(nextQuest.def.name))
+				if travelTo(humanoid, root, position, TALK_RANGE) and os.clock() - lastRequest > 2 then
+					lastRequest = os.clock()
+					State.request("acceptQuest", nextQuest.def.id)
+				end
+				return true
+			end
+		end
+	end
+	-- 3) objetivo da primeira missão (na ordem) que dá para fazer sozinho
 	for _, item in activeEntries(data) do
 		local def, entry = item.def, item.entry
 		if not automatable(def) then
@@ -580,6 +625,34 @@ local function questStep(humanoid, root)
 			local camp = grindCamp(data.level or 1, root.Position)
 			if camp then
 				travelTo(humanoid, root, camp.position, 20)
+				return true
+			end
+		elseif kind == "parry" then
+			-- aparar: fica de frente para quem ataca e toca o bloqueio (F) sem parar; o golpe que cair logo
+			-- depois de um toque é aparado (janela de Config.ParryWindow)
+			local foe, foeDistance = enemyAt(root.Position, root.Position, 60, nil)
+			if not foe then
+				foe, foeDistance = enemyAt(root.Position, nil, 0, "boneco")
+			end
+			if foe then
+				if foeDistance > 7 then
+					moveTo(humanoid, root, foe.Position)
+				else
+					humanoid:MoveTo(root.Position)
+					root.CFrame = CFrame.lookAt(root.Position, Vector3.new(foe.Position.X, root.Position.Y, foe.Position.Z))
+					if os.clock() - lastParryTap > 0.32 then
+						lastParryTap = os.clock()
+						State.action("block", true)
+						task.delay(0.18, function()
+							State.action("block", false)
+						end)
+					end
+				end
+				return true
+			end
+			local position = npcPosition("kael")
+			if position then
+				travelTo(humanoid, root, position, 10)
 				return true
 			end
 		elseif kind == "mount" then

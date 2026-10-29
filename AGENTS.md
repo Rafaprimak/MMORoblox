@@ -222,6 +222,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 - **Natureza em camadas** (`Scatter.nature`): árvores adultas (`TREE_SCALE` 3) reservam só o tronco, árvores jovens, sub-bosque (arbustos, samambaias, troncos caídos, tocos), clareiras por ruído; o `ArtStyle` engrossa a névoa dentro da mata.
 - Distâncias do servidor (perto do NPC, descoberta de pedra, barreira) já consideram a escala; em checagens novas, use studs reais.
 - NPCs são apoiados no chão por raycast (`NPCService.groundHeight`), não pela altura calculada do terreno.
+- NPCs ficam no grupo de colisão `NPCs`, que não colide com `Jogadores` (ninguém fica preso neles). O Auto, preso por mais de ~4 s, pede `autoUnstuck` (o servidor leva o personagem alguns studs para um lugar livre).
 
 ### Combate dinâmico
 - Os golpes **não avançam** o personagem (sem `lunge`); só os pesados de lança e katana têm `dash`.

@@ -1,6 +1,7 @@
 -- NPCs humanoides (avatar R15 com cores e chapéus blocados) e conversa.
 local Players = game:GetService("Players")
 local CollectionService = game:GetService("CollectionService")
+local PhysicsService = game:GetService("PhysicsService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -297,6 +298,15 @@ function NPCService.talk(player, npcId)
 end
 
 function NPCService.spawn(boardPart)
+	pcall(function()
+		PhysicsService:RegisterCollisionGroup("NPCs")
+	end)
+	pcall(function()
+		PhysicsService:RegisterCollisionGroup("Jogadores")
+	end)
+	pcall(function()
+		PhysicsService:CollisionGroupSetCollidable("NPCs", "Jogadores", false)
+	end)
 	for _, npc in NPCs.List do
 		if npc.board then
 			if boardPart then
@@ -306,6 +316,12 @@ function NPCService.spawn(boardPart)
 			end
 		else
 			local model = createNpc(npc)
+			-- jogadores atravessam NPCs (ninguém fica preso neles, nem o Auto)
+			for _, descendant in model:GetDescendants() do
+				if descendant:IsA("BasePart") then
+					descendant.CollisionGroup = "NPCs"
+				end
+			end
 			model:SetAttribute("NpcId", npc.id)
 			CollectionService:AddTag(model, "NPC")
 			model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic -- chega inteiro no cliente (StreamingEnabled)

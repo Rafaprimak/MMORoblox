@@ -133,6 +133,52 @@ function VipService.setAutoFarm(player, on, anchor)
 	return { ok = true }
 end
 
+-- Auto preso (obstáculo que o caminho não resolveu): o servidor leva o personagem alguns studs na direção
+-- do destino, para um lugar livre com chão. Só com o Auto ligado, fora de masmorra/raide/arena, a cada 6 s.
+local lastUnstuck = {}
+function VipService.autoUnstuck(player, goal)
+	if not player:GetAttribute("AutoFarm") or VipService.inInstance(player) or typeof(goal) ~= "Vector3" then
+		return { ok = false }
+	end
+	if os.clock() - (lastUnstuck[player] or 0) < 6 then
+		return { ok = false }
+	end
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return { ok = false }
+	end
+	lastUnstuck[player] = os.clock()
+	local toward = Vector3.new(goal.X - root.Position.X, 0, goal.Z - root.Position.Z)
+	local forward = if toward.Magnitude > 0.1 then toward.Unit else root.CFrame.LookVector
+	local rayParams = RaycastParams.new()
+	rayParams.FilterType = Enum.RaycastFilterType.Exclude
+	rayParams.FilterDescendantsInstances = { character }
+	for _, distance in { 10, 7, 14, 4 } do
+		for _, angle in { 0, 40, -40, 80, -80, 140, -140 } do
+			local direction = CFrame.Angles(0, math.rad(angle), 0):VectorToWorldSpace(forward)
+			local spot = root.Position + direction * distance
+			local hit = workspace:Raycast(spot + Vector3.new(0, 30, 0), Vector3.new(0, -70, 0), rayParams)
+			if hit and hit.Material ~= Enum.Material.Water then
+				local stand = hit.Position + Vector3.new(0, 3.2, 0)
+				local blocking = false
+				for _, part in workspace:GetPartBoundsInBox(CFrame.new(stand), Vector3.new(3, 5, 3)) do
+					if part.CanCollide and part.Transparency < 1 and not part:IsDescendantOf(character) then
+						blocking = true
+						break
+					end
+				end
+				if not blocking then
+					AntiCheat.allowTeleport(player, 2)
+					character:PivotTo(CFrame.lookAt(stand, stand + direction))
+					return { ok = true }
+				end
+			end
+		end
+	end
+	return { ok = false }
+end
+
 MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gamePassId, purchased)
 	if purchased and gamePassId == Config.VipGamePassId and Config.VipGamePassId > 0 then
 		player:SetAttribute("Vip", true)
