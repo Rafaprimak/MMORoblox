@@ -623,20 +623,44 @@ end
 
 -- ===================== ESCADA =====================
 
--- escada descendo para o próximo andar dentro de uma sala pequena; retorna a peça brilhante (prompt)
+-- Escada descendo para o próximo andar. O piso da sala é maciço (não dá para cavar), então a escada fica
+-- num poço elevado: degraus sobem pela frente (-Z) até a borda e, dentro do poço, descem até o fundo escuro
+-- com o portal brilhando, sob um arco. Retorna a peça brilhante (prompt).
 function DungeonBuilder.stairs(parent, themeId, cf)
 	local theme = THEMES[themeId] or THEMES.cripta
-	for i = 0, 5 do
-		block(parent, "DegrauEscada", Vector3.new(10, 0.6, 2.2), cf * CFrame.new(0, -0.3 - i * 0.6, -3 + i * 2.2), theme.floorAlt:Lerp(Color3.new(0, 0, 0), i * 0.1), M.Slate)
+	local TOP = 3.6 -- altura da borda do poço
+	local STEPS = 6
+	local rise = TOP / STEPS
+	local stone = theme.floorAlt
+	-- subida pela frente: cada degrau é um bloco maciço do chão até o topo dele
+	for i = 0, STEPS - 1 do
+		local h = (i + 1) * rise
+		block(parent, "DegrauSubida", Vector3.new(11, h, 1), cf * CFrame.new(0, h / 2, -9 + i + 0.5), stone, M.Slate)
 	end
-	for _, s in { -1, 1 } do
-		block(parent, "Corrimao", Vector3.new(0.6, 1.2, 14), cf * CFrame.new(s * 5.3, 0.6, 2.5), theme.trim, M.Slate)
-		Props.column(parent, cf * CFrame.new(s * 5.3, 0, -4), 3, 1, theme.trim, M.Slate)
-		Props.fire(parent, (cf * CFrame.new(s * 5.3, 3.2, -4)).Position, 0.6)
+	-- paredes do poço (o vão por dentro: x de -4 a 4, z de -2 a 8)
+	for _, sx in { -1, 1 } do
+		block(parent, "BordaPoco", Vector3.new(1.5, TOP, 12.5), cf * CFrame.new(sx * 4.75, TOP / 2, 3.25), theme.trim, M.Slate)
 	end
-	local hole = block(parent, "Fundo", Vector3.new(10, 0.2, 6), cf * CFrame.new(0, -3.6, 9), Color3.fromRGB(8, 6, 6), M.SmoothPlastic, { CanCollide = false })
+	block(parent, "BordaPoco", Vector3.new(8, TOP, 1), cf * CFrame.new(0, TOP / 2, -2.5), theme.trim, M.Slate)
+	block(parent, "BordaPoco", Vector3.new(8, TOP, 1.5), cf * CFrame.new(0, TOP / 2, 8.75), theme.trim, M.Slate)
+	-- descida por dentro: degraus cada vez mais fundos e mais escuros
+	local down = 5
+	local depth = 8 / down
+	for i = 0, down - 1 do
+		local h = TOP - (i + 1) * rise
+		block(parent, "DegrauEscada", Vector3.new(8, h, depth), cf * CFrame.new(0, h / 2, -2 + (i + 0.5) * depth), stone:Lerp(Color3.new(0, 0, 0), 0.15 + i * 0.13), M.Slate)
+	end
+	-- fundo: boca escura na parede do fim (parece que a escada continua para baixo)
+	local hole = block(parent, "Fundo", Vector3.new(7, TOP - 0.4, 0.2), cf * CFrame.new(0, (TOP - 0.4) / 2, 7.9), Color3.fromRGB(6, 4, 4), M.SmoothPlastic, { CanCollide = false })
 	Props.light(hole, theme.accent, 18, 1.6)
-	return block(parent, "Brilho", Vector3.new(9, 0.1, 5), cf * CFrame.new(0, -3.4, 9), theme.accent, M.Neon, { Transparency = 0.55, CanCollide = false })
+	-- arco sobre o fundo e colunas com fogo na frente
+	for _, sx in { -1, 1 } do
+		Props.column(parent, cf * CFrame.new(sx * 4.75, TOP, 8.75), 5, 1.4, theme.trim, M.Slate)
+		Props.column(parent, cf * CFrame.new(sx * 4.75, TOP, -2.5), 1.6, 1, theme.trim, M.Slate)
+		Props.fire(parent, (cf * CFrame.new(sx * 4.75, TOP + 1.7, -2.5)).Position, 0.6)
+	end
+	block(parent, "Arco", Vector3.new(11, 1.2, 1.6), cf * CFrame.new(0, TOP + 5.6, 8.75), theme.trim, M.Slate)
+	return block(parent, "Brilho", Vector3.new(8, 0.1, 1.6), cf * CFrame.new(0, 0.05, 7), theme.accent, M.Neon, { Transparency = 0.45, CanCollide = false })
 end
 
 return DungeonBuilder

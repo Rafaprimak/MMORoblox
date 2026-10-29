@@ -109,6 +109,17 @@ local function render()
 	join.MouseButton1Click:Connect(function()
 		State.request(if raid.inLobby then "raidLeave" else "raidJoin")
 	end)
+	if not raid.busy then
+		-- entra na hora, só você (o chefe tem menos vida com menos gente)
+		local solo = UI.button({ Text = "Entrar sozinho", Size = UDim2.fromOffset(150, 38), BackgroundColor3 = UI.Colors.Green, Parent = row })
+		solo.MouseButton1Click:Connect(function()
+			local result = State.request("raidSolo")
+			if result and result.ok then
+				Sounds.play("ping", 1.3, 0.5)
+				win:close()
+			end
+		end)
+	end
 	if raid.inLobby then
 		local ready = UI.button({ Text = if raid.me then "Cancelar pronto" else "PRONTO", Size = UDim2.fromOffset(150, 38), BackgroundColor3 = if raid.me then Color3.fromRGB(150, 120, 60) else UI.Colors.Green, Parent = row })
 		ready.MouseButton1Click:Connect(function()

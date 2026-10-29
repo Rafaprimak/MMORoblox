@@ -66,6 +66,7 @@ local function onTriggered(model, prompt, player)
 end
 
 function ResourceService.init()
+	local positions = {} -- [tipo] = { "x,z", ... }
 	for _, model in CollectionService:GetTagged("ResourceNode") do
 		local prompt = model:FindFirstChild("ResourcePrompt", true)
 		if prompt then
@@ -73,7 +74,24 @@ function ResourceService.init()
 				onTriggered(model, prompt, player)
 			end)
 		end
+		local nodeType = model:GetAttribute("NodeType")
+		if nodeType and model.PrimaryPart then
+			local position = model.PrimaryPart.Position
+			positions[nodeType] = positions[nodeType] or {}
+			table.insert(positions[nodeType], ("%d,%d"):format(math.round(position.X), math.round(position.Z)))
+		end
 	end
+	-- Posições de todos os pontos de coleta para o cliente (com streaming ele só tem as peças por perto):
+	-- o Auto e o feixe do objetivo acham o ponto mais perto mesmo longe. Um StringValue por tipo, "x,z;x,z".
+	local folder = Instance.new("Folder")
+	folder.Name = "PontosColeta"
+	for nodeType, list in positions do
+		local value = Instance.new("StringValue")
+		value.Name = nodeType
+		value.Value = table.concat(list, ";")
+		value.Parent = folder
+	end
+	folder.Parent = ReplicatedStorage
 end
 
 return ResourceService

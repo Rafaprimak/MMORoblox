@@ -346,14 +346,17 @@ local function spawnAdds(current)
 	end
 end
 
-local function launch()
+-- Abre a fenda com a sala inteira ou, com soloPlayer (botão "Entrar sozinho"), só com esse jogador.
+local function launch(soloPlayer)
 	local group = {}
-	for _, player in lobby.members do
+	for _, player in if soloPlayer then { soloPlayer } else lobby.members do
 		if player.Parent == Players and player.Character then
 			table.insert(group, player)
 		end
 	end
-	lobby = { members = {}, ready = {}, startsAt = nil }
+	if not soloPlayer then
+		lobby = { members = {}, ready = {}, startsAt = nil }
+	end
 	if #group == 0 or run then
 		return
 	end
@@ -419,6 +422,44 @@ function RaidService.join(player)
 	end
 	table.insert(lobby.members, player)
 	markAll(lobby.members)
+	return { ok = true }
+end
+
+-- Entra sozinho na hora (a vida do chefe cai pelo tamanho do grupo: Raids.hpMult(1)).
+function RaidService.solo(player)
+	local data = DataService.get(player)
+	if not data then
+		return { ok = false }
+	end
+	if run then
+		return { ok = false, msg = "Já tem um grupo lutando na raide. Espere terminar." }
+	end
+	if not nearPortal(player) then
+		return { ok = false, msg = "Chegue perto do portal da raide." }
+	end
+	if data.level < Raids.MinLevel and not RunService:IsStudio() then
+		return { ok = false, msg = ("A raide libera no nível %d (você está no %d)."):format(Raids.MinLevel, data.level) }
+	end
+	if player:GetAttribute("Dungeon") or player:GetAttribute("Arena") then
+		return { ok = false, msg = "Termine a luta atual primeiro." }
+	end
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if not humanoid or humanoid.Health <= 0 then
+		return { ok = false, msg = "Você precisa estar vivo." }
+	end
+	local index = table.find(lobby.members, player)
+	if index then
+		table.remove(lobby.members, index)
+		lobby.ready[player] = nil
+		lobby.startsAt = nil
+		markAll(lobby.members)
+	end
+	local ok, err = pcall(launch, player)
+	if not ok or not run or not run.members[player] then
+		warn("[Raide] Falha ao entrar sozinho: " .. tostring(err))
+		return { ok = false, msg = "Não foi possível abrir a fenda. Tente de novo." }
+	end
 	return { ok = true }
 end
 

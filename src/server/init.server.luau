@@ -378,6 +378,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return PlayerService.saveSettings(player, a)
 	elseif action == "dungeonJoin" then
 		return DungeonService.join(player, a)
+	elseif action == "dungeonSolo" then
+		return DungeonService.solo(player, a)
 	elseif action == "dungeonLeaveLobby" then
 		return DungeonService.leaveLobby(player)
 	elseif action == "fuse" then
@@ -441,6 +443,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return DungeonService.ranking(player, a)
 	elseif action == "raidJoin" then
 		return RaidService.join(player)
+	elseif action == "raidSolo" then
+		return RaidService.solo(player)
 	elseif action == "raidLeave" then
 		return RaidService.leave(player)
 	elseif action == "raidReady" then

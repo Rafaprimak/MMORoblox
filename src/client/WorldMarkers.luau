@@ -100,14 +100,53 @@ local function nearestCamp(enemyId, from)
 	return best
 end
 
+-- posições de todos os pontos de coleta, publicadas pelo servidor (ReplicatedStorage.PontosColeta)
+local nodeCache = {} -- [tipo] = { Vector3 }
+local function nodePositions(nodeType)
+	if nodeCache[nodeType] then
+		return nodeCache[nodeType]
+	end
+	local folder = ReplicatedStorage:FindFirstChild("PontosColeta")
+	local value = folder and folder:FindFirstChild(nodeType)
+	if not value then
+		return {}
+	end
+	local list = {}
+	for x, z in string.gmatch(value.Value, "(-?%d+),(-?%d+)") do
+		x, z = tonumber(x), tonumber(z)
+		table.insert(list, Vector3.new(x, World.height(x, z), z))
+	end
+	nodeCache[nodeType] = list
+	return list
+end
+
+-- ponto de coleta mais perto que dá o item ("any" = qualquer um). Os que já chegaram pelo streaming
+-- (e não estão esgotados) têm preferência; senão usa a lista do servidor.
 local function nearestNode(itemId, from)
 	local best, bestDistance = nil, math.huge
+	local depleted = {} -- pontos esgotados que já chegaram pelo streaming ("x,z")
 	for _, model in CollectionService:GetTagged("ResourceNode") do
 		local def = Resources.Nodes[model:GetAttribute("NodeType")]
-		if def and def.item == itemId and not model:GetAttribute("Depleted") and model.PrimaryPart then
+		if def and model.PrimaryPart and model:GetAttribute("Depleted") then
+			depleted[("%d,%d"):format(math.round(model.PrimaryPart.Position.X), math.round(model.PrimaryPart.Position.Z))] = true
+		elseif def and (itemId == "any" or def.item == itemId) and model.PrimaryPart then
 			local distance = (model.PrimaryPart.Position - from).Magnitude
 			if distance < bestDistance then
 				best, bestDistance = model.PrimaryPart.Position, distance
+			end
+		end
+	end
+	if best then
+		return best
+	end
+	for nodeType, def in Resources.Nodes do
+		if itemId == "any" or def.item == itemId then
+			for _, position in nodePositions(nodeType) do
+				local distance = (position - from).Magnitude
+				-- perto (< 60) o ponto já teria chegado pelo streaming; esgotados ficam de fora
+				if distance > 60 and distance < bestDistance and not depleted[("%d,%d"):format(position.X, position.Z)] then
+					best, bestDistance = position, distance
+				end
 			end
 		end
 	end
@@ -118,7 +157,7 @@ local function enemyDropping(itemId, from)
 	local best, bestDistance = nil, math.huge
 	for enemyId, def in Enemies.Defs do
 		for _, drop in def.drops or {} do
-			if drop.id == itemId and drop.chance >= 0.3 then
+			if drop.id == itemId and (drop.chance or 0) > 0 then
 				local position = nearestCamp(enemyId, from)
 				if position and (position - from).Magnitude < bestDistance then
 					best, bestDistance = position, (position - from).Magnitude

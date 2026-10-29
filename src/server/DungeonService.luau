@@ -981,36 +981,38 @@ local function lobbyReady(list)
 end
 
 -- Começa a corrida (sempre do andar 1) com todo o grupo. A chave sai do líder (primeiro do grupo).
-local function launch(dungeonId)
-	local list = lobbies[dungeonId]
+-- Com soloPlayer, entra só esse jogador (botão "Entrar sozinho"), sem mexer na sala do portal.
+-- Retorna o texto do motivo quando não deu para começar.
+local function launch(dungeonId, soloPlayer)
+	local list = if soloPlayer then { soloPlayer } else lobbies[dungeonId]
 	local dungeon = Dungeons.ById[dungeonId]
-	if not list or not dungeon or not lobbyReady(list) then
-		return
+	if not list or not dungeon or (not soloPlayer and not lobbyReady(list)) then
+		return "Masmorra inválida."
 	end
 	local leader = list[1]
 	local leaderData = DataService.get(leader)
 	local function cancel(message)
-		countdowns[dungeonId] = nil
-		for _, member in list do
-			ready[member] = nil
-			Remotes.Notify:FireClient(member, { kind = "message", text = message })
-			PlayerService.markDirty(member)
+		if not soloPlayer then
+			countdowns[dungeonId] = nil
+			for _, member in list do
+				ready[member] = nil
+				Remotes.Notify:FireClient(member, { kind = "message", text = message })
+				PlayerService.markDirty(member)
+			end
 		end
+		return message
 	end
 	if not leaderData then
-		cancel("O líder do grupo saiu.")
-		return
+		return cancel("O líder do grupo saiu.")
 	end
 	if dungeon.key and (leaderData.materials[dungeon.key] or 0) < 1 then
 		local key = Items.Materials[dungeon.key]
-		cancel(("%s precisa de uma %s (Mercador de Masmorras, na praça)."):format(leader.DisplayName, key and key.name or "chave"))
-		return
+		return cancel(("%s precisa de uma %s (Mercador de Masmorras, na praça)."):format(leader.DisplayName, key and key.name or "chave"))
 	end
 	for _, member in list do
 		local humanoid = member.Character and member.Character:FindFirstChildOfClass("Humanoid")
 		if member.Parent ~= Players or not humanoid or humanoid.Health <= 0 or runOf[member] or not nearPortal(member, dungeon, Dungeons.PortalRange + 10) then
-			cancel(("%s não está pronto perto do portal."):format(member.DisplayName))
-			return
+			return cancel(("%s não está pronto perto do portal."):format(member.DisplayName))
 		end
 	end
 	local group = table.clone(list)
@@ -1020,8 +1022,10 @@ local function launch(dungeonId)
 			leaderData.materials[dungeon.key] = nil
 		end
 	end
-	lobbies[dungeonId] = nil
-	countdowns[dungeonId] = nil
+	if not soloPlayer then
+		lobbies[dungeonId] = nil
+		countdowns[dungeonId] = nil
+	end
 	for _, member in group do
 		ready[member] = nil
 	end
@@ -1059,7 +1063,7 @@ local function launch(dungeonId)
 		for _, member in group do
 			DungeonService.leave(member, true)
 		end
-		return
+		return "Não foi possível montar a masmorra. Tente de novo."
 	end
 	notifyRun(run, {
 		kind = "banner",
@@ -1068,6 +1072,35 @@ local function launch(dungeonId)
 		color = Color3.fromRGB(220, 200, 150),
 		duration = 4,
 	})
+	return nil
+end
+
+-- Entra sozinho na hora (sem sala nem Pronto). Mesmas regras do join; a chave sai do próprio jogador.
+function DungeonService.solo(player, dungeonId)
+	local dungeon = Dungeons.ById[dungeonId]
+	local data = DataService.get(player)
+	if not dungeon or not data then
+		return { ok = false, msg = "Masmorra inválida." }
+	end
+	if runOf[player] then
+		return { ok = false, msg = "Você já está numa masmorra." }
+	end
+	if player:GetAttribute("Raid") or player:GetAttribute("Arena") then
+		return { ok = false, msg = "Termine a luta atual primeiro." }
+	end
+	if not nearPortal(player, dungeon) then
+		return { ok = false, msg = "Chegue perto do portal." }
+	end
+	if data.level < dungeon.minLevel then
+		return { ok = false, msg = ("Precisa ser nível %d para entrar."):format(dungeon.minLevel) }
+	end
+	removeFromLobby(player)
+	local failure = launch(dungeon.id, player)
+	PlayerService.markDirty(player)
+	if failure then
+		return { ok = false, msg = failure }
+	end
+	return { ok = true }
 end
 
 -- quem morreu volta para o patamar do andar atual

@@ -74,7 +74,7 @@ local function renderPortal()
 	end
 	local members = if inLobby then table.concat(names, "   ") else "você ainda não entrou no grupo"
 	text(portal.body, { Text = ("Grupo (%d/%d): %s"):format(if inLobby then #lobby.members else 0, Dungeons.MaxPlayers, members), Size = UDim2.new(1, 0, 0, 36), LayoutOrder = 5, Parent = portal.body })
-	text(portal.body, { Text = "Uma corrida só, do andar 1 ao 20: sair ou deixar o grupo é recomeçar. Começa quando TODOS derem Pronto. A vida dos inimigos cresce com o grupo; tanque, suporte e dano fazem diferença.", Size = UDim2.new(1, 0, 0, 36), TextSize = 13, TextColor3 = UI.Colors.SubText, LayoutOrder = 6, Parent = portal.body })
+	text(portal.body, { Text = "Uma corrida só, do andar 1 ao 20: sair ou deixar o grupo é recomeçar. Começa quando TODOS derem Pronto (ou use "Entrar sozinho"). A vida dos inimigos cresce com o grupo; tanque, suporte e dano fazem diferença.", Size = UDim2.new(1, 0, 0, 36), TextSize = 13, TextColor3 = UI.Colors.SubText, LayoutOrder = 6, Parent = portal.body })
 	-- modificadores da semana (deixam mais difícil e mais recompensador)
 	local modifiers = {}
 	for _, modifier in Dungeons.weeklyModifiers() do
@@ -103,6 +103,17 @@ local function renderPortal()
 			State.request("dungeonJoin", dungeon.id)
 		end
 	end)
+	if not inLobby then
+		-- entra na hora, só você (sem sala nem Pronto; a chave sai de você)
+		local soloButton = UI.button({ Text = "Entrar sozinho", Size = UDim2.fromOffset(180, 38), BackgroundColor3 = UI.Colors.Green, Parent = row })
+		soloButton.MouseButton1Click:Connect(function()
+			local result = State.request("dungeonSolo", dungeon.id)
+			if result and result.ok then
+				Sounds.play("ping", 1.3, 0.5)
+				portal.win:close()
+			end
+		end)
+	end
 	if inLobby then
 		local readyButton = UI.button({ Text = if lobby.me then "Cancelar pronto" else "PRONTO", Size = UDim2.fromOffset(180, 38), BackgroundColor3 = if lobby.me then Color3.fromRGB(150, 120, 60) else UI.Colors.Green, Parent = row })
 		readyButton.MouseButton1Click:Connect(function()

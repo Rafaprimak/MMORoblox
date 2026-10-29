@@ -45,6 +45,9 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 **Combate dinâmico:** ritmo de combo (clicar cedo quebra), estamina por golpe, bloquear/aparar (F), esquiva perfeita, postura e atordoamento, contra-ataque, ataques imbloqueáveis (‼), missões e diárias de aparar/quebrar guarda (G)
 - ⬜ Balancear o combate dinâmico depois dos testes: janelas de ritmo/aparar, postura dos inimigos, custo de estamina (P)
 - 🧪 Rodada de 13 bugs: pet no telhado, nado, noite escura, loot pessoal no grupo, desequipar, detalhes dos itens na troca, mapa com relevo sombreado + portais + NPCs com missão + objetivo, ícones da forja, fusão que não marcava, placa/portal/escada da masmorra, avisos do evento por cima da barra do chefe, missões por cima do painel da masmorra, visual do equipamento caindo (M)
+- 🧪 Botão "Entrar sozinho" nas masmorras e na raide (entra na hora, sem sala nem Pronto) (P)
+- 🧪 Escada da masmorra parecia chapada no chão: virou um poço elevado com degraus que sobem e descem até um fundo escuro sob um arco (P)
+- 🧪 Auto não ia coletar itens de missão longe (streaming): o servidor publica as posições dos pontos de coleta (`PontosColeta`) e o Auto/feixe usa essa lista; objetivo "qualquer item" também funciona (P)
 
 ## Fase 1 — Polimento do que já existe
 
