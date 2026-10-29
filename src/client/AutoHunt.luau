@@ -768,6 +768,17 @@ local function questStep(humanoid, root)
 			end
 		elseif kind == "poiSecret" then
 			local poi = Points.ById[objective.target]
+			-- posição exata do segredo (publicada pelo servidor): vai até ele e pega
+			local published = ReplicatedStorage:FindFirstChild("SegredosLocais")
+			local spot = poi and published and published:FindFirstChild(poi.id)
+			if spot then
+				setStatus(("Segredo: %s"):format(objective.text or poi.name))
+				if travelTo(humanoid, root, spot.Value, 5) and os.clock() - lastRequest > 2 then
+					lastRequest = os.clock()
+					task.spawn(State.request, "autoSecret", poi.id)
+				end
+				return true
+			end
 			if poi then
 				local goal = Vector3.new(poi.x, World.height(poi.x, poi.z), poi.z)
 				if travelTo(humanoid, root, goal, 25) or flat(goal - root.Position).Magnitude < 90 then

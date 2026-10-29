@@ -48,6 +48,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Botão "Entrar sozinho" nas masmorras e na raide (entra na hora, sem sala nem Pronto) (P)
 - 🧪 Escada da masmorra parecia chapada no chão: virou um poço elevado com degraus que sobem e descem até um fundo escuro sob um arco (P)
 - 🧪 Auto não ia coletar itens de missão longe (streaming): o servidor publica as posições dos pontos de coleta (`PontosColeta`) e o Auto/feixe usa essa lista; objetivo "qualquer item" também funciona (P)
+- 🧪 Auto não pegava os segredos das missões (garrafa na areia, lápide sem nome...): o servidor publica onde fica cada segredo (`SegredosLocais`) e o Auto vai até lá e pega pelo pedido `autoSecret` (P)
 
 ## Fase 1 — Polimento do que já existe
 

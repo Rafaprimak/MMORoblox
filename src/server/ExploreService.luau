@@ -96,7 +96,35 @@ local function onSecret(player, prompt)
 	PlayerService.markDirty(player)
 end
 
+local secretPrompts = {} -- [poiId] = prompt "SegredoLocal"
+
+-- Auto (VIP com Auto Caçar ligado): pega o segredo do local quando o personagem já está ao lado dele.
+-- Mesmas regras do prompt (distância conferida no onSecret).
+function ExploreService.autoSecret(player, poiId)
+	local prompt = secretPrompts[poiId]
+	if not player:GetAttribute("AutoFarm") or not prompt or not prompt.Parent then
+		return { ok = false }
+	end
+	onSecret(player, prompt)
+	return { ok = true }
+end
+
 function ExploreService.start()
+	-- posição de cada segredo para o cliente (o Auto vai direto até ele, mesmo antes de chegar pelo streaming)
+	local published = Instance.new("Folder")
+	published.Name = "SegredosLocais"
+	local locals = workspace:FindFirstChild("LocaisDeInteresse", true)
+	for _, prompt in if locals then locals:GetDescendants() else {} do
+		local poiId = prompt:GetAttribute("PoiId")
+		if prompt:IsA("ProximityPrompt") and prompt.Name == "SegredoLocal" and poiId and prompt.Parent:IsA("BasePart") then
+			secretPrompts[poiId] = prompt
+			local value = Instance.new("Vector3Value")
+			value.Name = poiId
+			value.Value = prompt.Parent.Position
+			value.Parent = published
+		end
+	end
+	published.Parent = ReplicatedStorage
 	ProximityPromptService.PromptTriggered:Connect(function(prompt, player)
 		if prompt.Name == "BauLocal" then
 			onChest(player, prompt)

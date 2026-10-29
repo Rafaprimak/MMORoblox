@@ -74,7 +74,7 @@ local function renderPortal()
 	end
 	local members = if inLobby then table.concat(names, "   ") else "você ainda não entrou no grupo"
 	text(portal.body, { Text = ("Grupo (%d/%d): %s"):format(if inLobby then #lobby.members else 0, Dungeons.MaxPlayers, members), Size = UDim2.new(1, 0, 0, 36), LayoutOrder = 5, Parent = portal.body })
-	text(portal.body, { Text = "Uma corrida só, do andar 1 ao 20: sair ou deixar o grupo é recomeçar. Começa quando TODOS derem Pronto (ou use "Entrar sozinho"). A vida dos inimigos cresce com o grupo; tanque, suporte e dano fazem diferença.", Size = UDim2.new(1, 0, 0, 36), TextSize = 13, TextColor3 = UI.Colors.SubText, LayoutOrder = 6, Parent = portal.body })
+	text(portal.body, { Text = "Uma corrida só, do andar 1 ao 20: sair ou deixar o grupo é recomeçar. Começa quando TODOS derem Pronto (ou use o botão Entrar sozinho). A vida dos inimigos cresce com o grupo; tanque, suporte e dano fazem diferença.", Size = UDim2.new(1, 0, 0, 36), TextSize = 13, TextColor3 = UI.Colors.SubText, LayoutOrder = 6, Parent = portal.body })
 	-- modificadores da semana (deixam mais difícil e mais recompensador)
 	local modifiers = {}
 	for _, modifier in Dungeons.weeklyModifiers() do
