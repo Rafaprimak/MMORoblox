@@ -22,7 +22,7 @@ local function setHarvested(model, harvested)
 			else
 				p.Transparency = p:GetAttribute("OriginalTransparency") or 0
 			end
-		elseif p:IsA("PointLight") then
+		elseif p:IsA("PointLight") or p:IsA("ParticleEmitter") then
 			p.Enabled = not harvested
 		end
 	end

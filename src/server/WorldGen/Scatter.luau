@@ -33,14 +33,18 @@ end
 
 -- ===================== PONTOS DE COLETA =====================
 
+-- def.veins/veinSize: mais veios e maiores; def.sparkle: brilho piscando (ver de longe no meio da grama)
 local function oreNode(parent, cf, def, rng)
 	local model = Instance.new("Model")
-	local base = part(model, { Name = "Rocha", Size = Vector3.new(4, 3, 3.6), CFrame = cf * CFrame.new(0, 1.1, 0) * CFrame.Angles(0, rng:NextNumber() * 3, rng:NextNumber(-0.2, 0.2)), Color = Color3.fromRGB(110, 106, 102), Material = M.Rock })
-	part(model, { Name = "Rocha", Size = Vector3.new(2.6, 2, 2.4), CFrame = cf * CFrame.new(1.6, 0.7, 1) * CFrame.Angles(0.3, rng:NextNumber() * 3, 0.2), Color = Color3.fromRGB(100, 96, 92), Material = M.Rock })
-	for i = 1, 4 do
+	-- rocha manchada com a cor do minério quando ele precisa aparecer mais (cobre na grama)
+	local stain = if def.sparkle then 0.18 else 0
+	local base = part(model, { Name = "Rocha", Size = Vector3.new(4, 3, 3.6), CFrame = cf * CFrame.new(0, 1.1, 0) * CFrame.Angles(0, rng:NextNumber() * 3, rng:NextNumber(-0.2, 0.2)), Color = Color3.fromRGB(110, 106, 102):Lerp(def.color, stain), Material = M.Rock })
+	part(model, { Name = "Rocha", Size = Vector3.new(2.6, 2, 2.4), CFrame = cf * CFrame.new(1.6, 0.7, 1) * CFrame.Angles(0.3, rng:NextNumber() * 3, 0.2), Color = Color3.fromRGB(100, 96, 92):Lerp(def.color, stain), Material = M.Rock })
+	local veinSize = def.veinSize or 1
+	for i = 1, def.veins or 4 do
 		local crystal = part(model, {
 			Name = "Veio",
-			Size = Vector3.new(0.8, rng:NextNumber(1.2, 2), 0.8),
+			Size = Vector3.new(0.8 * veinSize, rng:NextNumber(1.2, 2) * veinSize, 0.8 * veinSize),
 			CFrame = cf * CFrame.new(rng:NextNumber(-1.4, 1.4), 2.2 + rng:NextNumber(0, 0.6), rng:NextNumber(-1.2, 1.2)) * CFrame.Angles(rng:NextNumber(-0.6, 0.6), rng:NextNumber() * 3, rng:NextNumber(-0.6, 0.6)),
 			Color = def.color,
 			Material = if def.glow then M.Neon else M.Metal,
@@ -49,6 +53,20 @@ local function oreNode(parent, cf, def, rng)
 		crystal:SetAttribute("Harvestable", true)
 		if i == 1 and def.glow then
 			Props.light(crystal, def.color, 10, 1)
+		end
+		if i == 1 and def.sparkle then
+			-- faíscas na cor do minério (o ResourceService desliga ao minerar)
+			local sparkle = Instance.new("ParticleEmitter")
+			sparkle.Name = "Brilho"
+			sparkle.Texture = "rbxasset://textures/particles/sparkles_main.dds"
+			sparkle.Color = ColorSequence.new(def.color:Lerp(Color3.new(1, 1, 1), 0.35))
+			sparkle.LightEmission = 1
+			sparkle.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.3, 0.7), NumberSequenceKeypoint.new(1, 0) })
+			sparkle.Lifetime = NumberRange.new(0.6, 1)
+			sparkle.Rate = 4
+			sparkle.Speed = NumberRange.new(0.5, 1.5)
+			sparkle.SpreadAngle = Vector2.new(180, 180)
+			sparkle.Parent = crystal
 		end
 	end
 	return model, base

@@ -87,8 +87,8 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Configurações (volume, música, sensibilidade, qualidade gráfica, números de dano...) | **P** | Botão ⚙ |
 | Presentes por tempo no servidor | **U** | Botão 🎁 Presentes |
 | Auto (só VIP; faz as missões, caça, coleta, entrega, viaja e resgata recompensas sozinho; masmorras, raide e ofícios ficam com você; mover o personagem desliga) | **N** | Botão Auto (missões) |
-| Trocar com outro jogador (nível 5+) | **E** perto dele | Botão "Trocar" em cima do jogador |
-| Convidar para o grupo | **T** perto dele | Botão "Convidar para o grupo" em cima do jogador |
+| Trocar com outro jogador (nível 5+) | **E** perto dele → "Trocar itens" | Toque no aviso "Grupo / Troca" em cima do jogador |
+| Convidar para o grupo | **E** perto dele → "Convidar para o grupo" | o mesmo aviso |
 | Falar com o grupo | digite **/g mensagem** no chat (ou /grupo) | o mesmo |
 | Guilda | **L** (fundar com a Helena, no Salão das Guildas, a leste da vila; contratos da guilda com o Ulf e brinde no barril de hidromel) | botão "Guilda" |
 | Falar com a guilda | digite **/gu mensagem** no chat (ou /guilda) | o mesmo |

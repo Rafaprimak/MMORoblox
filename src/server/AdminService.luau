@@ -4,7 +4,8 @@
 --   * Configuração remota (RemoteConfig): DataStore "ConfigRemota_v1", aplicada em todos os servidores na
 --     hora pelo MessagingService ("Admin") e relida a cada 2 min (segurança se uma mensagem se perder).
 --   * Comandos: anúncio global (filtrado), expulsar, banir (DataStore "Banidos_v1", com prazo), desbanir,
---     dar ouro/XP, ir até/trazer jogador, chefe de mundo, invasão, evento sazonal.
+--     dar ouro/XP, item sob medida (base, raridade, nível, aprimoramento, perks e encantamento),
+--     ir até/trazer jogador, chefe de mundo, invasão, evento sazonal.
 --   * Tudo fica registrado em "AdminLog_v1" (últimas 100 ações).
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -19,6 +20,9 @@ local Config = require(Shared.Config)
 local RemoteConfig = require(Shared.RemoteConfig)
 local Arena = require(Shared.Arena)
 local Remotes = require(Shared.Remotes)
+local Items = require(Shared.Items)
+local Rarities = require(Shared.Rarities)
+local Perks = require(Shared.Perks)
 
 local DataService = require(script.Parent.DataService)
 local PlayerService = require(script.Parent.PlayerService)
@@ -412,6 +416,46 @@ function handlers.bring(admin, args)
 	target.Character:PivotTo(from.CFrame * CFrame.new(0, 0, -5))
 	log(admin, "trazer", target.Name)
 	return { ok = true }
+end
+
+-- Item sob medida: qualquer base e raridade (até Único/Exótico), nível, aprimoramento, perks escolhidos
+-- (ou sorteados, com randomPerks) e encantamento. Vai para o admin ou para o jogador em "target".
+local MAX_ITEM_PERKS = 6
+function handlers.item(admin, args)
+	if type(args) ~= "table" then
+		return { ok = false, msg = "Pedido inválido." }
+	end
+	local base = type(args.base) == "string" and Items.Bases[args.base]
+	local rarity = type(args.rarity) == "string" and Rarities.ById[args.rarity]
+	if not base or not rarity then
+		return { ok = false, msg = "Escolha o item e a raridade." }
+	end
+	local target = admin
+	if type(args.target) == "string" and args.target ~= "" then
+		target = findPlayer(args.target)
+		if not target then
+			return { ok = false, msg = "Jogador não está neste servidor." }
+		end
+	end
+	local item = Items.create(args.base, rarity.id, math.clamp(math.floor(tonumber(args.level) or 1), 1, Config.MaxLevel))
+	item.upgrade = math.clamp(math.floor(tonumber(args.upgrade) or 0), 0, Items.MaxUpgrade)
+	if not args.randomPerks then
+		local perks = {}
+		for _, id in (if type(args.perks) == "table" then args.perks else {}) do
+			if type(id) == "string" and Perks.List[id] and not table.find(perks, id) and #perks < MAX_ITEM_PERKS then
+				table.insert(perks, id)
+			end
+		end
+		item.perks = perks
+	end
+	local enchant = type(args.enchant) == "table" and Items.Enchants[args.enchant.id]
+	if enchant and enchant.slot == Items.enchantSlot(base.slot) then
+		item.enchant = { id = args.enchant.id, tier = math.clamp(math.floor(tonumber(args.enchant.tier) or 1), 1, 5) }
+	end
+	PlayerService.addItem(target, item, { force = true })
+	PlayerService.markDirty(target)
+	log(admin, "item", ("%s: %s [%s] nv %d +%d, perks: %s%s"):format(target.Name, base.name, rarity.name, item.level, item.upgrade, if #item.perks > 0 then table.concat(item.perks, ", ") else "nenhum", if item.enchant then (", encanto %s %d"):format(item.enchant.id, item.enchant.tier) else ""))
+	return { ok = true, msg = ("%s [%s] entregue para %s."):format(base.name, rarity.name, target.DisplayName) }
 end
 
 -- "Para mim": o admin enche o próprio personagem (nível, ouro, materiais, perícias)

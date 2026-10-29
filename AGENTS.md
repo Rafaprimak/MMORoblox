@@ -145,7 +145,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `HUD`, `Popups`, `Fx`, `Sounds` | Barras, notificações, efeitos visuais, sons (`Sounds.List`: cole IDs da Creator Store em `id`) |
 | `Prefs`, `SettingsWindow` | Configurações do jogador (valores sem dependências + janela, tecla P) |
 | `Sky`, `Auras` | Sol suave e postes que acendem à noite; aura de rank nos jogadores |
-| `Tutorial` | Dicas guiadas dos primeiros minutos (avançam com `Tutorial.event(nome)`) |
+| `Tutorial` | Dicas guiadas dos primeiros minutos (avançam com `Tutorial.event(nome)`; `alt`/`altCount` = outro jeito de concluir, `touch` = texto no celular; botão "Próxima" pula só a dica atual) |
 | `LockOn` | Travar a mira no inimigo (câmera, rosto do personagem, mira de golpes e habilidades) |
 | `PetRenderer`, `PetsWindow` | Desenha/anima os pets de todos; janela de pets e ovos (tecla G) |
 | `JourneyWindow` | Jornada (tecla K): diário, passe, conquistas, títulos |
@@ -156,16 +156,17 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `DungeonAtmosphere` | Clima das masmorras no cliente (luz, névoa, tom, poeira/brasas) enquanto o jogador tem o atributo `Dungeon` |
 | `AutoHunt` | Auto Caçar no cliente (só com `AutoFarm`): anda até o inimigo mais perto, ataca no ritmo (`Controller.autoAttack`), toma poção e volta ao ponto de partida |
 | `Store` | Cliente: abre a compra com Robux (`Store.buy(chave)`) e mostra o preço; produto com id 0 = no Studio entrega de graça para testar |
-| `AdminWindow` | Painel de admin (botão ADMIN no canto, só com o atributo `Admin`): jogadores, balanceamento, mundo, "Para mim" (nível, ouro, materiais e perícias no máximo no próprio admin, pelo gancho `AdminService.SelfGift`), registro |
+| `AdminWindow` | Painel de admin (botão ADMIN no canto, só com o atributo `Admin`): jogadores, balanceamento, mundo, "Para mim" (nível, ouro, materiais e perícias no máximo no próprio admin, pelo gancho `AdminService.SelfGift`), "Itens" (qualquer base e raridade, nível, aprimoramento, encantamento e perks escolhidos ou sorteados, para o admin ou um jogador: `handlers.item`), registro |
 | `SignReader` | Abre o texto das placas do mundo (prompt `LerPlaca`; servidor cria com `Props.readable`/`Props.signpost`) |
 | `ArenaWindow` | Janela da Arena (menu, sem tecla): fila, divisão, ranking, histórico; placar no topo durante a luta |
-| `FusionWindow`, `TradeWindow` | Janelas de fusão e de troca (o botão "Trocar" é um ProximityPrompt local em cada outro jogador) |
+| `FusionWindow`, `TradeWindow` | Janelas de fusão e de troca (`TradeWindow.inviteTo`, chamado pelo `PlayerPrompt`) |
+| `PlayerPrompt` | Um só aviso pequeno em cima dos outros jogadores (ProximityPrompt `Custom`, tecla E, BillboardGui "Grupo / Troca" acima da cabeça) que abre um menu curto: convidar para o grupo (`PartyUI.inviteTo`) e trocar (`TradeWindow.inviteTo`). Interação nova com jogador = botão nesse menu, nunca outro ProximityPrompt padrão (cobre o personagem) |
 | `PlaytimeWindow` | Janela de Presentes (tecla U) com o tempo neste servidor |
 | `MarketWindow` | Janela do Mercado (Comprar / Vender / Meus anúncios), aberta pelo serviço `market` do Otto |
 | `GuildWindow` | Guilda (tecla L): fundar, membros e cargos, banco, metas, ranking; chat /gu; painel de convite |
 | `ChroniclesWindow` | Crônicas (tecla Y): facções e diário de lore |
 | `RaidWindow` | Janela da raide (chefe girando em 3D, vitrine do conjunto Estelar, sala) e painel durante a luta |
-| `PartyUI` | Grupo: convite (tecla T em cima do jogador), quadros dos colegas, nome verde em cima deles, `PartyUI.members()` para o mapa, chat `/g` |
+| `PartyUI` | Grupo: convite (pelo menu do `PlayerPrompt`), quadros dos colegas, nome verde em cima deles, `PartyUI.members()` para o mapa, chat `/g` |
 | `EventTracker` | Painel do evento do mundo (coluna da direita, acima do relógio; o topo do meio é da barra do chefe e dos avisos) + marcador no mundo; `EventTracker.position()` para o mapa |
 | `ArtStyle` | Estilo artístico: contorno de anime (Highlight só de borda) nos ~24 modelos mais perto, vinheta e gradação de cor pela hora do dia (configuração `outlines`) |
 | `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |

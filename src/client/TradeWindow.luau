@@ -1,7 +1,6 @@
 -- Troca entre jogadores (cliente): botão "Trocar" em cima dos outros jogadores, convite com Aceitar/Recusar
 -- e a janela da troca (sua oferta à esquerda, a do outro à direita, Pronto → Confirmar). O servidor
 -- (TradeService) valida tudo; aqui só se monta a oferta e se mostra o estado (data.trade).
-local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -19,7 +18,6 @@ local Inventory = require(script.Parent.Inventory)
 
 local TradeWindow = {}
 
-local player = Players.LocalPlayer
 local win, mineFrame, theirsFrame, inventoryGrid, goldBox, readyButton, confirmButton, statusLabel, theirGold, theirStatus
 local invitePanel, inviteText
 local pendingInvite = nil
@@ -148,29 +146,9 @@ local function render(force)
 	statusLabel.Text = if not bothReady then "1) Montem as ofertas  2) Os dois dão PRONTO  3) Os dois CONFIRMAM. Mudar a oferta tira o Pronto." else "Confira o que o outro está oferecendo e confirme."
 end
 
--- botão "Trocar" em cima dos outros jogadores
-local function addPrompt(other)
-	local function onCharacter(character)
-		local root = character:WaitForChild("HumanoidRootPart", 10)
-		if not root then
-			return
-		end
-		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name = "TrocarPrompt"
-		prompt.ActionText = "Trocar"
-		prompt.ObjectText = other.DisplayName
-		prompt.HoldDuration = 0.5
-		prompt.MaxActivationDistance = 12
-		prompt.RequiresLineOfSight = false
-		prompt.Parent = root
-		prompt.Triggered:Connect(function()
-			State.request("tradeInvite", other.UserId)
-		end)
-	end
-	if other.Character then
-		task.spawn(onCharacter, other.Character)
-	end
-	other.CharacterAdded:Connect(onCharacter)
+-- pedido de troca (chamado pelo menu do PlayerPrompt, em cima dos outros jogadores)
+function TradeWindow.inviteTo(other)
+	State.request("tradeInvite", other.UserId)
 end
 
 -- convite recebido
@@ -286,13 +264,6 @@ function TradeWindow.init(screen)
 			pendingInvite = nil
 		end
 	end)
-
-	for _, other in Players:GetPlayers() do
-		if other ~= player then
-			addPrompt(other)
-		end
-	end
-	Players.PlayerAdded:Connect(addPrompt)
 
 	State.Changed:Connect(function()
 		local trade = State.data and State.data.trade

@@ -14,15 +14,17 @@ local Tutorial = {}
 local MAX_LEVEL = 5
 
 -- event: nome do evento que conclui o passo (Tutorial.event); count: quantas vezes
+-- alt/altCount: outro jeito de concluir (o combo no ritmo é difícil no começo: depois de vários golpes passa)
+-- touch: texto no celular
 local STEPS = {
-	{ id = "andar", text = "Ande com W A S D. Segure o botão direito do mouse para girar a câmera.", event = "moved" },
-	{ id = "missao", text = "Fale com a Capitã Lyra (! na cabeça): chegue perto e aperte E.", event = "quest" },
+	{ id = "andar", text = "Ande com W A S D. Segure o botão direito do mouse para girar a câmera.", touch = "Ande com o direcional da esquerda. Arraste o dedo na tela para girar a câmera.", event = "moved" },
+	{ id = "missao", text = "Fale com a Capitã Lyra (! na cabeça): chegue perto e aperte E.", touch = "Fale com a Capitã Lyra (! na cabeça): chegue perto e toque no aviso.", event = "quest" },
 	{ id = "feixe", text = "A coluna de luz amarela sempre aponta o próximo objetivo. Siga-a!", event = "walked" },
-	{ id = "atacar", text = "Clique para atacar. Clique de novo quando a barrinha ficar VERDE: combo no ritmo!", event = "rhythm", count = 2 },
-	{ id = "bloquear", text = "Segure F para bloquear. Aperte F logo antes do golpe (! amarelo) para APARAR.", event = "block", count = 2 },
-	{ id = "esquivar", text = "Aperte Q para esquivar. Golpes com !! vermelho não podem ser bloqueados: esquive!", event = "dodge" },
-	{ id = "inventario", text = "Abra o inventário (I) para equipar os itens que você ganhar.", event = "inventory" },
-	{ id = "mapa", text = "Segure Shift para correr. No mapa (M) você viaja entre pedras de viagem ativadas.", event = "map" },
+	{ id = "atacar", text = "Clique para atacar. Clique de novo quando a barrinha ficar VERDE: combo no ritmo!", touch = "Toque nas espadas para atacar. Toque de novo quando a barrinha ficar VERDE: combo no ritmo!", event = "rhythm", count = 2, alt = "swing", altCount = 12 },
+	{ id = "bloquear", text = "Segure F para bloquear. Aperte F logo antes do golpe (! amarelo) para APARAR.", touch = "Segure o escudo para bloquear. Toque nele logo antes do golpe (! amarelo) para APARAR.", event = "block", count = 2 },
+	{ id = "esquivar", text = "Aperte Q para esquivar. Golpes com !! vermelho não podem ser bloqueados: esquive!", touch = "Toque no vento para esquivar. Golpes com !! vermelho não podem ser bloqueados: esquive!", event = "dodge" },
+	{ id = "inventario", text = "Abra o inventário (I) para equipar os itens que você ganhar.", touch = "Abra o inventário (MENU → Inventário) para equipar os itens que você ganhar.", event = "inventory" },
+	{ id = "mapa", text = "Segure Shift para correr. No mapa (M) você viaja entre pedras de viagem ativadas.", touch = "Segure o botão de correr. No mapa (MENU → Mapa) você viaja entre pedras de viagem ativadas.", event = "map" },
 }
 
 local frame, counter, label, scale = nil, nil, nil, nil
@@ -31,6 +33,7 @@ local loaded = false
 local skipped = false
 local current = nil
 local progress = 0
+local altProgress = 0
 local startPosition = nil
 
 local function eligible()
@@ -62,9 +65,10 @@ local function show()
 	if current ~= step then
 		current = step
 		progress = 0
+		altProgress = 0
 		startPosition = nil
 		counter.Text = ("DICA %d/%d"):format(index, #STEPS)
-		label.Text = step.text
+		label.Text = if UI.touchOnly() and step.touch then step.touch else step.text
 		scale.Scale = 0.85
 		UI.tween(scale, 0.25, { Scale = 1 }, Enum.EasingStyle.Back)
 	end
@@ -90,7 +94,17 @@ Tutorial.onFinished = nil -- function() (o init mostra um aviso)
 
 -- Chamado pelo init quando algo acontece ("rhythm", "block", "dodge", "inventory", "map", "quest"...)
 function Tutorial.event(name)
-	if not current or not frame.Visible or current.event ~= name then
+	if not current or not frame.Visible then
+		return
+	end
+	if current.alt == name then
+		altProgress += 1
+		if altProgress >= (current.altCount or 1) then
+			complete(current)
+		end
+		return
+	end
+	if current.event ~= name then
 		return
 	end
 	progress += 1
@@ -122,6 +136,13 @@ function Tutorial.init(screen)
 	counter = UI.label({ Text = "", Position = UDim2.fromOffset(14, 6), Size = UDim2.fromOffset(200, 16), TextColor3 = UI.Colors.Gold, Font = Enum.Font.GothamBlack, Parent = frame }, { UI.textStroke(1) })
 	label = UI.label({ Text = "", Position = UDim2.fromOffset(14, 24), Size = UDim2.new(1, -28, 0, 32), TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top, Font = Enum.Font.GothamBold, Parent = frame }, { UI.textStroke(1) })
 	local skip = UI.button({ Text = "Pular tutorial", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -8, 0, 5), Size = UDim2.fromOffset(110, 20), BackgroundColor3 = UI.Colors.Dark, Parent = frame })
+	-- pula só esta dica (nenhuma dica fica presa na tela)
+	local nextButton = UI.button({ Text = "Próxima", AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -124, 0, 5), Size = UDim2.fromOffset(80, 20), BackgroundColor3 = UI.Colors.Accent, Parent = frame })
+	nextButton.MouseButton1Click:Connect(function()
+		if current then
+			complete(current)
+		end
+	end)
 	skip.MouseButton1Click:Connect(function()
 		skipped = true
 		State.request("tutorial", "skip")

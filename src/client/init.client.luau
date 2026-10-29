@@ -37,6 +37,7 @@ local SettingsWindow = require(script.SettingsWindow)
 local Tutorial = require(script.Tutorial)
 local LockOn = require(script.LockOn)
 local TouchControls = require(script.TouchControls)
+local PlayerPrompt = require(script.PlayerPrompt)
 local PetRenderer = require(script.PetRenderer)
 local PetsWindow = require(script.PetsWindow)
 local JourneyWindow = require(script.JourneyWindow)
@@ -118,6 +119,7 @@ Inventory.onFusion = function()
 end
 TradeWindow.init(screen)
 PartyUI.init(screen)
+PlayerPrompt.init(screen)
 MarketWindow.init(screen)
 GuildWindow.init(screen)
 ChroniclesWindow.init(screen)
@@ -210,6 +212,7 @@ Controller.onNoStamina = function()
 	Popups.message("Sem estamina!", UI.Colors.Stamina)
 end
 Controller.onAttack = function(duration)
+	Tutorial.event("swing")
 	if Prefs.get("rhythmBar") then
 		HUD.showAttackCue(duration)
 	end

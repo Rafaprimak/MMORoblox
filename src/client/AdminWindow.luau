@@ -1,17 +1,21 @@
 -- Painel de administrador (só aparece com o atributo "Admin", que o servidor dá): jogadores do servidor
 -- (ir até, trazer, dar ouro/XP, expulsar, banir), balanceamento ao vivo (RemoteConfig, vale em todos os
--- servidores), aviso global, eventos, "Para mim" (o admin enche o próprio personagem) e o registro das ações. O servidor confere tudo de novo.
+-- servidores), aviso global, eventos, "Para mim" (o admin enche o próprio personagem), "Itens" (qualquer item com os perks escolhidos) e o registro das ações. O servidor confere tudo de novo.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config = require(Shared.Config)
 local RemoteConfig = require(Shared.RemoteConfig)
+local Items = require(Shared.Items)
+local Rarities = require(Shared.Rarities)
+local Perks = require(Shared.Perks)
 
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Popups = require(script.Parent.Popups)
+local ItemIcon = require(script.Parent.ItemIcon)
 
 local AdminWindow = {}
 
@@ -202,6 +206,229 @@ local function renderSelf(page)
 	end
 end
 
+-- ===================== ITENS =====================
+-- Item sob medida: escolhe a base (busca + filtro por espaço), raridade, nível, aprimoramento,
+-- encantamento e os perks (ou sorteados). O servidor (handlers.item) valida tudo de novo.
+local MAX_PERKS = 6
+local form = { search = "", slot = nil, base = nil, rarity = "Lendario", level = Config.MaxLevel, upgrade = Items.MaxUpgrade, perks = {}, randomPerks = false, allPerks = false, enchant = nil, enchantTier = 5, target = "" }
+
+local function sortedBases()
+	local list = {}
+	for id, base in Items.Bases do
+		if (not form.slot or base.slot == form.slot) and (form.search == "" or string.find(string.lower(base.name), string.lower(form.search), 1, true)) then
+			table.insert(list, id)
+		end
+	end
+	table.sort(list, function(a, b)
+		local x, y = Items.Bases[a], Items.Bases[b]
+		local sx, sy = Items.Slots[x.slot].order, Items.Slots[y.slot].order
+		if sx ~= sy then
+			return sx < sy
+		end
+		if (x.tier or 0) ~= (y.tier or 0) then
+			return (x.tier or 0) < (y.tier or 0)
+		end
+		return x.name < y.name
+	end)
+	return list
+end
+
+local function baseTag(base)
+	return if base.exotic then "Exótico" elseif base.unique then "Único" elseif base.raid then "Raide" elseif base.dungeon then "Masmorra" elseif base.field then "Campo" else "T" .. tostring(base.tier or 0)
+end
+
+local function selectBase(id)
+	local old = form.base and Items.Bases[form.base]
+	local base = Items.Bases[id]
+	form.base = id
+	if base.exotic then
+		form.rarity = "Exotico"
+	elseif base.unique then
+		form.rarity = "Unico"
+	elseif form.rarity == "Exotico" or form.rarity == "Unico" then
+		form.rarity = "Lendario"
+	end
+	if not old or Perks.poolForSlot(old.slot) ~= Perks.poolForSlot(base.slot) or old.signature or base.signature then
+		form.perks = {}
+	end
+	if base.signature and not table.find(form.perks, base.signature) then
+		table.insert(form.perks, 1, base.signature)
+	end
+	if not old or Items.enchantSlot(old.slot) ~= Items.enchantSlot(base.slot) then
+		form.enchant = nil
+	end
+end
+
+local function numberBox(parent, label, value, position, onSet)
+	text(parent, { Text = label, Position = position, Size = UDim2.fromOffset(120, 16), TextSize = 12, TextColor3 = UI.Colors.SubText, TextXAlignment = Enum.TextXAlignment.Left })
+	local box = textBox(parent, { Text = tostring(value), Position = position + UDim2.fromOffset(0, 17), Size = UDim2.fromOffset(120, 28) })
+	box.FocusLost:Connect(function()
+		onSet(tonumber(box.Text))
+		render()
+	end)
+	return box
+end
+
+local function renderItems(page)
+	-- coluna 1: busca, filtro por espaço e lista das bases
+	local search = textBox(page, { Text = form.search, PlaceholderText = "Buscar item (Enter)", Size = UDim2.fromOffset(290, 30) })
+	search.FocusLost:Connect(function()
+		form.search = search.Text
+		render()
+	end)
+	local filters = UI.new("Frame", { Position = UDim2.fromOffset(0, 36), Size = UDim2.fromOffset(290, 50), BackgroundTransparency = 1, Parent = page }, {
+		UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(68, 22), CellPadding = UDim2.fromOffset(6, 4), SortOrder = Enum.SortOrder.LayoutOrder }),
+	})
+	local slotOptions = { { false, "Todos" } }
+	for _, slot in Items.SlotOrder do
+		table.insert(slotOptions, { slot, Items.Slots[slot].name })
+	end
+	for order, option in slotOptions do
+		local value = option[1] or nil
+		local button = UI.button({ Text = option[2], TextSize = 12, LayoutOrder = order, BackgroundColor3 = if form.slot == value then ACCENT else UI.Colors.Dark, Parent = filters })
+		button.MouseButton1Click:Connect(function()
+			form.slot = value
+			render()
+		end)
+	end
+	local list = UI.new("ScrollingFrame", { Position = UDim2.fromOffset(0, 92), Size = UDim2.new(0, 290, 1, -92), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), Parent = page }, { UI.list(3) })
+	for order, id in sortedBases() do
+		local base = Items.Bases[id]
+		local button = UI.button({ Text = ("%s  •  %s  •  %s"):format(base.name, Items.Slots[base.slot].name, baseTag(base)), TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, Size = UDim2.new(1, -10, 0, 24), LayoutOrder = order, BackgroundColor3 = if form.base == id then ACCENT else UI.Colors.PanelLight, Parent = list })
+		button.MouseButton1Click:Connect(function()
+			selectBase(id)
+			render()
+		end)
+	end
+
+	-- coluna 2: raridade, números, encantamento, jogador, prévia e botão de criar
+	local mid = UI.new("Frame", { Position = UDim2.fromOffset(302, 0), Size = UDim2.new(0, 254, 1, 0), BackgroundTransparency = 1, Parent = page })
+	text(mid, { Text = "RARIDADE", Size = UDim2.new(1, 0, 0, 16), TextSize = 12, TextColor3 = ACCENT, Font = Enum.Font.GothamBlack, TextXAlignment = Enum.TextXAlignment.Left })
+	local rarities = UI.new("Frame", { Position = UDim2.fromOffset(0, 18), Size = UDim2.fromOffset(254, 84), BackgroundTransparency = 1, Parent = mid }, {
+		UI.new("UIGridLayout", { CellSize = UDim2.fromOffset(80, 24), CellPadding = UDim2.fromOffset(7, 4), SortOrder = Enum.SortOrder.LayoutOrder }),
+	})
+	for order, rarity in Rarities.List do
+		local chosen = form.rarity == rarity.id
+		local button = UI.button({ Text = rarity.name, TextSize = 12, LayoutOrder = order, TextColor3 = if chosen then Color3.new(0, 0, 0) else rarity.color, BackgroundColor3 = if chosen then rarity.color else UI.Colors.Dark, Parent = rarities })
+		button.MouseButton1Click:Connect(function()
+			form.rarity = rarity.id
+			render()
+		end)
+	end
+	numberBox(mid, "Nível (1-" .. Config.MaxLevel .. ")", form.level, UDim2.fromOffset(0, 108), function(value)
+		form.level = math.clamp(math.floor(value or form.level), 1, Config.MaxLevel)
+	end)
+	numberBox(mid, "Aprimoramento (0-" .. Items.MaxUpgrade .. ")", form.upgrade, UDim2.fromOffset(132, 108), function(value)
+		form.upgrade = math.clamp(math.floor(value or form.upgrade), 0, Items.MaxUpgrade)
+	end)
+	local base = form.base and Items.Bases[form.base]
+	-- encantamento: cada clique passa para o próximo do tipo do item (depois do último volta a nenhum)
+	text(mid, { Text = "Encantamento", Position = UDim2.fromOffset(0, 158), Size = UDim2.fromOffset(120, 16), TextSize = 12, TextColor3 = UI.Colors.SubText, TextXAlignment = Enum.TextXAlignment.Left })
+	local enchantDef = form.enchant and Items.Enchants[form.enchant]
+	local enchantButton = UI.button({ Text = if enchantDef then enchantDef.name else "Nenhum", TextSize = 13, Position = UDim2.fromOffset(0, 175), Size = UDim2.fromOffset(120, 28), BackgroundColor3 = if enchantDef then UI.Colors.Accent else UI.Colors.Dark, Parent = mid })
+	enchantButton.MouseButton1Click:Connect(function()
+		if not base then
+			return
+		end
+		local options = Items.EnchantsBySlot[Items.enchantSlot(base.slot)]
+		local index = form.enchant and table.find(options, form.enchant) or 0
+		form.enchant = options[index + 1]
+		render()
+	end)
+	numberBox(mid, "Tier do encanto (1-5)", form.enchantTier, UDim2.fromOffset(132, 158), function(value)
+		form.enchantTier = math.clamp(math.floor(value or form.enchantTier), 1, 5)
+	end)
+	text(mid, { Text = "Jogador (vazio = você)", Position = UDim2.fromOffset(0, 208), Size = UDim2.new(1, 0, 0, 16), TextSize = 12, TextColor3 = UI.Colors.SubText, TextXAlignment = Enum.TextXAlignment.Left })
+	local targetInput = textBox(mid, { Text = form.target, PlaceholderText = "nome do jogador", Position = UDim2.fromOffset(0, 225), Size = UDim2.new(1, 0, 0, 28) })
+	targetInput.FocusLost:Connect(function()
+		form.target = targetInput.Text
+	end)
+	local preview = UI.new("Frame", { Position = UDim2.fromOffset(0, 262), Size = UDim2.new(1, 0, 0, 120), BackgroundColor3 = UI.Colors.PanelLight, BackgroundTransparency = 0.3, Parent = mid }, { UI.corner(8) })
+	local rarity = Rarities.ById[form.rarity]
+	if base then
+		ItemIcon.new(preview, form.base, form.rarity, { Size = UDim2.fromOffset(84, 84), Position = UDim2.fromOffset(8, 18), spin = true })
+		text(preview, { Text = base.name, Position = UDim2.fromOffset(100, 10), Size = UDim2.new(1, -108, 0, 40), TextColor3 = rarity.color, Font = Enum.Font.GothamBlack, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top })
+		text(preview, {
+			Text = ("%s • nível %d • +%d\n%s\n%s"):format(rarity.name, form.level, form.upgrade, if form.randomPerks then "perks sorteados" else ("%d perk(s)"):format(#form.perks), if enchantDef then ("%s %s"):format(enchantDef.name, Items.roman(form.enchantTier)) else "sem encanto"),
+			Position = UDim2.fromOffset(100, 52),
+			Size = UDim2.new(1, -108, 0, 60),
+			TextSize = 12,
+			TextColor3 = UI.Colors.SubText,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextYAlignment = Enum.TextYAlignment.Top,
+		})
+	else
+		text(preview, { Text = "Escolha um item na lista.", Size = UDim2.fromScale(1, 1), TextColor3 = UI.Colors.SubText, TextXAlignment = Enum.TextXAlignment.Center })
+	end
+	local create = UI.button({ Text = "CRIAR ITEM", Font = Enum.Font.GothamBlack, AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 40), BackgroundColor3 = if base then UI.Colors.Green else UI.Colors.Dark, Parent = mid })
+	create.MouseButton1Click:Connect(function()
+		if not base then
+			return
+		end
+		command("item", {
+			base = form.base,
+			rarity = form.rarity,
+			level = form.level,
+			upgrade = form.upgrade,
+			perks = form.perks,
+			randomPerks = form.randomPerks,
+			enchant = if form.enchant then { id = form.enchant, tier = form.enchantTier } else nil,
+			target = form.target,
+		})
+	end)
+
+	-- coluna 3: perks (os do tipo do item; "Todos" mostra também os do outro tipo e os exclusivos)
+	local right = UI.new("Frame", { Position = UDim2.fromOffset(568, 0), Size = UDim2.new(1, -568, 1, 0), BackgroundTransparency = 1, Parent = page })
+	text(right, { Text = ("PERKS  %d/%d"):format(#form.perks, MAX_PERKS), Size = UDim2.new(1, 0, 0, 16), TextSize = 12, TextColor3 = ACCENT, Font = Enum.Font.GothamBlack, TextXAlignment = Enum.TextXAlignment.Left })
+	local toggles = UI.new("Frame", { Position = UDim2.fromOffset(0, 18), Size = UDim2.new(1, 0, 0, 24), BackgroundTransparency = 1, Parent = right }, { UI.list(6, true) })
+	for order, toggle in { { "randomPerks", "Sorteados" }, { "allPerks", "Todos" } } do
+		local button = UI.button({ Text = toggle[2], TextSize = 12, LayoutOrder = order, Size = UDim2.fromOffset(84, 24), BackgroundColor3 = if form[toggle[1]] then ACCENT else UI.Colors.Dark, Parent = toggles })
+		button.MouseButton1Click:Connect(function()
+			form[toggle[1]] = not form[toggle[1]]
+			render()
+		end)
+	end
+	local clear = UI.button({ Text = "Limpar", TextSize = 12, LayoutOrder = 3, Size = UDim2.fromOffset(70, 24), BackgroundColor3 = UI.Colors.Dark, Parent = toggles })
+	clear.MouseButton1Click:Connect(function()
+		form.perks = {}
+		render()
+	end)
+	local perkList = UI.new("ScrollingFrame", { Position = UDim2.fromOffset(0, 48), Size = UDim2.new(1, 0, 1, -48), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), Parent = right }, { UI.list(3) })
+	if form.randomPerks then
+		text(perkList, { Text = "Os perks serão sorteados pela raridade, como num drop.", Size = UDim2.new(1, -8, 0, 40), TextSize = 13, TextColor3 = UI.Colors.SubText })
+		return
+	end
+	local pool = base and Perks.poolForSlot(base.slot)
+	local ids = {}
+	for id, perk in Perks.List do
+		if form.allPerks or ((not pool or perk.pool == pool) and not perk.exclusive) or table.find(form.perks, id) then
+			table.insert(ids, id)
+		end
+	end
+	table.sort(ids, function(a, b)
+		return Perks.List[a].name < Perks.List[b].name
+	end)
+	for order, id in ids do
+		local perk = Perks.List[id]
+		local chosen = table.find(form.perks, id) ~= nil
+		local row = UI.button({ Text = "", LayoutOrder = order, Size = UDim2.new(1, -8, 0, 44), BackgroundColor3 = if chosen then Color3.fromRGB(60, 110, 70) else UI.Colors.PanelLight, Parent = perkList })
+		text(row, { Text = (if chosen then "✔ " else "") .. perk.name .. (if perk.major then "  ★" else "") .. (if perk.exclusive then "  (" .. perk.exclusive .. ")" else ""), Position = UDim2.fromOffset(8, 3), Size = UDim2.new(1, -16, 0, 16), TextSize = 13, TextWrapped = false, TextTruncate = Enum.TextTruncate.AtEnd, TextXAlignment = Enum.TextXAlignment.Left })
+		text(row, { Text = perk.text or "", Position = UDim2.fromOffset(8, 20), Size = UDim2.new(1, -16, 0, 22), TextSize = 11, TextColor3 = UI.Colors.SubText, TextTruncate = Enum.TextTruncate.AtEnd, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top })
+		row.MouseButton1Click:Connect(function()
+			local index = table.find(form.perks, id)
+			if index then
+				table.remove(form.perks, index)
+			elseif #form.perks < MAX_PERKS then
+				table.insert(form.perks, id)
+			else
+				Popups.message(("No máximo %d perks."):format(MAX_PERKS), UI.Colors.Red)
+				return
+			end
+			render()
+		end)
+	end
+end
+
 -- ===================== REGISTRO =====================
 local function renderLog(page)
 	local scroll = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(), Parent = page }, { UI.list(3) })
@@ -217,7 +444,7 @@ function render()
 	if not win or not win:isOpen() or not snapshot then
 		return
 	end
-	for _, name in { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Registro" } do
+	for _, name in { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Itens", "Registro" } do
 		UI.clear(pages[name])
 	end
 	local page = pages[win.tab]
@@ -229,6 +456,8 @@ function render()
 		renderWorld(page)
 	elseif win.tab == "Para mim" then
 		renderSelf(page)
+	elseif win.tab == "Itens" then
+		renderItems(page)
 	else
 		renderLog(page)
 	end
@@ -246,8 +475,8 @@ function AdminWindow.toggle()
 end
 
 function AdminWindow.init(screen)
-	win = Window.create(screen, { icon = "cog", name = "Admin", title = "PAINEL DE ADMIN", width = 860, height = 560, tabs = { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Registro" }, accent = ACCENT })
-	for _, name in { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Registro" } do
+	win = Window.create(screen, { icon = "cog", name = "Admin", title = "PAINEL DE ADMIN", width = 860, height = 560, tabs = { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Itens", "Registro" }, accent = ACCENT })
+	for _, name in { "Jogadores", "Balanceamento", "Mundo", "Para mim", "Itens", "Registro" } do
 		pages[name] = UI.new("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Visible = false, Parent = win.content })
 	end
 	win.onTab = function(name)

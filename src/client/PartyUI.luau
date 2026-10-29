@@ -154,30 +154,25 @@ local function refreshLive()
 	end
 end
 
--- botão de convite em cima dos outros jogadores
+-- convite para o grupo (chamado pelo menu do PlayerPrompt, em cima dos outros jogadores)
+function PartyUI.inviteTo(other)
+	local result = State.request("partyInvite", other.UserId)
+	if result and result.ok and result.msg then
+		Popups.message(result.msg, UI.Colors.Green)
+	end
+end
+
+-- true se o jogador já está no meu grupo
+function PartyUI.isMember(other)
+	return current ~= nil and frames[other.UserId] ~= nil
+end
+
+-- nome verde de volta no colega que renasceu
 local function addPrompt(other)
 	local function onCharacter(character)
-		local root = character:WaitForChild("HumanoidRootPart", 10)
-		if not root then
+		if not character:WaitForChild("Head", 10) then
 			return
 		end
-		local prompt = Instance.new("ProximityPrompt")
-		prompt.Name = "GrupoPrompt"
-		prompt.ActionText = "Convidar para o grupo"
-		prompt.ObjectText = other.DisplayName
-		prompt.KeyboardKeyCode = Enum.KeyCode.T
-		prompt.GamepadKeyCode = Enum.KeyCode.ButtonY
-		prompt.HoldDuration = 0.4
-		prompt.MaxActivationDistance = 14
-		prompt.RequiresLineOfSight = false
-		prompt.UIOffset = Vector2.new(0, 60)
-		prompt.Parent = root
-		prompt.Triggered:Connect(function()
-			local result = State.request("partyInvite", other.UserId)
-			if result and result.ok and result.msg then
-				Popups.message(result.msg, UI.Colors.Green)
-			end
-		end)
 		if current and frames[other.UserId] then
 			setTag(other, true)
 		end
