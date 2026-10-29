@@ -3,11 +3,13 @@
 --   * Eventos por data (UTC): enfeites na vila, bônus e um título do evento (EventService).
 local Seasons = {}
 
-Seasons.Epoch = 1767225600 -- 2026-01-01 00:00 UTC
+Seasons.Epoch = 1792972800 -- 2026-10-26 00:00 UTC (segunda-feira): começo da Temporada 0
 Seasons.Length = 8 * 7 * 86400
 
--- nome e cor de cada temporada (repete em ciclo)
+-- nome e cor de cada temporada, a partir da 0 (repete em ciclo). A 0 é a do lançamento: o impacto do
+-- meteoro de mana que rachou o Orbe Infinito (ver a história em Quests/Lore).
 Seasons.Themes = {
+	{ name = "Impacto", color = Color3.fromRGB(255, 110, 80) },
 	{ name = "Brasas", color = Color3.fromRGB(255, 130, 60) },
 	{ name = "Marés", color = Color3.fromRGB(80, 170, 255) },
 	{ name = "Raízes", color = Color3.fromRGB(110, 210, 110) },
@@ -16,15 +18,16 @@ Seasons.Themes = {
 	{ name = "Eclipse", color = Color3.fromRGB(255, 90, 120) },
 }
 
+-- número da temporada (começa em 0)
 function Seasons.index(time)
-	return math.max(1, math.floor(((time or os.time()) - Seasons.Epoch) / Seasons.Length) + 1)
+	return math.max(0, math.floor(((time or os.time()) - Seasons.Epoch) / Seasons.Length))
 end
 
 function Seasons.info(time)
 	time = time or os.time()
 	local index = Seasons.index(time)
-	local theme = Seasons.Themes[(index - 1) % #Seasons.Themes + 1]
-	local ends = Seasons.Epoch + index * Seasons.Length
+	local theme = Seasons.Themes[index % #Seasons.Themes + 1]
+	local ends = Seasons.Epoch + (index + 1) * Seasons.Length
 	return { index = index, name = ("Temporada %d: %s"):format(index, theme.name), short = theme.name, color = theme.color, endsIn = ends - time }
 end
 

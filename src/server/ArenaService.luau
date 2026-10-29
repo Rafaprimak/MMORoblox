@@ -59,7 +59,7 @@ local function arenaData(player)
 	local season = Seasons.index()
 	local arena = data.arena
 	if arena.season ~= season then
-		local previous = if arena.season > 0 then arena.rating else Arena.StartRating
+		local previous = arena.rating or Arena.StartRating
 		arena.season = season
 		arena.rating = math.floor(Arena.StartRating + (previous - Arena.StartRating) * 0.5)
 		arena.best = arena.rating

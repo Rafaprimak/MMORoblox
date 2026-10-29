@@ -159,7 +159,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 ## Fase 5 — Economia e monetização (sem pay-to-win)
 
 - 🧪 **VIP** (game pass, `Config.VipGamePassId`): Auto Caçar (tecla N), 100% AFK (reconecta no mesmo servidor antes do limite de 20 min do Roblox e volta caçando; quem morre volta ao ponto de caça). Falta criar o game pass no Creator Hub e colar o ID (P)
-- 🧪 **Temporadas** de 8 semanas (`Seasons`): o Passe do Hunter vira o passe da temporada (recomeça a cada temporada) com **trilha Premium** (Robux, `pass_premium`: uma recompensa a mais em cada tier, título arco-íris no 50, tudo visível antes de comprar); a pontuação da Arena também recomeça (metade da diferença para 1000); aba "Temporada" na Jornada. Falta criar o produto e colar o ID (M)
+- 🧪 **Temporadas** de 8 semanas (`Seasons`), começando na **Temporada 0: Impacto** (26/10/2026, o impacto do meteoro de mana): o Passe do Hunter vira o passe da temporada (recomeça a cada temporada) com **trilha Premium** (Robux, `pass_premium`: uma recompensa a mais em cada tier, título arco-íris no 50, tudo visível antes de comprar); a pontuação da Arena também recomeça (metade da diferença para 1000); aba "Temporada" na Jornada. Falta criar o produto e colar o ID (M)
 - 🧪 **Baú Celestial e Ovo Celestial** (developer products em `Config.Products`): só Lendário/Mítico/Secreto (78% / 19,5% / 2,5%) e só pets Lendários para cima (4 pets novos), com as chances na janela antes da compra; entrega única por compra (`data.purchases`). Falta criar os produtos e colar os IDs (P)
 - 🧪 Presentes por tempo seguido no mesmo servidor: 8 presentes de 5 a 120 min (tecla U) (P)
 - 🧪 XP mais difícil: curva `60·nível^1,75` e inimigos muito abaixo do seu nível dão pouco XP (P)
