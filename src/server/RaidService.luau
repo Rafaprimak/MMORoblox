@@ -240,8 +240,16 @@ local function buildArena()
 			local pillarCf = frame * CFrame.new(0, 0, 5)
 			crystal(model, pillarCf, 20, if i % 8 == 0 then MAGENTA else CYAN)
 			local orb = part(model, { Name = "Orbe", Shape = Enum.PartType.Ball, Size = Vector3.one * 3, CFrame = pillarCf * CFrame.new(0, 25, 0), Color = STAR, Material = Enum.Material.Neon, CanCollide = false })
-			light(orb, STAR, 35, 2)
+			light(orb, STAR, 60, 3)
 		end
+	end
+	-- "lua" estelar em cima do centro e anel de luzes no alto: a arena inteira bem iluminada
+	local moon = part(model, { Name = "LuaEstelar", Shape = Enum.PartType.Ball, Size = Vector3.one * 10, CFrame = center * CFrame.new(0, 55, 0), Color = STAR, Material = Enum.Material.Neon, CanCollide = false, CastShadow = false })
+	light(moon, STAR, 60, 4)
+	for k = 0, 5 do
+		local a = k / 6 * math.pi * 2
+		local lamp = part(model, { Name = "LuzDoAlto", Shape = Enum.PartType.Ball, Size = Vector3.one * 2, CFrame = center * CFrame.new(math.cos(a) * 38, 30, math.sin(a) * 38), Color = if k % 2 == 0 then CYAN else MAGENTA, Material = Enum.Material.Neon, CanCollide = false, CastShadow = false })
+		light(lamp, Color3.fromRGB(230, 220, 255), 60, 2.5)
 	end
 	-- asteroides girando em volta e planetas ao longe
 	for i = 1, 26 do

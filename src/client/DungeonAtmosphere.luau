@@ -17,9 +17,10 @@ local player = Players.LocalPlayer
 local MOODS = {
 	-- raide (atributo Raid): noite cósmica violeta, névoa de nebulosa, estrelas cintilando e cadentes
 	raide = {
-		ambient = Color3.fromRGB(70, 50, 110), outdoor = Color3.fromRGB(90, 70, 140), brightness = 1.1,
-		fog = Color3.fromRGB(70, 35, 120), decay = Color3.fromRGB(150, 60, 160), density = 0.28,
-		tint = Color3.fromRGB(235, 215, 255), saturation = 0.25, contrast = 0.18,
+		-- clara o bastante para 8 jogadores enxergarem os círculos de dano (antes: escura demais)
+		ambient = Color3.fromRGB(150, 130, 190), outdoor = Color3.fromRGB(170, 150, 215), brightness = 2.4,
+		fog = Color3.fromRGB(90, 60, 150), decay = Color3.fromRGB(170, 90, 190), density = 0.1,
+		tint = Color3.fromRGB(245, 235, 255), saturation = 0.2, contrast = 0.1,
 		motes = Color3.fromRGB(255, 240, 200), embers = true, stars = true,
 	},
 	caverna = {

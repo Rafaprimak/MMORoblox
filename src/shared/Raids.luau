@@ -21,8 +21,9 @@ Raids.Phases = {
 }
 
 -- vida do chefe pelo tamanho do grupo (8 = vida cheia)
+-- vida feita para 8 caçadores (240 mil); com menos gente cai bastante (2 jogadores: ~36%)
 function Raids.hpMult(players)
-	return 0.3 + 0.7 * math.clamp(players, 1, Raids.MaxPlayers) / Raids.MaxPlayers
+	return 0.15 + 0.85 * math.clamp(players, 1, Raids.MaxPlayers) / Raids.MaxPlayers
 end
 
 function Raids.week(time)

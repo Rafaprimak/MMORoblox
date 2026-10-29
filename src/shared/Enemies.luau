@@ -188,7 +188,7 @@ Enemies.Defs = {
 	},
 	-- chefe da raide (RaidService): fases, chuva de estrelas e servos ficam no serviço
 	devorador = {
-		name = "Devorador de Estrelas", level = 24, hp = 60000, damage = 52, speed = 10, attackCooldown = 1.6, attackRange = 12,
+		name = "Devorador de Estrelas", level = 24, hp = 240000, damage = 52, speed = 10, attackCooldown = 1.6, attackRange = 12,
 		xp = 15000, gold = { 1500, 2500 }, dropChance = 1, equipDrops = 3, minRarity = 5,
 		-- só o conjunto Estelar (exclusivo da raide)
 		pool = { "espada_estelar", "katana_estelar", "adagas_estelares", "machado_estelar", "martelo_estelar", "lanca_estelar", "arco_estelar", "cetro_estelar", "coroa_estelar", "armadura_estelar", "passos_estelares", "amuleto_estelar" },
