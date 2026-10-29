@@ -199,6 +199,7 @@ Sem esse arquivo, o jogo publicado ainda tenta baixar os modelos na hora (precis
    - **Avatar:** tipo **R15**.
    - **Permissões:** deixe **Privado** enquanto testa; troque para **Público** quando for lançar.
    - Clique em **Salvar**.
+   - **Ícone e miniaturas:** no Creator Hub → Infinite Orb → **Configurações → Lugares/Básico**, envie `assets/capa/icone.png` (512×512) como ícone e `assets/capa/miniatura.png` (1920×1080) como miniatura. Para gerar de novo: `python scripts/capa/gerar.py`.
 4. A partir de agora, edite sempre **o jogo publicado** (não o arquivo `.rbxlx`): no Studio, **Arquivo → Abrir do Roblox** → Infinite Orb. Rode **`2-sincronizar-ao-vivo.bat`**, clique em **Plugins → Rojo → Connect** e, quando quiser atualizar o jogo de verdade, **Arquivo → Publicar no Roblox** (Alt+P).
 
 ### 2. Criar o que se compra com Robux
