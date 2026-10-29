@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local World = require(Shared.World)
 local NPCs = require(Shared.NPCs)
+local ItemModels = require(Shared.ItemModels)
 
 local NPCService = {}
 
@@ -47,6 +48,21 @@ local function addHat(model, head, style, color)
 		hatPart(model, head, Vector3.new(s * 0.55, s * 1.05, s * 1.05), CFrame.new(0, s * 0.7, 0) * CYL, Color3.fromRGB(55, 40, 34), Enum.Material.Fabric, Enum.PartType.Cylinder)
 		hatPart(model, head, Vector3.new(s * 0.16, s * 1.08, s * 1.08), CFrame.new(0, s * 0.52, 0) * CYL, Color3.fromRGB(120, 60, 150), Enum.Material.Fabric, Enum.PartType.Cylinder)
 		hatPart(model, head, Vector3.new(0.08, s * 0.9, s * 0.22), CFrame.new(s * 0.5, s * 0.85, s * 0.15) * CFrame.Angles(0, 0, math.rad(-25)), Color3.fromRGB(200, 60, 60), Enum.Material.Fabric)
+	elseif style == "viking" then
+		-- elmo de ferro com aba, protetor de nariz e chifres
+		local metal = Color3.fromRGB(125, 125, 130)
+		local horn = Color3.fromRGB(230, 215, 180)
+		hatPart(model, head, Vector3.one * s * 1.12, CFrame.new(0, s * 0.6, 0), metal, Enum.Material.Metal, Enum.PartType.Ball)
+		hatPart(model, head, Vector3.new(s * 1.14, s * 0.24, s * 1.14), CFrame.new(0, s * 0.36, 0), Color3.fromRGB(95, 80, 60), Enum.Material.Metal)
+		hatPart(model, head, Vector3.new(s * 0.14, s * 0.5, 0.1), CFrame.new(0, s * 0.12, -s * 0.6), metal, Enum.Material.Metal)
+		for _, side in { -1, 1 } do
+			hatPart(model, head, Vector3.new(s * 0.6, s * 0.26, s * 0.26), CFrame.new(side * s * 0.72, s * 0.62, 0) * CFrame.Angles(0, 0, math.rad(side * 30)), horn, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+			hatPart(model, head, Vector3.new(s * 0.45, s * 0.18, s * 0.18), CFrame.new(side * s * 0.98, s * 0.95, 0) * CFrame.Angles(0, 0, math.rad(side * 70)), horn, Enum.Material.SmoothPlastic, Enum.PartType.Cylinder)
+		end
+	elseif style == "circlet" then
+		-- diadema de ouro com uma pedra azul na testa
+		hatPart(model, head, Vector3.new(s * 1.07, s * 0.12, s * 1.07), CFrame.new(0, s * 0.3, 0), Color3.fromRGB(220, 180, 90), Enum.Material.Metal)
+		hatPart(model, head, Vector3.one * s * 0.18, CFrame.new(0, s * 0.3, -s * 0.54), Color3.fromRGB(70, 140, 230), Enum.Material.Glass, Enum.PartType.Ball)
 	elseif style == "bandana" then
 		hatPart(model, head, Vector3.new(s * 1.08, s * 0.3, s * 1.08), CFrame.new(0, s * 0.3, 0), Color3.fromRGB(160, 40, 40), Enum.Material.Fabric)
 	elseif style == "witch" or style == "wizard" then
@@ -138,6 +154,8 @@ local LOOKS = {
 	tomas = { hair = Color3.fromRGB(60, 45, 30), beard = Color3.fromRGB(60, 45, 30), outfit = "armor" },
 	sol = { hair = Color3.fromRGB(20, 15, 10), long = true, outfit = "vest" },
 	varg = { hair = Color3.fromRGB(70, 65, 70), beard = Color3.fromRGB(80, 75, 80), longBeard = true, outfit = "merchant" },
+	helena = { hair = Color3.fromRGB(150, 85, 45), long = true, braid = true, outfit = "noble", robe = Color3.fromRGB(35, 70, 95) },
+	ulf = { hair = Color3.fromRGB(170, 85, 40), beard = Color3.fromRGB(170, 85, 40), longBeard = true, beardBraid = true, outfit = "viking", weapon = "machado_berserker" },
 }
 
 local function addLook(model, npc)
@@ -159,9 +177,23 @@ local function addLook(model, npc)
 	for _, side in { -1, 1 } do
 		piece(head, Vector3.new(hs.X * 0.12, hs.Y * 0.55, hs.Z * 0.5), CFrame.new(side * hs.X * 0.52, 0.15, 0.15), look.hair, Enum.Material.SmoothPlastic)
 	end
+	if look.braid then
+		-- trança descendo pelas costas
+		for i = 0, 4 do
+			piece(head, Vector3.one * hs.X * (0.36 - i * 0.03), CFrame.new(0, -hs.Y * (0.45 + i * 0.3), hs.Z * 0.62 + i * 0.03), look.hair, Enum.Material.SmoothPlastic, Enum.PartType.Ball)
+		end
+	end
 	if look.beard then
 		piece(head, Vector3.new(hs.X * 0.85, hs.Y * (if look.longBeard then 0.75 else 0.35), hs.Z * 0.3), CFrame.new(0, -hs.Y * (if look.longBeard then 0.48 else 0.32), -hs.Z * 0.45), look.beard, Enum.Material.SmoothPlastic)
 		piece(head, Vector3.new(hs.X * 0.5, hs.Y * 0.1, hs.Z * 0.12), CFrame.new(0, -hs.Y * 0.08, -hs.Z * 0.56), look.beard, Enum.Material.SmoothPlastic) -- bigode
+		if look.beardBraid then
+			-- duas tranças na ponta da barba, com argolas de ouro
+			for _, side in { -1, 1 } do
+				local braid = CFrame.new(side * hs.X * 0.18, -hs.Y * 1.0, -hs.Z * 0.5)
+				piece(head, Vector3.new(hs.X * 0.16, hs.Y * 0.45, hs.Z * 0.16), braid, look.beard, Enum.Material.SmoothPlastic)
+				piece(head, Vector3.new(hs.X * 0.2, hs.Y * 0.08, hs.Z * 0.2), braid * CFrame.new(0, -hs.Y * 0.12, 0), Color3.fromRGB(220, 180, 90), Enum.Material.Metal)
+			end
+		end
 	end
 	-- roupa do ofício
 	if look.outfit == "apron" then
@@ -214,6 +246,42 @@ local function addLook(model, npc)
 				piece(lower, Vector3.new(0.08, 0.4, 0.06), CFrame.new(0.35 + i * 0.1, -0.15, -lower.Size.Z / 2 - 0.25) * CFrame.Angles(0, 0, math.rad(-15 + i * 15)), Color3.fromRGB(220, 190, 110), Enum.Material.Metal)
 			end
 		end
+	elseif look.outfit == "noble" then
+		-- vestido longo de mestra de guilda: barra dourada, faixa com o emblema, gola de pele e capa
+		local robe = look.robe or Color3.fromRGB(35, 70, 95)
+		local gold = Color3.fromRGB(220, 180, 90)
+		piece(torso, ts + Vector3.new(0.15, 0.05, 0.15), CFrame.new(), robe, Enum.Material.Fabric)
+		piece(torso, Vector3.new(ts.X * 1.15, 0.45, ts.Z * 1.35), CFrame.new(0, ts.Y / 2 - 0.05, 0), Color3.fromRGB(235, 228, 215), Enum.Material.Fabric) -- gola de pele
+		piece(torso, Vector3.new(0.32, ts.Y * 1.15, 0.08), CFrame.new(0, -0.05, -ts.Z / 2 - 0.12) * CFrame.Angles(0, 0, math.rad(-32)), gold, Enum.Material.Fabric) -- faixa
+		piece(torso, Vector3.new(0.42, 0.42, 0.06), CFrame.new(-0.2, 0.15, -ts.Z / 2 - 0.18) * CFrame.Angles(0, 0, math.rad(45)), Color3.fromRGB(150, 35, 40), Enum.Material.Fabric) -- emblema
+		piece(torso, Vector3.new(ts.X * 1.05, 4.3, 0.12), CFrame.new(0, ts.Y / 2 - 2.15, ts.Z / 2 + 0.16) * CFrame.Angles(math.rad(-4), 0, 0), Color3.fromRGB(110, 30, 35), Enum.Material.Fabric) -- capa
+		if lower then
+			piece(lower, Vector3.new(lower.Size.X + 0.45, 2.7, lower.Size.Z + 0.55), CFrame.new(0, -1.2, 0), robe, Enum.Material.Fabric)
+			piece(lower, Vector3.new(lower.Size.X + 0.5, 0.22, lower.Size.Z + 0.6), CFrame.new(0, -2.45, 0), gold, Enum.Material.Fabric)
+			piece(lower, Vector3.new(lower.Size.X + 0.5, 0.25, lower.Size.Z + 0.6), CFrame.new(0, 0.1, 0), gold, Enum.Material.Metal)
+		end
+	elseif look.outfit == "viking" then
+		-- gibão de couro, manto de pele nos ombros, capa, cinturão com fivela redonda e braçadeiras
+		local leather = Color3.fromRGB(95, 65, 40)
+		local fur = Color3.fromRGB(125, 100, 75)
+		piece(torso, ts + Vector3.new(0.14, 0.05, 0.14), CFrame.new(), leather, Enum.Material.Leather)
+		piece(torso, Vector3.new(ts.X * 1.35, 0.65, ts.Z * 1.45), CFrame.new(0, ts.Y / 2 - 0.1, 0), fur, Enum.Material.Fabric)
+		for _, side in { -1, 1 } do
+			piece(torso, Vector3.new(0.75, 0.55, ts.Z * 1.4), CFrame.new(side * (ts.X / 2 + 0.2), ts.Y / 2 - 0.25, 0), fur, Enum.Material.Fabric)
+		end
+		piece(torso, Vector3.new(ts.X * 1.1, 3.6, 0.12), CFrame.new(0, ts.Y / 2 - 1.85, ts.Z / 2 + 0.2) * CFrame.Angles(math.rad(-5), 0, 0), Color3.fromRGB(110, 40, 35), Enum.Material.Fabric) -- capa
+		piece(torso, Vector3.new(ts.X * 1.25, 0.24, ts.Z + 0.3), CFrame.Angles(0, 0, math.rad(-38)), Color3.fromRGB(60, 40, 25), Enum.Material.Leather) -- correia do machado
+		if lower then
+			piece(lower, Vector3.new(lower.Size.X + 0.2, 0.4, lower.Size.Z + 0.2), CFrame.new(0, 0.12, 0), Color3.fromRGB(55, 38, 25), Enum.Material.Leather)
+			piece(lower, Vector3.new(0.12, 0.5, 0.5), CFrame.new(0, 0.12, -lower.Size.Z / 2 - 0.16) * CFrame.Angles(0, math.rad(90), 0), Color3.fromRGB(190, 160, 90), Enum.Material.Metal, Enum.PartType.Cylinder)
+			piece(lower, Vector3.new(lower.Size.X + 0.25, 1.5, lower.Size.Z + 0.3), CFrame.new(0, -0.7, 0), leather, Enum.Material.Leather) -- saiote de couro
+		end
+		for _, name in { "LeftLowerArm", "RightLowerArm" } do
+			local arm = model:FindFirstChild(name)
+			if arm then
+				piece(arm, Vector3.new(arm.Size.X + 0.12, arm.Size.Y * 0.6, arm.Size.Z + 0.12), CFrame.new(0, -0.1, 0), Color3.fromRGB(70, 48, 30), Enum.Material.Leather)
+			end
+		end
 	elseif look.outfit == "armor" then
 		piece(torso, ts + Vector3.new(0.2, 0.05, 0.2), CFrame.new(), Color3.fromRGB(150, 155, 165), Enum.Material.Metal)
 		piece(torso, Vector3.new(ts.X * 0.5, ts.Y * 0.4, 0.15), CFrame.new(0, 0.2, -ts.Z / 2 - 0.12), Color3.fromRGB(40, 70, 150), Enum.Material.Fabric)
@@ -226,6 +294,22 @@ local function addLook(model, npc)
 			piece(lower, Vector3.new(0.3, 0.3, 0.15), CFrame.new(0, 0.15, -lower.Size.Z / 2 - 0.12), Color3.fromRGB(220, 180, 90), Enum.Material.Metal)
 		end
 		piece(torso, Vector3.new(0.3, ts.Y * 1.15, 0.1), CFrame.new(0, 0, -ts.Z / 2 - 0.06) * CFrame.Angles(0, 0, math.rad(35)), Color3.fromRGB(180, 50, 50), Enum.Material.Fabric)
+	end
+	-- arma de verdade do jogo (ItemModels) presa nas costas, na diagonal
+	if look.weapon then
+		local ok, weapon = pcall(ItemModels.build, look.weapon, "Epico", { anchored = true })
+		if ok and weapon then
+			weapon.PrimaryPart = nil
+			weapon.WorldPivot = CFrame.identity
+			for _, p in weapon:GetDescendants() do
+				if p:IsA("BasePart") then
+					p.CanCollide = false
+					p.CanQuery = false
+				end
+			end
+			weapon:PivotTo(torso.CFrame * CFrame.new(0, 0.1, ts.Z / 2 + 0.45) * CFrame.Angles(0, 0, math.rad(-35)) * CFrame.new(0, -1.3, 0))
+			weapon.Parent = model
+		end
 	end
 end
 

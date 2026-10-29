@@ -74,7 +74,7 @@ Config.ClassChangePrice = 500
 -- Missões
 Config.MaxActiveQuests = 12
 Config.DailyCount = 3
-Config.GuildContractCount = 3 -- contratos do clã por dia (Ulf, Salão dos Clãs)
+Config.GuildContractCount = 3 -- contratos da guilda por dia (Ulf, Salão das Guildas)
 
 -- Salvamento (v2 usa outra chave: o progresso da v1 não é compatível)
 Config.DataStoreName = "HunterRPG_v2" -- nome antigo do jogo; NÃO troque (apagaria o progresso de todos)

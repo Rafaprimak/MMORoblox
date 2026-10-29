@@ -137,7 +137,7 @@ function showMain()
 			order += 1
 		end
 	end
-	-- Ulf (Contratos do Clã): só com guilda
+	-- Ulf (Contratos da Guilda): só com guilda
 	if npc.guildBoard and data and data.quests then
 		local daily = data.quests.daily
 		local offered = daily.guildOffered or {}
@@ -149,7 +149,7 @@ function showMain()
 		end
 		local inGuild = data.guild and data.guild.guild
 		text.Text = if inGuild
-			then ("%s\n\nContratos do clã de hoje: %d/%d  •  Renovam em %s"):format(npc.greeting, doneCount, #offered, UI.formatTime(daily.resetIn))
+			then ("%s\n\nContratos da guilda de hoje: %d/%d  •  Renovam em %s"):format(npc.greeting, doneCount, #offered, UI.formatTime(daily.resetIn))
 			else npc.greeting .. "\n\nVocê ainda não tem guilda. Fale com a Helena aqui do lado para fundar uma, ou peça um convite a quem já tem."
 	end
 	if npc.board and data and data.quests then

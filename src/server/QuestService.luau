@@ -52,7 +52,7 @@ end
 local function ensureDaily(data)
 	local day = today()
 	if data.daily.day == day then
-		-- saves de antes dos Contratos do Clã ainda não têm o sorteio do dia
+		-- saves de antes dos Contratos da Guilda ainda não têm o sorteio do dia
 		if not data.daily.guildOffered then
 			data.daily.guildOffered = rollContracts(data, Quests.GuildPool, Config.GuildContractCount)
 		end
@@ -102,7 +102,7 @@ local function isComplete(player, data, def, entry)
 end
 
 local function canAccept(data, def)
-	-- contrato do clã: só com guilda
+	-- contrato da guilda: só com guilda
 	if def.guild then
 		return data.guild ~= nil and table.find(data.daily.guildOffered or {}, def.id) ~= nil and not data.daily.done[def.id] and not data.quests.active[def.id]
 	end

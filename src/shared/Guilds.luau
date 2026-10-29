@@ -8,7 +8,7 @@ Guilds.MaxLevel = 20
 Guilds.BonusPerLevel = 0.01 -- +1% de XP e de ouro por nível da guilda
 Guilds.WeeklyGoals = 4 -- metas sorteadas por semana (as mesmas para todas as guildas)
 
--- Brinde no Salão dos Clãs (barril de hidromel): uma vez por dia, só para quem tem guilda
+-- Brinde no Salão das Guildas (barril de hidromel): uma vez por dia, só para quem tem guilda
 Guilds.Toast = { bonus = 0.1, duration = 1800 } -- +10% de XP e de ouro por 30 minutos
 
 Guilds.RankNames = { lider = "Líder", oficial = "Oficial", membro = "Membro" }
@@ -49,8 +49,8 @@ Guilds.Goals = {
 	{ id = "forja", text = "Forjem, aprimorem ou encantem 40 vezes", icon = "anvil-impact", events = { "craft", "upgrade", "enchant" }, target = 40, gold = 600, chest = "bronze" },
 	{ id = "mercado", text = "Vendam 15 itens no Mercado", icon = "scales", events = { "marketSell" }, target = 15, gold = 500, chest = "bronze" },
 	{ id = "masmorra", text = "Limpem 2 masmorras inteiras (andar 20)", icon = "castle", events = { "dungeon" }, target = 2, gold = 1500, chest = "real" },
-	{ id = "contratos", text = "Entreguem 30 Contratos do Clã ao Ulf", icon = "scroll-unfurled", events = { "guildContract" }, target = 30, gold = 900, chest = "prata" },
-	{ id = "brindes", text = "Brindem 25 vezes no Salão dos Clãs", icon = "mighty-horn", events = { "hallToast" }, target = 25, gold = 400, chest = "bronze" },
+	{ id = "contratos", text = "Entreguem 30 Contratos da Guilda ao Ulf", icon = "scroll-unfurled", events = { "guildContract" }, target = 30, gold = 900, chest = "prata" },
+	{ id = "brindes", text = "Brindem 25 vezes no Salão das Guildas", icon = "mighty-horn", events = { "hallToast" }, target = 25, gold = 400, chest = "bronze" },
 	{ id = "raide", text = "Derrotem o Devorador de Estrelas 2 vezes", icon = "falling-star", events = { "raid" }, target = 2, gold = 1500, chest = "real" },
 	{ id = "arena", text = "Vençam 25 lutas na Arena", icon = "trophy", events = { "arenaWin" }, target = 25, gold = 800, chest = "prata" },
 	{ id = "guarda", text = "Aparem 300 golpes inimigos", icon = "shield-reflect", events = { "parry" }, target = 300, gold = 600, chest = "bronze" },

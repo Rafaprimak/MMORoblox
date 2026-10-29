@@ -109,6 +109,81 @@ function Props.fire(parent, position, size)
 	return flame
 end
 
+-- Fogo natural, sem bloco de neon: chamas com a textura de fogo do próprio Roblox, faíscas e luz quente,
+-- saindo de uma peça invisível (a área da peça espalha as chamas: use "width"/"depth" numa fogueira
+-- comprida). options: { light = alcance (0 = sem luz), brightness, width, depth, rate, sparks = false, smoke = true }
+local FLAME_TEXTURE = "rbxasset://textures/particles/fire_main.dds"
+local SMOKE_TEXTURE = "rbxasset://textures/particles/smoke_main.dds"
+
+function Props.flame(parent, position, size, options)
+	options = options or {}
+	size = size or 1
+	local base = part(parent, {
+		Name = "Fogo",
+		Size = Vector3.new(options.width or 0.3 * size, 0.2, options.depth or 0.3 * size),
+		CFrame = CFrame.new(position),
+		Transparency = 1,
+		CanCollide = false,
+		CanQuery = false,
+		CanTouch = false,
+	})
+	local area = math.max(1, (options.width or 1) * (options.depth or 1) / 4)
+	local flames = Instance.new("ParticleEmitter")
+	flames.Name = "Chamas"
+	flames.Texture = FLAME_TEXTURE
+	flames.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 235, 170)),
+		ColorSequenceKeypoint.new(0.35, Color3.fromRGB(255, 150, 55)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(190, 55, 20)),
+	})
+	flames.LightEmission = 0.85
+	flames.LightInfluence = 0
+	flames.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.75 * size), NumberSequenceKeypoint.new(0.45, 0.6 * size), NumberSequenceKeypoint.new(1, 0.08 * size) })
+	flames.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.7), NumberSequenceKeypoint.new(0.15, 0.2), NumberSequenceKeypoint.new(0.7, 0.45), NumberSequenceKeypoint.new(1, 1) })
+	flames.Lifetime = NumberRange.new(0.45, 0.85)
+	flames.Rate = options.rate or math.floor(26 * math.min(area, 6))
+	flames.Speed = NumberRange.new(1.2 * size, 2.6 * size)
+	flames.SpreadAngle = Vector2.new(10, 10)
+	flames.Acceleration = Vector3.new(0, 1.5 * size, 0)
+	flames.Rotation = NumberRange.new(0, 360)
+	flames.RotSpeed = NumberRange.new(-50, 50)
+	flames.Parent = base
+	if options.sparks ~= false then
+		local sparks = Instance.new("ParticleEmitter")
+		sparks.Name = "Faiscas"
+		sparks.Color = ColorSequence.new(Color3.fromRGB(255, 190, 90), Color3.fromRGB(255, 90, 30))
+		sparks.LightEmission = 1
+		sparks.LightInfluence = 0
+		sparks.Size = NumberSequence.new(0.09 * size + 0.04, 0)
+		sparks.Lifetime = NumberRange.new(0.8, 1.6)
+		sparks.Rate = math.max(2, math.floor(3 * math.min(area, 6)))
+		sparks.Speed = NumberRange.new(2 * size, 4.5 * size)
+		sparks.SpreadAngle = Vector2.new(30, 30)
+		sparks.Acceleration = Vector3.new(0, 0.6, 0)
+		sparks.Parent = base
+	end
+	if options.smoke then
+		local smoke = Instance.new("ParticleEmitter")
+		smoke.Name = "Fumaca"
+		smoke.Texture = SMOKE_TEXTURE
+		smoke.Color = ColorSequence.new(Color3.fromRGB(90, 85, 80))
+		smoke.LightInfluence = 0.6
+		smoke.Size = NumberSequence.new(0.8 * size, 3 * size)
+		smoke.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.2, 0.75), NumberSequenceKeypoint.new(1, 1) })
+		smoke.Lifetime = NumberRange.new(2.5, 4)
+		smoke.Rate = 3
+		smoke.Speed = NumberRange.new(1.5, 2.5)
+		smoke.Rotation = NumberRange.new(0, 360)
+		smoke.RotSpeed = NumberRange.new(-20, 20)
+		smoke.Parent = base
+	end
+	local range = options.light or 14 * size
+	if range > 0 then
+		Props.light(base, Color3.fromRGB(255, 155, 85), range, options.brightness or 1.1)
+	end
+	return base
+end
+
 function Props.smoke(parentPart, rate)
 	local smoke = Instance.new("ParticleEmitter")
 	smoke.Color = ColorSequence.new(Color3.fromRGB(120, 120, 120))

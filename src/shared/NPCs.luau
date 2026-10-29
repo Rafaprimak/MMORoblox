@@ -45,7 +45,7 @@ local function at(x, z, facing, def)
 	return make(def, true)
 end
 
--- NPC dentro do Salão dos Clãs: posição no referencial do salão (World.guildHallPoint), olhando para a
+-- NPC dentro do Salão das Guildas: posição no referencial do salão (World.guildHallPoint), olhando para a
 -- porta. startY: o chão é procurado logo abaixo do telhado (cai no piso do salão, não no telhado).
 local function hall(id, localX, localZ, def)
 	def.id = id
@@ -159,11 +159,11 @@ NPCs.List = {
 		name = "Helena",
 		title = "Mestra das Guildas",
 		skin = Color3.fromRGB(225, 180, 140),
-		shirt = Color3.fromRGB(150, 110, 40),
-		pants = Color3.fromRGB(60, 45, 35),
-		hat = "wide",
+		shirt = Color3.fromRGB(40, 75, 100),
+		pants = Color3.fromRGB(40, 40, 50),
+		hat = "circlet",
 		services = { "guild" },
-		greeting = "Bem-vindo ao Salão dos Clãs! Sozinho você vai longe; com uma guilda, vai mais longe ainda. Quer fundar a sua? Custa 5.000 de ouro e o nível 10.",
+		greeting = "Bem-vindo ao Salão das Guildas! Sozinho você vai longe; com uma guilda, vai mais longe ainda. Quer fundar a sua? Custa 5.000 de ouro e o nível 10.",
 	}),
 	hall("ulf", 8.5, 34, {
 		name = "Ulf",
@@ -171,9 +171,9 @@ NPCs.List = {
 		skin = Color3.fromRGB(230, 190, 160),
 		shirt = Color3.fromRGB(110, 40, 35),
 		pants = Color3.fromRGB(70, 55, 40),
-		hat = "helmet",
+		hat = "viking",
 		guildBoard = true,
-		greeting = "Contratos do clã! Só para quem tem guilda: cada contrato entregue aqui rende ouro, XP e pontos para a sua guilda. Renovam à meia-noite.",
+		greeting = "Contratos da guilda! Só para quem tem guilda: cada contrato entregue aqui rende ouro, XP e pontos para a sua guilda. Renovam à meia-noite.",
 	}),
 	service("quadro", {
 		name = "Quadro de Recompensas",

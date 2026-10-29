@@ -10,7 +10,7 @@
 --   * Pontos: as ações dos membros (abates, chefes, masmorras, segredos...) somam XP da guilda e o progresso
 --     das metas da semana; ficam num buffer por servidor e vão para o registro de minuto em minuto.
 --   * Nível da guilda: +1% de XP e +1% de ouro por nível para os membros (até o nível 20).
---   * Salão dos Clãs (WorldGen/GuildHall): brinde no barril de hidromel (prompt "BrindeSalao", uma vez
+--   * Salão das Guildas (WorldGen/GuildHall): brinde no barril de hidromel (prompt "BrindeSalao", uma vez
 --     por dia, data.hallToastDay/hallToastUntil) e o Mural de Honra (ranking da semana + metas).
 local DataStoreService = game:GetService("DataStoreService")
 local MessagingService = game:GetService("MessagingService")
@@ -183,7 +183,7 @@ function GuildService.applyBonus(_player, data, bonus)
 		bonus.xpGain = (bonus.xpGain or 0) + level * Guilds.BonusPerLevel
 		bonus.goldFind = (bonus.goldFind or 0) + level * Guilds.BonusPerLevel
 	end
-	-- brinde no Salão dos Clãs
+	-- brinde no Salão das Guildas
 	if data and data.guild and (data.hallToastUntil or 0) > os.time() then
 		bonus.xpGain = (bonus.xpGain or 0) + Guilds.Toast.bonus
 		bonus.goldFind = (bonus.goldFind or 0) + Guilds.Toast.bonus
@@ -755,7 +755,7 @@ function GuildService.ranking(_player)
 	return { ok = true, list = rankingCache.list }
 end
 
--- ===================== SALÃO DOS CLÃS =====================
+-- ===================== SALÃO DAS GUILDAS =====================
 
 -- brinde no barril de hidromel: +10% de XP e ouro por 30 min, uma vez por dia (só com guilda)
 local function toast(player, prompt)
@@ -781,7 +781,7 @@ local function toast(player, prompt)
 	GuildService.track(player, "hallToast", 1)
 	Remotes.Notify:FireClient(player, {
 		kind = "banner",
-		text = "UM BRINDE AO CLÃ!",
+		text = "UM BRINDE À GUILDA!",
 		sub = ("+%d%% de XP e de ouro por %d minutos  •  +%d pontos para a guilda"):format(Guilds.Toast.bonus * 100, Guilds.Toast.duration / 60, Guilds.Points.hallToast),
 		color = Color3.fromRGB(255, 200, 90),
 		duration = 4,

@@ -67,7 +67,7 @@ end
 -- ===================== ABA GUILDA =====================
 
 local function renderCreate(page, info)
-	text(page, { Text = ("Você não tem guilda. Fundar custa %d de ouro e o nível %d; fale com a Helena no Salão dos Clãs (a leste da vila)."):format(Guilds.CreateCost, Guilds.CreateLevel), Size = UDim2.new(1, 0, 0, 40), TextColor3 = UI.Colors.SubText })
+	text(page, { Text = ("Você não tem guilda. Fundar custa %d de ouro e o nível %d; fale com a Helena no Salão das Guildas (a leste da vila)."):format(Guilds.CreateCost, Guilds.CreateLevel), Size = UDim2.new(1, 0, 0, 40), TextColor3 = UI.Colors.SubText })
 	if info and info.invite then
 		text(page, { Text = ("Convite pendente: %s (de %s)"):format(info.invite.name, info.invite.from), Position = UDim2.fromOffset(0, 44), Size = UDim2.new(1, 0, 0, 20), TextColor3 = UI.Colors.Green })
 	end
@@ -212,7 +212,7 @@ local function renderGoals(page, guild)
 		text(page, { Text = "Entre numa guilda para participar das metas da semana.", Size = UDim2.new(1, 0, 0, 30), TextColor3 = UI.Colors.SubText })
 		return
 	end
-	text(page, { Text = "Metas da semana (renovam toda segunda-feira). Todo mundo da guilda ajuda; cada membro resgata o prêmio uma vez. Contratos do Clã (Ulf) e o brinde no Salão dos Clãs também dão pontos.", Size = UDim2.new(1, 0, 0, 36), TextColor3 = UI.Colors.SubText })
+	text(page, { Text = "Metas da semana (renovam toda segunda-feira). Todo mundo da guilda ajuda; cada membro resgata o prêmio uma vez. Contratos da Guilda (Ulf) e o brinde no Salão das Guildas também dão pontos.", Size = UDim2.new(1, 0, 0, 36), TextColor3 = UI.Colors.SubText })
 	for i, goal in guild.goals do
 		local y = 44 + (i - 1) * 92
 		local card = UI.new("Frame", { Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 0, 84), BackgroundColor3 = UI.Colors.PanelLight, Parent = page }, { UI.corner(10) })

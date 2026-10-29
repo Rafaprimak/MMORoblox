@@ -714,24 +714,24 @@ Quests.DailyPool = {
 }
 Quests.DailyBonus = { gold = 500, chest = "prata" }
 
--- Contratos do Clã (Ulf, no Salão dos Clãs): só para quem tem guilda; 3 por dia, entregues ao Ulf.
+-- Contratos da Guilda (Ulf, no Salão das Guildas): só para quem tem guilda; 3 por dia, entregues ao Ulf.
 -- Cada entrega dispara o evento "guildContract" (pontos e meta semanal da guilda). Os de entrega
 -- (deliver) abastecem o salão: o material sai da sua bolsa na hora de entregar.
 Quests.GuildPool = {
-	{ id = "g_lobos", name = "Clã: Matilha na Estrada", objectives = { { type = "kill", target = "lobo", amount = 20, text = "Derrote Lobos" } }, reward = { xp = 600, gold = 300 } },
-	{ id = "g_javalis", name = "Clã: Carne para o Banquete", objectives = { { type = "kill", target = "javali", amount = 12, text = "Derrote Javalis" }, { type = "deliver", item = "couro", amount = 8, text = "Entregue Couro" } }, reward = { xp = 700, gold = 350 } },
-	{ id = "g_lenha", name = "Clã: Lenha para a Fogueira", objectives = { { type = "deliver", item = "madeira", amount = 25, text = "Entregue Madeira" } }, reward = { xp = 500, gold = 300 } },
-	{ id = "g_hidromel", name = "Clã: Ervas do Hidromel", objectives = { { type = "deliver", item = "erva_verde", amount = 15, text = "Entregue Ervas Verdes" }, { type = "deliver", item = "cogumelo_azul", amount = 5, text = "Entregue Cogumelos Azuis" } }, reward = { xp = 600, gold = 320 } },
-	{ id = "g_ferro", name = "Clã: Ferro para as Lâminas", minLevel = 5, objectives = { { type = "deliver", item = "minerio_ferro", amount = 15, text = "Entregue Minério de Ferro" } }, reward = { xp = 900, gold = 450 } },
-	{ id = "g_goblins", name = "Clã: Ataque ao Acampamento", minLevel = 5, objectives = { { type = "kill", target = "goblin", amount = 20, text = "Derrote Goblins" }, { type = "kill", target = "goblin_arqueiro", amount = 8, text = "Derrote Arqueiros Goblins" } }, reward = { xp = 1100, gold = 500 } },
-	{ id = "g_aranhas", name = "Clã: Seda para as Velas", minLevel = 7, objectives = { { type = "kill", target = "aranha", amount = 15, text = "Derrote Aranhas" }, { type = "deliver", item = "seda", amount = 10, text = "Entregue Seda" } }, reward = { xp = 1400, gold = 600 } },
-	{ id = "g_ossos", name = "Clã: Os Mortos Inquietos", minLevel = 9, objectives = { { type = "kill", target = "esqueleto", amount = 20, text = "Derrote Esqueletos" }, { type = "kill", target = "esqueleto_mago", amount = 6, text = "Derrote Esqueletos Magos" } }, reward = { xp = 1800, gold = 700 } },
-	{ id = "g_golem", name = "Clã: Coração de Pedra", minLevel = 12, objectives = { { type = "kill", target = "golem", amount = 4, text = "Derrote Golems" }, { type = "deliver", item = "nucleo_golem", amount = 2, text = "Entregue Núcleos de Golem" } }, reward = { xp = 2500, gold = 900, chest = "prata" } },
-	{ id = "g_masmorra", name = "Clã: Descida em Grupo", minLevel = 8, objectives = { { type = "dungeonBoss", amount = 1, text = "Derrote um chefe de masmorra" } }, reward = { xp = 2000, gold = 800, chest = "prata" } },
-	{ id = "g_mundo", name = "Clã: Fera do Mundo", minLevel = 10, objectives = { { type = "worldBoss", amount = 1, text = "Lute contra um chefe de mundo" } }, reward = { xp = 2000, gold = 800, chest = "prata" } },
-	{ id = "g_guarda", name = "Clã: Escudo e Machado", objectives = { { type = "parry", amount = 15, text = "Apare golpes inimigos" }, { type = "stagger", amount = 8, text = "Quebre guardas" } }, reward = { xp = 700, gold = 350 } },
-	{ id = "g_arena", name = "Clã: Honra na Arena", minLevel = 10, objectives = { { type = "arenaWin", amount = 2, text = "Vença lutas na Arena" } }, reward = { xp = 1500, gold = 700 } },
-	{ id = "g_segredos", name = "Clã: Histórias para o Escaldo", minLevel = 4, objectives = { { type = "chest", amount = 3, text = "Abra baús" } }, reward = { xp = 600, gold = 400 } },
+	{ id = "g_lobos", name = "Guilda: Matilha na Estrada", objectives = { { type = "kill", target = "lobo", amount = 20, text = "Derrote Lobos" } }, reward = { xp = 600, gold = 300 } },
+	{ id = "g_javalis", name = "Guilda: Carne para o Banquete", objectives = { { type = "kill", target = "javali", amount = 12, text = "Derrote Javalis" }, { type = "deliver", item = "couro", amount = 8, text = "Entregue Couro" } }, reward = { xp = 700, gold = 350 } },
+	{ id = "g_lenha", name = "Guilda: Lenha para a Fogueira", objectives = { { type = "deliver", item = "madeira", amount = 25, text = "Entregue Madeira" } }, reward = { xp = 500, gold = 300 } },
+	{ id = "g_hidromel", name = "Guilda: Ervas do Hidromel", objectives = { { type = "deliver", item = "erva_verde", amount = 15, text = "Entregue Ervas Verdes" }, { type = "deliver", item = "cogumelo_azul", amount = 5, text = "Entregue Cogumelos Azuis" } }, reward = { xp = 600, gold = 320 } },
+	{ id = "g_ferro", name = "Guilda: Ferro para as Lâminas", minLevel = 5, objectives = { { type = "deliver", item = "minerio_ferro", amount = 15, text = "Entregue Minério de Ferro" } }, reward = { xp = 900, gold = 450 } },
+	{ id = "g_goblins", name = "Guilda: Ataque ao Acampamento", minLevel = 5, objectives = { { type = "kill", target = "goblin", amount = 20, text = "Derrote Goblins" }, { type = "kill", target = "goblin_arqueiro", amount = 8, text = "Derrote Arqueiros Goblins" } }, reward = { xp = 1100, gold = 500 } },
+	{ id = "g_aranhas", name = "Guilda: Seda para as Velas", minLevel = 7, objectives = { { type = "kill", target = "aranha", amount = 15, text = "Derrote Aranhas" }, { type = "deliver", item = "seda", amount = 10, text = "Entregue Seda" } }, reward = { xp = 1400, gold = 600 } },
+	{ id = "g_ossos", name = "Guilda: Os Mortos Inquietos", minLevel = 9, objectives = { { type = "kill", target = "esqueleto", amount = 20, text = "Derrote Esqueletos" }, { type = "kill", target = "esqueleto_mago", amount = 6, text = "Derrote Esqueletos Magos" } }, reward = { xp = 1800, gold = 700 } },
+	{ id = "g_golem", name = "Guilda: Coração de Pedra", minLevel = 12, objectives = { { type = "kill", target = "golem", amount = 4, text = "Derrote Golems" }, { type = "deliver", item = "nucleo_golem", amount = 2, text = "Entregue Núcleos de Golem" } }, reward = { xp = 2500, gold = 900, chest = "prata" } },
+	{ id = "g_masmorra", name = "Guilda: Descida em Grupo", minLevel = 8, objectives = { { type = "dungeonBoss", amount = 1, text = "Derrote um chefe de masmorra" } }, reward = { xp = 2000, gold = 800, chest = "prata" } },
+	{ id = "g_mundo", name = "Guilda: Fera do Mundo", minLevel = 10, objectives = { { type = "worldBoss", amount = 1, text = "Lute contra um chefe de mundo" } }, reward = { xp = 2000, gold = 800, chest = "prata" } },
+	{ id = "g_guarda", name = "Guilda: Escudo e Machado", objectives = { { type = "parry", amount = 15, text = "Apare golpes inimigos" }, { type = "stagger", amount = 8, text = "Quebre guardas" } }, reward = { xp = 700, gold = 350 } },
+	{ id = "g_arena", name = "Guilda: Honra na Arena", minLevel = 10, objectives = { { type = "arenaWin", amount = 2, text = "Vença lutas na Arena" } }, reward = { xp = 1500, gold = 700 } },
+	{ id = "g_segredos", name = "Guilda: Histórias para o Escaldo", minLevel = 4, objectives = { { type = "chest", amount = 3, text = "Abra baús" } }, reward = { xp = 600, gold = 400 } },
 }
 
 Quests.ById = {}
@@ -750,7 +750,7 @@ for _, contract in Quests.GuildPool do
 	contract.turnIn = "ulf"
 	contract.daily = true
 	contract.guild = true
-	contract.text = "Contrato do Clã, entregue ao Ulf no Salão dos Clãs. Rende pontos para a sua guilda. Renova todo dia."
+	contract.text = "Contrato da Guilda, entregue ao Ulf no Salão das Guildas. Rende pontos para a sua guilda. Renova todo dia."
 	contract.requires = { level = contract.minLevel }
 	Quests.ById[contract.id] = contract
 end

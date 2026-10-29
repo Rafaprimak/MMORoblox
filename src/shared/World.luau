@@ -141,7 +141,7 @@ local DESIGN_ROADS = {
 	{ { 0, 10 }, { -90, -15 }, { -185, -38 } },
 	{ { 50, 150 }, { 80, 210 }, { 112, 280 } },
 	{ { -50, 150 }, { -80, 160 }, { -108, 166 } },
-	{ { 47, 150 }, { 62, 151 }, { 77, 150 } }, -- vila → Salão dos Clãs
+	{ { 47, 150 }, { 62, 151 }, { 77, 150 }, { 83.5, 150 } }, -- vila → Salão das Guildas (até a escada da porta)
 }
 World.Roads = {}
 for i, road in DESIGN_ROADS do
@@ -269,7 +269,7 @@ local DESIGN_LOCATIONS = {
 	passagem = { "Passagem do Norte", 0, -240, 25 },
 	portao_norte = { "Portão Selado", 0, -330, 22 },
 	cratera = { "Covil do Rei Goblin", 0, -445, 55 },
-	salao = { "Salão dos Clãs", 105, 150, 30 },
+	salao = { "Salão das Guildas", 105, 150, 30 },
 }
 World.Locations = {}
 for id, loc in DESIGN_LOCATIONS do
@@ -281,7 +281,7 @@ for _, id in { "templo_ruinas", "mina", "santuario_lago", "farol" } do
 	World.addPad(loc.x, loc.z, 18 * P, 16 * P)
 end
 
--- Salão dos Clãs (guildas): casa longa viking a leste da vila, com a porta virada para a vila (oeste).
+-- Salão das Guildas (guildas): casa longa viking a leste da vila, com a porta virada para a vila (oeste).
 -- Montado em unidades de projeto (× PropScale) num referencial próprio: x = largura, z = comprimento,
 -- -Z = porta. World.guildHallPoint converte um ponto desse referencial para studs reais.
 do
@@ -304,7 +304,7 @@ local DESIGN_WAYSTONES = {
 	{ "praia", "Costa Dourada", 104, 276 },
 	{ "lago", "Lago Espelhado", -98, 176 },
 	{ "passagem", "Passagem do Norte", 16, -236 },
-	{ "salao", "Salão dos Clãs", 75.7, 158 },
+	{ "salao", "Salão das Guildas", 75.7, 158 },
 }
 World.Waystones = {}
 World.WaystoneById = {}

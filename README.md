@@ -89,7 +89,7 @@ Isso cria o arquivo **`MMOTESTE.rbxlx`**.
 | Trocar com outro jogador (nível 5+) | **E** perto dele | Botão "Trocar" em cima do jogador |
 | Convidar para o grupo | **T** perto dele | Botão "Convidar para o grupo" em cima do jogador |
 | Falar com o grupo | digite **/g mensagem** no chat (ou /grupo) | o mesmo |
-| Guilda | **L** (fundar com a Helena, no Salão dos Clãs, a leste da vila; contratos do clã com o Ulf e brinde no barril de hidromel) | botão "Guilda" |
+| Guilda | **L** (fundar com a Helena, no Salão das Guildas, a leste da vila; contratos da guilda com o Ulf e brinde no barril de hidromel) | botão "Guilda" |
 | Falar com a guilda | digite **/gu mensagem** no chat (ou /guilda) | o mesmo |
 | Crônicas (facções e lore) | **Y** | botão "Crônicas" |
 | Arena PvP (Duelo 1x1, Equipes 3x3) | — | botão "Arena" no menu |
