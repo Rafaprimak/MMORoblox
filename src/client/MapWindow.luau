@@ -1,5 +1,6 @@
--- Mapa do mundo desenhado a partir do relevo, com estradas, ruas da vila, pedras de viagem clicáveis,
--- locais e a sua posição. Roda do mouse (ou botões +/-) dá zoom; arrastar move o mapa.
+-- Mapa do mundo desenhado a partir do relevo (com sombreado das encostas), estradas, ruas da vila, pedras de
+-- viagem clicáveis, locais, portais das masmorras e da raide, NPCs com missão, o objetivo da missão e a sua
+-- posição. Roda do mouse (ou botões +/-) dá zoom; arrastar move o mapa.
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -10,6 +11,10 @@ local World = require(Shared.World)
 local Enemies = require(Shared.Enemies)
 local Points = require(Shared.Points)
 local TownPlan = require(Shared.TownPlan)
+local Dungeons = require(Shared.Dungeons)
+local Raids = require(Shared.Raids)
+local NPCs = require(Shared.NPCs)
+local Quests = require(Shared.Quests)
 
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
@@ -17,11 +22,12 @@ local Window = require(script.Parent.Window)
 local Sounds = require(script.Parent.Sounds)
 local PartyUI = require(script.Parent.PartyUI)
 local EventTracker = require(script.Parent.EventTracker)
+local WorldMarkers = require(script.Parent.WorldMarkers)
 
 local MapWindow = {}
 
 local SIZE = 460
-local CELLS = 64
+local CELLS = 128 -- resolução do relevo (células iguais lado a lado viram um quadro só)
 local MIN_ZOOM, MAX_ZOOM = 1, 5
 local player = Players.LocalPlayer
 
@@ -33,6 +39,9 @@ local offset = Vector2.zero -- canto de cima do mapa ampliado, em pixels (sempre
 local drawn = false
 local stoneButtons = {}
 local poiLabels = {}
+local npcMarks = {} -- [npcId] = "!" (missão para pegar) ou "?" (missão para entregar)
+local objectiveMark -- losango dourado no objetivo da missão
+local drawPortals, refreshNpcMarks -- declaradas abaixo
 
 -- posição no mundo -> fração do mapa (0 a 1); tudo é posicionado em escala, então acompanha o zoom
 local function toMap(x, z)
@@ -83,31 +92,38 @@ local function line(parent, a, b, thickness, color)
 	})
 end
 
-local function cellColor(x, z)
-	local w = World.weights(x, z)
-	local h = World.heightWithWeights(x, z, w)
+-- cor do terreno (sem sombra); t é arredondado em degraus para células vizinhas iguais virarem um quadro só
+local function step(t, steps)
+	return math.floor(math.clamp(t, 0, 1) * steps + 0.5) / steps
+end
+
+local function cellColor(h, w)
 	if h < World.SeaLevel then
-		return Color3.fromRGB(40, 100, 150):Lerp(Color3.fromRGB(20, 60, 110), math.clamp(-h / 15, 0, 1))
+		return Color3.fromRGB(40, 100, 150):Lerp(Color3.fromRGB(20, 60, 110), step(-h / 15, 3)), true
 	end
 	if w.town > 0.6 then
-		return Color3.fromRGB(175, 165, 150)
+		return Color3.fromRGB(175, 165, 150), false
 	end
 	if World.designHeight(h) > 115 then
-		return Color3.fromRGB(235, 240, 245)
+		return Color3.fromRGB(235, 240, 245), false
 	end
 	if w.mountain > 0.55 or w.crater > 0.5 then
-		return Color3.fromRGB(120, 112, 105):Lerp(Color3.fromRGB(160, 150, 140), math.clamp((h - 40) / 80, 0, 1))
+		return Color3.fromRGB(120, 112, 105):Lerp(Color3.fromRGB(160, 150, 140), step((h - 40) / 80, 3)), false
 	end
 	if w.ocean > 0.08 and h < World.SeaLevel + 6 then
-		return Color3.fromRGB(225, 205, 150)
+		return Color3.fromRGB(225, 205, 150), false
 	end
 	if w.forest > 0.5 then
-		return Color3.fromRGB(45, 100, 50)
+		return Color3.fromRGB(45, 100, 50):Lerp(Color3.fromRGB(35, 82, 42), step((w.forest - 0.5) * 2, 2)), false
 	end
 	if w.ruins > 0.5 then
-		return Color3.fromRGB(140, 140, 115)
+		return Color3.fromRGB(140, 140, 115), false
 	end
-	return Color3.fromRGB(95, 160, 75):Lerp(Color3.fromRGB(120, 175, 85), math.clamp((h - 10) / 30, 0, 1))
+	return Color3.fromRGB(95, 160, 75):Lerp(Color3.fromRGB(120, 175, 85), step((h - 10) / 30, 3)), false
+end
+
+local function shaded(color, shade)
+	return Color3.new(math.min(color.R * shade, 1), math.min(color.G * shade, 1), math.min(color.B * shade, 1))
 end
 
 local function refreshPois()
@@ -126,13 +142,46 @@ local function draw()
 		return
 	end
 	drawn = true
+	-- relevo: altura de cada célula e cor com a sombra das encostas (luz vindo do noroeste)
+	local cellSize = World.Half * 2 / CELLS
+	local heights, colors, water = {}, {}, {}
 	for i = 0, CELLS - 1 do
+		heights[i], colors[i], water[i] = {}, {}, {}
 		for j = 0, CELLS - 1 do
-			local x = -World.Half + (i + 0.5) * (World.Half * 2 / CELLS)
-			local z = -World.Half + (j + 0.5) * (World.Half * 2 / CELLS)
-			UI.new("Frame", { Position = at(i / CELLS, j / CELLS), Size = UDim2.new(1 / CELLS, 1, 1 / CELLS, 1), BorderSizePixel = 0, BackgroundColor3 = cellColor(x, z), Parent = canvas })
+			local x = -World.Half + (i + 0.5) * cellSize
+			local z = -World.Half + (j + 0.5) * cellSize
+			local w = World.weights(x, z)
+			local h = World.heightWithWeights(x, z, w)
+			heights[i][j] = h
+			colors[i][j], water[i][j] = cellColor(h, w)
 		end
-		if i % 6 == 0 then
+		if i % 4 == 0 then
+			task.wait()
+		end
+	end
+	for j = 0, CELLS - 1 do
+		local runStart, runColor, runKey = 0, nil, nil
+		local function flush(endIndex)
+			if runColor then
+				UI.new("Frame", { Position = at(runStart / CELLS, j / CELLS), Size = UDim2.new((endIndex - runStart) / CELLS, 1, 1 / CELLS, 1), BorderSizePixel = 0, BackgroundColor3 = runColor, Parent = canvas })
+			end
+		end
+		for i = 0, CELLS - 1 do
+			local color = colors[i][j]
+			if not water[i][j] then
+				local hNW = heights[math.max(i - 1, 0)][math.max(j - 1, 0)]
+				local hSE = heights[math.min(i + 1, CELLS - 1)][math.min(j + 1, CELLS - 1)]
+				local shade = 1 + math.clamp((hNW - hSE) / (cellSize * 2) * 0.9, -0.3, 0.3)
+				color = shaded(color, math.floor(shade * 14 + 0.5) / 14)
+			end
+			local key = math.floor(color.R * 64) * 4096 + math.floor(color.G * 64) * 64 + math.floor(color.B * 64)
+			if key ~= runKey then
+				flush(i)
+				runStart, runColor, runKey = i, color, key
+			end
+		end
+		flush(CELLS)
+		if j % 8 == 0 then
 			task.wait()
 		end
 	end
@@ -208,6 +257,69 @@ local function draw()
 			info.Text = stone.name .. (if State.data and State.data.discovered[stone.id] then " — clique para viajar" else " — não ativada")
 		end)
 	end
+	drawPortals()
+	refreshNpcMarks()
+end
+
+-- marcador com nome (portais das masmorras e da raide)
+local function namedMark(x, z, iconName, color, name)
+	local mx, mz = toMap(x, z)
+	local holder = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Position = at(mx, mz), Size = UDim2.fromOffset(24, 24), BackgroundTransparency = 1, ZIndex = 4, Parent = markers })
+	UI.icon(iconName, { Size = UDim2.fromScale(1, 1), Color = color, ZIndex = 4, Parent = holder })
+	UI.label({ Text = name, AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 1, 0), Size = UDim2.fromOffset(140, 13), TextXAlignment = Enum.TextXAlignment.Center, TextScaled = false, TextSize = 11, TextColor3 = color, ZIndex = 4, Parent = holder }, { UI.textStroke(1.2) })
+	return holder
+end
+
+function drawPortals()
+	for _, dungeon in Dungeons.List do
+		if dungeon.position then
+			namedMark(dungeon.position.X, dungeon.position.Z, dungeon.icon or "portal", Color3.fromRGB(200, 150, 255), dungeon.name)
+		end
+	end
+	if Raids.PortalX then
+		namedMark(Raids.PortalX, Raids.PortalZ, "falling-star", Color3.fromRGB(255, 120, 220), "Raide: " .. Raids.Name)
+	end
+end
+
+-- "!" nos NPCs com missão para pegar e "?" nos que esperam uma entrega
+function refreshNpcMarks()
+	local data = State.data
+	local wanted = {}
+	if data and data.quests then
+		for npcId, list in data.quests.available or {} do
+			if #list > 0 then
+				wanted[npcId] = "!"
+			end
+		end
+		for _, entry in data.quests.active or {} do
+			local def = Quests.ById[entry.id]
+			if entry.ready and def then
+				wanted[def.turnIn or def.giver] = "?"
+			end
+		end
+	end
+	for npcId, label in npcMarks do
+		if not wanted[npcId] then
+			label:Destroy()
+			npcMarks[npcId] = nil
+		end
+	end
+	for npcId, symbol in wanted do
+		local npc = NPCs.ById[npcId]
+		if npc then
+			local label = npcMarks[npcId]
+			if not label then
+				local mx, mz = toMap(npc.x, npc.z)
+				label = UI.label({ Text = symbol, AnchorPoint = Vector2.new(0.5, 1), Position = at(mx, mz), Size = UDim2.fromOffset(16, 20), TextXAlignment = Enum.TextXAlignment.Center, Font = Enum.Font.GothamBlack, ZIndex = 5, Parent = markers }, { UI.textStroke(1.5) })
+				label.MouseEnter:Connect(function()
+					info.Text = npc.name .. (if label.Text == "?" then " — missão para entregar" else " — tem missão para você")
+				end)
+				npcMarks[npcId] = label
+			end
+			label.Text = symbol
+			label.TextColor3 = if symbol == "?" then Color3.fromRGB(120, 230, 140) else UI.Colors.Gold
+		end
+	end
 end
 
 local function refreshStones()
@@ -270,7 +382,7 @@ function MapWindow.init(screen)
 		button.MouseButton1Click:Connect(spec[2])
 	end
 	playerArrow = UI.iconImage("plain-arrow", { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(22, 22), Color = Color3.fromRGB(255, 240, 80), ZIndex = 6, Parent = markers })
-	info = UI.label({ Text = "Seta amarela = você. Caveira = inimigos (nível), coroa = chefe, ? = local a descobrir. Roda do mouse = zoom.", Position = UDim2.fromOffset(0, SIZE + 8), Size = UDim2.new(1, 0, 0, 20), TextColor3 = UI.Colors.SubText, Parent = win.content })
+	info = UI.label({ Text = "Seta = você • losango dourado = objetivo • ! / ? = NPC com missão • caveira = inimigos (nível) • roda do mouse = zoom", TextScaled = false, TextSize = 12, TextWrapped = true, Position = UDim2.fromOffset(0, SIZE + 6), Size = UDim2.new(1, 0, 0, 34), TextColor3 = UI.Colors.SubText, Parent = win.content })
 	win.onOpen = function()
 		task.spawn(draw)
 		refreshStones()
@@ -278,6 +390,7 @@ function MapWindow.init(screen)
 	State.Changed:Connect(function()
 		refreshStones()
 		refreshPois()
+		refreshNpcMarks()
 	end)
 	RunService.RenderStepped:Connect(function()
 		if not win:isOpen() then
@@ -307,6 +420,20 @@ function MapWindow.init(screen)
 		end
 		for i = #mates + 1, #partyDots do
 			partyDots[i].Visible = false
+		end
+		-- objetivo da missão acompanhada (o mesmo do feixe dourado)
+		local goal = WorldMarkers.currentTarget()
+		if goal and goal.position then
+			if not objectiveMark or not objectiveMark.Parent then
+				objectiveMark = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(14, 14), Rotation = 45, BackgroundColor3 = Color3.fromRGB(255, 215, 90), ZIndex = 6, Parent = markers }, { UI.stroke(Color3.fromRGB(60, 40, 10), 2) })
+			end
+			local mx, mz = toMap(goal.position.X, goal.position.Z)
+			objectiveMark.Position = at(mx, mz)
+			local pulse = 14 + math.sin(os.clock() * 5) * 3
+			objectiveMark.Size = UDim2.fromOffset(pulse, pulse)
+			objectiveMark.Visible = true
+		elseif objectiveMark then
+			objectiveMark.Visible = false
 		end
 		-- evento do mundo
 		local ex, ez, kind = EventTracker.position()

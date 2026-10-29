@@ -105,12 +105,11 @@ local function renderForge()
 				BackgroundColor3 = if forge.recipe == i then UI.Colors.Accent elseif locked then UI.Colors.Dark else UI.Colors.Panel,
 				Parent = forge.list,
 			})
-			-- miniatura 3D do item à esquerda do nome
-			ItemIcon.new(button, recipe.result, "Comum", { Size = UDim2.fromOffset(30, 30), Position = UDim2.new(0, -4, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), glow = false, ZIndex = button.ZIndex + 1 })
-			local padding = button:FindFirstChildOfClass("UIPadding")
-			if padding then
-				padding.PaddingLeft = UDim.new(0, 34)
-			end
+			-- miniatura 3D do item à esquerda do nome (o recuo do texto também empurra os filhos do botão,
+			-- então o ícone fica em x negativo para cair no espaço do recuo, e não em cima do nome)
+			local padding = button:FindFirstChildOfClass("UIPadding") or UI.new("UIPadding", { Parent = button })
+			padding.PaddingLeft = UDim.new(0, 40)
+			ItemIcon.new(button, recipe.result, "Comum", { Size = UDim2.fromOffset(30, 30), Position = UDim2.new(0, -36, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5), glow = false, ZIndex = button.ZIndex + 1 })
 			button.MouseButton1Click:Connect(function()
 				forge.recipe = i
 				renderForge()
@@ -125,8 +124,8 @@ local function renderForge()
 		text(forge.detail, { Text = base.name, Size = UDim2.new(1, -110, 0, 26), TextSize = 22, Font = Enum.Font.GothamBlack, Parent = forge.detail })
 		ItemIcon.new(forge.detail, recipe.result, "Raro", { Size = UDim2.fromOffset(100, 100), Position = UDim2.new(1, -4, 0, 0), AnchorPoint = Vector2.new(1, 0), spin = true })
 		local kind = if base.slot ~= "weapon" then (Items.Slots[base.slot] or {}).name or "Equipamento" else (Items.WeaponTypes[base.weaponType] or {}).name or "Arma"
-		text(forge.detail, { Text = ("%s  •  Poder base %d  •  Ferraria %d"):format(kind, base.power, recipe.skill), Position = UDim2.fromOffset(0, 30), TextColor3 = UI.Colors.SubText, Parent = forge.detail })
-		local ok = costLines(forge.detail, { gold = recipe.gold, materials = recipe.materials }, 60)
+		text(forge.detail, { Text = ("%s  •  Poder base %d  •  Ferraria %d"):format(kind, base.power, recipe.skill), Position = UDim2.fromOffset(0, 30), Size = UDim2.new(1, -110, 0, 40), TextYAlignment = Enum.TextYAlignment.Top, TextColor3 = UI.Colors.SubText, Parent = forge.detail })
+		local ok = costLines(forge.detail, { gold = recipe.gold, materials = recipe.materials }, 108)
 		ok = ok and ferraria >= recipe.skill
 		local button = UI.button({ Text = "FORJAR", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(1, 0, 0, 44), BackgroundColor3 = if ok then Color3.fromRGB(220, 130, 40) else UI.Colors.Dark, Parent = forge.detail })
 		button.MouseButton1Click:Connect(function()

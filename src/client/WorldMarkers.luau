@@ -250,6 +250,11 @@ end
 -- usado também pelo Auto (AutoHunt) para saber para onde ir
 WorldMarkers.objectiveTarget = objectiveTarget
 
+-- objetivo atual do feixe ({ position, text } ou nil), para o mapa
+function WorldMarkers.currentTarget()
+	return target
+end
+
 function WorldMarkers.init()
 	for _, instance in CollectionService:GetTagged("NPC") do
 		attachNpcGui(instance)

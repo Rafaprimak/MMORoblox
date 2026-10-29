@@ -305,7 +305,7 @@ function DungeonWindow.init(screen)
 	tracker.frame = UI.new("Frame", {
 		Name = "PainelMasmorra",
 		AnchorPoint = Vector2.new(1, 0),
-		Position = UDim2.new(1, -16, 0, 210),
+		Position = UDim2.new(1, -12, 0, 150), -- no lugar do quadro de missões, que some dentro da masmorra
 		Size = UDim2.fromOffset(300, 150),
 		BackgroundColor3 = UI.Colors.Panel,
 		BackgroundTransparency = 0.15,

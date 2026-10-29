@@ -2,6 +2,8 @@
 -- e a janela da troca (sua oferta à esquerda, a do outro à direita, Pronto → Confirmar). O servidor
 -- (TradeService) valida tudo; aqui só se monta a oferta e se mostra o estado (data.trade).
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -13,6 +15,7 @@ local State = require(script.Parent.State)
 local Window = require(script.Parent.Window)
 local Sounds = require(script.Parent.Sounds)
 local ItemIcon = require(script.Parent.ItemIcon)
+local Inventory = require(script.Parent.Inventory)
 
 local TradeWindow = {}
 
@@ -21,6 +24,37 @@ local win, mineFrame, theirsFrame, inventoryGrid, goldBox, readyButton, confirmB
 local invitePanel, inviteText
 local pendingInvite = nil
 local lastKey = nil
+local tooltip, tooltipItem = nil, nil -- detalhes do item sob o mouse (ou tocado)
+
+-- quadro com nome, raridade, poder, perks e atributos do item (o mesmo texto do inventário)
+local function showDetails(item)
+	tooltipItem = item
+	if not item then
+		tooltip.Visible = false
+		return
+	end
+	UI.clear(tooltip)
+	local rarity = Rarities.ById[item.rarity] or Rarities.List[1]
+	UI.label({ Text = item.name, Size = UDim2.new(1, 0, 0, 20), TextColor3 = rarity.color, Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = tooltip }, { UI.textStroke(1) })
+	UI.label({ Text = ("%s  •  Nv. %d  •  +%d/%d"):format(rarity.name, item.level, item.upgrade, item.maxUpgrade), Size = UDim2.new(1, 0, 0, 16), TextScaled = false, TextSize = 13, TextColor3 = UI.Colors.SubText, LayoutOrder = 1, Parent = tooltip })
+	UI.label({ Text = UI.statWord(item) .. " " .. UI.formatNumber(item.power), Size = UDim2.new(1, 0, 0, 20), Font = Enum.Font.GothamBlack, LayoutOrder = 2, Parent = tooltip })
+	for index, entry in Inventory.describeLines(item) do
+		UI.label({ Text = entry[1], Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, TextColor3 = entry[2], Font = Enum.Font.GothamBold, TextScaled = false, TextSize = 13, TextWrapped = true, LayoutOrder = 2 + index, Parent = tooltip })
+	end
+	tooltip.Visible = true
+end
+
+-- passar o mouse mostra os detalhes; tocar (celular) também, e o toque seguinte no mesmo item faz a ação
+local function hookDetails(cell, item)
+	cell.MouseEnter:Connect(function()
+		showDetails(item)
+	end)
+	cell.MouseLeave:Connect(function()
+		if tooltipItem == item then
+			showDetails(nil)
+		end
+	end)
+end
 
 local function offerItems(frame, items, onClick)
 	UI.clear(frame)
@@ -31,11 +65,14 @@ local function offerItems(frame, items, onClick)
 		if item then
 			ItemIcon.new(cell, item.base, item.rarity, { Size = UDim2.fromScale(0.85, 0.85), Position = UDim2.fromScale(0.5, 0.45), AnchorPoint = Vector2.new(0.5, 0.5), glow = false })
 			UI.label({ Text = ("+%d • %d"):format(item.upgrade, item.power), AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -1), Size = UDim2.new(1, -4, 0, 12), TextXAlignment = Enum.TextXAlignment.Center, TextColor3 = rarity.color, Parent = cell }, { UI.textStroke(1) })
-			if onClick then
-				cell.MouseButton1Click:Connect(function()
+			hookDetails(cell, item)
+			cell.MouseButton1Click:Connect(function()
+				if onClick then
 					onClick(item)
-				end)
-			end
+				else
+					showDetails(if tooltipItem == item then nil else item) -- itens do outro: tocar mostra/esconde
+				end
+			end)
 		end
 	end
 end
@@ -92,6 +129,7 @@ local function render(force)
 			local rarity = Rarities.ById[item.rarity] or Rarities.List[1]
 			local cell = UI.new("TextButton", { Text = "", LayoutOrder = -rarity.order * 1000 + index, BackgroundColor3 = rarity.color:Lerp(Color3.new(0, 0, 0), 0.65), Parent = inventoryGrid }, { UI.corner(8), UI.stroke(rarity.color, 1.2) })
 			ItemIcon.new(cell, item.base, item.rarity, { Size = UDim2.fromScale(0.85, 0.85), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5), glow = false })
+			hookDetails(cell, item)
 			cell.MouseButton1Click:Connect(function()
 				if #mineUids >= Config.TradeMaxItems then
 					return
@@ -204,7 +242,25 @@ function TradeWindow.init(screen)
 	cancel.MouseButton1Click:Connect(function()
 		State.request("tradeCancel")
 	end)
+	-- detalhes do item (segue o mouse; some quando a janela fecha)
+	tooltip = UI.new("Frame", { Size = UDim2.fromOffset(270, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.05, Visible = false, ZIndex = 60, Parent = screen }, { UI.corner(8), UI.stroke(UI.Colors.Trim, 1.5, 0.2), UI.padding(8), UI.list(3) })
+	RunService.RenderStepped:Connect(function()
+		if not tooltip.Visible then
+			return
+		end
+		if not win:isOpen() then
+			showDetails(nil)
+			return
+		end
+		local mouse = UserInputService:GetMouseLocation()
+		local view = screen.AbsoluteSize
+		local size = tooltip.AbsoluteSize
+		local x = if mouse.X + 18 + size.X > view.X then mouse.X - size.X - 12 else mouse.X + 18
+		local y = math.clamp(mouse.Y - 40, 4, math.max(4, view.Y - size.Y - 4))
+		tooltip.Position = UDim2.fromOffset(x, y)
+	end)
 	win.onClose = function()
+		showDetails(nil)
 		if State.data and State.data.trade then
 			State.request("tradeCancel")
 		end

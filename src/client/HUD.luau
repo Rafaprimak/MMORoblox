@@ -232,6 +232,8 @@ function HUD.init(screen, callbacks)
 	local regionCheck = 0
 	RunService.RenderStepped:Connect(function()
 		local now = os.clock()
+		-- dentro da masmorra e da raide o painel deles ocupa a coluna da direita (o quadro de missões some)
+		refs.tracker.Visible = not (player:GetAttribute("Dungeon") or player:GetAttribute("Raid"))
 		local character = player.Character
 		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
 		if humanoid then

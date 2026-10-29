@@ -89,7 +89,7 @@ local function update()
 end
 
 function EventTracker.init(screen)
-	panel = UI.new("Frame", { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 52), Size = UDim2.fromOffset(440, 50), BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.15, Visible = false, Parent = screen }, { UI.corner(10) })
+	panel = UI.new("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 64), Size = UDim2.fromOffset(300, 50), BackgroundColor3 = UI.Colors.Panel, BackgroundTransparency = 0.15, Visible = false, Parent = screen }, { UI.corner(10) })
 	UI.ornate(panel, UI.Colors.Trim, 3)
 	icon = UI.icon("crown", { Position = UDim2.fromOffset(8, 7), Size = UDim2.fromOffset(36, 36), Parent = panel })
 	title = UI.label({ Text = "", Position = UDim2.fromOffset(52, 5), Size = UDim2.new(1, -60, 0, 20), Font = Enum.Font.GothamBlack, Parent = panel }, { UI.textStroke(1) })
