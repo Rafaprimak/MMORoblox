@@ -139,7 +139,7 @@ end
 -- ===== VIP (game pass) =====
 -- Coloque aqui o ID do game pass "VIP" depois de criá-lo no Creator Hub (0 = ainda não está à venda).
 -- No Studio todo mundo é VIP, para testar.
-Config.VipGamePassId = 0
+Config.VipGamePassId = 2057651679
 
 -- ===== Administradores =====
 -- O dono do jogo já é admin (e, se o jogo for de um grupo, quem tiver cargo >= AdminGroupRank).
@@ -153,9 +153,9 @@ Config.AdminGroupRank = 254
 -- robux = preço mostrado só enquanto o ID é 0; com o ID preenchido, o jogo mostra o preço do Creator Hub.
 -- Passo a passo completo: README, "Publicar no Roblox e vender com Robux".
 Config.Products = {
-	chest_celestial = { id = 0, robux = 159, kind = "chest", target = "celestial" },
-	egg_celestial = { id = 0, robux = 159, kind = "egg", target = "celestial" },
-	pass_premium = { id = 0, robux = 399, kind = "pass" }, -- Passe Premium da temporada atual (não é aleatório)
+	chest_celestial = { id = 3723432117, robux = 159, kind = "chest", target = "celestial" },
+	egg_celestial = { id = 3723432159, robux = 159, kind = "egg", target = "celestial" },
+	pass_premium = { id = 3723432246, robux = 399, kind = "pass" }, -- Passe Premium da temporada atual (não é aleatório)
 }
 
 -- ===== Fusão de equipamentos (como o cubo do Task Bar Hero) =====
