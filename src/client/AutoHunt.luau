@@ -43,7 +43,7 @@ local TRAVEL_MIN = 650 -- studs: acima disso tenta uma pedra de viagem
 local AUTO_OBJECTIVES = {
 	kill = true, hit = true, gather = true, deliver = true, talk = true, explore = true, discover = true,
 	poi = true, poiSecret = true, level = true, mastery = true, mount = true, dodge = true, ability = true,
-	rhythm = true, finisher = true, parry = true,
+	rhythm = true, finisher = true, parry = true, perfectDodge = true,
 }
 
 local player = Players.LocalPlayer
@@ -53,6 +53,8 @@ local lastAbility, abilitySlot, lastDodge = 0, 1, 0
 local abilityReadyAt = {} -- [slot] = quando a habilidade sai da recarga (conta do cliente)
 local potionUsedAt = {} -- [poção] = última vez usada
 local lastParryTap = 0
+local lastQuestDodge = 0
+local perfectDodgeUntil = 0 -- missão de esquiva perfeita: nos golpes, esquiva em vez de aparar
 local guardUntil = 0 -- defendendo (aparar/esquivar): não ataca nem anda até passar
 local evadeTo, evadeUntil = nil, 0 -- saindo de um círculo/linha vermelha
 local lastHurt = 0 -- última vez que o personagem levou dano (reage a quem ataca de longe)
@@ -622,10 +624,42 @@ local function questStep(humanoid, root)
 					return true
 				end
 			end
-		elseif kind == "level" or kind == "mastery" or kind == "dodge" or kind == "ability" or kind == "rhythm" or kind == "finisher" then
+		elseif kind == "dodge" then
+			-- esquivar: qualquer esquiva conta; esquiva no lugar, para os lados (só com estamina sobrando)
+			humanoid:MoveTo(root.Position)
+			local stamina = (player:GetAttribute("Stamina") or 0) / math.max(player:GetAttribute("MaxStamina") or 1, 1)
+			if os.clock() - lastQuestDodge > 1.3 and stamina > 0.3 then
+				lastQuestDodge = os.clock()
+				local side = root.CFrame.RightVector * (if math.random() < 0.5 then 1 else -1)
+				Controller.autoDodge(side)
+			end
+			return true
+		elseif kind == "perfectDodge" then
+			-- esquiva perfeita: fica perto de um inimigo (ou do boneco de treino) e, quando ele preparar o golpe,
+			-- esquiva no último instante (a defesa automática troca o aparar pela esquiva)
+			perfectDodgeUntil = os.clock() + 2
+			local foe, foeDistance = enemyAt(root.Position, root.Position, 60, nil)
+			if not foe then
+				foe, foeDistance = enemyAt(root.Position, nil, 0, "boneco")
+			end
+			if foe then
+				if foeDistance > 6 then
+					moveTo(humanoid, root, foe.Position)
+				else
+					humanoid:MoveTo(root.Position)
+					root.CFrame = CFrame.lookAt(root.Position, Vector3.new(foe.Position.X, root.Position.Y, foe.Position.Z))
+				end
+				return true
+			end
+			local position = npcPosition("kael")
+			if position then
+				travelTo(humanoid, root, position, 10)
+				return true
+			end
+		elseif kind == "level" or kind == "mastery" or kind == "ability" or kind == "rhythm" or kind == "finisher" then
 			local any, anyDistance = enemyAt(root.Position, root.Position, 120, nil)
 			if any then
-				fight(humanoid, root, any, anyDistance, { dodge = kind == "dodge" })
+				fight(humanoid, root, any, anyDistance)
 				return true
 			end
 			local camp = grindCamp(data.level or 1, root.Position)
@@ -870,6 +904,20 @@ local function onEnemyAction(enemyRoot)
 		return
 	end
 	local windup = if def.behavior == "dummy" then 0.9 elseif def.behavior == "boss" then 0.65 else 0.5
+	-- missão de esquiva perfeita: esquiva no último instante (o golpe cai nos primeiros 0,2 s da esquiva)
+	if os.clock() < perfectDodgeUntil then
+		local dodgeDelay = math.max(0, windup - 0.1 - 2 * ping())
+		guardUntil = os.clock() + dodgeDelay + 0.5
+		task.delay(dodgeDelay, function()
+			local r = myRoot()
+			if r and AutoHunt.isOn() then
+				local away = flat(r.Position - enemyRoot.Position)
+				local side = Vector3.new(-away.Z, 0, away.X)
+				Controller.autoDodge(if side.Magnitude > 0.1 then side else r.CFrame.RightVector)
+			end
+		end)
+		return
+	end
 	local delay = math.max(0, windup - 0.16 - 2 * ping())
 	guardUntil = os.clock() + delay + 0.6
 	task.delay(delay, function()
