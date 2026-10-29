@@ -220,6 +220,30 @@ local function enemyAt(origin, center, range, typeFilter)
 	return best, bestDistance
 end
 
+-- inimigo perto de center que deixa cair o item pedido pela missão (para coletar material de monstro)
+local function droppingEnemy(origin, center, range, itemId)
+	local folder = workspace:FindFirstChild("Inimigos")
+	local best, bestDistance = nil, math.huge
+	for _, enemyRoot in if folder then folder:GetChildren() else {} do
+		local def = Enemies.Defs[enemyRoot:GetAttribute("Type") or ""]
+		if enemyRoot:IsA("BasePart") and def and not enemyRoot:GetAttribute("Dead") and (enemyRoot.Position - center).Magnitude <= range then
+			local drops = false
+			for _, drop in def.drops or {} do
+				if drop.id == itemId then
+					drops = true
+				end
+			end
+			if drops then
+				local distance = (enemyRoot.Position - origin).Magnitude
+				if distance < bestDistance then
+					best, bestDistance = enemyRoot, distance
+				end
+			end
+		end
+	end
+	return best, bestDistance
+end
+
 -- toma uma poção se tiver e se já passou o tempo mínimo desde a última vez
 local function usePotion(id, minInterval)
 	local data = State.data
@@ -715,8 +739,8 @@ local function questStep(humanoid, root)
 					triggerPrompt(prompt)
 					return true
 				end
-				-- é um inimigo que deixa o material: caça perto dele
-				local enemy, enemyDistance = enemyAt(root.Position, goal, 60, nil)
+				-- é um inimigo que deixa o material: caça só os que deixam esse item
+				local enemy, enemyDistance = droppingEnemy(root.Position, goal, 60, objective.item)
 				if enemy and (enemy.Position - root.Position).Magnitude < 60 then
 					fight(humanoid, root, enemy, enemyDistance)
 					return true
@@ -816,36 +840,22 @@ local function step()
 		lastChores = os.clock()
 		task.spawn(chores)
 	end
-	-- 1) termina a luta começada: não larga um inimigo pela metade
+	-- 1) a missão vem antes de tudo: monstros no caminho são ignorados (só luta com quem a missão pede)
+	if questStep(humanoid, root) then
+		return
+	end
+	-- 2) sem missão possível: caça livre (termina a luta começada e responde a quem ataca)
 	if lockedTarget and (lockedTarget.Parent == nil or lockedTarget:GetAttribute("Dead") or (lockedTarget.Position - root.Position).Magnitude > LOCK_RANGE) then
 		lockedTarget = nil
 	end
-	-- 2) quem está atacando: perto (14), arqueiros/magos (até 45) e, se levou dano há pouco, até 55
 	local threatRange = if os.clock() - lastHurt < 5 then 55 else 14
 	local threat, threatDistance = enemyAt(root.Position, root.Position, threatRange, nil)
-	if not threat then
-		local folder = workspace:FindFirstChild("Inimigos")
-		local bestDistance = 45
-		for _, enemyRoot in if folder then folder:GetChildren() else {} do
-			local def = Enemies.Defs[enemyRoot:GetAttribute("Type") or ""]
-			if def and def.behavior == "ranged" and enemyRoot:IsA("BasePart") and not enemyRoot:GetAttribute("Dead") then
-				local distance = (enemyRoot.Position - root.Position).Magnitude
-				if distance < bestDistance then
-					threat, threatDistance, bestDistance = enemyRoot, distance, distance
-				end
-			end
-		end
-	end
 	if lockedTarget and not threat then
 		threat, threatDistance = lockedTarget, (lockedTarget.Position - root.Position).Magnitude
 	end
 	if threat then
-		lockedTarget = threat
 		setStatus("Lutando")
 		fight(humanoid, root, threat, threatDistance)
-		return
-	end
-	if questStep(humanoid, root) then
 		return
 	end
 	-- caça livre em volta do ponto de partida
