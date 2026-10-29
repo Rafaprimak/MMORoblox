@@ -52,9 +52,10 @@ local banner, statusLabel
 local lastAbility, abilitySlot, lastDodge = 0, 1, 0
 local abilityReadyAt = {} -- [slot] = quando a habilidade sai da recarga (conta do cliente)
 local potionUsedAt = {} -- [poção] = última vez usada
-local lastParryTap = 0
 local lastQuestDodge = 0
-local perfectDodgeUntil = 0 -- missão de esquiva perfeita: nos golpes, esquiva em vez de aparar
+-- defesa só quando a missão pede: fora disso o Auto só bate
+local perfectDodgeUntil = 0 -- missão de esquiva perfeita: esquiva no último instante dos golpes
+local parryUntil = 0 -- missão de aparar: guarda no tempo dos golpes
 local guardUntil = 0 -- defendendo (aparar/esquivar): não ataca nem anda até passar
 local evadeTo, evadeUntil = nil, 0 -- saindo de um círculo/linha vermelha
 local lastHurt = 0 -- última vez que o personagem levou dano (reage a quem ataca de longe)
@@ -680,13 +681,7 @@ local function questStep(humanoid, root)
 				else
 					humanoid:MoveTo(root.Position)
 					root.CFrame = CFrame.lookAt(root.Position, Vector3.new(foe.Position.X, root.Position.Y, foe.Position.Z))
-					if os.clock() - lastParryTap > 0.32 then
-						lastParryTap = os.clock()
-						State.action("block", true)
-						task.delay(0.18, function()
-							State.action("block", false)
-						end)
-					end
+					parryUntil = os.clock() + 2 -- a defesa automática apara no tempo do golpe
 				end
 				return true
 			end
@@ -918,6 +913,10 @@ local function onEnemyAction(enemyRoot)
 		end)
 		return
 	end
+	-- fora das missões de aparar, o Auto só bate (não defende)
+	if os.clock() >= parryUntil then
+		return
+	end
 	local delay = math.max(0, windup - 0.16 - 2 * ping())
 	guardUntil = os.clock() + delay + 0.6
 	task.delay(delay, function()
@@ -935,7 +934,8 @@ local function onEnemyAction(enemyRoot)
 end
 
 local function onTelegraph(shape, position, size, duration, direction)
-	if not AutoHunt.isOn() or typeof(position) ~= "Vector3" then
+	-- só foge/esquiva de área vermelha quando a missão pede esquiva perfeita
+	if not AutoHunt.isOn() or typeof(position) ~= "Vector3" or os.clock() >= perfectDodgeUntil then
 		return
 	end
 	local root = myRoot()
