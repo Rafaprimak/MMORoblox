@@ -21,6 +21,7 @@ local Quests = require(Shared.Quests)
 local NPCs = require(Shared.NPCs)
 local World = require(Shared.World)
 local Points = require(Shared.Points)
+local Remotes = require(Shared.Remotes)
 
 local UI = require(script.Parent.UI)
 local State = require(script.Parent.State)
@@ -52,6 +53,8 @@ local lastAbility, abilitySlot, lastDodge = 0, 1, 0
 local abilityReadyAt = {} -- [slot] = quando a habilidade sai da recarga (conta do cliente)
 local potionUsedAt = {} -- [poção] = última vez usada
 local lastParryTap = 0
+local guardUntil = 0 -- defendendo (aparar/esquivar): não ataca nem anda até passar
+local evadeTo, evadeUntil = nil, 0 -- saindo de um círculo/linha vermelha
 local lastHurt = 0 -- última vez que o personagem levou dano (reage a quem ataca de longe)
 local lockedTarget = nil -- inimigo em luta: só troca quando ele morre ou fica muito longe
 local LOCK_RANGE = 70
@@ -245,6 +248,9 @@ local function fight(humanoid, root, target, distance, options)
 	end
 	humanoid:MoveTo(root.Position)
 	local now = os.clock()
+	if now < guardUntil then
+		return -- aparando ou esquivando agora
+	end
 	-- habilidades: usa a próxima liberada que já saiu da recarga (e só com mana sobrando)
 	local abilities = State.data and State.data.abilities
 	local mana, maxMana = player:GetAttribute("Mana") or 0, player:GetAttribute("MaxMana") or 1
@@ -756,6 +762,13 @@ local function step()
 	end
 	anchor = anchor or root.Position
 	local data = State.data
+	-- saindo de um ataque em área (círculo/linha vermelha): só corre para fora
+	if evadeTo and os.clock() < evadeUntil then
+		humanoid:MoveTo(evadeTo)
+		setStatus("Saindo da área do ataque")
+		return
+	end
+	evadeTo = nil
 	-- poções: vida (a grande quando está muito mal), mana e vigor
 	local health = humanoid.Health / math.max(humanoid.MaxHealth, 1)
 	if health < 0.3 and not usePotion("pocao_grande", 10) then
@@ -819,6 +832,106 @@ local function step()
 	fight(humanoid, root, target, distance)
 end
 
+-- ===================== DEFESA AUTOMÁTICA =====================
+-- Aparar: os golpes normais dos inimigos têm preparo ("windup": 0,5 s; chefes 0,65; boneco 0,9). O Auto
+-- segura a guarda pouco antes do golpe cair (descontando o ping), dentro da janela de aparar.
+-- Esquivar: ataques em área (círculo/linha vermelha no chão) não dá para bloquear: o Auto corre para fora
+-- e, se ainda estiver dentro no fim, esquiva no último instante (esquiva perfeita).
+local function myRoot()
+	local character = player.Character
+	return character and character:FindFirstChild("HumanoidRootPart")
+end
+
+local function ping()
+	local ok, value = pcall(function()
+		return player:GetNetworkPing()
+	end)
+	return if ok and type(value) == "number" then math.clamp(value, 0, 0.3) else 0.08
+end
+
+local function onEnemyAction(enemyRoot)
+	if not AutoHunt.isOn() or player:GetAttribute("Dungeon") or player:GetAttribute("Raid") or player:GetAttribute("Arena") then
+		return
+	end
+	local action = tostring(enemyRoot:GetAttribute("Action") or "")
+	if string.sub(action, 1, 7) ~= "windup:" then
+		return
+	end
+	local root = myRoot()
+	local def = Enemies.Defs[enemyRoot:GetAttribute("Type") or ""]
+	if not root or not def then
+		return
+	end
+	local reach = (def.attackRange or 6) + (def.radius or 2) + 5
+	if def.behavior ~= "ranged" and (enemyRoot.Position - root.Position).Magnitude > reach then
+		return -- longe demais para o golpe acertar
+	end
+	if def.behavior == "ranged" and (enemyRoot.Position - root.Position).Magnitude > 60 then
+		return
+	end
+	local windup = if def.behavior == "dummy" then 0.9 elseif def.behavior == "boss" then 0.65 else 0.5
+	local delay = math.max(0, windup - 0.16 - 2 * ping())
+	guardUntil = os.clock() + delay + 0.6
+	task.delay(delay, function()
+		local r = myRoot()
+		if not r or not AutoHunt.isOn() or enemyRoot.Parent == nil then
+			return
+		end
+		-- de frente para quem ataca (a guarda só vale de frente)
+		r.CFrame = CFrame.lookAt(r.Position, Vector3.new(enemyRoot.Position.X, r.Position.Y, enemyRoot.Position.Z))
+		Controller.autoBlock(true)
+		task.delay(0.45, function()
+			Controller.autoBlock(false)
+		end)
+	end)
+end
+
+local function onTelegraph(shape, position, size, duration, direction)
+	if not AutoHunt.isOn() or typeof(position) ~= "Vector3" then
+		return
+	end
+	local root = myRoot()
+	if not root then
+		return
+	end
+	local away
+	if shape == "circle" and type(size) == "number" then
+		local offset = flat(root.Position - position)
+		if offset.Magnitude > size + 2 then
+			return -- fora do círculo
+		end
+		away = if offset.Magnitude > 0.1 then offset.Unit else Vector3.new(1, 0, 0)
+		evadeTo = position + away * (size + 6)
+	elseif shape == "line" and typeof(size) == "Vector3" then
+		local dir = if typeof(direction) == "Vector3" and direction.Magnitude > 0 then flat(direction).Unit else Vector3.new(0, 0, -1)
+		local offset = flat(root.Position - position)
+		local along = offset:Dot(dir)
+		local side = Vector3.new(-dir.Z, 0, dir.X)
+		local across = offset:Dot(side)
+		if along < -2 or along > size.Z + 2 or math.abs(across) > size.X / 2 + 2 then
+			return -- fora da linha
+		end
+		away = side * (if across >= 0 then 1 else -1)
+		evadeTo = root.Position + away * (size.X / 2 + 7)
+	else
+		return
+	end
+	evadeTo = Vector3.new(evadeTo.X, root.Position.Y, evadeTo.Z)
+	evadeUntil = os.clock() + math.max(0.3, (tonumber(duration) or 1) - 0.1)
+	-- se no fim ainda estiver dentro: esquiva perfeita no último instante
+	local delay = math.max(0, (tonumber(duration) or 1) - 0.12 - 2 * ping())
+	task.delay(delay, function()
+		local r = myRoot()
+		if not r or not AutoHunt.isOn() then
+			return
+		end
+		local stillInside = if shape == "circle" then flat(r.Position - position).Magnitude <= size + 1 else true
+		if stillInside then
+			Controller.autoDodge(away)
+		end
+	end)
+end
+
 -- dano recebido: o Auto passa a procurar quem está atacando mais longe
 local function watchCharacter(character)
 	local humanoid = character:WaitForChild("Humanoid", 10)
@@ -835,6 +948,27 @@ local function watchCharacter(character)
 end
 
 function AutoHunt.init(screen)
+	-- defesa automática: avisos de golpe dos inimigos e áreas vermelhas
+	task.spawn(function()
+		local folder = workspace:WaitForChild("Inimigos", 60)
+		if not folder then
+			return
+		end
+		local function watch(enemyRoot)
+			enemyRoot:GetAttributeChangedSignal("Action"):Connect(function()
+				onEnemyAction(enemyRoot)
+			end)
+		end
+		for _, child in folder:GetChildren() do
+			watch(child)
+		end
+		folder.ChildAdded:Connect(watch)
+	end)
+	Remotes.Fx.OnClientEvent:Connect(function(kind, ...)
+		if kind == "telegraph" then
+			onTelegraph(...)
+		end
+	end)
 	if player.Character then
 		task.spawn(watchCharacter, player.Character)
 	end

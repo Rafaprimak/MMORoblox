@@ -323,7 +323,7 @@ local function releaseHeavy()
 	State.action("heavy", aim)
 end
 
-local function dodge()
+local function dodge(forcedDirection)
 	if Controller.isBlocked() then
 		return
 	end
@@ -352,7 +352,7 @@ local function dodge()
 	end
 	lockUntil = 0
 	comboIndex = 0
-	local direction = humanoid.MoveDirection
+	local direction = if typeof(forcedDirection) == "Vector3" and forcedDirection.Magnitude > 0.1 then forcedDirection.Unit else humanoid.MoveDirection
 	if direction.Magnitude < 0.1 then
 		direction = -root.CFrame.LookVector
 	end
@@ -426,6 +426,15 @@ function Controller.autoAttack(point)
 	Controller.autoAimPoint = point
 	lightAttack()
 	Controller.autoAimPoint = nil
+end
+
+-- Auto: esquiva numa direção e guarda (aparar) com a mesma animação e regras do jogador
+function Controller.autoDodge(direction)
+	dodge(direction)
+end
+
+function Controller.autoBlock(on)
+	setBlock(on == true)
 end
 
 -- true enquanto um golpe está em andamento
