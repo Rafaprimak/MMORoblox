@@ -320,6 +320,44 @@ local function automatable(def)
 	return true
 end
 
+-- ===== ordem das missões (uma por vez, em sequência lógica) =====
+-- 1) história principal; 2) cadeias das regiões, da que pede menos nível para a que pede mais;
+-- 3) secundárias; dentro de cada grupo, na ordem em que aparecem no jogo (Quests.List)
+local QUEST_INDEX = {}
+for index, def in Quests.List do
+	QUEST_INDEX[def.id] = index
+end
+
+local function chainRank(def)
+	if def.chain == "main" then
+		return 0
+	elseif def.chain and def.chain ~= "lenda" then
+		return 1
+	end
+	return 2
+end
+
+-- a cadeia de região começa na missão com nível exigido; as seguintes herdam (ficam juntas)
+local CHAIN_LEVEL = {}
+for _, def in Quests.List do
+	if def.chain and def.chain ~= "main" and not CHAIN_LEVEL[def.chain] then
+		CHAIN_LEVEL[def.chain] = def.requires and def.requires.level or 0
+	end
+end
+
+local function questOrder(a, b)
+	local ra, rb = chainRank(a), chainRank(b)
+	if ra ~= rb then
+		return ra < rb
+	end
+	local la = if a.chain then CHAIN_LEVEL[a.chain] or 0 else (a.requires and a.requires.level or 0)
+	local lb = if b.chain then CHAIN_LEVEL[b.chain] or 0 else (b.requires and b.requires.level or 0)
+	if ra > 0 and la ~= lb then
+		return la < lb
+	end
+	return (QUEST_INDEX[a.id] or 9999) < (QUEST_INDEX[b.id] or 9999)
+end
+
 local function activeEntries(data)
 	local list = {}
 	for _, entry in data.quests and data.quests.active or {} do
@@ -328,13 +366,19 @@ local function activeEntries(data)
 			table.insert(list, { def = def, entry = entry })
 		end
 	end
-	-- história primeiro, depois as das regiões, depois o resto
 	table.sort(list, function(a, b)
-		local pa = if a.def.chain == "main" then 0 elseif a.def.chain then 1 else 2
-		local pb = if b.def.chain == "main" then 0 elseif b.def.chain then 1 else 2
-		return pa < pb
+		return questOrder(a.def, b.def)
 	end)
 	return list
+end
+
+-- rastreia (feixe e painel) a missão que o Auto está fazendo
+local lastTrack = 0
+local function focus(data, def)
+	if data.quests.tracked ~= def.id and os.clock() - lastTrack > 3 then
+		lastTrack = os.clock()
+		task.spawn(State.request, "trackQuest", def.id)
+	end
 end
 
 -- primeiro objetivo que ainda falta (e se ele é automático)
@@ -348,20 +392,19 @@ local function nextObjective(def, entry)
 	return nil
 end
 
--- missão nova disponível para aceitar (em ordem: história, regiões, outras), só as automáticas
+-- próxima missão para aceitar na sequência (só as que dá para fazer sozinho)
 local function questToAccept(data)
 	local count = #(data.quests and data.quests.active or {})
 	if count >= Config.MaxActiveQuests then
 		return nil
 	end
-	local best, bestRank = nil, math.huge
+	local best = nil
 	for npcId, ids in data.quests and data.quests.available or {} do
 		for _, qid in ids do
 			local def = Quests.ById[qid]
 			if def and automatable(def) and NPCs.ById[npcId] and NPCs.ById[npcId].x then
-				local rank = if def.chain == "main" then 0 elseif def.chain then 1 else 2
-				if rank < bestRank then
-					best, bestRank = { def = def, npc = npcId }, rank
+				if not best or questOrder(def, best.def) then
+					best = { def = def, npc = npcId }
 				end
 			end
 		end
@@ -502,6 +545,7 @@ local function questStep(humanoid, root)
 			continue
 		end
 		local kind = objective.type
+		focus(data, def)
 		setStatus(("%s: %s"):format(def.name, objective.text or kind))
 		if kind == "kill" or kind == "hit" then
 			local wanted = if objective.target ~= "any" then objective.target else nil
@@ -608,7 +652,7 @@ local function questStep(humanoid, root)
 			end
 		end
 	end
-	-- 3) aceitar a próxima missão
+	-- 3) nenhuma missão em andamento dá para fazer sozinho: aceita a próxima da sequência
 	local nextQuest = questToAccept(data)
 	if nextQuest then
 		local position = npcPosition(nextQuest.npc)
