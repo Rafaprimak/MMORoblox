@@ -394,15 +394,17 @@ local function buildFloor(run, floor)
 	local landing = main[1]
 	local exitCf = landing.cf * CFrame.new(-landing.width / 2 + 7, 0, -landing.depth / 2 + 1.6)
 	local exitDisc = block(folder, "Saida", Vector3.new(0.4, 9, 9), exitCf * CFrame.new(0, 5, 0) * CFrame.Angles(0, math.rad(90), 0), Color3.fromRGB(120, 220, 255), M.Neon, { Shape = Enum.PartType.Cylinder, Transparency = 0.3, CanCollide = false })
-	block(folder, "AnelSaida", Vector3.new(0.6, 10.6, 10.6), exitCf * CFrame.new(0, 5, 0.3) * CFrame.Angles(0, math.rad(90), 0), theme.trim, M.Slate, { Shape = Enum.PartType.Cylinder, CanCollide = false })
+	block(folder, "AnelSaida", Vector3.new(0.6, 10.6, 10.6), exitCf * CFrame.new(0, 5, -0.35) * CFrame.Angles(0, math.rad(90), 0), theme.trim, M.Slate, { Shape = Enum.PartType.Cylinder, CanCollide = false })
 	Props.light(exitDisc, Color3.fromRGB(120, 220, 255), 20, 2)
 	prompt(exitDisc, "SaidaMasmorra", "Sair da masmorra", "Voltar ao portal (a corrida acaba)", 0.8, function(player)
 		if runOf[player] == run then
 			DungeonService.leave(player, true)
 		end
 	end)
-	local sign = block(folder, "Placa", Vector3.new(9, 3, 0.5), landing.cf * CFrame.new(6, 11, -landing.depth / 2 + 0.3), Color3.fromRGB(60, 45, 30), M.WoodPlanks)
-	Props.billboard(sign, ("%s  •  ANDAR %d/%d"):format(string.upper(dungeon.name), floor, Dungeons.Floors), if isBoss then Color3.fromRGB(255, 110, 80) else theme.accent, 2.5, 90)
+	local sign = block(folder, "Placa", Vector3.new(12, 3.6, 0.5), landing.cf * CFrame.new(6, 9, -landing.depth / 2 + 0.3), Color3.fromRGB(60, 45, 30), M.WoodPlanks)
+	local signTitle = ("%s  •  Andar %d/%d"):format(dungeon.name, floor, Dungeons.Floors)
+	Props.engrave(sign, ("%s\nANDAR %d DE %d%s"):format(string.upper(dungeon.name), floor, Dungeons.Floors, if isBoss then "  •  CHEFE" else ""), if isBoss then Color3.fromRGB(255, 120, 90) else theme.accent, { Enum.NormalId.Back })
+	Props.readable(sign, signTitle, "Limpe cada sala para abrir a grade da próxima. No fim do andar, a escada leva o grupo inteiro para baixo. O portal azul aqui do lado leva de volta ao mundo (a corrida acaba)." .. (if isBoss then " Este andar tem um chefe: o baú dele só abre depois da luta." else ""), 18)
 	for _, s in { -1, 1 } do
 		local brazier = landing.cf * CFrame.new(s * 8, 0, landing.depth / 2 - 6)
 		Props.column(folder, brazier, 3.4, 1.4, Color3.fromRGB(45, 40, 40), M.Metal)
@@ -489,8 +491,13 @@ local function buildFloor(run, floor)
 		elseif node.role == "stairs" then
 			state.stairsGlow = DungeonBuilder.stairs(folder, themeId, node.cf * CFrame.new(0, 0, -2))
 			prompt(state.stairsGlow, "Descer", ("Descer para o andar %d"):format(floor + 1), "O grupo inteiro desce junto", 0.8, function(player)
-				if runOf[player] == run and run.current == state and state.cleared then
+				if runOf[player] ~= run or run.current ~= state then
+					return
+				end
+				if state.cleared then
 					DungeonService.descend(run)
+				else
+					Remotes.Notify:FireClient(player, { kind = "message", text = "Limpe todas as salas do andar antes de descer." })
 				end
 			end)
 		elseif node.role == "side" then
