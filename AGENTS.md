@@ -104,7 +104,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `AbilityService` | Executores das habilidades por `kind` |
 | `EnemyService` | Spawn, IA (10x/s), ataques com aviso, status, consultas espaciais |
 | `ProjectileService` | Projéteis simulados no servidor |
-| `LootService` | Drops de equipamento com feixe de luz, rolagem de materiais |
+| `LootService` | Drops de equipamento com feixe de luz, rolagem de materiais. Loot pessoal: o modelo leva o atributo `Owner` (UserId) e o cliente apaga os drops dos outros (no grupo cada colega ganha o seu) |
 | `ResourceService` | Coleta (minerar, colher, cortar) |
 | `CraftingService` | Forja, aprimorar, encantar, desmontar, alquimia, loja |
 | `ShopService` | Baús: compra com ouro (`open`), bolsa de baús ganhos (`grant` guarda em `data.chestBag`; `openStored` abre), compra com Robux abre na hora (`grant(..., { reveal = true })`) |
@@ -151,7 +151,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `Ambience` | Ambiente e música em loop por região/noite/chefe/combate, com crossfade (`Ambience.combatPing()` ao bater/apanhar) |
 | `RevealScene` | Cena 3D (ViewportFrame + WorldModel) com uma cópia do personagem abrindo o baú ou vendo o ovo chocar |
 | `ItemIcon` | Ícone 3D (ViewportFrame) de item, com modelo guardado por base/raridade e giro opcional |
-| `DungeonWindow` | Janela do portal (grupo e andar inicial), janela do Mercador de Masmorras e painel do andar |
+| `DungeonWindow` | Janela do portal (grupo e andar inicial), janela do Mercador de Masmorras e painel do andar (no lugar do quadro de missões do `HUD`, que some dentro da masmorra e da raide) |
 | `DungeonAtmosphere` | Clima das masmorras no cliente (luz, névoa, tom, poeira/brasas) enquanto o jogador tem o atributo `Dungeon` |
 | `AutoHunt` | Auto Caçar no cliente (só com `AutoFarm`): anda até o inimigo mais perto, ataca no ritmo (`Controller.autoAttack`), toma poção e volta ao ponto de partida |
 | `Store` | Cliente: abre a compra com Robux (`Store.buy(chave)`) e mostra o preço; produto com id 0 = no Studio entrega de graça para testar |
@@ -165,7 +165,7 @@ src/client  → StarterPlayerScripts.Client (LocalScript)  interface, efeitos, a
 | `ChroniclesWindow` | Crônicas (tecla Y): facções e diário de lore |
 | `RaidWindow` | Janela da raide (chefe girando em 3D, vitrine do conjunto Estelar, sala) e painel durante a luta |
 | `PartyUI` | Grupo: convite (tecla T em cima do jogador), quadros dos colegas, nome verde em cima deles, `PartyUI.members()` para o mapa, chat `/g` |
-| `EventTracker` | Painel do evento do mundo no topo da tela + marcador no mundo; `EventTracker.position()` para o mapa |
+| `EventTracker` | Painel do evento do mundo (coluna da direita, acima do relógio; o topo do meio é da barra do chefe e dos avisos) + marcador no mundo; `EventTracker.position()` para o mapa |
 | `ArtStyle` | Estilo artístico: contorno de anime (Highlight só de borda) nos ~24 modelos mais perto, vinheta e gradação de cor pela hora do dia (configuração `outlines`) |
 | `DetailCulling` | Desempenho: tira do cliente o cenário de `Mundo.Natureza` longe da câmera (distância pela configuração `quality`). Não coloque nada interativo nessa pasta |
 | `Juice` | Sensação de jogo: poeira nos pés e ao aterrissar, câmera que abre na corrida (+ `Fx.fovKick` dos golpes), partículas do ambiente por região |
@@ -193,7 +193,7 @@ Ordem de dependência (quem pode exigir quem): `DataService → SkillService →
 
 ### Rede (`src/shared/Remotes.luau`)
 - **`Action`** (RemoteEvent, cliente→servidor, rápido): `attack(index, aim)`, `heavyStart`, `heavy(aim)` (solta o pesado carregado), `block(bool)`, `dodge`, `sprint(bool)`, `ability(slot, aim, point)`, `potion(id)`, `mount`, `talk(npcId)`.
-- **`Request`** (RemoteFunction, interface): `sync, equip, sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, arenaJoin, arenaLeave, arenaForfeit, arenaRanking, admin (subcomando + argumentos; o servidor confere `AdminService.isAdmin`), dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, claimPlaytime, autoFarm, afkRejoin, devPremium, fuse, tradeInvite, tradeRespond, tradeOffer, tradeReady, tradeConfirm, tradeCancel, partyInvite, partyRespond, partyLeave, partyKick, partyLooking, partyList, marketSell, marketBuy, marketCancel, marketBrowse, marketMine, dungeonRanking, raidJoin, raidLeave, raidReady, raidExit, guildCreate, guildInvite, guildRespond, guildLeave, guildKick, guildRank, guildBank, guildClaim, guildChat, guildRanking, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
+- **`Request`** (RemoteFunction, interface): `sync, equip, unequip (menos a arma), sell, sellJunk, chooseClass, rankAbility, forge, upgrade, enchant, disassemble, alchemy, buy, sellMaterial, openChest, acceptQuest, turnInQuest, abandonQuest, trackQuest, travel, buyMount, settings, tutorial, setLoadout, learnTalent, respec, reforge, buyEgg, equipPet, releasePet, claimLogin, claimPass, setTitle, arenaJoin, arenaLeave, arenaForfeit, arenaRanking, admin (subcomando + argumentos; o servidor confere `AdminService.isAdmin`), dungeonJoin, dungeonLeaveLobby, dungeonReady, dungeonExit, dungeonBuy, dungeonBuyLoot, claimPlaytime, autoFarm, afkRejoin, devPremium, fuse, tradeInvite, tradeRespond, tradeOffer, tradeReady, tradeConfirm, tradeCancel, partyInvite, partyRespond, partyLeave, partyKick, partyLooking, partyList, marketSell, marketBuy, marketCancel, marketBrowse, marketMine, dungeonRanking, raidJoin, raidLeave, raidReady, raidExit, guildCreate, guildInvite, guildRespond, guildLeave, guildKick, guildRank, guildBank, guildClaim, guildChat, guildRanking, dev`. **Sempre retorna `{ ok = bool, msg = "texto para o jogador" }`.** No cliente use `State.request()`, que já mostra `msg` em caso de erro.
 - **`DataUpdate`** (servidor→cliente): estado completo, montado em `PlayerService.sync()`. Para mandar algo novo à UI, adicione no payload. Marque mudanças com `PlayerService.markDirty(player)` (o envio é agrupado ~6x/s).
 - **`Notify`** (servidor→cliente): `{ kind = ... }` com `loot, material, consumable, levelup, rankup, skillup, ability, quest, questAccepted, questReady, discover, announce, banner, message, chest, pet, passTier, achievement, reward, dungeonPortal, tradeInvite, tradeOpen, partyInvite, guildInvite, guildChat, raidPortal`. Tratado em `Popups.handle`.
 - **`Fx`** (servidor→cliente): `(kind, ...)` com `hit, death, gold, xp, hurt, evaded, telegraph, explosion, projectile, projectileEnd, rain, meteor, blink, gather, drop, potion, potionCooldown, buff, selfDash, selfJump, cooldown, swing, cast, dodge, noStamina, exhausted, noMana` e, do combate dinâmico, `parry, blocked, guardBreak, perfectDodge, rhythm, stagger, block, charge`, e de suporte/perks `heal, sanctuary, taunted, chain`. O `hit` leva o `element` do golpe. Tratado na tabela `FX_HANDLERS` em `init.client`.
@@ -288,7 +288,7 @@ O servidor move só uma **parte invisível** (raiz) a 10 Hz e muda atributos. O 
 
 ### Itens: modelos 3D, Únicos e conjuntos
 - **Item novo** = = base em `Items.Bases` + visual em `ItemModels.Looks[baseId]` (sem entrada usa um visual padrão pelo tier). Construtores por tipo de arma (`weapon.*`) e por espaço (`gear.*`) no `ItemModels`; armas têm o cabo na origem e a ponta em +Y, equipamentos ficam centrados com a frente em -Z.
-- **Vestido no corpo:** `ItemModels.worn(baseId, raridade, tamanhos)` devolve as peças por parte do corpo R15 (`worn.armor/helmet/boots/amulet/ring`, lendo o mesmo `Looks`); o `PlayerService` (`applyGearVisual`) solda em `Visual_<espaço>`. O elmo esconde chapéus/cabelos do avatar (atributo `TransparenciaOriginal`). Estilo novo de item precisa de visual no ícone (`gear.*`) e no corpo (`worn.*`).
+- **Vestido no corpo:** `ItemModels.worn(baseId, raridade, tamanhos)` devolve as peças por parte do corpo R15 (`worn.armor/helmet/boots/amulet/ring`, lendo o mesmo `Looks`); o `PlayerService` (`applyGearVisual`) solda em `Visual_<espaço>` (modelo `Atomic`). A cada 2 s o `PlayerService` confere se as peças e a arma ainda estão presas ao corpo e monta de novo as que soltaram (teleporte longo de masmorra/raide). O elmo esconde chapéus/cabelos do avatar (atributo `TransparenciaOriginal`). Estilo novo de item precisa de visual no ícone (`gear.*`) e no corpo (`worn.*`).
 - Na interface, use `ItemIcon.new(pai, baseId, raridade, { Size, Position, spin, glow })`.
 
 ### Ícones

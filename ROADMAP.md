@@ -44,6 +44,7 @@ Coisas que já existem mas ainda não foram testadas jogando, ou bugs conhecidos
 - 🧪 Golpes leves não andam mais para frente (P)
 - 🧪 **Combate dinâmico:** ritmo de combo (clicar cedo quebra), estamina por golpe, bloquear/aparar (F), esquiva perfeita, postura e atordoamento, contra-ataque, ataques imbloqueáveis (‼), missões e diárias de aparar/quebrar guarda (G)
 - ⬜ Balancear o combate dinâmico depois dos testes: janelas de ritmo/aparar, postura dos inimigos, custo de estamina (P)
+- 🧪 Rodada de 13 bugs: pet no telhado, nado, noite escura, loot pessoal no grupo, desequipar, detalhes dos itens na troca, mapa com relevo sombreado + portais + NPCs com missão + objetivo, ícones da forja, fusão que não marcava, placa/portal/escada da masmorra, avisos do evento por cima da barra do chefe, missões por cima do painel da masmorra, visual do equipamento caindo (M)
 
 ## Fase 1 — Polimento do que já existe
 
