@@ -53,6 +53,7 @@ function LootService.spawnDrop(player, item, position)
 
 	local model = Instance.new("Model")
 	model.Name = "Drop_" .. player.Name
+	model:SetAttribute("Owner", player.UserId) -- o cliente esconde os drops dos outros (loot pessoal)
 	local gem = effectPart(model, {
 		Name = "Gema",
 		Size = Vector3.new(0.6, 0.6, 0.6),

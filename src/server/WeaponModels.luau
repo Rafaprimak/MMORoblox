@@ -141,6 +141,7 @@ function WeaponModels.attach(character, item)
 		return nil
 	end
 	local model, handle = build(item, rarity, item.enchant and item.enchant.id)
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic -- chega inteira (com as soldas) no cliente
 	model:SetAttribute("WeaponType", base.weaponType)
 	local grip
 	if style == "blade" then

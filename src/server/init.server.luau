@@ -314,6 +314,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 	if action == "sync" then
 		PlayerService.markDirty(player)
 		return { ok = true }
+	elseif action == "unequip" then
+		return PlayerService.unequip(player, a)
 	elseif action == "equip" then
 		return PlayerService.equip(player, a)
 	elseif action == "sell" then

@@ -146,12 +146,20 @@ local function renderDetails()
 		local _ = label
 	end
 
-	local equipButton = UI.button({ Text = if item.equipped then "EQUIPADO" else "EQUIPAR", Position = UDim2.new(0, 0, 1, -80), Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = if item.equipped then UI.Colors.Dark else UI.Colors.Green, Parent = details })
+	-- equipado: tira (menos a arma, que só troca por outra)
+	local isWeapon = item.slot == "weapon"
+	local equipText = if not item.equipped then "EQUIPAR" elseif isWeapon then "EQUIPADO (troque por outra arma)" else "DESEQUIPAR"
+	local equipButton = UI.button({ Text = equipText, Position = UDim2.new(0, 0, 1, -80), Size = UDim2.new(1, 0, 0, 36), BackgroundColor3 = if not item.equipped then UI.Colors.Green elseif isWeapon then UI.Colors.Dark else Color3.fromRGB(150, 110, 50), Parent = details })
 	equipButton.MouseButton1Click:Connect(function()
 		if not item.equipped then
 			local result = State.request("equip", item.uid)
 			if result and result.ok then
 				Sounds.play("equip", 1, 0.6)
+			end
+		elseif not isWeapon then
+			local result = State.request("unequip", item.uid)
+			if result and result.ok then
+				Sounds.play("equip", 0.8, 0.5)
 			end
 		end
 	end)

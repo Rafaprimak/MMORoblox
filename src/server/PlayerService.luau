@@ -613,6 +613,7 @@ local function applyGearVisual(character, slot, item)
 	end
 	local model = Instance.new("Model")
 	model.Name = name
+	model.ModelStreamingMode = Enum.ModelStreamingMode.Atomic -- chega inteiro (com as soldas) no cliente
 	for _, piece in ItemModels.worn(item.base, item.rarity, sizes) do
 		local bodyPart = parts[piece.part]
 		if bodyPart then
@@ -862,6 +863,26 @@ function PlayerService.equip(player, uid)
 	data.equipped[base.slot] = uid
 	PlayerService.refreshCharacter(player, { weapon = base.slot == "weapon", armor = base.slot ~= "weapon" })
 	PlayerService.QuestHook(player, "equip", nil, 1)
+	PlayerService.markDirty(player)
+	return { ok = true }
+end
+
+-- Tira um item equipado (o espaço fica vazio). A arma não: sem ela não há combo; troque por outra.
+function PlayerService.unequip(player, uid)
+	local data = DataService.get(player)
+	if not data or typeof(uid) ~= "string" then
+		return { ok = false }
+	end
+	local item = data.inventory[uid]
+	local base = item and Items.Bases[item.base]
+	if not base or data.equipped[base.slot] ~= uid then
+		return { ok = false, msg = "Esse item não está equipado." }
+	end
+	if base.slot == "weapon" then
+		return { ok = false, msg = "A arma não pode ficar vazia: equipe outra para trocar." }
+	end
+	data.equipped[base.slot] = nil
+	PlayerService.refreshCharacter(player, { armor = true })
 	PlayerService.markDirty(player)
 	return { ok = true }
 end
@@ -1389,6 +1410,57 @@ task.spawn(function()
 				player:SetAttribute("Stamina", math.floor(s.stamina))
 				player:SetAttribute("MaxMana", stats.maxMana)
 				player:SetAttribute("MaxStamina", stats.maxStamina)
+			end
+		end
+	end
+end)
+
+-- Visual do equipamento caído: depois de teleportes longos (masmorra, raide) a solda de alguma peça pode
+-- se soltar; a peça cai e some (o personagem fica com os atributos, mas sem o visual). A cada 2 s confere
+-- se cada peça ainda está presa e perto da parte do corpo; se não, monta o visual de novo.
+local function gearBroken(character, slot)
+	local model = character:FindFirstChild("Visual_" .. slot)
+	if not model then
+		return true
+	end
+	for _, part in model:GetChildren() do
+		if part:IsA("BasePart") then
+			local weld = part:FindFirstChildOfClass("WeldConstraint")
+			local body = weld and weld.Part0
+			if not weld or not weld.Enabled or not body or not body:IsDescendantOf(character) or (part.Position - body.Position).Magnitude > 8 then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function weaponBroken(character)
+	local model = character:FindFirstChild("Arma")
+	if not model then
+		return true
+	end
+	local grip = model:FindFirstChild("PegadaArma", true)
+	return not grip or not grip.Part0 or not grip.Part0:IsDescendantOf(character) or not grip.Part1 or (grip.Part1.Position - grip.Part0.Position).Magnitude > 8
+end
+
+task.spawn(function()
+	while true do
+		task.wait(2)
+		for player in state do
+			local character = player.Character
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			if humanoid and humanoid.Health > 0 and character.Parent and DataService.get(player) then
+				local armor = false
+				for _, slot in { "armor", "helmet", "boots", "amulet", "ring" } do
+					if PlayerService.getEquipped(player, slot) and gearBroken(character, slot) then
+						armor = true
+					end
+				end
+				local weapon = PlayerService.getEquipped(player, "weapon") ~= nil and weaponBroken(character)
+				if armor or weapon then
+					PlayerService.refreshCharacter(player, { armor = armor, weapon = weapon })
+				end
 			end
 		end
 	end

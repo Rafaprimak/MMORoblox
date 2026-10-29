@@ -93,6 +93,23 @@ DungeonWindow.init(screen)
 DungeonAtmosphere.init()
 ArtStyle.init()
 AutoHunt.init(screen)
+-- loot pessoal: cada um só vê os próprios drops no chão (no grupo, cada colega ganha o seu)
+task.spawn(function()
+	local drops = workspace:WaitForChild("Drops", 120)
+	if not drops then
+		return
+	end
+	local function hideOthers(model)
+		local owner = model:GetAttribute("Owner")
+		if owner and owner ~= player.UserId then
+			model:Destroy()
+		end
+	end
+	for _, model in drops:GetChildren() do
+		hideOthers(model)
+	end
+	drops.ChildAdded:Connect(hideOthers)
+end)
 PlaytimeWindow.init(screen)
 FusionWindow.init(screen)
 Inventory.onFusion = function()
