@@ -99,7 +99,7 @@ function builders.forge(parent, npc, rng)
 	part(model, { Name = "Simbolo", Size = Vector3.new(0.3, 1.5, 0.35), CFrame = cf * CFrame.new(-0.5, 9.4, -0.6) * CFrame.Angles(0, 0, math.rad(35)), Color = C.Fire, Material = M.Neon })
 	part(model, { Name = "Simbolo", Size = Vector3.new(0.3, 1.5, 0.35), CFrame = cf * CFrame.new(0.5, 9.4, -0.6) * CFrame.Angles(0, 0, math.rad(-35)), Color = C.Fire, Material = M.Neon })
 	Props.engrave(sign, "FERRARIA", C.Fire)
-	Props.readable(sign, "Ferraria do Bruno", "Aqui o aço é forjado, aprimorado e fundido. O Bruno diz que \"aço não esquece\": o que você forja continua com você mesmo quando o dia volta. Serviços: forjar, aprimorar, desmontar, reforjar perks e fundir 9 itens iguais em 1 melhor.")
+	Props.readable(sign, "Ferraria do Bruno", "Aqui o aço é forjado, aprimorado e fundido. O Bruno diz que \"aço não esquece\": o que você forja continua com você mesmo quando o dia volta. Serviços: forjar, aprimorar, desmontar, reforjar perks e fundir 9 itens iguais em 1 melhor.", 18)
 	local _r = rng
 	return model
 end
@@ -164,7 +164,7 @@ function builders.alchemy(parent, npc, rng)
 	-- tabuleta embaixo do frasco (o frasco é redondo, não dá para gravar)
 	local board = part(model, { Name = "Tabuleta", Size = Vector3.new(3.6, 1.1, 0.25), CFrame = cf * CFrame.new(0, 7.7, -1.0), Color = Color3.fromRGB(112, 74, 42), Material = M.WoodPlanks })
 	Props.engrave(board, "ALQUIMIA", Color3.fromRGB(150, 255, 170))
-	Props.readable(board, "Alquimia da Mira", "Ervas, cogumelos e flores lunares viram poções de vida, mana e vigor. Mira guarda num caderno tudo o que cada dia repetido apaga da memória dela.")
+	Props.readable(board, "Alquimia da Mira", "Ervas, cogumelos e flores lunares viram poções de vida, mana e vigor. Mira guarda num caderno tudo o que cada dia repetido apaga da memória dela.", 18)
 	return model
 end
 
@@ -336,7 +336,7 @@ function builders.tower(parent, npc, rng)
 		end
 	end
 	model.Parent = parent
-	Props.readable(crystal, "Torre do Arquimago Elric", "Elric é um dos três arquimagos que ergueram o Orbe Infinito em volta do vale. Na torre ele encanta armas com a essência dos monstros: a mesma mana que os mudou, agora domada.")
+	Props.readable(crystal, "Torre do Arquimago Elric", "Elric é um dos três arquimagos que ergueram o Orbe Infinito em volta do vale. Na torre ele encanta armas com a essência dos monstros: a mesma mana que os mudou, agora domada.", 18)
 	return model
 end
 
@@ -397,7 +397,7 @@ function builders.emporium(parent, npc, rng)
 	end
 	local sign = part(model, { Name = "Placa", Size = Vector3.new(7, 1.8, 0.3), CFrame = cf * CFrame.new(0, 9.6, -0.65), Color = Color3.fromRGB(150, 40, 40), Material = M.WoodPlanks })
 	Props.engrave(sign, "EMPÓRIO DO OTTO", C.Gold)
-	Props.readable(sign, "Empório do Otto", "Tudo se compra, tudo se vende. Otto também cuida do Mercado dos Caçadores, onde Hunters de todos os servidores anunciam equipamentos e materiais.")
+	Props.readable(sign, "Empório do Otto", "Tudo se compra, tudo se vende. Otto também cuida do Mercado dos Caçadores, onde Hunters de todos os servidores anunciam equipamentos e materiais.", 18)
 	return model
 end
 
@@ -487,7 +487,7 @@ function builders.dungeonShop(parent, npc, rng)
 	local sign = part(model, { Name = "Placa", Size = Vector3.new(0.25, 1.6, 2.2), CFrame = cf * CFrame.new(3.6, 7.6, -1.6), Color = Color3.fromRGB(70, 45, 95), Material = M.WoodPlanks })
 	part(model, { Name = "Simbolo", Size = Vector3.new(0.3, 0.8, 0.8), CFrame = cf * CFrame.new(3.6, 7.6, -1.6) * CFrame.Angles(math.rad(45), 0, 0), Color = Color3.fromRGB(255, 200, 90), Material = M.Neon })
 	Props.engrave(sign, "COVIL", Color3.fromRGB(220, 180, 255), { Enum.NormalId.Left, Enum.NormalId.Right })
-	Props.readable(sign, "Covil do Mercador", "Varg só negocia com quem desce às masmorras. Chaves, poções fortes e os itens exclusivos da Toca, da Cripta e do Abismo, em Raro, Épico ou Lendário.")
+	Props.readable(sign, "Covil do Mercador", "Varg só negocia com quem desce às masmorras. Chaves, poções fortes e os itens exclusivos da Toca, da Cripta e do Abismo, em Raro, Épico ou Lendário.", 18)
 	return model
 end
 
