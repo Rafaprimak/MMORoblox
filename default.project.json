@@ -19,7 +19,8 @@
       "$properties": {
         "EnableMouseLockOption": false,
         "DevCameraOcclusionMode": "Invisicam",
-        "CameraMaxZoomDistance": 90
+        "CameraMaxZoomDistance": 90,
+        "GameSettingsAvatar": "R15"
       },
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
