@@ -61,7 +61,7 @@ function ProgressionService.grant(player, reward, label)
 		PlayerService.addConsumable(player, id, count, true)
 	end
 	if reward.egg and Pets.Eggs[reward.egg] then
-		PetService.give(player, Pets.rollEgg(reward.egg), reward.egg)
+		PetService.storeEgg(player, reward.egg) -- vai para a bolsa de baús (choca quando quiser)
 	end
 	if reward.chest then
 		ShopService.grant(player, reward.chest)

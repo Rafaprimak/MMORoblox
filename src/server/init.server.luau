@@ -441,6 +441,8 @@ Remotes.Request.OnServerInvoke = function(player, action, a, b)
 		return RaidService.exit(player)
 	elseif action == "openStoredChest" then
 		return ShopService.openStored(player, a)
+	elseif action == "hatchStoredEgg" then
+		return PetService.hatchStored(player, a)
 	elseif action == "arenaJoin" then
 		return ArenaService.join(player, a)
 	elseif action == "arenaLeave" then

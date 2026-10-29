@@ -12,6 +12,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Items = require(Shared.Items)
 local Rarities = require(Shared.Rarities)
 local Chests = require(Shared.Chests)
+local Pets = require(Shared.Pets)
 
 local UI = require(script.Parent.UI)
 local ItemIcon = require(script.Parent.ItemIcon)
@@ -33,6 +34,7 @@ local overlayGui, overlay, reel, reelHolder, resultPanel, resultName, resultInfo
 local currentScene = nil
 local selectedChest = "bronze"
 local storedButton -- abre um baú guardado (bolsa de baús)
+local bagFrame -- aba "Guardados": baús e ovos ganhos
 local openingStored = false -- a última roleta veio da bolsa (o "abrir outro" abre outro guardado)
 local revealing = false
 local possibleTitle = nil
@@ -136,9 +138,76 @@ local function storedAgain(stored)
 	end
 end
 
+local openStored -- declarada abaixo
+
+-- aba Guardados: lista os baús e ovos ganhos com botão de abrir/chocar
+local lastBagKey = nil
+local function renderBag(data)
+	local bag = (data and data.chestBag) or {}
+	local parts = {}
+	for key, amount in bag do
+		table.insert(parts, key .. amount)
+	end
+	table.sort(parts)
+	local signature = table.concat(parts, ",")
+	if signature == lastBagKey and #bagFrame:GetChildren() > 1 then
+		return
+	end
+	lastBagKey = signature
+	UI.clear(bagFrame)
+	UI.list(6).Parent = bagFrame
+	local order = 0
+	local function row(name, color, amount, buttonText, onClick)
+		order += 1
+		local line = UI.new("Frame", { Size = UDim2.new(1, -8, 0, 54), BackgroundColor3 = UI.Colors.PanelLight, LayoutOrder = order, Parent = bagFrame }, { UI.corner(8), UI.stroke(color, 1.5, 0.3) })
+		UI.label({ Text = name, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -200, 1, 0), TextScaled = false, TextSize = 18, Font = Enum.Font.GothamBlack, TextColor3 = color, Parent = line }, { UI.textStroke(1) })
+		UI.label({ Text = ("x%d"):format(amount), AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -170, 0.5, 0), Size = UDim2.fromOffset(60, 24), TextXAlignment = Enum.TextXAlignment.Right, TextScaled = false, TextSize = 18, Parent = line })
+		local button = UI.button({ Text = buttonText, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -10, 0.5, 0), Size = UDim2.fromOffset(150, 40), BackgroundColor3 = UI.Colors.Green, Parent = line })
+		button.MouseButton1Click:Connect(onClick)
+	end
+	for _, chestId in { "bronze", "prata", "real", "celestial" } do
+		local amount = bag[chestId] or 0
+		local chest = Chests.List[chestId]
+		if amount > 0 and chest then
+			row(chest.name, chest.color or UI.Colors.Gold, amount, "ABRIR", function()
+				selectedChest = chestId
+				openStored()
+			end)
+		end
+	end
+	for eggId, egg in Pets.Eggs do
+		local amount = bag["ovo_" .. eggId] or 0
+		if amount > 0 then
+			row(egg.name, egg.color or UI.Colors.Gold, amount, "CHOCAR", function()
+				local result = State.request("hatchStoredEgg", eggId)
+				if result and result.ok then
+					win:close()
+				end
+			end)
+		end
+	end
+	if order == 0 then
+		UI.label({ Text = "Nada guardado. Baús e ovos ganhos em missões, conquistas, eventos e na Jornada ficam aqui até você abrir.", Size = UDim2.new(1, -8, 0, 44), TextScaled = false, TextSize = 15, TextWrapped = true, TextColor3 = UI.Colors.SubText, Parent = bagFrame })
+	end
+end
+
 local function renderWindow()
-	local chest = Chests.List[selectedChest]
 	local data = State.data
+	-- aba Guardados: só a lista (esconde chances, itens e botões do baú)
+	local onBag = win.tab == "Guardados"
+	bagFrame.Visible = onBag
+	odds.Visible = not onBag
+	possible.Visible = not onBag
+	possibleTitle.Visible = not onBag
+	buyButton.Visible = not onBag
+	if onBag then
+		storedButton.Visible = false
+		win.title.Text = "BAÚS GUARDADOS"
+		renderBag(data)
+		storedAgain((data and data.chestBag and data.chestBag[selectedChest]) or 0)
+		return
+	end
+	local chest = Chests.List[selectedChest]
 	win.title.Text = chest.name
 	UI.clear(odds)
 	UI.label({ Text = "CHANCES REAIS", Size = UDim2.new(1, 0, 0, 20), Font = Enum.Font.GothamBlack, LayoutOrder = 0, Parent = odds })
@@ -365,7 +434,7 @@ function Chest.reveal(item, chestId)
 	revealing = false
 end
 
-local function openStored()
+function openStored()
 	if revealing then
 		return
 	end
@@ -394,7 +463,7 @@ local function buy()
 end
 
 function Chest.init(screen)
-	win = Window.create(screen, { icon = "present", name = "Baus", title = "BAÚS", width = 720, height = 520, tabs = { "Bronze", "Prata", "Real", "Celestial" }, accent = UI.Colors.Gold })
+	win = Window.create(screen, { icon = "present", name = "Baus", title = "BAÚS", width = 720, height = 520, tabs = { "Guardados", "Bronze", "Prata", "Real", "Celestial" }, accent = UI.Colors.Gold })
 	odds = UI.new("Frame", { Size = UDim2.new(0, 250, 1, -60), BackgroundTransparency = 1, Parent = win.content }, { UI.list(4) })
 	possibleTitle = UI.label({ Text = "ITENS POSSÍVEIS (de Comum a Secreto)", Position = UDim2.fromOffset(262, 0), Size = UDim2.new(1, -262, 0, 20), Font = Enum.Font.GothamBlack, Parent = win.content })
 	possible = UI.new("ScrollingFrame", { Position = UDim2.fromOffset(262, 24), Size = UDim2.new(1, -262, 1, -84), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 5, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Parent = win.content }, {
@@ -404,8 +473,12 @@ function Chest.init(screen)
 	buyButton.MouseButton1Click:Connect(buy)
 	storedButton = UI.button({ Text = "ABRIR GUARDADO", AnchorPoint = Vector2.new(0, 1), Position = UDim2.new(0, 0, 1, 0), Size = UDim2.new(0.48, 0, 0, 50), BackgroundColor3 = UI.Colors.Green, Visible = false, Parent = win.content })
 	storedButton.MouseButton1Click:Connect(openStored)
+	bagFrame = UI.new("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 6, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, Visible = false, Parent = win.content })
 	win.onTab = function(name)
-		selectedChest = if name == "Prata" then "prata" elseif name == "Real" then "real" elseif name == "Celestial" then "celestial" else "bronze"
+		if name ~= "Guardados" then
+			selectedChest = if name == "Prata" then "prata" elseif name == "Real" then "real" elseif name == "Celestial" then "celestial" else "bronze"
+		end
+		lastBagKey = nil
 		renderWindow()
 	end
 	win.onOpen = renderWindow

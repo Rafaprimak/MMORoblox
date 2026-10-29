@@ -99,6 +99,42 @@ function PetService.buyEgg(player, eggId)
 	return { ok = true, pet = petId, uid = uid }
 end
 
+-- Ovo ganho de recompensa: vai para a bolsa de baús (data.chestBag["ovo_<id>"]) e choca quando o jogador quiser
+function PetService.storeEgg(player, eggId)
+	local data = DataService.get(player)
+	local egg = Pets.Eggs[eggId]
+	if not data or not egg then
+		return
+	end
+	local key = "ovo_" .. eggId
+	data.chestBag[key] = (data.chestBag[key] or 0) + 1
+	Remotes.Notify:FireClient(player, { kind = "message", text = ("%s guardado! Choque quando quiser em Baús (B), aba Guardados."):format(egg.name) })
+	PlayerService.markDirty(player)
+end
+
+-- Choca um ovo guardado na bolsa
+function PetService.hatchStored(player, eggId)
+	local data = DataService.get(player)
+	local egg = type(eggId) == "string" and Pets.Eggs[eggId]
+	if not data or not egg then
+		return fail("Ovo inválido.")
+	end
+	local key = "ovo_" .. eggId
+	if (data.chestBag[key] or 0) <= 0 then
+		return fail("Você não tem esse ovo guardado.")
+	end
+	if count(data) >= Pets.MaxOwned then
+		return fail("Você tem pets demais! Solte algum primeiro.")
+	end
+	data.chestBag[key] -= 1
+	if data.chestBag[key] <= 0 then
+		data.chestBag[key] = nil
+	end
+	local petId = Pets.rollEgg(eggId, rng)
+	local uid = PetService.give(player, petId, eggId, true)
+	return { ok = true, pet = petId, uid = uid }
+end
+
 -- Ovo pago com Robux: choca sempre (mesmo com o limite de pets cheio)
 function PetService.grantEgg(player, eggId)
 	if not Pets.Eggs[eggId] or not DataService.get(player) then
